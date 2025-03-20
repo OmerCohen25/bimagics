@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>האתר הראשון שלי</title>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-analytics-compat.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,10 +16,84 @@
         h1 {
             color: #0366d6;
         }
+        input, button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
     <h1>ברוכים הבאים לאתר שלי!</h1>
     <p>האתר הזה נוצר ישירות ב־GitHub, בלי להוריד שום דבר למחשב 😊</p>
+
+    <!-- התחברות עם אימייל וסיסמה -->
+    <h2>התחברות עם אימייל</h2>
+    <input id="email" type="email" placeholder="אימייל"><br>
+    <input id="password" type="password" placeholder="סיסמה"><br>
+    <button onclick="signUp()">הרשמה</button>
+    <button onclick="signIn()">כניסה</button>
+
+    <!-- התחברות עם טלפון -->
+    <h2>התחברות עם טלפון</h2>
+    <input id="phoneNumber" type="text" placeholder="+972501234567"><br>
+    <div id="recaptcha-container"></div>
+    <button onclick="signInWithPhone()">שליחת קוד אימות</button><br>
+    <input id="code" type="text" placeholder="קוד אימות"><br>
+    <button onclick="verifyCode()">אימות קוד</button>
+
+    <script>
+        const firebaseConfig = {
+          apiKey: "AIzaSyAau_zHnz0rubShvUZIOu_oBiP6XuQnQlQ",
+          authDomain: "bimagics-auth.firebaseapp.com",
+          projectId: "bimagics-auth",
+          storageBucket: "bimagics-auth.appspot.com",
+          messagingSenderId: "394050199683",
+          appId: "1:394050199683:web:a05e9254875eb3372c7bb6",
+          measurementId: "G-R5FRWCLVFT"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        firebase.analytics();
+
+        // הרשמה עם אימייל וסיסמה
+        function signUp() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            firebase.auth().createUserWithEmailAndPassword(email, password)
+            .then(() => alert('נרשמת בהצלחה!'))
+            .catch((error) => alert(error.message));
+        }
+
+        // כניסה עם אימייל וסיסמה
+        function signIn() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            firebase.auth().signInWithEmailAndPassword(email, password)
+            .then(() => alert('התחברת בהצלחה!'))
+            .catch((error) => alert(error.message));
+        }
+
+        // התחברות עם טלפון
+        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
+        let confirmationResult;
+
+        function signInWithPhone() {
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            firebase.auth().signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
+            .then((result) => {
+                confirmationResult = result;
+                alert('קוד אימות נשלח לטלפון שלך.');
+            }).catch((error) => alert(error.message));
+        }
+
+        function verifyCode() {
+            const code = document.getElementById('code').value;
+            confirmationResult.confirm(code)
+            .then(() => alert('האימות הצליח, נכנסת בהצלחה!'))
+            .catch((error) => alert(error.message));
+        }
+    </script>
 </body>
 </html>
