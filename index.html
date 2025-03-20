@@ -2,7 +2,7 @@
 <html lang="he">
 <head>
     <meta charset="UTF-8">
-    <title>האתר הראשון שלי</title>
+    <title>Bimagics – כניסה פשוטה לאתר</title>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-analytics-compat.js"></script>
@@ -10,90 +10,251 @@
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            margin-top: 50px;
-            background-color: #f0f8ff;
+            background-color: #f9fbfd;
+            padding-top: 50px;
         }
-        h1 {
-            color: #0366d6;
+        .container {
+            width: 300px;
+            margin: 0 auto;
+            padding: 25px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        input, button {
-            margin: 5px;
+        button {
+            width: 100%;
+            margin-top: 10px;
             padding: 10px;
             font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+        }
+        #google-btn {
+            background-color: #4285F4;
+            color: white;
+        }
+        #phone-btn {
+            background-color: #34A853;
+            color: white;
+        }
+        input {
+            width: 92%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            direction: ltr;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+        }
+        #recaptcha-container {
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>ברוכים הבאים לאתר שלי!</h1>
-    <p>האתר הזה נוצר ישירות ב־GitHub, בלי להוריד שום דבר למחשב 😊</p>
+<div class="container">
+    <h2>כניסה מהירה לאתר</h2>
 
-    <!-- התחברות עם אימייל וסיסמה -->
-    <h2>התחברות עם אימייל</h2>
-    <input id="email" type="email" placeholder="אימייל"><br>
-    <input id="password" type="password" placeholder="סיסמה"><br>
-    <button onclick="signUp()">הרשמה</button>
-    <button onclick="signIn()">כניסה</button>
+    <!-- Google Sign-In -->
+    <button id="google-btn" onclick="googleSignIn()">התחברות עם Google</button>
 
-    <!-- התחברות עם טלפון -->
-    <h2>התחברות עם טלפון</h2>
-    <input id="phoneNumber" type="text" placeholder="+972501234567"><br>
+    <!-- Phone Number -->
+    <input id="phoneNumber" type="text" placeholder="מספר טלפון (לדוג': 0521234567)" maxlength="10">
     <div id="recaptcha-container"></div>
-    <button onclick="signInWithPhone()">שליחת קוד אימות</button><br>
-    <input id="code" type="text" placeholder="קוד אימות"><br>
-    <button onclick="verifyCode()">אימות קוד</button>
+    <button id="phone-btn" onclick="sendCode()">שליחת קוד אימות ב־SMS</button>
 
-    <script>
-        const firebaseConfig = {
-          apiKey: "AIzaSyAau_zHnz0rubShvUZIOu_oBiP6XuQnQlQ",
-          authDomain: "bimagics-auth.firebaseapp.com",
-          projectId: "bimagics-auth",
-          storageBucket: "bimagics-auth.appspot.com",
-          messagingSenderId: "394050199683",
-          appId: "1:394050199683:web:a05e9254875eb3372c7bb6",
-          measurementId: "G-R5FRWCLVFT"
-        };
+    <input id="code" type="text" placeholder="הכנס קוד אימות">
+    <button onclick="verifyCode()">אימות והתחברות</button>
+</div>
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        firebase.analytics();
+<script>
+    // הגדרות Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyAau_zHnz0rubShvUZIOu_oBiP6XuQnQlQ",
+        authDomain: "bimagics-auth.firebaseapp.com",
+        projectId: "bimagics-auth",
+        storageBucket: "bimagics-auth.appspot.com",
+        messagingSenderId: "394050199683",
+        appId: "1:394050199683:web:a05e9254875eb3372c7bb6",
+        measurementId: "G-R5FRWCLVFT"
+    };
 
-        // הרשמה עם אימייל וסיסמה
-        function signUp() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            firebase.auth().createUserWithEmailAndPassword(email, password)
-            .then(() => alert('נרשמת בהצלחה!'))
-            .catch((error) => alert(error.message));
+    firebase.initializeApp(firebaseConfig);
+    firebase.analytics();
+
+    // התחברות בלחיצה אחת עם גוגל
+    function googleSignIn(){
+        const provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider)
+        .then((result) => alert('התחברת בהצלחה עם Google!'))
+        .catch((error) => alert(error.message));
+    }
+
+    // אימות טלפון ישראלי בלבד ללא קידומת
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+        size: 'invisible'
+    });
+
+    let confirmationResult;
+
+    function sendCode() {
+        let phone = document.getElementById('phoneNumber').value.trim();
+        if (!phone.match(/^05\d{8}$/)) {
+            alert('הזן מספר ישראלי תקין (לדוגמה: 0521234567)');
+            return;
         }
+        const fullNumber = '+972' + phone.slice(1);
+        firebase.auth().signInWithPhoneNumber(fullNumber, window.recaptchaVerifier)
+        .then((result) => {
+            confirmationResult = result;
+            alert('קוד אימות נשלח בהצלחה!');
+        }).catch((error) => {
+            alert(error.message);
+            window.recaptchaVerifier.render().then(widgetId => grecaptcha.reset(widgetId));
+        });
+    }
 
-        // כניסה עם אימייל וסיסמה
-        function signIn() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            firebase.auth().signInWithEmailAndPassword(email, password)
-            .then(() => alert('התחברת בהצלחה!'))
-            .catch((error) => alert(error.message));
+    function verifyCode() {
+        const code = document.getElementById('code').value.trim();
+        confirmationResult.confirm(code)
+        .then(() => alert('התחברת בהצלחה באמצעות מספר טלפון!'))
+        .catch((error) => alert('קוד שגוי, נסה שוב.'));
+    }
+</script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>Bimagics – כניסה פשוטה לאתר</title>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-analytics-compat.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f9fbfd;
+            padding-top: 50px;
         }
-
-        // התחברות עם טלפון
-        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
-        let confirmationResult;
-
-        function signInWithPhone() {
-            const phoneNumber = document.getElementById('phoneNumber').value;
-            firebase.auth().signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
-            .then((result) => {
-                confirmationResult = result;
-                alert('קוד אימות נשלח לטלפון שלך.');
-            }).catch((error) => alert(error.message));
+        .container {
+            width: 300px;
+            margin: 0 auto;
+            padding: 25px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-
-        function verifyCode() {
-            const code = document.getElementById('code').value;
-            confirmationResult.confirm(code)
-            .then(() => alert('האימות הצליח, נכנסת בהצלחה!'))
-            .catch((error) => alert(error.message));
+        button {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
         }
-    </script>
+        #google-btn {
+            background-color: #4285F4;
+            color: white;
+        }
+        #phone-btn {
+            background-color: #34A853;
+            color: white;
+        }
+        input {
+            width: 92%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            direction: ltr;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+        }
+        #recaptcha-container {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>כניסה מהירה לאתר</h2>
+
+    <!-- Google Sign-In -->
+    <button id="google-btn" onclick="googleSignIn()">התחברות עם Google</button>
+
+    <!-- Phone Number -->
+    <input id="phoneNumber" type="text" placeholder="מספר טלפון (לדוג': 0521234567)" maxlength="10">
+    <div id="recaptcha-container"></div>
+    <button id="phone-btn" onclick="sendCode()">שליחת קוד אימות ב־SMS</button>
+
+    <input id="code" type="text" placeholder="הכנס קוד אימות">
+    <button onclick="verifyCode()">אימות והתחברות</button>
+</div>
+
+<script>
+    // הגדרות Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyAau_zHnz0rubShvUZIOu_oBiP6XuQnQlQ",
+        authDomain: "bimagics-auth.firebaseapp.com",
+        projectId: "bimagics-auth",
+        storageBucket: "bimagics-auth.appspot.com",
+        messagingSenderId: "394050199683",
+        appId: "1:394050199683:web:a05e9254875eb3372c7bb6",
+        measurementId: "G-R5FRWCLVFT"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    firebase.analytics();
+
+    // התחברות בלחיצה אחת עם גוגל
+    function googleSignIn(){
+        const provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider)
+        .then((result) => alert('התחברת בהצלחה עם Google!'))
+        .catch((error) => alert(error.message));
+    }
+
+    // אימות טלפון ישראלי בלבד ללא קידומת
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+        size: 'invisible'
+    });
+
+    let confirmationResult;
+
+    function sendCode() {
+        let phone = document.getElementById('phoneNumber').value.trim();
+        if (!phone.match(/^05\d{8}$/)) {
+            alert('הזן מספר ישראלי תקין (לדוגמה: 0521234567)');
+            return;
+        }
+        const fullNumber = '+972' + phone.slice(1);
+        firebase.auth().signInWithPhoneNumber(fullNumber, window.recaptchaVerifier)
+        .then((result) => {
+            confirmationResult = result;
+            alert('קוד אימות נשלח בהצלחה!');
+        }).catch((error) => {
+            alert(error.message);
+            window.recaptchaVerifier.render().then(widgetId => grecaptcha.reset(widgetId));
+        });
+    }
+
+    function verifyCode() {
+        const code = document.getElementById('code').value.trim();
+        confirmationResult.confirm(code)
+        .then(() => alert('התחברת בהצלחה באמצעות מספר טלפון!'))
+        .catch((error) => alert('קוד שגוי, נסה שוב.'));
+    }
+</script>
 </body>
 </html>
