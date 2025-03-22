@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>משחק זיכרון</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; }
+        .container { margin: 20px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .grid { display: grid; gap: 5px; margin: 20px auto; }
+        .card { width: 60px; height: 60px; background: #007bff; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; }
+        .hidden { background: #f4f4f4; }
+        button { padding: 10px 20px; margin-top: 10px; }
+        .result { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>משחק זיכרון</h1>
+        <h3>בחר רמת קושי:</h3>
+        <button onclick="startGame(4)">קל (4x2)</button>
+        <button onclick="startGame(6)">בינוני (6x3)</button>
+        <button onclick="startGame(8)">קשה (8x4)</button>
+        <div class="grid" id="grid"></div>
+        <div class="result" id="result"></div>
+        <button onclick="shareResult()" style="display:none;" id="shareBtn">שתף תוצאה בווצאפ</button>
+    </div>
+    <script>
+        let cardValues = [];
+        let selectedCards = [];
+        let matchedCards = 0;
+        let attempts = 0;
+        let timer;
+        let timeElapsed = 0;
+
+        function startGame(size) {
+            clearInterval(timer);
+            matchedCards = 0;
+            attempts = 0;
+            timeElapsed = 0;
+            cardValues = generateCardValues(size);
+            createGrid(size);
+            document.getElementById('result').innerText = '';
+            document.getElementById('shareBtn').style.display = 'none';
+            timer = setInterval(() => { timeElapsed++; }, 1000);
+        }
+
+        function generateCardValues(size) {
+            const totalCards = size * 2;
+            const values = Array.from({ length: totalCards / 2 }, (_, i) => i + 1);
+            return [...values, ...values].sort(() => Math.random() - 0.5);
+        }
+
+        function createGrid(size) {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            grid.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+            cardValues.forEach((value, index) => {
+                const card = document.createElement('div');
+                card.className = 'card hidden';
+                card.dataset.value = value;
+                card.onclick = () => selectCard(card);
+                grid.appendChild(card);
+            });
+        }
+
+        function selectCard(card) {
+            if (selectedCards.length < 2 && !card.classList.contains('matched')) {
+                card.classList.remove('hidden');
+                selectedCards.push(card);
+                if (selectedCards.length === 2) {
+                    attempts++;
+                    setTimeout(checkMatch, 1000);
+                }
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = selectedCards;
+            if (card1.dataset.value === card2.dataset.value) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedCards += 2;
+                if (matchedCards === cardValues.length) {
+                    clearInterval(timer);
+                    document.getElementById('result').innerText = `ניצחת! ניסיונות: ${attempts}, זמן: ${timeElapsed} שניות`;
+                    document.getElementById('shareBtn').style.display = 'block';
+                }
+            } else {
+                card1.classList.add('hidden');
+                card2.classList.add('hidden');
+            }
+            selectedCards = [];
+        }
+
+        function shareResult() {
+            const resultText = document.getElementById('result').innerText;
+            const url = 'https://yourwebsite.com'; // Change to your website URL
+            const shareText = 'בדקתי את משחק הזיכרון שלי: ' + resultText + ' ' + url;
+            const shareUrl = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(shareText);
+            window.open(shareUrl, '_blank');
+        }
+    </script>
+
+<footer style="margin-top: 50px; padding: 20px; background-color: #f2f2f2; font-size: 14px; text-align: center;">
+  נבנה באמצעות <strong>WaBot.ai</strong><br>
+  <a href="https://wa.me/972559405006?text=היי!+רוצה+לבנות+אתר+בווטסאפ" target="_blank" style="color: #007bff; text-decoration: none;">
+    נסו בעצמכם לבנות אתר בוואטסאפ! 🚀
+  </a>
+</footer>
+</body>
+</html>
