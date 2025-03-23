@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>האתרים שלך</title>
   <style>
-    /* עיצוב מודרני ורספונסיבי */
+    /* איפוס בסיסי ועיצוב מודרני */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Arial', sans-serif;
@@ -44,7 +44,7 @@
     .card h2 { font-size: 1.5rem; margin-bottom: 0.5rem; color: #333; }
     .card p { margin-bottom: 0.5rem; color: #555; line-height: 1.4; }
     .card a {
-      align-self: flex-start;
+      display: inline-block;
       background: #4CAF50;
       color: white;
       padding: 0.5rem 1rem;
@@ -52,8 +52,10 @@
       text-decoration: none;
       font-weight: bold;
       transition: background 0.3s ease;
+      margin-right: 10px;
     }
-    .card a:hover { background: #45a049; }
+    .card a.share-button { background: #007bff; }
+    .card a:hover { opacity: 0.9; }
     @media (max-width: 600px) {
       h1 { font-size: 1.5rem; }
       .card h2 { font-size: 1.25rem; }
@@ -71,7 +73,7 @@
     const userId = "972506579403";
     async function fetchSites() {
       try {
-        // שימוש בכתובת Raw לקבלת קובץ האינדקס
+        // שימוש בכתובת Raw לקבלת קובץ index.json
         const res = await fetch("https://raw.githubusercontent.com/OmerCohen25/my-first-site/main/sites/" + userId + "/index.json");
         if (!res.ok) {
           throw new Error("Failed to fetch sites index");
@@ -83,17 +85,16 @@
           sitesContainer.innerHTML = '<p>לא נמצאו אתרים</p>';
           return;
         }
-        for (const site of sitesIndex) {
+        sitesIndex.forEach(function(site) {
           const card = document.createElement('div');
           card.className = 'card';
-          card.innerHTML = `
-            <h2>${site.title}</h2>
-            <p><strong>נוצר בתאריך:</strong> ${new Date(site.createdAt).toLocaleString('he-IL')}</p>
-            <p><strong>פרומפט:</strong> ${site.prompt}</p>
-            <a href="${site.url}" target="_blank">👀 לצפייה באתר</a>
-          `;
+          const viewLink = '<a href="' + site.url + '" target="_blank">👀 לצפייה באתר</a>';
+          const shareLink = '<a class="share-button" href="https://wa.me/?text=' + encodeURIComponent("הנה האתר שלי: " + site.url) + '" target="_blank">שתף בווצאפ</a>';
+          card.innerHTML = '<h2>' + site.title + '</h2>' +
+                           '<p><strong>נוצר בתאריך:</strong> ' + new Date(site.createdAt).toLocaleString("he-IL") + '</p>' +
+                           viewLink + shareLink;
           sitesContainer.appendChild(card);
-        }
+        });
       } catch (err) {
         console.error("Error fetching sites index:", err);
         document.getElementById('sites').innerHTML = '<p>שגיאה בטעינת האתרים 😢</p>';
