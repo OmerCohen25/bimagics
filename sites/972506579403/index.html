@@ -1,33 +1,103 @@
 <!DOCTYPE html>
-<html lang="he">
+<html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>האתרים שלך</title>
   <style>
-    body { font-family: sans-serif; padding: 2rem; background: #f9f9f9; }
-    h1 { color: #4CAF50; }
+    /* איפוס בסיסי */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f2f2f2;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      direction: rtl;
+    }
+    header {
+      width: 100%;
+      background: #4CAF50;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: 2rem;
+    }
+    .container {
+      width: 100%;
+      max-width: 800px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+    }
     .card {
       background: white;
       padding: 1rem;
-      margin: 1rem 0;
       border-radius: 8px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
-    .link {
-      color: #007bff;
+    .card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: #333;
+    }
+    .card p {
+      margin-bottom: 0.5rem;
+      color: #555;
+      line-height: 1.4;
+    }
+    .card a {
+      align-self: flex-start;
+      background: #4CAF50;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
       text-decoration: none;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+    .card a:hover {
+      background: #45a049;
+    }
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+      .card h2 {
+        font-size: 1.25rem;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>האתרים שבנית 🪄</h1>
-  <div id="sites"></div>
+  <header>
+    <h1>האתרים שבנית 🪄</h1>
+  </header>
+  <div class="container">
+    <div id="sites" class="grid"></div>
+  </div>
   <script>
     const userId = "972506579403";
     async function fetchSites() {
       try {
         const res = await fetch("https://api.github.com/repos/OmerCohen25/my-first-site/contents/sites/" + userId);
         const folders = await res.json();
+        const sitesContainer = document.getElementById('sites');
+        sitesContainer.innerHTML = "";
         for (const folder of folders) {
           if (!folder.name || folder.name === "index.html") continue;
           const metaRes = await fetch("https://api.github.com/repos/OmerCohen25/my-first-site/contents/sites/" + userId + "/" + folder.name + "/meta.json");
@@ -35,15 +105,15 @@
           const metaFile = await metaRes.json();
           const metaContent = atob(metaFile.content);
           const meta = JSON.parse(metaContent);
-          const div = document.createElement('div');
-          div.className = 'card';
-          div.innerHTML = `
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
             <h2>${meta.title}</h2>
             <p><strong>נוצר בתאריך:</strong> ${new Date(meta.createdAt).toLocaleString('he-IL')}</p>
             <p><strong>פרומפט:</strong> ${meta.prompt}</p>
-            <p><a class="link" href="${meta.url}" target="_blank">👀 לצפייה באתר</a></p>
+            <a href="${meta.url}" target="_blank">👀 לצפייה באתר</a>
           `;
-          document.getElementById('sites').appendChild(div);
+          sitesContainer.appendChild(card);
         }
       } catch (err) {
         document.getElementById('sites').innerHTML = '<p>שגיאה בטעינת האתרים 😢</p>';
