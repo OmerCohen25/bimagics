@@ -22,33 +22,33 @@
 <body>
   <h1>האתרים שבנית 🪄</h1>
   <div id="sites"></div>
-
   <script>
-    const userId = window.location.pathname.split('/')[2]; // מתוך /sites/{userId}/
-
+    const userId = "972506579403";
     async function fetchSites() {
-      const res = await fetch(`https://api.github.com/repos/OmerCohen25/my-first-site/contents/sites/${userId}`);
-      const folders = await res.json();
-
-      for (const folder of folders) {
-        const metaRes = await fetch(folder.url + '/meta.json');
-        if (!metaRes.ok) continue;
-        const metaFile = await metaRes.json();
-        const metaContent = atob(metaFile.content);
-        const meta = JSON.parse(metaContent);
-
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.innerHTML = `
-          <h2>${meta.title}</h2>
-          <p><strong>נוצר בתאריך:</strong> ${new Date(meta.createdAt).toLocaleString('he-IL')}</p>
-          <p><strong>פרומפט:</strong> ${meta.prompt}</p>
-          <p><a class="link" href="${meta.url}" target="_blank">👀 לצפייה באתר</a></p>
-        `;
-        document.getElementById('sites').appendChild(div);
+      try {
+        const res = await fetch("https://api.github.com/repos/OmerCohen25/my-first-site/contents/sites/" + userId);
+        const folders = await res.json();
+        for (const folder of folders) {
+          if (!folder.name || folder.name === "index.html") continue;
+          const metaRes = await fetch("https://api.github.com/repos/OmerCohen25/my-first-site/contents/sites/" + userId + "/" + folder.name + "/meta.json");
+          if (!metaRes.ok) continue;
+          const metaFile = await metaRes.json();
+          const metaContent = atob(metaFile.content);
+          const meta = JSON.parse(metaContent);
+          const div = document.createElement('div');
+          div.className = 'card';
+          div.innerHTML = `
+            <h2>${meta.title}</h2>
+            <p><strong>נוצר בתאריך:</strong> ${new Date(meta.createdAt).toLocaleString('he-IL')}</p>
+            <p><strong>פרומפט:</strong> ${meta.prompt}</p>
+            <p><a class="link" href="${meta.url}" target="_blank">👀 לצפייה באתר</a></p>
+          `;
+          document.getElementById('sites').appendChild(div);
+        }
+      } catch (err) {
+        document.getElementById('sites').innerHTML = '<p>שגיאה בטעינת האתרים 😢</p>';
       }
     }
-
     fetchSites();
   </script>
 </body>
