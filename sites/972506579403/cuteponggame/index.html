@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cute Pong Game</title>
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f0f0; }
+        canvas { background: #fff; border: 2px solid #000; }
+    </style>
+</head>
+<body>
+    <canvas id="pong" width="300" height="500"></canvas>
+    <script>
+        const canvas = document.getElementById('pong');
+        const context = canvas.getContext('2d');
+        const paddleWidth = 10, paddleHeight = 100;
+        let player = { x: 0, y: canvas.height / 2 - paddleHeight / 2, width: paddleWidth, height: paddleHeight, score: 0 };
+        let ball = { x: canvas.width / 2, y: canvas.height / 2, radius: 10, speed: 4, dx: 4, dy: 4 };
+
+        function draw() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.fillStyle = '#000';
+            context.fillRect(player.x, player.y, player.width, player.height);
+            context.beginPath();
+            context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            context.fill();
+        }
+
+        function update() {
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+            if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) ball.dy *= -1;
+            if (ball.x + ball.radius > canvas.width) { ball.dx *= -1; ball.x = canvas.width / 2; ball.y = canvas.height / 2; }
+            if (ball.x - ball.radius < player.x + player.width && ball.y > player.y && ball.y < player.y + player.height) ball.dx *= -1;
+        }
+
+        function game() {
+            draw();
+            update();
+            requestAnimationFrame(game);
+        }
+
+        document.addEventListener('touchmove', (e) => {
+            let touchY = e.touches[0].clientY - canvas.getBoundingClientRect().top;
+            player.y = touchY - player.height / 2;
+            if (player.y < 0) player.y = 0;
+            if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
+        });
+
+        game();
+    </script>
+
+<footer style="margin-top: 50px; padding: 20px; background-color: #f2f2f2; font-size: 14px; text-align: center;">
+  נבנה באמצעות <strong>webss.ai</strong><br>
+  <a href="https://wa.me/972559405006?text=היי!+רוצה+לבנות+אתר+בווטסאפ" target="_blank" style="color: #007bff; text-decoration: none;">
+    נסו בעצמכם לבנות אתר בוואטסאפ! 🚀
+  </a>
+</footer>
+</body>
+</html>
