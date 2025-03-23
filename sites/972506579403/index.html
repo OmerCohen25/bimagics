@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8" />
+  <title>האתרים שלך</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f9f9f9; }
+    h1 { color: #4CAF50; }
+    .card {
+      background: white;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    .link {
+      color: #007bff;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>האתרים שבנית 🪄</h1>
+  <div id="sites"></div>
+
+  <script>
+    const userId = window.location.pathname.split('/')[2]; // מתוך /sites/{userId}/
+
+    async function fetchSites() {
+      const res = await fetch(`https://api.github.com/repos/OmerCohen25/my-first-site/contents/sites/${userId}`);
+      const folders = await res.json();
+
+      for (const folder of folders) {
+        const metaRes = await fetch(folder.url + '/meta.json');
+        if (!metaRes.ok) continue;
+        const metaFile = await metaRes.json();
+        const metaContent = atob(metaFile.content);
+        const meta = JSON.parse(metaContent);
+
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <h2>${meta.title}</h2>
+          <p><strong>נוצר בתאריך:</strong> ${new Date(meta.createdAt).toLocaleString('he-IL')}</p>
+          <p><strong>פרומפט:</strong> ${meta.prompt}</p>
+          <p><a class="link" href="${meta.url}" target="_blank">👀 לצפייה באתר</a></p>
+        `;
+        document.getElementById('sites').appendChild(div);
+      }
+    }
+
+    fetchSites();
+  </script>
+</body>
+</html>
