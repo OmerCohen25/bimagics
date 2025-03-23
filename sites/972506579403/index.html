@@ -5,12 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>האתרים שלך</title>
   <style>
-    /* איפוס בסיסי */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    /* עיצוב מודרני ורספונסיבי */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Arial', sans-serif;
       background: #f2f2f2;
@@ -29,13 +25,8 @@
       border-radius: 8px;
       margin-bottom: 1rem;
     }
-    h1 {
-      font-size: 2rem;
-    }
-    .container {
-      width: 100%;
-      max-width: 800px;
-    }
+    h1 { font-size: 2rem; }
+    .container { width: 100%; max-width: 800px; }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -50,16 +41,8 @@
       flex-direction: column;
       justify-content: space-between;
     }
-    .card h2 {
-      font-size: 1.5rem;
-      margin-bottom: 0.5rem;
-      color: #333;
-    }
-    .card p {
-      margin-bottom: 0.5rem;
-      color: #555;
-      line-height: 1.4;
-    }
+    .card h2 { font-size: 1.5rem; margin-bottom: 0.5rem; color: #333; }
+    .card p { margin-bottom: 0.5rem; color: #555; line-height: 1.4; }
     .card a {
       align-self: flex-start;
       background: #4CAF50;
@@ -70,16 +53,10 @@
       font-weight: bold;
       transition: background 0.3s ease;
     }
-    .card a:hover {
-      background: #45a049;
-    }
+    .card a:hover { background: #45a049; }
     @media (max-width: 600px) {
-      h1 {
-        font-size: 1.5rem;
-      }
-      .card h2 {
-        font-size: 1.25rem;
-      }
+      h1 { font-size: 1.5rem; }
+      .card h2 { font-size: 1.25rem; }
     }
   </style>
 </head>
@@ -94,28 +71,31 @@
     const userId = "972506579403";
     async function fetchSites() {
       try {
-        const res = await fetch("https://api.github.com/repos/OmerCohen25/my-first-site/contents/sites/" + userId);
-        const folders = await res.json();
+        // שימוש בכתובת Raw לקבלת קובץ האינדקס
+        const res = await fetch("https://raw.githubusercontent.com/OmerCohen25/my-first-site/main/sites/" + userId + "/index.json");
+        if (!res.ok) {
+          throw new Error("Failed to fetch sites index");
+        }
+        const sitesIndex = await res.json();
         const sitesContainer = document.getElementById('sites');
         sitesContainer.innerHTML = "";
-        for (const folder of folders) {
-          if (!folder.name || folder.name === "index.html") continue;
-          const metaRes = await fetch("https://api.github.com/repos/OmerCohen25/my-first-site/contents/sites/" + userId + "/" + folder.name + "/meta.json");
-          if (!metaRes.ok) continue;
-          const metaFile = await metaRes.json();
-          const metaContent = atob(metaFile.content);
-          const meta = JSON.parse(metaContent);
+        if (!Array.isArray(sitesIndex) || sitesIndex.length === 0) {
+          sitesContainer.innerHTML = '<p>לא נמצאו אתרים</p>';
+          return;
+        }
+        for (const site of sitesIndex) {
           const card = document.createElement('div');
           card.className = 'card';
           card.innerHTML = `
-            <h2>${meta.title}</h2>
-            <p><strong>נוצר בתאריך:</strong> ${new Date(meta.createdAt).toLocaleString('he-IL')}</p>
-            <p><strong>פרומפט:</strong> ${meta.prompt}</p>
-            <a href="${meta.url}" target="_blank">👀 לצפייה באתר</a>
+            <h2>${site.title}</h2>
+            <p><strong>נוצר בתאריך:</strong> ${new Date(site.createdAt).toLocaleString('he-IL')}</p>
+            <p><strong>פרומפט:</strong> ${site.prompt}</p>
+            <a href="${site.url}" target="_blank">👀 לצפייה באתר</a>
           `;
           sitesContainer.appendChild(card);
         }
       } catch (err) {
+        console.error("Error fetching sites index:", err);
         document.getElementById('sites').innerHTML = '<p>שגיאה בטעינת האתרים 😢</p>';
       }
     }
