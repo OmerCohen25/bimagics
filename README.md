@@ -1,1 +1,1 @@
-# my-first-site
+bimagics.com
