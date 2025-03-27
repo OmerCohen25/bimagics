@@ -67,10 +67,50 @@
     </a>
   </section>
 
+  <!-- LEAD CAPTURE SECTION -->
+  <section class="py-20 px-6 bg-black text-center">
+    <h2 class="text-2xl font-bold mb-4">🚧 Great things coming soon</h2>
+    <p class="text-gray-400 mb-6">Want early access? Leave your phone number below 👇</p>
+    <form id="contactForm" class="flex flex-col items-center gap-4 max-w-sm mx-auto">
+      <input type="tel" id="phone" name="phone" placeholder="Your phone number" required
+             class="w-full px-5 py-3 rounded-full bg-gray-800 text-white placeholder-gray-500 outline-none" />
+      <button type="submit"
+              class="bg-purple-600 hover:bg-purple-500 transition px-6 py-3 rounded-full text-white font-semibold shadow-lg">
+        Notify Me
+      </button>
+      <div class="text-green-400 text-sm mt-2 hidden" id="successMessage">✅ Thank you! We’ll keep in touch.</div>
+    </form>
+  </section>
+
   <!-- FOOTER -->
   <footer class="py-6 text-center text-gray-500 text-sm border-t border-gray-700">
     Powered by <span class="text-purple-400 font-semibold">BImagics.com</span> | &copy; 2025 BIWizards.ai
   </footer>
+
+  <!-- JS: Submit form to Google Apps Script -->
+  <script>
+    const form = document.getElementById('contactForm');
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const phone = document.getElementById('phone').value;
+      const url = "https://script.google.com/macros/s/AKfycbyag2aLe0pcccQP_KAP5-t_Q6jE1fu3pr8w1MCjAsMYbXECYgpg9XYJOhiT0snkC-yIpA/exec";
+
+      try {
+        await fetch(url, {
+          method: "POST",
+          mode: "no-cors",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: `phone=${encodeURIComponent(phone)}`
+        });
+        document.getElementById('successMessage').classList.remove('hidden');
+        form.reset();
+      } catch (err) {
+        alert("Something went wrong. Please try again.");
+      }
+    });
+  </script>
 
 </body>
 </html>
