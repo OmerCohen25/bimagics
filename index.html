@@ -1,206 +1,98 @@
 <!DOCTYPE html>
-<html lang="he">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Bimagics – כניסה עם טלפון</title>
-  <!-- Firebase JS SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-analytics-compat.js"></script>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coming Soon</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #f9fbfd;
-      padding-top: 50px;
-      margin: 0;
-    }
-    .container {
-      width: 320px;
-      margin: 0 auto;
-      padding: 25px;
-      background: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    button, input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
+    * {
       box-sizing: border-box;
     }
-    button {
-      cursor: pointer;
-      color: white;
-      border: none;
-      background-color: #34A853; /* ירוק */
-    }
-    h2, h3 {
-      color: #333;
-      margin-bottom: 10px;
-      margin-top: 0;
-    }
-    .sites-list {
-      text-align: left;
-      margin-top: 20px;
-    }
-    .sites-list ul {
-      list-style-type: none;
+
+    body {
+      margin: 0;
       padding: 0;
+      background: #0d0d0d;
+      color: #ffffff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      text-align: center;
     }
-    .sites-list li {
-      margin: 5px 0;
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      animation: fadeIn 2s ease-out;
     }
-    .sites-list a {
-      text-decoration: none;
-      color: #4285F4;
+
+    p {
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+      color: #999;
     }
-    .sites-list a:hover {
-      text-decoration: underline;
+
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    input[type="tel"] {
+      padding: 12px 20px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 30px;
+      margin-bottom: 10px;
+      width: 250px;
+      max-width: 90%;
+      background: #1a1a1a;
+      color: white;
+      outline: none;
+    }
+
+    input::placeholder {
+      color: #777;
+    }
+
+    button {
+      padding: 10px 25px;
+      border: none;
+      border-radius: 30px;
+      background: #5a3aff;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #7c5fff;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    footer {
+      position: absolute;
+      bottom: 20px;
+      font-size: 0.9rem;
+      color: #444;
     }
   </style>
 </head>
 <body>
-<div class="container">
-  <h2>התחברות לאתר</h2>
-
-  <!-- טלפון + reCAPTCHA -->
-  <input id="phoneNumber" type="text" placeholder="לדוג': 0521234567" maxlength="10">
-  <div id="recaptcha-container"></div>
-  <button id="phone-btn" onclick="sendCode()">שליחת קוד אימות ב־SMS</button>
-
-  <input id="code" type="text" placeholder="הכנס קוד אימות">
-  <button onclick="verifyCode()">אימות והתחברות</button>
-
-  <!-- מידע על המשתמש -->
-  <h3 id="user-info"></h3>
-
-  <!-- רשימת האתרים תוצג כאן -->
-  <div class="sites-list" id="sites-list"></div>
-</div>
-
-<script>
-  // הגדרות Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyAau_zHnz0rubShvUZIOu_oBiP6XuQnQlQ",
-    authDomain: "bimagics-auth.firebaseapp.com",
-    projectId: "bimagics-auth",
-    storageBucket: "bimagics-auth.appspot.com",
-    messagingSenderId: "394050199683",
-    appId: "1:394050199683:web:a05e9254875eb3372c7bb6",
-    measurementId: "G-R5FRWCLVFT"
-  };
-
-  // אתחול Firebase
-  firebase.initializeApp(firebaseConfig);
-  firebase.analytics();
-
-  // הגדרת reCAPTCHA
-  window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-    size: 'normal',
-    callback: (response) => {
-      console.log('reCAPTCHA solved:', response);
-    },
-    'expired-callback': () => {
-      console.log('reCAPTCHA expired.');
-    }
-  });
-  window.recaptchaVerifier.render();
-
-  let confirmationResult;
-
-  // שליחת SMS
-  function sendCode() {
-    const phone = document.getElementById('phoneNumber').value.trim();
-    // בדיקת מספר ישראלי (10 ספרות, מתחיל ב-05)
-    if (!phone.match(/^05\d{8}$/)) {
-      alert('הזן מספר ישראלי תקין (לדוגמה: 0521234567)');
-      return;
-    }
-    const fullNumber = '+972' + phone.slice(1); // המרה לפורמט בינלאומי
-
-    firebase.auth().signInWithPhoneNumber(fullNumber, window.recaptchaVerifier)
-    .then((result) => {
-      confirmationResult = result;
-      alert('קוד אימות נשלח בהצלחה!');
-    }).catch((error) => {
-      alert(error.message);
-    });
-  }
-
-  // אימות הקוד מה-SMS
-  function verifyCode() {
-    const code = document.getElementById('code').value.trim();
-    if (!confirmationResult) {
-      alert('קודם צריך לשלוח קוד!');
-      return;
-    }
-    confirmationResult.confirm(code).catch(() => alert('קוד שגוי.'));
-  }
-
-  // האזנה לשינוי מצב התחברות
-  firebase.auth().onAuthStateChanged(async (user) => {
-    if (user) {
-      // המשתמש מחובר
-      const phone = user.phoneNumber; // בפורמט +972...
-      const localPhone = convertToLocalPhone(phone); // המרה ל-05XXXXXXXX
-
-      document.getElementById('user-info').innerText =
-        'התחברת בתור: ' + localPhone;
-
-      // קריאה לשרת כדי לקבל את רשימת האתרים של המשתמש
-      try {
-        const res = await fetch(`/api/sites/${localPhone}`);
-        if (!res.ok) throw new Error('שגיאה בשליפת רשימת האתרים');
-        const sites = await res.json();
-        displaySites(sites);
-      } catch (err) {
-        console.error(err);
-        document.getElementById('sites-list').innerText = 'שגיאה בשליפת אתרים';
-      }
-    } else {
-      // המשתמש לא מחובר
-      document.getElementById('user-info').innerText = 'לא מחובר';
-      document.getElementById('sites-list').innerHTML = '';
-    }
-  });
-
-// פונקציה להמרת +972506579403 => 972506579403
-function convertToLocalPhone(phone) {
-  // אם המספר לא מתחיל ב-+972, מחזירים כמו שהוא
-  if (!phone.startsWith('+972')) return phone;
-  // phone: "+972506579403"  => נוריד את סימן הפלוס => "972506579403"
-  return phone.slice(1);
-}
-
-  // הצגת רשימת האתרים
-  function displaySites(sites) {
-    const container = document.getElementById('sites-list');
-    container.innerHTML = '';
-
-    if (!sites || !sites.length) {
-      container.innerHTML = 'אין אתרים עדיין.';
-      return;
-    }
-
-    const ul = document.createElement('ul');
-    sites.forEach(site => {
-      const li = document.createElement('li');
-      const link = document.createElement('a');
-      link.href = site.url;      // קישור לאתר
-      link.target = '_blank';    // פותח בלשונית חדשה
-      link.textContent = site.name; // שם האתר
-
-      li.appendChild(link);
-      ul.appendChild(li);
-    });
-
-    container.appendChild(ul);
-  }
-</script>
+  <h1>Great Things Coming Soon 🚀</h1>
+  <p>Leave your phone number and we'll keep you posted.</p>
+  <form>
+    <input type="tel" placeholder="Your phone number" required />
+    <button type="submit">Notify Me</button>
+  </form>
+  <footer>© 2025 YourDomain.com</footer>
 </body>
 </html>
