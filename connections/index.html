@@ -2,219 +2,157 @@
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
-  <title>Data Connections Demo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BI Magic Onboarding Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
+    :root {
+      --bg: #121212;
+      --text: #f0f0f0;
+      --accent: #00c67c;
+      --card: #1e1e1e;
+    }
+
     body {
       margin: 0;
-      font-family: sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       background: var(--bg);
       color: var(--text);
     }
 
-    [data-theme="dark"] {
-      --bg: #111;
-      --text: #eee;
-      --card: #1d1d1d;
-      --modal-bg: #222;
-    }
-
-    [data-theme="light"] {
-      --bg: #f5f5f5;
-      --text: #111;
-      --card: #fff;
-      --modal-bg: #fff;
-    }
-
-    .main-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem;
-      background: var(--card);
-      border-bottom: 1px solid #444;
-    }
-
-    .container {
-      padding: 1rem;
-    }
-
-    .connection-item {
-      background: var(--card);
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border-left: 4px solid green;
-      border-radius: 5px;
-    }
-
-    .status {
-      font-weight: bold;
-    }
-
-    .status.connecting {
-      color: orange;
-    }
-
-    .status.success {
-      color: limegreen;
-    }
-
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-content {
-      background: var(--modal-bg);
-      padding: 2rem;
-      width: 90%;
-      max-width: 500px;
-      border-radius: 10px;
-    }
-
-    .modal.hidden {
+    .screen {
       display: none;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
     }
 
-    input, select, button {
-      width: 100%;
-      margin-top: 1rem;
-      padding: 0.75rem;
-      border-radius: 6px;
-      border: none;
-      font-size: 1rem;
-    }
-
-    button {
-      background: #444;
-      color: white;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #666;
+    .screen.active {
+      display: block;
+      animation: fadeIn 0.4s ease;
     }
 
     h1, h2 {
-      margin: 0;
+      margin-bottom: 1rem;
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+
+    .card {
+      background: var(--card);
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 8px;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 0.5rem;
+    }
+
+    .chat {
+      background: var(--card);
+      padding: 1rem;
+      border-radius: 8px;
+      height: 400px;
+      overflow-y: auto;
+    }
+
+    .msg {
+      margin: 0.5rem 0;
+    }
+
+    .msg.user {
+      text-align: right;
+      color: #66f6c2;
+    }
+
+    .msg.bot {
+      text-align: left;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
-  <header class="main-header">
-    <h1>🔗 Data Connections</h1>
-    <button id="add-connection-btn">➕ Add Connection</button>
-  </header>
 
-  <main class="container">
-    <section id="connections-list">
-      <!-- Existing connections will show here -->
-    </section>
-  </main>
+<!-- 1. Landing -->
+<section class="screen active" id="screen-landing">
+  <h1>✨ Welcome to BI Magic</h1>
+  <p>Turn your data into magic with one click.</p>
+  <button onclick="goTo('screen-auth')">Try Now with Google</button>
+</section>
 
-  <!-- Modal for adding new connection -->
-  <div id="connection-modal" class="modal hidden">
-    <div class="modal-content">
-      <h2>Add New Data Source</h2>
-      <label>
-        Source Type:
-        <select id="source-type">
-          <option value="">Select...</option>
-          <option value="bigquery">BigQuery</option>
-          <option value="athena">Amazon Athena</option>
-          <option value="snowflake">Snowflake</option>
-          <option value="postgres">PostgreSQL</option>
-          <option value="redshift">Redshift</option>
-          <option value="clickhouse">ClickHouse</option>
-          <option value="databricks">Databricks</option>
-          <option value="googlesheets">Google Sheets</option>
-        </select>
-      </label>
+<!-- 2. Google Auth simulation -->
+<section class="screen" id="screen-auth">
+  <h2>🔐 Connecting your Google Account...</h2>
+  <p>Simulating Google Sign-In...</p>
+  <button onclick="goTo('screen-sources')">Continue</button>
+</section>
 
-      <form id="connection-form">
-        <div id="form-fields"></div>
-        <button type="submit">🔌 Connect</button>
-        <button type="button" id="cancel-btn">Cancel</button>
-      </form>
-    </div>
+<!-- 3. Connect Sources -->
+<section class="screen" id="screen-sources">
+  <h2>📡 Connect Your Data Sources</h2>
+  <div class="card">
+    <p>Google BigQuery</p>
+    <button onclick="connect('bq')">Connect</button>
   </div>
+  <div class="card">
+    <p>Google Sheets</p>
+    <button onclick="connect('sheets')">Connect</button>
+  </div>
+  <button onclick="goTo('screen-chat')">Skip for now → Chat</button>
+</section>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const modal = document.getElementById('connection-modal');
-      const addBtn = document.getElementById('add-connection-btn');
-      const cancelBtn = document.getElementById('cancel-btn');
-      const formFields = document.getElementById('form-fields');
-      const sourceType = document.getElementById('source-type');
-      const form = document.getElementById('connection-form');
-      const connectionsList = document.getElementById('connections-list');
+<!-- 4. Approve Tables -->
+<section class="screen" id="screen-tables">
+  <h2>📋 Select Tables to Use</h2>
+  <form id="table-form">
+    <div class="card"><input type="checkbox" checked> sales_2024</div>
+    <div class="card"><input type="checkbox"> marketing_leads</div>
+    <div class="card"><input type="checkbox"> customer_feedback</div>
+    <button type="submit">Approve & Continue</button>
+  </form>
+</section>
 
-      const connectionTemplates = {
-        bigquery: ['Project ID', 'Client Email', 'Private Key'],
-        athena: ['Access Key', 'Secret Key', 'Region', 'Output Bucket'],
-        snowflake: ['Account', 'User', 'Password', 'Warehouse', 'Database'],
-        postgres: ['Host', 'Port', 'Database', 'User', 'Password'],
-        redshift: ['Host', 'Port', 'Database', 'User', 'Password'],
-        clickhouse: ['Host', 'Port', 'User', 'Password'],
-        databricks: ['Host', 'Token'],
-        googlesheets: ['Sheet URL', 'API Key']
-      };
+<!-- 5. Chat Experience -->
+<section class="screen" id="screen-chat">
+  <h2>💬 Chat with Your Data</h2>
+  <div class="chat" id="chat-box">
+    <div class="msg bot">👋 Hi! Ready to explore your data?</div>
+    <div class="msg bot">🔗 You can connect more sources anytime.</div>
+    <div class="msg user">Show me sales from this year</div>
+    <div class="msg bot">📊 Here's the summary from <strong>sales_2024</strong>:</div>
+    <div class="msg bot">• Total: $1.2M<br/>• Top region: North America</div>
+  </div>
+</section>
 
-      addBtn.onclick = () => {
-        modal.classList.remove('hidden');
-        form.reset();
-        formFields.innerHTML = '';
-        sourceType.value = "";
-      };
+<script>
+  function goTo(id) {
+    document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
 
-      cancelBtn.onclick = () => {
-        modal.classList.add('hidden');
-      };
+  function connect(type) {
+    alert(`✅ Connected to ${type === 'bq' ? 'BigQuery' : 'Google Sheets'}!`);
+    goTo('screen-tables');
+  }
 
-      sourceType.onchange = () => {
-        const type = sourceType.value;
-        formFields.innerHTML = '';
-        if (connectionTemplates[type]) {
-          connectionTemplates[type].forEach(label => {
-            const input = document.createElement('input');
-            input.placeholder = label;
-            input.name = label.toLowerCase().replace(/ /g, '_');
-            input.required = true;
-            formFields.appendChild(input);
-          });
-        }
-      };
+  document.getElementById('table-form').onsubmit = (e) => {
+    e.preventDefault();
+    goTo('screen-chat');
+  };
+</script>
 
-      form.onsubmit = (e) => {
-        e.preventDefault();
-        const formData = new FormData(form);
-        const connData = {};
-        formData.forEach((v, k) => connData[k] = v);
-        connData.type = sourceType.value;
-
-        const connectionItem = document.createElement('div');
-        connectionItem.className = 'connection-item';
-        connectionItem.innerHTML = `
-          <h3>${connData.type.toUpperCase()}</h3>
-          <p>Status: <span class="status connecting">Connecting...</span></p>
-        `;
-        connectionsList.appendChild(connectionItem);
-
-        setTimeout(() => {
-          connectionItem.querySelector('.status').className = 'status success';
-          connectionItem.querySelector('.status').innerText = 'Connected';
-        }, 1000);
-
-        modal.classList.add('hidden');
-      };
-    });
-  </script>
 </body>
 </html>
