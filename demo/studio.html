@@ -2,9 +2,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ChatBI | BI Magics</title>
+  <title>ChatBI Magic | BI Magics</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
@@ -13,6 +14,7 @@
       display: flex;
       flex-direction: column;
       height: 100vh;
+      overflow: hidden;
     }
     .chat-container {
       flex: 1;
@@ -20,25 +22,7 @@
       flex-direction: column;
       padding: 20px;
       overflow-y: auto;
-    }
-    .message {
-      max-width: 70%;
-      padding: 12px 16px;
-      border-radius: 20px;
-      margin-bottom: 12px;
-      animation: fadeIn 0.5s ease;
-    }
-    .user-msg {
-      background: #b972ff;
-      align-self: flex-end;
-    }
-    .bot-msg {
-      background: #2b1b3f;
-      align-self: flex-start;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      position: relative;
     }
     .input-bar {
       display: flex;
@@ -64,66 +48,99 @@
       margin-left: 10px;
       cursor: pointer;
     }
+    .sparkle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: #d6aaff;
+      border-radius: 50%;
+      opacity: 0.8;
+      animation: sparkle 1s ease-out forwards;
+    }
+    @keyframes sparkle {
+      0% { transform: scale(0.5); opacity: 1; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
     .dashboard {
-      margin-top: 20px;
-      border-radius: 20px;
-      background: #1f1631;
+      margin-top: 30px;
       padding: 20px;
-      animation: popIn 0.6s ease;
+      background: #1f1631;
+      border-radius: 20px;
       box-shadow: 0 0 30px #b972ff33;
+      animation: popIn 1s ease forwards;
     }
     .kpi {
-      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
       background: #2a1e44;
       padding: 16px;
       border-radius: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      animation: slideUp 0.6s ease;
+      margin-bottom: 12px;
     }
-    .kpi span:first-child {
-      font-weight: 600;
+    .chart {
+      margin-top: 20px;
+      text-align: center;
     }
     @keyframes popIn {
-      from { transform: scale(0.9); opacity: 0; }
+      from { transform: scale(0.95); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
-    }
-    @keyframes slideUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
     }
   </style>
 </head>
 <body>
-  <div class="chat-container">
-    <div class="message user-msg">בנה לי KPIs לאנשי המכירות</div>
-    <div class="message bot-msg">בכיף! הנה הדשבורד הראשוני שלך:</div><div class="dashboard">
-  <div class="kpi">
-    <span>סה"כ מכירות החודש</span>
-    <span>₪ 245,000</span>
-  </div>
-  <div class="kpi">
-    <span>יעד חודשי</span>
-    <span>₪ 300,000</span>
-  </div>
-  <div class="kpi">
-    <span>אחוזי סגירה</span>
-    <span>42%</span>
-  </div>
-  <div class="kpi">
-    <span>לידים פעילים</span>
-    <span>56</span>
-  </div>
-  <div class="kpi">
-    <span>ממוצע זמן לסגירה</span>
-    <span>3.2 ימים</span>
-  </div>
-</div>
+  <div class="chat-container" id="chat"></div>  <div class="input-bar">
+    <input type="text" id="chatInput" placeholder="כתוב שאלה...">
+    <button onclick="sendMessage()">שלח</button>
+  </div>  <script>
+    function sendMessage() {
+      const input = document.getElementById("chatInput");
+      const chat = document.getElementById("chat");
+      const msg = input.value.trim();
+      if (!msg) return;
 
-  </div>  <div class="input-bar">
-    <input type="text" placeholder="כתוב שאלה...">
-    <button>שלח</button>
-  </div>
-</body>
+      // Add user message
+      const userMsg = document.createElement("div");
+      userMsg.className = "kpi";
+      userMsg.innerHTML = `<strong>אתה:</strong> ${msg}`;
+      chat.appendChild(userMsg);
+
+      input.value = "";
+      generateSparkles();
+      setTimeout(showDashboard, 1000);
+    }
+
+    function generateSparkles() {
+      const chat = document.getElementById("chat");
+      for (let i = 0; i < 30; i++) {
+        const s = document.createElement("div");
+        s.className = "sparkle";
+        s.style.left = Math.random() * window.innerWidth + 'px';
+        s.style.top = Math.random() * window.innerHeight + 'px';
+        chat.appendChild(s);
+        setTimeout(() => chat.removeChild(s), 1000);
+      }
+    }
+
+    function showDashboard() {
+      const chat = document.getElementById("chat");
+      const dash = document.createElement("div");
+      dash.className = "dashboard";
+      dash.innerHTML = `
+        <div class="kpi"><span>סה"כ מכירות</span><span>₪ 245,000</span></div>
+        <div class="kpi"><span>יעד חודשי</span><span>₪ 300,000</span></div>
+        <div class="kpi"><span>אחוזי סגירה</span><span>42%</span></div>
+        <div class="kpi"><span>לידים פתוחים</span><span>56</span></div>
+        <div class="chart">
+          <img src="https://quickchart.io/chart?c={type:'pie',data:{labels:['Closed','Open','In Progress'],datasets:[{data:[35,25,40]}]}}" width="200">
+          <div style="margin-top:8px; font-size:0.9rem; color:#ccc;">פיצול לידים</div>
+        </div>
+        <div class="chart">
+          <img src="https://quickchart.io/chart?c={type:'bar',data:{labels:['Jan','Feb','Mar'],datasets:[{label:'Sales',data:[120000,200000,245000]}]}}" width="250">
+          <div style="margin-top:8px; font-size:0.9rem; color:#ccc;">היסטוריית מכירות</div>
+        </div>
+      `;
+      chat.appendChild(dash);
+      chat.scrollTop = chat.scrollHeight;
+    }
+  </script></body>
 </html>
