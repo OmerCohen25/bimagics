@@ -77,35 +77,60 @@
       background: #33ff99;
       color: #000;
     }
-    input[type=file] {
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
       display: none;
+    }
+    .modal-content {
+      background: #1f1f1f;
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+      max-width: 360px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.7);
+    }
+    .modal-content h2 {
+      color: #74f2ce;
+      margin-bottom: 20px;
+    }
+    .modal-content p {
+      color: #ccc;
+      margin-bottom: 20px;
+    }
+    .modal-content button {
+      background: #74f2ce;
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: 600;
     }
   </style>
   <script>
-    function simulateOAuth(el) {
-      const card = el.closest('.connector');
+    function simulateOAuth(btn) {
+      const card = btn.closest('.connector');
       card.classList.add('connected');
-      el.innerText = 'Connected ✨';
-    }function connectGoogleSheets(btn) {
-  const popup = window.open('/auth/google-sheets', '_blank', 'width=500,height=600');
-  const card = btn.closest('.connector');
-  const interval = setInterval(() => {
-    if (popup.closed) {
-      clearInterval(interval);
-      simulateOAuth(btn);
-    }
-  }, 1000);
-}
+      btn.innerText = 'Connected ✨';
+    }function openFakeAuth(btn, serviceName) {
+  const modal = document.getElementById('authModal');
+  const title = document.getElementById('modal-title');
+  const approveBtn = document.getElementById('modal-approve');
 
-function connectBigQuery(btn) {
-  const popup = window.open('/auth/bigquery', '_blank', 'width=500,height=600');
-  const card = btn.closest('.connector');
-  const interval = setInterval(() => {
-    if (popup.closed) {
-      clearInterval(interval);
-      simulateOAuth(btn);
-    }
-  }, 1000);
+  title.innerText = `Authorize ${serviceName}`;
+  approveBtn.onclick = () => {
+    modal.style.display = 'none';
+    simulateOAuth(btn);
+  };
+
+  modal.style.display = 'flex';
 }
 
 function handleExcelUpload(input) {
@@ -125,15 +150,15 @@ function handleExcelUpload(input) {
     <div class="connector">
       <img src="https://www.gstatic.com/images/branding/product/1x/sheets_2020q4_48dp.png" alt="Google Sheets">
       <div class="connector-name">Google Sheets</div>
-      <button class="connect-btn" onclick="connectGoogleSheets(this)">Connect</button>
+      <button class="connect-btn" onclick="openFakeAuth(this, 'Google Sheets')">Connect</button>
     </div><div class="connector">
-  <img src="https://upload.wikimedia.org/wikipedia/fb/Google_BigQuery_Logo.svg" alt="BigQuery">
+  <img src="https://cloud.google.com/images/products/bigquery/bigquery-icon.svg" alt="BigQuery">
   <div class="connector-name">BigQuery</div>
-  <button class="connect-btn" onclick="connectBigQuery(this)">Connect</button>
+  <button class="connect-btn" onclick="openFakeAuth(this, 'BigQuery')">Connect</button>
 </div>
 
 <div class="connector">
-  <img src="https://static.cdnlogo.com/logos/m/19/microsoft-excel.svg" alt="Excel File">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/7/7f/Microsoft_Excel_2013_logo.svg" alt="Excel File">
   <div class="connector-name">Upload Excel File</div>
   <label class="connect-btn">
     <input type="file" accept=".xlsx" onchange="handleExcelUpload(this)">
@@ -141,6 +166,12 @@ function handleExcelUpload(input) {
   </label>
 </div>
 
+  </div>  <div class="modal" id="authModal">
+    <div class="modal-content">
+      <h2 id="modal-title">Authorize</h2>
+      <p>This app wants to access your account. Approve access to continue.</p>
+      <button id="modal-approve">Approve Access</button>
+    </div>
   </div>
 </body>
 </html>
