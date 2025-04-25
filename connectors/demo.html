@@ -1,0 +1,146 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connect Data Sources | BI Magics</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f1115;
+      color: white;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+      text-align: center;
+      color: #74f2ce;
+    }
+    p.description {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #aaa;
+    }
+    .connectors-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 20px;
+      justify-items: center;
+    }
+    .connector {
+      background: #1a1c22;
+      border-radius: 16px;
+      padding: 20px 10px;
+      text-align: center;
+      width: 100%;
+      max-width: 180px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      transition: transform 0.2s ease, background-color 0.3s ease;
+      position: relative;
+      cursor: pointer;
+    }
+    .connector:hover {
+      transform: translateY(-4px);
+      background-color: #252831;
+    }
+    .connector img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      margin-bottom: 10px;
+    }
+    .connector-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .connect-btn {
+      font-size: 0.75rem;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 12px;
+      background: #74f2ce;
+      color: #000;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      font-weight: 600;
+    }
+    .connect-btn:hover {
+      background: #5ae6bb;
+    }
+    .connector.connected {
+      background-color: #134d38 !important;
+    }
+    .connector.connected .connect-btn {
+      background: #33ff99;
+      color: #000;
+    }
+    input[type=file] {
+      display: none;
+    }
+  </style>
+  <script>
+    function simulateOAuth(el) {
+      const card = el.closest('.connector');
+      card.classList.add('connected');
+      el.innerText = 'Connected ✨';
+    }function connectGoogleSheets(btn) {
+  const popup = window.open('/auth/google-sheets', '_blank', 'width=500,height=600');
+  const card = btn.closest('.connector');
+  const interval = setInterval(() => {
+    if (popup.closed) {
+      clearInterval(interval);
+      simulateOAuth(btn);
+    }
+  }, 1000);
+}
+
+function connectBigQuery(btn) {
+  const popup = window.open('/auth/bigquery', '_blank', 'width=500,height=600');
+  const card = btn.closest('.connector');
+  const interval = setInterval(() => {
+    if (popup.closed) {
+      clearInterval(interval);
+      simulateOAuth(btn);
+    }
+  }, 1000);
+}
+
+function handleExcelUpload(input) {
+  const file = input.files[0];
+  if (file) {
+    const btn = input.closest('.connector').querySelector('.connect-btn');
+    simulateOAuth(btn);
+    alert(`Uploaded: ${file.name}`);
+  }
+}
+
+  </script>
+</head>
+<body>
+  <h1>Connect Your Data</h1>
+  <p class="description">Choose your data source and start analyzing in seconds.</p>  <div class="connectors-grid">
+    <div class="connector">
+      <img src="https://www.gstatic.com/images/branding/product/1x/sheets_2020q4_48dp.png" alt="Google Sheets">
+      <div class="connector-name">Google Sheets</div>
+      <button class="connect-btn" onclick="connectGoogleSheets(this)">Connect</button>
+    </div><div class="connector">
+  <img src="https://upload.wikimedia.org/wikipedia/fb/Google_BigQuery_Logo.svg" alt="BigQuery">
+  <div class="connector-name">BigQuery</div>
+  <button class="connect-btn" onclick="connectBigQuery(this)">Connect</button>
+</div>
+
+<div class="connector">
+  <img src="https://static.cdnlogo.com/logos/m/19/microsoft-excel.svg" alt="Excel File">
+  <div class="connector-name">Upload Excel File</div>
+  <label class="connect-btn">
+    <input type="file" accept=".xlsx" onchange="handleExcelUpload(this)">
+    Upload
+  </label>
+</div>
+
+  </div>
+</body>
+</html>
