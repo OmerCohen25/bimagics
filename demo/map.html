@@ -1,0 +1,274 @@
+<!-- mapping-magic.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BI Magics - Tables Mapping Magic</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #0a0a0a, #1a1a2e);
+      color: #fff;
+    }
+    #canvas {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      touch-action: none;
+    }
+    svg {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+    .node {
+      background: rgba(30,30,60,0.8);
+      border: 2px solid #00ffe0aa;
+      border-radius: 12px;
+      padding: 10px;
+      min-width: 130px;
+      color: #fff;
+      position: absolute;
+      text-align: center;
+      font-size: 14px;
+      cursor: grab;
+      box-shadow: 0 0 15px #00ffe088;
+      transition: transform 0.2s;
+    }
+    .node strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #0ff;
+      font-size: 16px;
+    }
+    #title {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 24px;
+      font-weight: bold;
+      color: #00ffe0;
+      text-shadow: 0 0 10px #00ffe088;
+      z-index: 10;
+    }
+    .popup {
+      position: absolute;
+      background: #222;
+      border: 1px solid #0ff;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      box-shadow: 0 0 10px #0ff8;
+      z-index: 20;
+    }
+    .popup button {
+      margin: 5px;
+      background: #0ff;
+      border: none;
+      border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+      color: #000;
+      font-weight: bold;
+    }
+    #instructions {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      opacity: 0.7;
+      z-index: 10;
+    }
+    @media (max-width: 768px) {
+      .node {
+        font-size: 12px;
+        min-width: 100px;
+        padding: 8px;
+      }
+      .node strong {
+        font-size: 14px;
+      }
+      #title {
+        font-size: 20px;
+      }
+      #instructions {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div id="canvas">
+  <div id="title">BI Magics — Mapping Magic</div>
+  <svg id="lines"></svg>
+  <div id="instructions">Drag tables | Tap lines to Confirm/Reject</div>
+</div>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const svg = document.getElementById('lines');
+  const nodes = [];
+  const connections = [];
+
+  // דמו טבלאות
+  const tables = [
+    { id: 'users', x: 80, y: 100, fields: ['user_id (PK)', 'name', 'email'] },
+    { id: 'orders', x: 320, y: 220, fields: ['order_id (PK)', 'user_id (FK)', 'amount'] },
+    { id: 'payments', x: 620, y: 120, fields: ['payment_id (PK)', 'order_id (FK)', 'status'] },
+    { id: 'products', x: 320, y: 400, fields: ['product_id (PK)', 'name', 'price'] },
+    { id: 'order_items', x: 620, y: 400, fields: ['item_id (PK)', 'order_id (FK)', 'product_id (FK)', 'quantity'] },
+    { id: 'reviews', x: 80, y: 400, fields: ['review_id (PK)', 'user_id (FK)', 'rating'] },
+  ];
+
+  // קשרים ראשוניים
+  let edges = [
+    { from: 'users', to: 'orders', label: 'user_id', confirmed: null },
+    { from: 'orders', to: 'payments', label: 'order_id', confirmed: null },
+    { from: 'orders', to: 'order_items', label: 'order_id', confirmed: null },
+    { from: 'products', to: 'order_items', label: 'product_id', confirmed: null },
+    { from: 'users', to: 'reviews', label: 'user_id', confirmed: null },
+  ];
+
+  // יצירת טבלאות
+  tables.forEach(tbl => {
+    const node = document.createElement('div');
+    node.className = 'node';
+    node.style.left = tbl.x + 'px';
+    node.style.top = tbl.y + 'px';
+    node.id = tbl.id;
+
+    const title = document.createElement('strong');
+    title.innerText = tbl.id;
+    node.appendChild(title);
+
+    tbl.fields.forEach(f => {
+      const field = document.createElement('div');
+      field.innerText = f;
+      node.appendChild(field);
+    });
+
+    canvas.appendChild(node);
+    nodes.push(node);
+
+    // גרירה
+    let offsetX, offsetY;
+    node.addEventListener('mousedown', startDrag);
+    node.addEventListener('touchstart', startDrag, { passive: false });
+
+    function startDrag(e) {
+      e.preventDefault();
+      const evt = (e.touches) ? e.touches[0] : e;
+      offsetX = evt.clientX - node.offsetLeft;
+      offsetY = evt.clientY - node.offsetTop;
+      document.addEventListener('mousemove', drag);
+      document.addEventListener('mouseup', stopDrag);
+      document.addEventListener('touchmove', drag, { passive: false });
+      document.addEventListener('touchend', stopDrag);
+    }
+
+    function drag(e) {
+      e.preventDefault();
+      const evt = (e.touches) ? e.touches[0] : e;
+      node.style.left = (evt.clientX - offsetX) + 'px';
+      node.style.top = (evt.clientY - offsetY) + 'px';
+      drawLines();
+    }
+
+    function stopDrag() {
+      document.removeEventListener('mousemove', drag);
+      document.removeEventListener('mouseup', stopDrag);
+      document.removeEventListener('touchmove', drag);
+      document.removeEventListener('touchend', stopDrag);
+    }
+  });
+
+  function drawLines() {
+    svg.innerHTML = '';
+    edges.forEach((conn, i) => {
+      const from = document.getElementById(conn.from);
+      const to = document.getElementById(conn.to);
+      if (!from || !to) return;
+
+      const x1 = from.offsetLeft + from.offsetWidth/2;
+      const y1 = from.offsetTop + from.offsetHeight/2;
+      const x2 = to.offsetLeft + to.offsetWidth/2;
+      const y2 = to.offsetTop + to.offsetHeight/2;
+
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', x1);
+      line.setAttribute('y1', y1);
+      line.setAttribute('x2', x2);
+      line.setAttribute('y2', y2);
+      line.setAttribute('stroke', conn.confirmed === true ? '#0f0' : conn.confirmed === false ? '#f00' : '#0ff');
+      line.setAttribute('stroke-width', '2');
+      line.setAttribute('data-index', i);
+      line.style.cursor = 'pointer';
+      line.addEventListener('click', e => openPopup(e, i));
+      svg.appendChild(line);
+
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', (x1 + x2)/2);
+      text.setAttribute('y', (y1 + y2)/2 - 5);
+      text.setAttribute('fill', '#0ff');
+      text.setAttribute('font-size', '10');
+      text.setAttribute('text-anchor', 'middle');
+      text.textContent = conn.label;
+      svg.appendChild(text);
+    });
+  }
+
+  drawLines();
+
+  // Popup ניהול
+  let popup = null;
+
+  function openPopup(e, index) {
+    if (popup) popup.remove();
+    popup = document.createElement('div');
+    popup.className = 'popup';
+    popup.style.left = (e.pageX + 5) + 'px';
+    popup.style.top = (e.pageY + 5) + 'px';
+    popup.innerHTML = `
+      <div><b>${edges[index].from}</b> → <b>${edges[index].to}</b><br>${edges[index].label}</div>
+      <button onclick="confirmEdge(${index})">✅ Confirm</button>
+      <button onclick="rejectEdge(${index})">❌ Reject</button>
+    `;
+    canvas.appendChild(popup);
+  }
+
+  function confirmEdge(index) {
+    edges[index].confirmed = true;
+    if (popup) popup.remove();
+    popup = null;
+    drawLines();
+  }
+
+  function rejectEdge(index) {
+    edges[index].confirmed = false;
+    if (popup) popup.remove();
+    popup = null;
+    drawLines();
+  }
+
+  // סגירת popup בלחיצה חיצונית
+  window.addEventListener('click', e => {
+    if (popup && !e.target.closest('.popup') && !e.target.closest('line')) {
+      popup.remove();
+      popup = null;
+    }
+  });
+
+</script>
+
+</body>
+</html>
