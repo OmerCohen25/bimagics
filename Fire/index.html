@@ -6,109 +6,101 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet" />
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #fff;
-    }
-    h1 {
-      text-align: center;
-      color: #f44336;
-      margin-top: 10px;
-    }
-    #map {
-      height: 60vh;
-      width: 100%;
-    }
-    .dashboard {
-      padding: 20px;
-    }
-    .section {
-      margin-bottom: 20px;
-    }
-    .fire-list {
-      background: #222;
-      padding: 10px;
-      border-radius: 8px;
-    }
-    .fire {
-      margin-bottom: 8px;
-    }
-    .sim-alert {
-      color: #ff9800;
-      font-weight: bold;
-    }
-    iframe {
-      width: 100%;
-      height: 300px;
-      border: none;
-      margin-top: 10px;
-    }
+    body { margin: 0; font-family: Arial; background: #111; color: #fff; }
+    h1 { text-align: center; color: #f44336; margin-top: 10px; }
+    #map { height: 60vh; width: 100%; }
+    .dashboard { padding: 20px; }
+    .section { margin-bottom: 20px; }
+    .fire { background: #222; margin-bottom: 10px; padding: 10px; border-radius: 8px; }
+    .sim-alert { color: #ff9800; font-weight: bold; }
+    label { display: block; margin: 8px 0 4px; }
+    input, button { padding: 6px; width: 100%; margin-bottom: 8px; }
   </style>
 </head>
 <body>
-  <h1>Jerusalem Fire – Live Dashboard</h1>
+  <h1>Jerusalem Fires – Live Dashboard</h1>
   <div id="map"></div>
   <div class="dashboard">
     <div class="section">
-      <h2>🔥 מוקדי אש מדווחים (Live)</h2>
-      <div class="fire-list" id="fireList">
-        <!-- יתעדכן בזמן אמת -->
-      </div>
+      <h2>🔥 דיווחים חיים</h2>
+      <div id="fireList"></div>
     </div>
+
     <div class="section">
-      <h2>🌬️ תנאים בזמן אמת</h2>
-      <p id="weather">...טוען נתונים</p>
-    </div>
-    <div class="section">
-      <h2>🚨 פיד דיווחים חיים</h2>
-      <iframe src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2FIsraelFireServices&tabs=timeline&width=500&height=300&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true" allow="encrypted-media"></iframe>
+      <h2>➕ הוספת דיווח</h2>
+      <form id="fireForm">
+        <label>שם מקום</label><input id="name" required />
+        <label>קו רוחב</label><input id="lat" type="number" step="any" required />
+        <label>קו אורך</label><input id="lng" type="number" step="any" required />
+        <label>רדיוס (מטר)</label><input id="radius" type="number" required />
+        <label>מקור</label><input id="source" />
+        <button type="submit">שמור</button>
+      </form>
     </div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
+    const API_URL = 'https://<YOUR_CLOUD_RUN_URL>/api/fires'; // עדכן את ה-URL
+
     const map = L.map('map').setView([31.78, 35.01], 11);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-    }).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // נקודות דוגמה
-    let fires = [
-      { name: "יער אשתאול", lat: 31.798, lng: 35.002, radius: 800, source: "FB", time: "2025-04-30 15:00" },
-      { name: "מסילת ציון", lat: 31.807, lng: 35.015, radius: 600, source: "ynet", time: "2025-04-30 14:40" }
-    ];
+    async function fetchFires() {
+      const res = await fetch(API_URL);
+      return res.json();
+    }
 
-    function renderFires() {
-      document.getElementById("fireList").innerHTML = "";
+    function renderFires(fires) {
+      document.getElementById('fireList').innerHTML = '';
       fires.forEach(fire => {
         L.circle([fire.lat, fire.lng], {
           radius: fire.radius,
           color: 'red',
           fillColor: '#f03',
           fillOpacity: 0.5
-        }).addTo(map).bindPopup(`<b>${fire.name}</b><br>מקור: ${fire.source}<br>זמן: ${fire.time}`);
+        }).addTo(map).bindPopup(`<b>${fire.name}</b><br>${fire.source} @ ${fire.time}`);
 
-        document.getElementById("fireList").innerHTML += `
+        document.getElementById('fireList').innerHTML += `
           <div class="fire">
-            🔥 ${fire.name} – ${fire.source} @ ${fire.time} <span class="sim-alert">(רדיוס ${fire.radius} מטר)</span>
+            🔥 ${fire.name} – ${fire.source || 'לא ידוע'}<br>
+            <span class="sim-alert">רדיוס: ${fire.radius} מטר</span><br>
+            <button onclick="deleteFire('${fire.id}')">🗑 מחק</button>
           </div>`;
       });
     }
 
-    function fetchLiveWeather() {
-      // סימולציה בלבד – אפשר להחליף ל־API אמיתי
-      document.getElementById("weather").innerText = "טמפרטורה: 34°C, רוחות מזרחיות חזקות, יובש קיצוני";
+    async function deleteFire(id) {
+      await fetch(\`\${API_URL}/\${id}\`, { method: 'DELETE' });
+      loadFires();
     }
 
-    function refreshData() {
-      fetchLiveWeather();
-      renderFires();
+    async function loadFires() {
+      const fires = await fetchFires();
+      renderFires(fires);
     }
 
-    refreshData();
-    setInterval(refreshData, 10000); // כל 10 שניות
+    document.getElementById('fireForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const fire = {
+        name: name.value,
+        lat: parseFloat(lat.value),
+        lng: parseFloat(lng.value),
+        radius: parseInt(radius.value),
+        source: source.value,
+        time: new Date().toLocaleString()
+      };
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fire)
+      });
+      e.target.reset();
+      loadFires();
+    };
+
+    loadFires();
+    setInterval(loadFires, 10000);
   </script>
 </body>
 </html>
