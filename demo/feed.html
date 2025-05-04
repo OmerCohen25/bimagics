@@ -5,42 +5,40 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>BI Magics • Magic Feed</title>
 
-<!-- ===== 3rd-party libs ===== -->
+<!-- ───── 3rd-party libs ───── -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.11.1/tsparticles.bundle.min.js" defer></script>
 
-<!-- ===== Styles ===== -->
+<!-- ───── Styles ───── -->
 <style>
 :root{
-  --card-bg:#1e1e28; --card-border:#2f2f42; --accent:#6eee9e;
-  --text:#e9e9f1; --kpi:#ffffff; --shadow:0 8px 20px rgba(0,0,0,.45);
-  --radius:14px; font-family:"Inter","Segoe UI",Arial,sans-serif;
+  --card-bg:#1e1e28;--card-border:#2f2f42;--accent:#6eee9e;
+  --text:#e9e9f1;--kpi:#ffffff;--shadow:0 8px 20px rgba(0,0,0,.45);
+  --radius:14px;font-family:"Inter","Segoe UI",Arial,sans-serif;
 }
 body{margin:0;background:radial-gradient(ellipse at top,#13131d 0%,#0e0e14 55%);color:var(--text);overflow-x:hidden}
-
 #tsparticles{position:fixed;inset:0;z-index:-2}
 
-/* ----- Header ----- */
+/* Header */
 header{position:sticky;top:0;z-index:5;background:#0d0d14cc;
   backdrop-filter:blur(6px);display:flex;justify-content:center;align-items:center;
-  gap:12px;padding:14px 0;border-bottom:1px solid #23232f;}
+  gap:12px;padding:14px 0;border-bottom:1px solid #23232f}
 header h1{font-size:22px;margin:0;font-weight:700;letter-spacing:.5px}
 header span{font-size:15px;font-weight:400;opacity:.75}
 
-/* ----- Feed ----- */
+/* Feed */
 .feed{width:100%;max-width:900px;margin:0 auto;padding:110px 16px 160px;
   display:flex;flex-direction:column;gap:48px}
 
-/* ----- Card ----- */
+/* Card */
 .bi-card{position:relative;overflow:hidden;background:var(--card-bg);
   border:1px solid var(--card-border);border-radius:var(--radius);
-  box-shadow:var(--shadow);padding:24px 28px 84px 28px; /* room for toolbar */
-  backdrop-filter:blur(4px);}
-.bi-card::before{content:"";position:absolute;inset:0;border-radius:inherit;
-  pointer-events:none;background:linear-gradient(135deg,transparent 0%,var(--accent)22%,transparent 52%,transparent 100%);
+  box-shadow:var(--shadow);padding:24px 28px 84px 28px;backdrop-filter:blur(4px)}
+.bi-card::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(135deg,transparent 0%,var(--accent)22%,transparent 52%,transparent 100%);
   background-size:400% 400%;opacity:.12;animation:hologlow 8s linear infinite}
 @keyframes hologlow{0%{background-position:0 0}100%{background-position:200% 200%}}
 
@@ -48,32 +46,36 @@ header span{font-size:15px;font-weight:400;opacity:.75}
 .kpi-value{font-size:clamp(36px,7vw,64px);font-weight:700;color:var(--kpi);margin:0}
 .kpi-label{font-size:18px;opacity:.7;margin-top:4px}
 
+/* Score-card */
+.kpi-comparison{margin-top:10px}
+.kpi-comparison .kpi-value-small{font-size:20px;font-weight:600}
+.progress-bar{background:#2f2f42;border-radius:6px;height:12px;margin-top:6px;overflow:hidden}
+.progress-bar>div{height:100%;background:var(--accent);border-radius:6px 0 0 6px}
+
 /* Table */
 .table-wrapper{overflow-x:auto;margin-top:12px}
 table{width:100%;border-collapse:collapse;font-size:15px}
 th,td{padding:8px 10px;text-align:left;border-bottom:1px solid #2d2d38}
 th{color:var(--accent);font-weight:600}
 
-/* Hidden code block */
+/* Code block */
 .code-block{display:none;margin-top:18px;background:#0d0d14;
-  border:1px solid #28323b;border-radius:10px;overflow:auto;padding:16px;
-  font-size:14px;color:#9cf3ce}
+  border:1px solid #28323b;border-radius:10px;padding:16px;font-size:14px;color:#9cf3ce;overflow:auto}
 
 /* Toolbar */
 .card-actions{position:absolute;left:0;right:0;bottom:0;height:60px;
   display:flex;justify-content:space-between;align-items:center;
   padding:0 18px;border-top:1px solid #292935;font-size:14px;
-  background:#15151dcc;backdrop-filter:blur(6px);}
-.icon-btn{background:none;border:none;color:inherit;cursor:pointer;display:flex;
-  align-items:center;gap:6px;transition:color .2s;font-size:15px}
+  background:#15151dcc;backdrop-filter:blur(6px)}
+.icon-btn{background:none;border:none;color:inherit;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:15px;transition:color .2s}
 .icon-btn:hover{color:var(--accent)}
 .icon-btn.like.liked i{color:#ff6b81}
 .views{display:flex;align-items:center;gap:6px;opacity:.75;font-size:14px}
 
-/* Saved highlight */
+/* Swipe highlight */
 .saved{box-shadow:0 0 0 2px var(--accent), var(--shadow)}
 
-/* Fade-in fallback */
+/* Fallback fade */
 .aos-init:not(.aos-animate){opacity:0}
 </style>
 </head>
@@ -81,157 +83,173 @@ th{color:var(--accent);font-weight:600}
 
 <canvas id="tsparticles"></canvas>
 
-<!-- ===== Header ===== -->
 <header data-aos="fade-down"><h1>BI&nbsp;Magics</h1><span>Magic Feed</span></header>
 
-<!-- ===== Feed ===== -->
 <main class="feed">
 
-<!-- ---------- CARDS (22) ---------- -->
-
-<!-- Each card has data-chart="<functionName>" if it contains a Chart.js canvas;
-     load happens lazily when card enters viewport                -->
-
+<!-- 1 KPI -->
 <section class="bi-card" data-aos="fade-up">
   <p class="kpi-value">$ 12,473,920</p><p class="kpi-label">Total Revenue (Last 12 M)</p>
-  <pre class="code-block">// Aggregated from BigQuery.orders partitioned by month
-SELECT SUM(total_amount) AS revenue_12m
-FROM   bigquery.orders
-WHERE  order_date &gt;= DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH);</pre>
+  <pre class="code-block">// Revenue 12 M query …</pre>
 </section>
 
-<section class="bi-card" data-aos="fade-up" data-chart="revenueLine">
+<!-- 2 Score-card: revenue vs target -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="50">
+  <h3>Monthly Revenue vs Target</h3>
+  <div class="kpi-comparison">
+    <span class="kpi-value-small">$1.48 M / $1.60 M</span>
+    <div class="progress-bar"><div style="width:92%"></div></div>
+  </div>
+  <pre class="code-block">// target table …</pre>
+</section>
+
+<!-- 3 Score-card: users vs competitor -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="100">
+  <h3>Active Users vs Competitor</h3>
+  <div class="kpi-comparison">
+    <span class="kpi-value-small">157 K vs 142 K</span>
+    <div class="progress-bar"><div style="width:110%"></div></div>
+  </div>
+  <pre class="code-block">// Benchmark source …</pre>
+</section>
+
+<!-- 4 Line -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="150" data-chart="revenueLine">
   <h3>Revenue Trend</h3><canvas id="revenueLine"></canvas>
-  <pre class="code-block">// Monthly revenue trend – same query as KPI but GROUP BY month
-SELECT DATE_TRUNC(order_date, MONTH) AS month,
-       SUM(total_amount)             AS revenue
-FROM   bigquery.orders
-WHERE  order_date &gt;= DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH)
-GROUP  BY month ORDER BY month;</pre>
+  <pre class="code-block"></pre>
 </section>
 
-<section class="bi-card" data-aos="fade-up" data-aos-delay="100" data-chart="regionPie">
+<!-- 5 Pie -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="200" data-chart="regionPie">
   <h3>Sales by Region</h3><canvas id="regionPie"></canvas>
-  <pre class="code-block">// Salesforce.Opportunity.amount rolled-up by billing_country_region</pre>
+  <pre class="code-block"></pre>
 </section>
 
-<section class="bi-card" data-aos="fade-up" data-aos-delay="200" data-chart="productBar">
+<!-- 6 Bar -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="250" data-chart="productBar">
   <h3>Top Products</h3><canvas id="productBar"></canvas>
-  <pre class="code-block">// BigQuery.products_sales_last_q – top 5 by units_sold DESC</pre>
+  <pre class="code-block"></pre>
 </section>
 
+<!-- 7 Table -->
 <section class="bi-card" data-aos="fade-up" data-aos-delay="300">
   <h3>Top Customers</h3>
-  <div class="table-wrapper"><table><thead><tr><th>Customer</th><th>Country</th><th>Spend ($)</th></tr></thead><tbody>
-    <tr><td>Acme Corp</td><td>USA</td><td>1,200,000</td></tr><tr><td>Globex</td><td>Canada</td><td>985,500</td></tr>
-    <tr><td>Initech</td><td>UK</td><td>873,000</td></tr><tr><td>Umbrella</td><td>Germany</td><td>712,400</td></tr>
-    <tr><td>Stark Industries</td><td>USA</td><td>598,900</td></tr><tr><td>Wayne Enterprises</td><td>Israel</td><td>547,100</td></tr>
-  </tbody></table></div>
-  <pre class="code-block">// Materialized view: customer_revenue_last_12m ordered by spend DESC</pre>
+  <div class="table-wrapper">
+    <table><thead><tr><th>Customer</th><th>Country</th><th>Spend ($)</th></tr></thead><tbody>
+      <tr><td>Acme Corp</td><td>USA</td><td>1,200,000</td></tr>
+      <tr><td>Globex</td><td>Canada</td><td>985,500</td></tr>
+      <tr><td>Initech</td><td>UK</td><td>873,000</td></tr>
+      <tr><td>Umbrella</td><td>Germany</td><td>712,400</td></tr>
+      <tr><td>Stark Industries</td><td>USA</td><td>598,900</td></tr>
+      <tr><td>Wayne Enterprises</td><td>Israel</td><td>547,100</td></tr>
+    </tbody></table>
+  </div>
 </section>
 
-<section class="bi-card" data-aos="fade-up" data-aos-delay="400">
+<!-- 8 KPI -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="350">
   <p class="kpi-value">157,332</p><p class="kpi-label">Monthly Active Users</p>
-  <pre class="code-block">// Mixpanel.users_active_30d COUNT(DISTINCT user_id)</pre>
 </section>
 
-<section class="bi-card" data-aos="fade-up" data-aos-delay="500" data-chart="deviceDoughnut">
+<!-- 9 Doughnut -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="400" data-chart="deviceDoughnut">
   <h3>Device Distribution</h3><canvas id="deviceDoughnut"></canvas>
-  <pre class="code-block">// GA4.devices last 30 days – sessions grouped by device_category</pre>
 </section>
 
-<section class="bi-card" data-aos="fade-up" data-aos-delay="600" data-chart="trafficBar">
+<!-- 10 Bar -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="450" data-chart="trafficBar">
   <h3>Traffic Sources</h3><canvas id="trafficBar"></canvas>
-  <pre class="code-block">// GA4.traffic_source (organic/paid/referral/social/email)</pre>
 </section>
 
-<section class="bi-card" data-aos="fade-up" data-aos-delay="700">
+<!-- 11 KPI -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="500">
   <p class="kpi-value">3.8 %</p><p class="kpi-label">Monthly Churn</p>
-  <pre class="code-block">// Stripe MRR retention cohort model – logo churn / total customers</pre>
 </section>
 
-<section class="bi-card" data-aos="fade-up" data-aos-delay="800">
+<!-- 12 Table -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="550">
   <h3>Data Quality Alerts</h3>
-  <div class="table-wrapper"><table><thead><tr><th>Timestamp</th><th>Source</th><th>Anomaly</th></tr></thead><tbody>
-    <tr><td>2025-05-03 04:12</td><td>bq.orders</td><td>Spike in refunds</td></tr>
-    <tr><td>2025-05-02 14:55</td><td>sf.opportunities</td><td>Missing owner_id</td></tr>
-    <tr><td>2025-05-01 21:30</td><td>sheet.marketing</td><td>Negative amount</td></tr>
-  </tbody></table></div>
-  <pre class="code-block">// Real-time anomaly detector using BigQuery ML + Dataform tests</pre>
+  <div class="table-wrapper">
+    <table><thead><tr><th>Timestamp</th><th>Source</th><th>Anomaly</th></tr></thead><tbody>
+      <tr><td>2025-05-03 04:12</td><td>bq.orders</td><td>Spike in refunds</td></tr>
+      <tr><td>2025-05-02 14:55</td><td>sf.opportunities</td><td>Missing owner_id</td></tr>
+      <tr><td>2025-05-01 21:30</td><td>sheet.marketing</td><td>Negative amount</td></tr>
+    </tbody></table>
+  </div>
 </section>
 
-<section class="bi-card" data-aos="fade-up" data-aos-delay="900" data-chart="kpiRadar">
+<!-- 13 Radar -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="600" data-chart="kpiRadar">
   <h3>KPIs vs Target</h3><canvas id="kpiRadar"></canvas>
-  <pre class="code-block">// Comparison table kpi_actual_vs_plan for OKRs Q2</pre>
 </section>
 
-<section class="bi-card" data-aos="fade-up" data-aos-delay="1000">
+<!-- 14 KPI -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="650">
   <p class="kpi-value">72</p><p class="kpi-label">Net Promoter Score</p>
-  <pre class="code-block">// Delighted NPS daily sync – last 30d average score</pre>
 </section>
 
-<section class="bi-card" data-aos="fade-up" data-aos-delay="1100" data-chart="forecastLine">
+<!-- 15 Line Forecast -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="700" data-chart="forecastLine">
   <h3>Revenue Forecast</h3><canvas id="forecastLine"></canvas>
-  <pre class="code-block">// Prophet forecast from revenue_trend (90 days horizon)</pre>
 </section>
 
-<section class="bi-card" data-aos="fade-up" data-aos-delay="1200" data-chart="marketingPie">
+<!-- 16 Pie Marketing -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="750" data-chart="marketingPie">
   <h3>Marketing Spend</h3><canvas id="marketingPie"></canvas>
-  <pre class="code-block">// Google Sheets marketing_spend 2025-Q1 by channel</pre>
 </section>
 
-<!-- --- Extra Magic (6) --- -->
-
-<section class="bi-card" data-aos="fade-up" data-aos-delay="1300">
+<!-- 17 KPI -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="800">
   <p class="kpi-value">$ 1,628</p><p class="kpi-label">Customer LTV</p>
-  <pre class="code-block">// LTV = ARPU × Avg Customer Lifetime (cohort analysis)</pre>
 </section>
 
-<section class="bi-card" data-aos="fade-up" data-aos-delay="1400" data-chart="signupsLine">
+<!-- 18 Line Sign-ups -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="850" data-chart="signupsLine">
   <h3>Daily Sign-ups</h3><canvas id="signupsLine"></canvas>
-  <pre class="code-block">// Auth.users CREATED_DATE grouped daily</pre>
 </section>
 
-<section class="bi-card" data-aos="fade-up" data-aos-delay="1500" data-chart="expenseBar">
+<!-- 19 Bar Expense -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="900" data-chart="expenseBar">
   <h3>Expenses vs Budget</h3><canvas id="expenseBar"></canvas>
-  <pre class="code-block">// Finance.erp_expenses vs budget_2025plan by department</pre>
 </section>
 
-<section class="bi-card" data-aos="fade-up" data-aos-delay="1600" data-chart="ticketsPie">
+<!-- 20 Pie Tickets -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="950" data-chart="ticketsPie">
   <h3>Ticket Categories</h3><canvas id="ticketsPie"></canvas>
-  <pre class="code-block">// Zendesk.tickets last 30d grouped by type</pre>
 </section>
 
-<section class="bi-card" data-aos="fade-up" data-aos-delay="1700" data-chart="teamRadar">
+<!-- 21 Radar Team -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="1000" data-chart="teamRadar">
   <h3>Team Performance</h3><canvas id="teamRadar"></canvas>
-  <pre class="code-block">// JIRA velocity + QA pass-rate + subjective peer reviews</pre>
 </section>
 
-<section class="bi-card" data-aos="fade-up" data-aos-delay="1800" data-chart="planDoughnut">
+<!-- 22 Doughnut Plans -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="1050" data-chart="planDoughnut">
   <h3>Subscription Mix</h3><canvas id="planDoughnut"></canvas>
-  <pre class="code-block">// Billing.subscriptions grouped by plan_tier</pre>
 </section>
 
-<section class="bi-card" data-aos="fade-up" data-aos-delay="1900">
-  <p class="kpi-value">1.32 s</p><p class="kpi-label">Page Load Avg</p>
-  <pre class="code-block">// New Relic Web VITALS – average page_load_95p</pre>
+<!-- 23 KPI -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="1100">
+  <p class="kpi-value">1.32 s</p><p class="kpi-label">Avg Page Load</p>
 </section>
 
-<section class="bi-card" data-aos="fade-up" data-aos-delay="2000" data-chart="bugsBar">
+<!-- 24 Bar Bugs -->
+<section class="bi-card" data-aos="fade-up" data-aos-delay="1150" data-chart="bugsBar">
   <h3>Bug Severity</h3><canvas id="bugsBar"></canvas>
-  <pre class="code-block">// JIRA issues grouped by priority WHERE status='Open'</pre>
 </section>
 
 </main>
 
-<!-- ===== Scripts ===== -->
+<!-- ───── Scripts ───── -->
 <script>
-/* ============ Utils ============ */
-const rnd=(min,max)=>Math.floor(Math.random()*(max-min+1))+min;
+document.addEventListener("DOMContentLoaded",()=>{
+
+/* Utils */
+const rnd=(m,n)=>Math.floor(Math.random()*(n-m+1))+m;
 const ctx=id=>document.getElementById(id)?.getContext("2d");
 const months=["May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar","Apr"];
 
-/* ============ Charts Generators ============ */
+/* Chart loaders */
 const chartLoaders={
   revenueLine(){return new Chart(ctx("revenueLine"),{type:"line",
     data:{labels:months,datasets:[{data:months.map(()=>rnd(800,1700)),tension:.35,fill:true}]},
@@ -291,112 +309,92 @@ const chartLoaders={
     options:{plugins:{legend:{display:false}},indexAxis:"y"}})}
 };
 
-/* ============ Particles + AOS ============ */
-window.addEventListener("load",()=>{
-  tsParticles.load("tsparticles",{
-    particles:{number:{value:80,density:{enable:true,area:800}},
-      color:{value:"#6eee9e"},links:{enable:true,color:"#6eee9e",opacity:.14},
-      move:{enable:true,speed:1.1},opacity:{value:.25}},fullScreen:{enable:false}});
-  AOS.init({once:true,duration:700,offset:120});
-});
+/* Particles & AOS */
+tsParticles.load("tsparticles",{
+  particles:{number:{value:80,density:{enable:true,area:800}},
+    color:{value:"#6eee9e"},links:{enable:true,color:"#6eee9e",opacity:.14},
+    move:{enable:true,speed:1.1},opacity:{value:.25}},fullScreen:{enable:false}});
+AOS.init({once:true,duration:700,offset:120});
 
-/* ============ Toolbar builder ============ */
+/* Toolbar builder */
 function buildToolbar(card){
   if(card.querySelector(".card-actions")) return;
-  const views=rnd(100,2000), likes=rnd(0,150);
-  const actions=document.createElement("div");
-  actions.className="card-actions";
-  actions.innerHTML=`
-   <div style="display:flex;gap:14px">
-     <button class="icon-btn like" title="Like"><i class="fa-regular fa-heart"></i><span class="like-count">${likes}</span></button>
-     <button class="icon-btn share" title="Share"><i class="fa-solid fa-share-nodes"></i></button>
-     <button class="icon-btn edit" title="Edit"><i class="fa-regular fa-pen-to-square"></i></button>
-     <button class="icon-btn code" title="View Code"><i class="fa-solid fa-code"></i></button>
-     <button class="icon-btn explore" title="Deep Dive"><i class="fa-solid fa-magnifying-glass-chart"></i></button>
-   </div>
-   <span class="views"><i class="fa-regular fa-eye"></i><span class="view-count">${views}</span></span>`;
-  card.appendChild(actions);
+  const views=rnd(100,2000),likes=rnd(0,150);
+  card.insertAdjacentHTML("beforeend",`
+    <div class="card-actions">
+      <div style="display:flex;gap:14px">
+        <button class="icon-btn like"><i class="fa-regular fa-heart"></i><span class="like-count">${likes}</span></button>
+        <button class="icon-btn share"><i class="fa-solid fa-share-nodes"></i></button>
+        <button class="icon-btn edit"><i class="fa-regular fa-pen-to-square"></i></button>
+        <button class="icon-btn code"><i class="fa-solid fa-code"></i></button>
+        <button class="icon-btn explore"><i class="fa-solid fa-magnifying-glass-chart"></i></button>
+      </div>
+      <span class="views"><i class="fa-regular fa-eye"></i><span class="view-count">${views}</span></span>
+    </div>`);
 }
 
-/* ============ Lazy Chart Loader ============ */
+/* Lazy chart loader */
 const observer=new IntersectionObserver(entries=>{
-  entries.forEach(entry=>{
-    if(!entry.isIntersecting) return;
-    const card=entry.target;
+  entries.forEach(ent=>{
+    if(!ent.isIntersecting) return;
+    const card=ent.target;
     if(card.dataset.loaded) return;
     card.dataset.loaded="true";
-
-    // Build toolbar on first load
     buildToolbar(card);
-
-    // Load chart if needed
     const loader=card.dataset.chart;
-    if(loader && chartLoaders[loader]) chartLoaders[loader]();
+    if(loader&&chartLoaders[loader]) chartLoaders[loader]();
   });
 },{rootMargin:"0px 0px 200px 0px",threshold:0.15});
+document.querySelectorAll(".bi-card").forEach(c=>observer.observe(c));
 
-document.querySelectorAll(".bi-card").forEach(card=>observer.observe(card));
-
-/* ============ Like / Code / Share / Explore ============ */
+/* Click handlers */
 document.addEventListener("click",e=>{
-  const likeBtn=e.target.closest(".icon-btn.like");
-  if(likeBtn){
-    likeBtn.classList.toggle("liked");
-    const cnt=likeBtn.querySelector(".like-count");
-    cnt.textContent=parseInt(cnt.textContent)+(likeBtn.classList.contains("liked")?1:-1);
+  const like=e.target.closest(".icon-btn.like");
+  if(like){like.classList.toggle("liked");
+    const num=like.querySelector(".like-count");
+    num.textContent=parseInt(num.textContent)+(like.classList.contains("liked")?1:-1);}
+  const code=e.target.closest(".icon-btn.code");
+  if(code){
+    const blk=code.closest(".bi-card").querySelector(".code-block");
+    if(blk) blk.style.display=blk.style.display==="block"?"none":"block";
   }
-
-  const codeBtn=e.target.closest(".icon-btn.code");
-  if(codeBtn){
-    const code=codeBtn.closest(".bi-card").querySelector(".code-block");
-    if(code) code.style.display=code.style.display==="block"?"none":"block";
-  }
-
-  const shareBtn=e.target.closest(".icon-btn.share");
-  if(shareBtn){
+  const share=e.target.closest(".icon-btn.share");
+  if(share){
     const url=location.href;
-    if(navigator.share) navigator.share({title:"Check this insight",url}).catch(()=>{});
-    else {navigator.clipboard.writeText(url);alert("Link copied!");}
+    if(navigator.share){navigator.share({title:"Check this insight",url}).catch(()=>{});}
+    else{navigator.clipboard.writeText(url);alert("Link copied!");}
   }
-
-  const exploreBtn=e.target.closest(".icon-btn.explore");
-  if(exploreBtn){
-    alert("Opening deep-dive chat (stub)… 🚀");
-  }
+  const exp=e.target.closest(".icon-btn.explore");
+  if(exp) alert("Opening deep-dive chat (stub)… 🚀");
 });
 
-/* ============ Swipe Actions ============ */
-let startX,swipeCard;
+/* Swipe save / remove */
+let swipeCard,startX;
 document.addEventListener("pointerdown",e=>{
-  swipeCard=e.target.closest(".bi-card"); if(!swipeCard) return;
-  startX=e.clientX; swipeCard.style.transition="none";
+  swipeCard=e.target.closest(".bi-card");if(!swipeCard) return;
+  startX=e.clientX;swipeCard.style.transition="none";
 },true);
-
 document.addEventListener("pointermove",e=>{
   if(!swipeCard) return;
   const dx=e.clientX-startX;
   swipeCard.style.transform=`translateX(${dx}px) rotate(${dx/40}deg)`;
 },true);
-
 document.addEventListener("pointerup",e=>{
   if(!swipeCard) return;
   const dx=e.clientX-startX;
   swipeCard.style.transition="transform .3s ease-out";
-  if(dx>80){ // swipe right – save & move top
+  if(dx>80){
     swipeCard.classList.add("saved");
     swipeCard.style.transform="translateX(100vw)";
-    setTimeout(()=>{
-      swipeCard.style.transform="none";
-      swipeCard.parentElement.prepend(swipeCard);
-    },300);
-  }else if(dx<-80){ // swipe left – remove
+    setTimeout(()=>{swipeCard.style.transform="none";swipeCard.parentElement.prepend(swipeCard);},300);
+  }else if(dx<-80){
     swipeCard.style.transform="translateX(-100vw)";
     setTimeout(()=>swipeCard.remove(),300);
-  }else{
-    swipeCard.style.transform="none";
-  }
+  }else swipeCard.style.transform="none";
   swipeCard=null;
 },true);
+
+});
 </script>
 </body>
 </html>
