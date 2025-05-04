@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BI Magics • Demo Feed</title>
+
+  <!-- ===== 3rd-party libraries ===== -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.11.1/tsparticles.bundle.min.js"></script>
+
+  <!-- ===== Styles ===== -->
+  <style>
+    /* ----- Global dark theme ----- */
+    :root {
+      --card-bg: #1e1e28;
+      --card-border: #2f2f42;
+      --accent: #6eee9e;
+      --text: #e9e9f1;
+      --kpi: #ffffff;
+      --shadow: 0 8px 20px rgba(0,0,0,0.45);
+      --radius: 14px;
+      font-family: "Inter", "Segoe UI", Arial, sans-serif;
+    }
+    body {
+      margin: 0;
+      background: radial-gradient(ellipse at top, #13131d 0%, #0e0e14 60%);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* Particle canvas sits behind everything */
+    #tsparticles { position: fixed; inset: 0; z-index: -2; }
+
+    /* Feed container */
+    .feed {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 120px 16px 160px;
+      display: flex;
+      flex-direction: column;
+      gap: 48px;
+    }
+
+    /* Generic card */
+    .bi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px 28px;
+      position: relative;
+      backdrop-filter: blur(4px);
+      overflow: hidden;
+    }
+    .bi-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(135deg, transparent 0%, var(--accent)22%, transparent 50%, transparent 100%);
+      background-size: 400% 400%;
+      opacity: 0.12;
+      animation: hologlow 8s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes hologlow {
+      0%   {background-position: 0% 0%;}
+      100% {background-position: 200% 200%;}
+    }
+
+    /* KPI */
+    .kpi-value {
+      font-size: clamp(36px, 7vw, 64px);
+      font-weight: 700;
+      color: var(--kpi);
+      margin: 0;
+    }
+    .kpi-label {
+      font-size: 18px;
+      opacity: 0.7;
+      margin-top: 4px;
+    }
+
+    /* Table styling */
+    .table-wrapper {
+      overflow-x: auto;
+      margin-top: 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+    }
+    th, td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid #2d2d38;
+    }
+    th { color: var(--accent); font-weight: 600; }
+
+    /* SQL snippet */
+    pre.sql {
+      background: #0d0d14;
+      color: #9cf3ce;
+      border: 1px solid #28323b;
+      padding: 16px;
+      border-radius: 10px;
+      overflow-x: auto;
+      font-size: 14px;
+    }
+
+    /* Fade-in scroll trigger (fallback in case JS disabled) */
+    .aos-init:not(.aos-animate) { opacity: 0; }
+
+  </style>
+</head>
+<body>
+
+<!-- ✨ particles background -->
+<canvas id="tsparticles"></canvas>
+
+<!-- ============ FEED ============ -->
+<main class="feed">
+
+  <!-- 1 KPI Card -->
+  <section class="bi-card" data-aos="fade-up">
+    <p class="kpi-value">$ 12,473,920</p>
+    <p class="kpi-label">Total Revenue (Last 12 Months)</p>
+  </section>
+
+  <!-- 2 Line Chart -->
+  <section class="bi-card" data-aos="fade-up" data-aos-delay="100">
+    <h3>Revenue Trend</h3>
+    <canvas id="revenueLine"></canvas>
+  </section>
+
+  <!-- 3 Pie Chart -->
+  <section class="bi-card" data-aos="fade-up" data-aos-delay="200">
+    <h3>Sales by Region</h3>
+    <canvas id="regionPie"></canvas>
+  </section>
+
+  <!-- 4 Bar Chart -->
+  <section class="bi-card" data-aos="fade-up" data-aos-delay="300">
+    <h3>Top Products by Units Sold</h3>
+    <canvas id="productBar"></canvas>
+  </section>
+
+  <!-- 5 Table -->
+  <section class="bi-card" data-aos="fade-up" data-aos-delay="400">
+    <h3>Top Customers</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Customer</th><th>Country</th><th>Spend ($)</th></tr></thead>
+        <tbody>
+          <tr><td>Acme Corp</td><td>USA</td><td>1,200,000</td></tr>
+          <tr><td>Globex</td><td>Canada</td><td>985,500</td></tr>
+          <tr><td>Initech</td><td>UK</td><td>873,000</td></tr>
+          <tr><td>Umbrella</td><td>Germany</td><td>712,400</td></tr>
+          <tr><td>Stark Industries</td><td>USA</td><td>598,900</td></tr>
+          <tr><td>Wayne Enterprises</td><td>Israel</td><td>547,100</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 6 KPI Card -->
+  <section class="bi-card" data-aos="fade-up" data-aos-delay="500">
+    <p class="kpi-value">157,332</p>
+    <p class="kpi-label">Monthly Active Users</p>
+  </section>
+
+  <!-- 7 SQL Snippet -->
+  <section class="bi-card" data-aos="fade-up" data-aos-delay="600">
+    <h3>Query Behind the Numbers</h3>
+    <pre class="sql">SELECT DATE_TRUNC(order_date, MONTH) AS month,
+       SUM(total_amount)             AS revenue
+FROM   bigquery_project.orders
+WHERE  order_date &gt;= DATE_SUB(CURRENT_DATE(), INTERVAL 12 MONTH)
+GROUP  BY month
+ORDER  BY month;</pre>
+  </section>
+
+  <!-- 8 Doughnut -->
+  <section class="bi-card" data-aos="fade-up" data-aos-delay="700">
+    <h3>Device Distribution</h3>
+    <canvas id="deviceDoughnut"></canvas>
+  </section>
+
+  <!-- 9 Horizontal Bar -->
+  <section class="bi-card" data-aos="fade-up" data-aos-delay="800">
+    <h3>Website Traffic Sources</h3>
+    <canvas id="trafficBar"></canvas>
+  </section>
+
+  <!-- 10 KPI Card -->
+  <section class="bi-card" data-aos="fade-up" data-aos-delay="900">
+    <p class="kpi-value">3.8 %</p>
+    <p class="kpi-label">Monthly Churn Rate</p>
+  </section>
+
+  <!-- 11 Table (Anomalies) -->
+  <section class="bi-card" data-aos="fade-up" data-aos-delay="1000">
+    <h3>Data Quality Alerts</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Timestamp</th><th>Source</th><th>Anomaly</th></tr></thead>
+        <tbody>
+          <tr><td>2025-05-03 04:12</td><td>bigquery.orders</td><td>Spike in refunds</td></tr>
+          <tr><td>2025-05-02 14:55</td><td>salesforce.opportunities</td><td>Missing owner_id</td></tr>
+          <tr><td>2025-05-01 21:30</td><td>sheet.marketing_spend</td><td>Negative amount</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 12 Radar -->
+  <section class="bi-card" data-aos="fade-up" data-aos-delay="1100">
+    <h3>KPIs vs Target</h3>
+    <canvas id="kpiRadar"></canvas>
+  </section>
+
+  <!-- 13 KPI -->
+  <section class="bi-card" data-aos="fade-up" data-aos-delay="1200">
+    <p class="kpi-value">72</p>
+    <p class="kpi-label">Net Promoter Score</p>
+  </section>
+
+  <!-- 14 Forecast Line -->
+  <section class="bi-card" data-aos="fade-up" data-aos-delay="1300">
+    <h3>Revenue Forecast</h3>
+    <canvas id="forecastLine"></canvas>
+  </section>
+
+  <!-- 15 Marketing Pie -->
+  <section class="bi-card" data-aos="fade-up" data-aos-delay="1400">
+    <h3>Marketing Spend by Channel</h3>
+    <canvas id="marketingPie"></canvas>
+  </section>
+
+  <!-- feel free להוסיף עוד כרטיסים דומים לשכפול -->
+</main>
+
+<!-- ============ SCRIPTS ============ -->
+<script>
+/* ---------- Particles background ---------- */
+tsParticles.load("tsparticles", {
+  particles: {
+    number: { value: 80, density: { enable: true, area: 800 } },
+    color: { value: "#6eee9e" },
+    links: { enable: true, color: "#6eee9e", opacity: 0.14 },
+    move: { enable: true, speed: 1.2 },
+    opacity: { value: 0.25 }
+  },
+  fullScreen: { enable: false }
+});
+
+/* ---------- AOS ---------- */
+AOS.init({ once: true, duration: 700, offset: 120 });
+
+/* ---------- Charts ---------- */
+function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+const ctx = id => document.getElementById(id).getContext("2d");
+const months = ["May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar","Apr"];
+
+new Chart(ctx("revenueLine"), {
+  type: "line",
+  data: {
+    labels: months,
+    datasets: [{
+      label: "Revenue",
+      data: months.map(()=>rnd(800,1700)),
+      tension: .35,
+      fill: true
+    }]
+  },
+  options: { plugins:{legend:{display:false}}, scales:{y:{grid:{color:"#2c2c38"}}} }
+});
+
+new Chart(ctx("regionPie"), {
+  type: "pie",
+  data: {
+    labels: ["North America","EMEA","APAC","LATAM"],
+    datasets: [{ data: [38,26,22,14] }]
+  },
+  options: { plugins:{legend:{position:"bottom"}} }
+});
+
+new Chart(ctx("productBar"), {
+  type: "bar",
+  data: {
+    labels: ["Gizmo X","Widget Pro","Bolt Mini","Nano S","Giga Pack"],
+    datasets: [{ data: [rnd(600,1200),rnd(600,1200),rnd(600,1200),rnd(600,1200),rnd(600,1200)] }]
+  },
+  options: { plugins:{legend:{display:false}}, indexAxis:"y" }
+});
+
+new Chart(ctx("deviceDoughnut"), {
+  type: "doughnut",
+  data: {
+    labels: ["Mobile","Desktop","Tablet"],
+    datasets: [{ data: [62,29,9] }]
+  },
+  options: { plugins:{legend:{position:"bottom"}} }
+});
+
+new Chart(ctx("trafficBar"), {
+  type: "bar",
+  data: {
+    labels: ["Organic","Paid","Referral","Social","Email"],
+    datasets: [{ data: [rnd(150,400),rnd(150,400),rnd(150,400),rnd(150,400),rnd(150,400)] }]
+  },
+  options: { plugins:{legend:{display:false}} }
+});
+
+new Chart(ctx("kpiRadar"), {
+  type: "radar",
+  data: {
+    labels: ["Revenue","Users","Conversion","Retention","NPS"],
+    datasets: [
+      { label: "Actual", data: [88,75,64,71,72], fill: true },
+      { label: "Target", data: [100,80,70,75,80], borderDash:[6,3] }
+    ]
+  },
+  options: { plugins:{legend:{position:"bottom"}} }
+});
+
+new Chart(ctx("forecastLine"), {
+  type: "line",
+  data: {
+    labels: ["May","Jun","Jul","Aug","Sep","Oct"],
+    datasets: [{
+      label: "Projected Revenue",
+      data: [1.24,1.32,1.38,1.45,1.51,1.58].map(v=>v*1e6),
+      borderDash:[4,4],
+      tension:.3,
+      fill:false
+    }]
+  },
+  options: { plugins:{legend:{display:false}} }
+});
+
+new Chart(ctx("marketingPie"), {
+  type: "pie",
+  data: {
+    labels: ["Search","Social","Influencer","Email","Display"],
+    datasets: [{ data: [34,27,18,13,8] }]
+  },
+  options: { plugins:{legend:{position:"bottom"}} }
+});
+</script>
+</body>
+</html>
