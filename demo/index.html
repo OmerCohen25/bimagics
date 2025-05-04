@@ -1,13 +1,17 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>BI Magics • Demo Hub משופר</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BI Magics • Enhanced Demo Hub</title>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js" defer></script> <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/tsparticles@3.4.0/tsparticles.bundle.min.js" defer></script> <style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/tsparticles@3.4.0/tsparticles.bundle.min.js" defer></script>
+
+<style>
 /* ============ THEME ============ */
 :root {
  --bg-start: #0c0c12;
@@ -15,12 +19,9 @@
  --card: #1e1e28;
  --border: #2f2f42;
  --accent: #6eee9e; /* Mint Green */
- /* Alternative Accents (Uncomment to try) */
- /* --accent: #7f7bff; /* Lavender Blue */
- /* --accent: #ff8c42; /* Tangerine */
  --text: #e9e9f1;
- --radius: 16px; /* Slightly larger radius */
- --shadow: 0 8px 22px rgba(0, 0, 0, 0.5); /* Softer, larger shadow */
+ --radius: 16px;
+ --shadow: 0 8px 22px rgba(0, 0, 0, 0.5);
  font-family: 'Inter', Arial, sans-serif;
  font-size: 15px;
  scroll-behavior: smooth;
@@ -35,7 +36,7 @@
 body {
   background: linear-gradient(145deg, var(--bg-start), var(--bg-end));
   color: var(--text);
-  overflow-x: hidden;
+  overflow-x: hidden; /* Prevent horizontal scroll on body */
   min-height: 100vh;
 }
 
@@ -52,21 +53,22 @@ body {
   z-index: 30;
   display: flex;
   justify-content: center;
-  gap: 5vw; /* Adjusted gap */
-  padding: 14px 0; /* Increased padding */
+  gap: 5vw;
+  padding: 14px 0;
   background: #10101acc;
-  backdrop-filter: blur(8px); /* Slightly more blur */
+  backdrop-filter: blur(8px);
   border-bottom: 1px solid #23232f;
 }
 
 .top-nav button {
   all: unset;
   cursor: pointer;
-  font-weight: 600; /* Bolder */
+  font-weight: 600;
   opacity: 0.6;
-  border-bottom: 3px solid transparent; /* Thicker border */
+  border-bottom: 3px solid transparent;
   padding-bottom: 4px;
-  transition: opacity 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* Smooth transition */
+  transition: opacity 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  white-space: nowrap; /* Prevent button text wrapping */
 }
 
 .top-nav button:hover {
@@ -81,47 +83,49 @@ body {
 
 @media (min-width: 600px) {
   .top-nav {
-    gap: 36px; /* Increased gap */
-    font-size: 17px; /* Slightly larger */
+    gap: 36px;
+    font-size: 17px;
   }
 }
 
 /* ============ WRAPPER ============ */
 .views {
   display: flex;
-  width: 400%;
-  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); /* Smoother easing */
-  touch-action: pan-y; /* Allow vertical scroll while swiping */
+  width: 400%; /* For 4 views */
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  touch-action: pan-y; /* Allow vertical scroll, handle horizontal pan in JS */
 }
 
 .view {
-  flex: 0 0 100%;
+  flex: 0 0 100%; /* Each view takes full width */
+  width: 100%; /* Explicit width */
   min-height: calc(100vh - 57px); /* Adjust for nav height */
-  padding: 40px 5vw 120px; /* Adjusted padding */
+  padding: 40px 5vw 120px;
   overflow-y: auto;
+  overflow-x: hidden; /* Prevent horizontal scroll within a view */
 }
 
 @media (min-width: 700px) {
   .view {
-    padding: 60px 40px 140px; /* Adjusted padding */
+    padding: 60px 40px 140px;
   }
 }
 
 /* ============ CARD ============ */
 .bi-card {
   position: relative;
-  margin-bottom: 32px; /* Consistent margin */
+  margin-bottom: 32px;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 24px 26px 72px; /* Increased padding */
+  padding: 24px 26px 72px; /* Default padding, actions bar height included */
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Hover transition */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .bi-card:hover {
-    transform: translateY(-4px) scale(1.01); /* Subtle lift and scale on hover */
+    transform: translateY(-4px) scale(1.01);
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6);
 }
 
@@ -129,14 +133,14 @@ body {
 .bi-card::before {
   content: "";
   position: absolute;
-  inset: -1px; /* Cover border */
+  inset: -1px;
   border-radius: inherit;
   pointer-events: none;
   background: linear-gradient(135deg, transparent 30%, var(--accent) 50%, transparent 70%);
-  background-size: 300% 300%; /* Slower, larger gradient */
-  opacity: 0.1; /* More subtle */
-  animation: holo 10s linear infinite; /* Slower animation */
-  z-index: 1; /* Above content but below actions */
+  background-size: 300% 300%;
+  opacity: 0.1;
+  animation: holo 10s linear infinite;
+  z-index: 1;
 }
 
 @keyframes holo {
@@ -145,8 +149,7 @@ body {
   100% { background-position: 0% 100%; }
 }
 
-
-.card-content { /* Added wrapper for content to be above holo */
+.card-content { /* Content wrapper */
     position: relative;
     z-index: 2;
 }
@@ -154,7 +157,7 @@ body {
 .card-title {
   font-weight: 600;
   margin-bottom: 12px;
-  font-size: 18px; /* Larger title */
+  font-size: 18px;
 }
 
 /* KPI styles */
@@ -163,39 +166,41 @@ body {
   font-weight: 700;
   margin-bottom: 4px;
   color: #fff;
-  display: block; /* Ensure it takes full width */
+  display: block;
+  line-height: 1.1; /* Adjust line height */
+  word-break: break-word; /* Allow breaking long numbers if needed */
 }
 
 .kpi-small {
   opacity: 0.75;
-  font-size: 14px; /* Slightly larger */
+  font-size: 14px;
 }
 
 /* progress */
 .progress {
-  height: 12px; /* Thicker bar */
-  background: #333344; /* Darker background */
+  height: 12px;
+  background: #333344;
   border-radius: 8px;
   margin-top: 10px;
   overflow: hidden;
-  position: relative; /* For pseudo-element animation */
+  position: relative;
 }
 
 .progress > div {
   height: 100%;
   background: var(--accent);
-  border-radius: 8px 0 0 8px; /* Keep left radius */
-  position: relative; /* Needed for z-index */
-  overflow: hidden; /* To contain the shine */
+  border-radius: 8px; /* Apply radius to the fill */
+  position: relative;
+  overflow: hidden;
 }
 
-/* Shine animation for progress bar */
+/* Shine animation */
 .progress > div::after {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
-    width: 40px; /* Width of the shine */
+    width: 40px;
     height: 100%;
     background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0) 100%);
     animation: progress-shine 2.5s infinite linear;
@@ -203,15 +208,15 @@ body {
 }
 
 @keyframes progress-shine {
-    0% { transform: translateX(-50px); } /* Start off-screen left */
-    100% { transform: translateX(300px); } /* Move across typical bar widths */
+    0% { transform: translateX(-50px); }
+    100% { transform: translateX(400px); } /* Ensure it crosses wider bars */
 }
-
 
 /* table */
 .table-wrap {
-  overflow-x: auto;
+  overflow-x: auto; /* Enable horizontal scroll ONLY for the table */
   margin-top: 15px;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 table {
@@ -220,22 +225,22 @@ table {
 }
 
 th, td {
-  padding: 10px 12px; /* More padding */
+  padding: 10px 12px;
   border-bottom: 1px solid #2d2d38;
-  text-align: right; /* Changed to right for Hebrew */
-  font-size: 15px; /* Larger font */
-  white-space: nowrap; /* Prevent wrapping */
+  text-align: left; /* Default alignment */
+  font-size: 15px;
+  white-space: nowrap; /* Prevent wrapping cell content */
 }
 
 th {
   color: var(--accent);
   font-weight: 600;
-  text-align: right; /* Changed to right */
 }
 
-td:first-child, th:first-child {
-    text-align: right; /* Ensure first column is right-aligned */
+td:last-child, th:last-child {
+    text-align: right; /* Align numerical values to the right */
 }
+
 
 /* toolbar */
 .card-actions {
@@ -243,41 +248,41 @@ td:first-child, th:first-child {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 60px; /* Taller actions bar */
+  height: 60px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 20px; /* More padding */
+  padding: 0 20px;
   background: #15151dcc;
   border-top: 1px solid #292935;
   backdrop-filter: blur(6px);
-  z-index: 3; /* Ensure actions are above holo */
+  z-index: 3;
 }
 
 .icon-btn {
   all: unset;
   display: flex;
   align-items: center;
-  gap: 6px; /* Increased gap */
+  gap: 6px;
   cursor: pointer;
-  font-size: 16px; /* Larger icons */
-  transition: color 0.3s ease, transform 0.2s ease; /* Smooth transition */
+  font-size: 16px;
+  transition: color 0.3s ease, transform 0.2s ease;
 }
 .icon-btn:hover {
   color: var(--accent);
-  transform: scale(1.1); /* Pop effect on hover */
+  transform: scale(1.1);
 }
 .icon-btn:active {
-    transform: scale(0.95); /* Press effect */
+    transform: scale(0.95);
 }
 
 .icon-btn.like i {
-    transition: color 0.3s ease, transform 0.3s ease;
+    transition: color 0.3s ease, transform 0.3s ease, font-weight 0.1s ease;
 }
 
 .icon-btn.like.liked i {
-  color: #ff6b81; /* Pinkish red for liked */
-  font-weight: 900; /* Make solid icon bolder */
+  color: #ff6b81;
+  font-weight: 900; /* Use font-weight for solid feel */
   animation: heartBeat 0.4s ease;
 }
 
@@ -289,7 +294,7 @@ td:first-child, th:first-child {
 
 .views-count {
   opacity: 0.7;
-  font-size: 14px; /* Larger */
+  font-size: 14px;
   display: flex;
   align-items: center;
   gap: 5px;
@@ -298,51 +303,53 @@ td:first-child, th:first-child {
 /* GRID */
 .grid {
   display: grid;
-  gap: 24px; /* Increased gap */
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px; /* Default gap */
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* Default min size */
 }
 
 @media (min-width: 600px) {
   .grid {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* Larger min size */
+    gap: 24px;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Larger min size on wider screens */
   }
 }
 
 /* CHAT */
 .chat-box {
-  max-width: 550px; /* Slightly wider */
-  margin: 0 auto;
+  max-width: 500px; /* Max width for readability */
+  margin: 0 auto; /* Center the chat box */
   display: flex;
   flex-direction: column;
-  gap: 12px; /* Increased gap */
-  padding: 0 10px; /* Padding for small screens */
+  gap: 12px;
+  padding: 0 15px; /* Add padding for spacing from edges */
 }
 
 .msg {
-  padding: 10px 15px; /* More padding */
-  border-radius: 18px; /* More rounded */
-  font-size: 15px; /* Larger font */
-  max-width: 85%;
-  line-height: 1.5; /* Better readability */
+  padding: 10px 15px;
+  border-radius: 18px;
+  font-size: 15px;
+  max-width: 85%; /* Limit message width */
+  line-height: 1.5;
+  word-wrap: break-word; /* Allow long words to break */
 }
 
 .user {
   align-self: flex-end;
-  background: #3a3a50; /* Slightly different user color */
+  background: #3a3a50;
   color: #f0f0f0;
-  border-bottom-right-radius: 6px; /* Bubble tail */
+  border-bottom-right-radius: 6px;
 }
 
 .bot {
   align-self: flex-start;
-  background: #252535; /* Slightly different bot color */
-  border-bottom-left-radius: 6px; /* Bubble tail */
+  background: #252535;
+  border-bottom-left-radius: 6px;
 }
 
 /* fallback fade */
 .aos-init:not(.aos-animate) {
   opacity: 0;
-  transform: translateY(20px); /* Add slight upward animation */
+  transform: translateY(20px);
 }
 
 /* Custom Scrollbar (WebKit browsers) */
@@ -354,13 +361,49 @@ td:first-child, th:first-child {
     border-radius: 4px;
 }
 .view::-webkit-scrollbar-thumb {
-    background-color: rgba(110, 238, 158, 0.3); /* Accent color, semi-transparent */
+    background-color: rgba(110, 238, 158, 0.3);
     border-radius: 4px;
     border: 2px solid transparent;
     background-clip: content-box;
 }
 .view::-webkit-scrollbar-thumb:hover {
     background-color: rgba(110, 238, 158, 0.5);
+}
+
+/* Mobile Specific Adjustments */
+@media (max-width: 420px) {
+    .view {
+        padding: 30px 3vw 100px; /* Reduced padding */
+    }
+    .bi-card {
+        padding: 20px 18px 65px; /* Reduced card padding (actions height ~60px) */
+        margin-bottom: 24px;
+    }
+    .card-actions {
+        height: 56px; /* Slightly smaller actions bar */
+        padding: 0 15px;
+    }
+    .top-nav {
+        gap: 4vw; /* Reduced nav gap */
+        padding: 12px 0;
+    }
+    .chat-box {
+         gap: 10px;
+    }
+     .msg {
+        padding: 9px 12px;
+        font-size: 14px;
+     }
+     .kpi-big {
+        font-size: clamp(28px, 9vw, 48px); /* Slightly smaller */
+     }
+     .card-title {
+        font-size: 17px;
+     }
+     .grid {
+        gap: 15px;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Smaller min grid item size */
+     }
 }
 
 </style>
@@ -370,10 +413,10 @@ td:first-child, th:first-child {
 <canvas id="tsparticles"></canvas>
 
 <nav class="top-nav">
- <button data-i="0" class="active">פיד</button>
- <button data-i="1">צ'אט</button>
- <button data-i="2">חיבורים</button>
- <button data-i="3">מרקט</button>
+ <button data-i="0" class="active">Feed</button>
+ <button data-i="1">Chat</button>
+ <button data-i="2">Connect</button>
+ <button data-i="3">Market</button>
 </nav>
 
 <div class="views" id="views">
@@ -382,18 +425,19 @@ td:first-child, th:first-child {
    <article class="bi-card" data-aos="fade-up">
      <div class="card-content">
          <span class="kpi-big">$12.47 M</span>
-         <span class="kpi-small">הכנסות · 12 חודשים אחרונים</span>
+         <span class="kpi-small">Revenue · Last 12 M</span>
      </div>
      <div class="card-actions">
          <button class="icon-btn like" aria-label="Like this KPI">
-             <i class="fa-regular fa-heart"></i> </button>
+             <i class="fa-regular fa-heart"></i>
+         </button>
          <span class="views-count"><i class="fa-regular fa-eye"></i> 1.2 K</span>
      </div>
    </article>
 
    <article class="bi-card" data-aos="fade-up" data-aos-delay="100">
      <div class="card-content">
-         <h3 class="card-title">הכנסות מול יעד</h3>
+         <h3 class="card-title">Revenue vs Target</h3>
          <div class="kpi-small">$1.48 M / $1.60 M</div>
          <div class="progress"><div style="width:92%"></div></div>
      </div>
@@ -405,8 +449,8 @@ td:first-child, th:first-child {
 
    <article class="bi-card" data-aos="fade-up" data-aos-delay="150">
      <div class="card-content">
-         <h3 class="card-title">מכירות לפי אזור</h3>
-         <canvas id="regionPie" height="240"></canvas> </div>
+         <h3 class="card-title">Sales by Region</h3>
+         <canvas id="regionPie" height="220"></canvas> </div>
      <div class="card-actions">
         <button class="icon-btn" aria-label="Share"><i class="fa-regular fa-share-square"></i></button>
         <span class="views-count"><i class="fa-regular fa-eye"></i> 2.1 K</span>
@@ -415,8 +459,8 @@ td:first-child, th:first-child {
 
    <article class="bi-card" data-aos="fade-up" data-aos-delay="200">
       <div class="card-content">
-          <h3 class="card-title">הרשמות יומיות</h3>
-          <canvas id="trendLine" height="240"></canvas> </div>
+          <h3 class="card-title">Daily Sign-ups</h3>
+          <canvas id="trendLine" height="220"></canvas> </div>
        <div class="card-actions">
         <button class="icon-btn" aria-label="Download data"><i class="fa-solid fa-download"></i></button>
         <span class="views-count"><i class="fa-regular fa-eye"></i> 1.8 K</span>
@@ -425,13 +469,13 @@ td:first-child, th:first-child {
 
    <article class="bi-card" data-aos="fade-up" data-aos-delay="250">
      <div class="card-content">
-         <h3 class="card-title">לקוחות מובילים</h3>
+         <h3 class="card-title">Top Customers</h3>
          <div class="table-wrap">
              <table>
-                 <thead><tr><th>$</th><th>לקוח</th></tr></thead> <tbody>
-                     <tr><td>1.2 M</td><td>אקמי בע"מ</td></tr>
-                     <tr><td>985 K</td><td>גלובקס קורפ</td></tr>
-                     <tr><td>712 K</td><td>אמברלה בע"מ</td></tr>
+                 <thead><tr><th>Customer</th><th>Revenue</th></tr></thead> <tbody>
+                     <tr><td>Acme Inc.</td><td>$1.2 M</td></tr> <tr><td>Globex Corp.</td><td>$985 K</td></tr>
+                     <tr><td>Umbrella Ltd.</td><td>$712 K</td></tr>
+                     <tr><td>Stark Industries</td><td>$650 K</td></tr>
                  </tbody>
              </table>
          </div>
@@ -444,34 +488,35 @@ td:first-child, th:first-child {
  </section>
 
  <section class="view">
-   <h2 style="text-align:center;margin-bottom:32px" data-aos="fade-up">💬 הדגמת ChatBI</h2>
+   <h2 style="text-align:center;margin-bottom:32px" data-aos="fade-up">💬 ChatBI Demo</h2>
    <div class="chat-box" data-aos="fade-up" data-aos-delay="100">
-     <div class="bot msg">שאל אותי על הדאטה שלך 👋</div>
-     <div class="user msg">הצג הכנסות לרבעון Q1</div>
-     <div class="bot msg">הכנסות רבעון Q1 2025 הן <strong>$3.4 M</strong>, עליה של 18% משנה שעברה.</div>
-     <div class="user msg">מי הלקוח הגדול ביותר החודש?</div>
-      <div class="bot msg">אני בודק... הלקוח הגדול ביותר החודש הוא 'אקמי בע"מ' עם $280K.</div>
+     <div class="bot msg">Ask me about your data 👋</div> <div class="user msg">Show Q1 revenue</div>
+     <div class="bot msg">Q1 2025 revenue is <strong>$3.4 M</strong>, up 18% YoY.</div>
+     <div class="user msg">Who was the top customer last month?</div>
+      <div class="bot msg">Checking... The top customer last month was 'Globex Corp.' with $310K in revenue.</div>
    </div>
  </section>
 
  <section class="view">
-   <h2 style="text-align:center;margin-bottom:32px" data-aos="fade-up">🔌 חיבורים למקורות מידע</h2>
+   <h2 style="text-align:center;margin-bottom:32px" data-aos="fade-up">🔌 Connectors</h2>
    <div class="grid">
-     <div class="bi-card" data-aos="zoom-in"><div class="card-content"><h3 class="card-title">BigQuery</h3><p class="kpi-small">מחובר ✅</p></div></div>
-     <div class="bi-card" data-aos="zoom-in" data-aos-delay="100"><div class="card-content"><h3 class="card-title">Sheets</h3><p class="kpi-small">חיבור בקליק</p></div></div>
-     <div class="bi-card" data-aos="zoom-in" data-aos-delay="150"><div class="card-content"><h3 class="card-title">Snowflake</h3><p class="kpi-small">בטא</p></div></div>
-     <div class="bi-card" data-aos="zoom-in" data-aos-delay="200"><div class="card-content"><h3 class="card-title">Salesforce</h3><p class="kpi-small">בקרוב</p></div></div>
-     <div class="bi-card" data-aos="zoom-in" data-aos-delay="250"><div class="card-content"><h3 class="card-title">Databricks</h3><p class="kpi-small">חדש!</p></div></div>
+     <div class="bi-card" data-aos="zoom-in"><div class="card-content"><h3 class="card-title">BigQuery</h3><p class="kpi-small">Connected ✅</p></div></div>
+     <div class="bi-card" data-aos="zoom-in" data-aos-delay="50"><div class="card-content"><h3 class="card-title">Sheets</h3><p class="kpi-small">Connect in 1-click</p></div></div>
+     <div class="bi-card" data-aos="zoom-in" data-aos-delay="100"><div class="card-content"><h3 class="card-title">Snowflake</h3><p class="kpi-small">Beta</p></div></div>
+     <div class="bi-card" data-aos="zoom-in" data-aos-delay="150"><div class="card-content"><h3 class="card-title">Salesforce</h3><p class="kpi-small">Coming soon</p></div></div>
+     <div class="bi-card" data-aos="zoom-in" data-aos-delay="200"><div class="card-content"><h3 class="card-title">Databricks</h3><p class="kpi-small">New!</p></div></div>
+      <div class="bi-card" data-aos="zoom-in" data-aos-delay="250"><div class="card-content"><h3 class="card-title">HubSpot</h3><p class="kpi-small">Available</p></div></div>
    </div>
  </section>
 
  <section class="view">
-   <h2 style="text-align:center;margin-bottom:32px" data-aos="fade-up">🛒 מרקטפלייס דאטה</h2>
+   <h2 style="text-align:center;margin-bottom:32px" data-aos="fade-up">🛒 Marketplace</h2>
    <div class="grid">
-     <div class="bi-card" data-aos="zoom-in"><div class="card-content"><h3 class="card-title">מפקד אוכלוסין US 2024</h3><p class="kpi-small">חינם · 560 MB</p></div></div>
-     <div class="bi-card" data-aos="zoom-in" data-aos-delay="100"><div class="card-content"><h3 class="card-title">מחירי קריפטו בזמן אמת</h3><p class="kpi-small">$49/לחודש</p></div></div>
-     <div class="bi-card" data-aos="zoom-in" data-aos-delay="150"><div class="card-content"><h3 class="card-title">היסטוריית מזג אוויר</h3><p class="kpi-small">מסלול חינמי</p></div></div>
-      <div class="bi-card" data-aos="zoom-in" data-aos-delay="200"><div class="card-content"><h3 class="card-title">נתוני תנועה עירונית</h3><p class="kpi-small">בטא · חינם</p></div></div>
+     <div class="bi-card" data-aos="zoom-in"><div class="card-content"><h3 class="card-title">US Census 2024</h3><p class="kpi-small">Free · 560 MB</p></div></div>
+     <div class="bi-card" data-aos="zoom-in" data-aos-delay="50"><div class="card-content"><h3 class="card-title">Crypto Prices</h3><p class="kpi-small">$49/mo</p></div></div>
+     <div class="bi-card" data-aos="zoom-in" data-aos-delay="100"><div class="card-content"><h3 class="card-title">Weather History</h3><p class="kpi-small">Free tier</p></div></div>
+      <div class="bi-card" data-aos="zoom-in" data-aos-delay="150"><div class="card-content"><h3 class="card-title">Global Traffic Data</h3><p class="kpi-small">Beta · Free</p></div></div>
+       <div class="bi-card" data-aos="zoom-in" data-aos-delay="200"><div class="card-content"><h3 class="card-title">Stock Market API</h3><p class="kpi-small">$99/mo</p></div></div>
    </div>
  </section>
 
@@ -483,21 +528,21 @@ document.addEventListener("DOMContentLoaded", () => {
   /* particles */
   tsParticles.load("tsparticles", {
     particles: {
-      number: { value: 40, density: { enable: true, area: 800 } }, // Fewer particles
-      color: { value: "#ffffff" }, // White particles
+      number: { value: 40, density: { enable: true, area: 800 } },
+      color: { value: "#ffffff" },
       shape: { type: "circle" },
-      opacity: { value: {min: 0.1, max: 0.4}, animation: { enable: true, speed: 0.8, sync: false } }, // Fading effect
-      size: { value: { min: 1, max: 3 } }, // Smaller particles
+      opacity: { value: {min: 0.1, max: 0.4}, animation: { enable: true, speed: 0.8, sync: false } },
+      size: { value: { min: 1, max: 3 } },
       links: {
         enable: true,
         distance: 150,
-        color: "var(--accent)", // Use accent color for links
-        opacity: 0.15, // More subtle links
+        color: "var(--accent)",
+        opacity: 0.15,
         width: 1
       },
       move: {
         enable: true,
-        speed: 0.8, // Slower movement
+        speed: 0.8,
         direction: "none",
         random: true,
         straight: false,
@@ -506,8 +551,8 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     interactivity: {
         events: {
-            onHover: { enable: true, mode: "grab" }, // Grab effect on hover
-            onClick: { enable: true, mode: "push" } // Push particles on click
+            onHover: { enable: true, mode: "grab" },
+            onClick: { enable: true, mode: "push" }
         },
         modes: {
             grab: { distance: 140, links: { opacity: 0.3 } },
@@ -515,12 +560,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     },
     detectRetina: true,
-    fullScreen: { enable: false } // Keep it constrained to body
+    fullScreen: { enable: false }
   });
 
-
   /* AOS */
-  AOS.init({ once: true, duration: 700, offset: 100, easing: 'ease-out-cubic' }); // Changed easing
+  AOS.init({ once: true, duration: 700, offset: 80, easing: 'ease-out-cubic' }); // Reduced offset slightly
 
 
   /* nav + swipe */
@@ -531,12 +575,13 @@ document.addEventListener("DOMContentLoaded", () => {
   let startX, currentTranslate, windowWidth;
 
   const go = (index, smooth = true) => {
-    cur = (index + btns.length) % btns.length; // Ensure index wraps around correctly
+    cur = (index + btns.length) % btns.length;
     wrap.style.transition = smooth ? 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)' : 'none';
+    // Use percentage for transform to be responsive
     wrap.style.transform = `translateX(${-100 * cur}%)`;
     btns.forEach(b => b.classList.toggle("active", +b.dataset.i === cur));
-    // Re-trigger AOS animations for the newly visible view if needed (optional)
-    // AOS.refresh(); // Consider calling this if elements load dynamically
+    // Optionally: Reset scroll position of the view becoming active
+    // document.querySelectorAll('.view')[cur].scrollTop = 0;
   };
 
   btns.forEach(b => b.onclick = () => go(+b.dataset.i));
@@ -545,68 +590,69 @@ document.addEventListener("DOMContentLoaded", () => {
     startX = e.pageX || e.touches[0].pageX;
     isDragging = true;
     windowWidth = window.innerWidth;
-    // Get the current transform value (it might be mid-animation)
-    const transformMatrix = window.getComputedStyle(wrap).transform;
-    if (transformMatrix !== 'none') {
-        currentTranslate = parseFloat(transformMatrix.split(',')[4]);
-    } else {
-        currentTranslate = -100 * cur * windowWidth / 100; // Calculate from index if 'none'
-    }
-    wrap.style.transition = "none"; // Disable transition during drag
+    // Calculate currentTranslate based on percentage and window width
+    currentTranslate = -cur * windowWidth;
+    wrap.style.transition = "none";
+    wrap.style.cursor = 'grabbing'; // Indicate dragging
   };
 
   const dragMove = (e) => {
     if (!isDragging) return;
+    e.preventDefault(); // Prevent text selection/other defaults during drag
     const currentX = e.pageX || e.touches[0].pageX;
     const diffX = currentX - startX;
-    // Translate based on the drag difference, relative to window width
+    // Apply translation in pixels relative to the start position
     wrap.style.transform = `translateX(${currentTranslate + diffX}px)`;
   };
 
   const dragEnd = (e) => {
     if (!isDragging) return;
     isDragging = false;
+    wrap.style.cursor = 'grab'; // Reset cursor
     const endX = e.pageX || e.changedTouches[0].pageX;
     const diffX = endX - startX;
-    const threshold = windowWidth * 0.15; // Require 15% swipe to change view
+    const threshold = windowWidth * 0.2; // Require 20% swipe
 
-    wrap.style.transition = 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)'; // Re-enable smooth transition
+    // No transition needed here, 'go' function will handle it
+    // wrap.style.transition = 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)';
 
-    if (diffX < -threshold) {
+    if (diffX < -threshold && cur < btns.length - 1) { // Check bounds
       go(cur + 1); // Swipe left
-    } else if (diffX > threshold) {
+    } else if (diffX > threshold && cur > 0) { // Check bounds
       go(cur - 1); // Swipe right
     } else {
-      go(cur); // Snap back to current view
+      go(cur); // Snap back
     }
   };
 
-  // Use pointer events for unified mouse/touch handling
-  wrap.addEventListener("pointerdown", dragStart, { passive: true });
-  document.addEventListener("pointermove", dragMove, { passive: true }); // Listen on document to capture movement outside the wrap
+  // Pointer events for unified mouse/touch
+  // Set touch-action: pan-y on .views to allow vertical scroll
+  wrap.addEventListener("pointerdown", dragStart);
+  document.addEventListener("pointermove", dragMove); // Listen on document
   document.addEventListener("pointerup", dragEnd);
-  document.addEventListener("pointercancel", dragEnd); // Handle cancelled drags
+  document.addEventListener("pointercancel", dragEnd);
+  wrap.style.cursor = 'grab'; // Initial cursor state
 
 
   /* charts */
   const rnd = (m, n) => Math.floor(Math.random() * (n - m + 1)) + m;
   const ctx = (id) => document.getElementById(id)?.getContext("2d");
 
-  // Common Chart Options
   const commonChartOptions = {
       responsive: true,
       maintainAspectRatio: false,
+      color: 'rgba(233, 233, 241, 0.7)', // Default text color for scales
       plugins: {
           legend: {
               position: 'bottom',
               labels: {
-                  color: 'var(--text)', // Use theme text color
-                  padding: 15, // Add padding to legend labels
+                  color: 'var(--text)',
+                  padding: 15,
                   font: { size: 13 }
               }
           },
           tooltip: {
-              backgroundColor: 'rgba(0, 0, 0, 0.7)', // Darker tooltip
+              backgroundColor: 'rgba(0, 0, 0, 0.75)', // Slightly darker tooltip
               titleColor: 'var(--accent)',
               bodyColor: 'var(--text)',
               padding: 10,
@@ -614,63 +660,8 @@ document.addEventListener("DOMContentLoaded", () => {
               boxPadding: 4
           }
       },
-      // Default font color for scales
-      color: 'rgba(233, 233, 241, 0.7)' // var(--text) with alpha
-  };
-
-  // Pie Chart
-  const regionCtx = ctx("regionPie");
-  if (regionCtx) {
-    new Chart(regionCtx, {
-      type: "pie",
-      data: {
-        labels: ["צפון אמריקה", "EMEA", "אסיה-פסיפיק", "אמריקה הלטינית"], // Localized labels
-        datasets: [{
-          data: [38, 26, 22, 14],
-          backgroundColor: [ // Define custom colors if needed
-                'rgba(110, 238, 158, 0.7)', // Accent color with alpha
-                'rgba(127, 123, 255, 0.7)', // Lavender Blue with alpha
-                'rgba(255, 140, 66, 0.7)',  // Tangerine with alpha
-                'rgba(90, 180, 255, 0.7)'   // Light Blue with alpha
-            ],
-            borderColor: 'var(--card)', // Match card background for separation
-            borderWidth: 2
-        }]
-      },
-      options: { ...commonChartOptions } // Use common options
-    });
-  }
-
-  // Line Chart (Trend)
-  const trendCtx = ctx("trendLine");
-  if (trendCtx) {
-    const months = Array.from({ length: 30 }, (_, i) => `יום ${i + 1}`); // Sample labels
-    new Chart(trendCtx, {
-      type: "line",
-      data: {
-        labels: months,
-        datasets: [{
-          label: 'הרשמות', // Add a label for the dataset
-          data: months.map(() => rnd(120, 430)),
-          fill: true,
-          tension: 0.4, // Slightly smoother curve
-          borderColor: 'var(--accent)',
-          backgroundColor: 'rgba(110, 238, 158, 0.15)', // Subtle fill
-          pointBackgroundColor: 'var(--accent)',
-          pointBorderColor: '#fff',
-          pointHoverBackgroundColor: '#fff',
-          pointHoverBorderColor: 'var(--accent)',
-          pointRadius: 3, // Smaller points
-          pointHoverRadius: 6 // Larger hover points
-        }]
-      },
-      options: {
-        ...commonChartOptions, // Use common options
-        plugins: { // Override legend for line chart if needed
-            ...commonChartOptions.plugins,
-            legend: { display: false } // Hide legend for single dataset line chart
-        },
-        scales: {
+      // Default font color for scales - applied via 'color' above
+      scales: { // Define common scale styling
             y: {
                 beginAtZero: true,
                 grid: {
@@ -685,6 +676,59 @@ document.addEventListener("DOMContentLoaded", () => {
                 ticks: { color: 'var(--text)' }
             }
         }
+  };
+
+  // Pie Chart
+  const regionCtx = ctx("regionPie");
+  if (regionCtx) {
+    new Chart(regionCtx, {
+      type: "pie",
+      data: {
+        labels: ["North America", "EMEA", "APAC", "LATAM"], // English labels
+        datasets: [{
+          data: [38, 26, 22, 14],
+          backgroundColor: [
+                'rgba(110, 238, 158, 0.7)', 'rgba(127, 123, 255, 0.7)',
+                'rgba(255, 140, 66, 0.7)',  'rgba(90, 180, 255, 0.7)'
+            ],
+            borderColor: 'var(--card)',
+            borderWidth: 2
+        }]
+      },
+      options: { ...commonChartOptions }
+    });
+  }
+
+  // Line Chart (Trend)
+  const trendCtx = ctx("trendLine");
+  if (trendCtx) {
+    const days = Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`); // English labels
+    new Chart(trendCtx, {
+      type: "line",
+      data: {
+        labels: days,
+        datasets: [{
+          label: 'Sign-ups',
+          data: days.map(() => rnd(120, 430)),
+          fill: true,
+          tension: 0.4,
+          borderColor: 'var(--accent)',
+          backgroundColor: 'rgba(110, 238, 158, 0.15)',
+          pointBackgroundColor: 'var(--accent)',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: 'var(--accent)',
+          pointRadius: 3,
+          pointHoverRadius: 6
+        }]
+      },
+      options: {
+        ...commonChartOptions,
+        plugins: { // Override legend display specifically for line chart
+            ...commonChartOptions.plugins,
+            legend: { display: false }
+        }
+        // Scales are inherited from commonChartOptions
       }
     });
   }
@@ -696,12 +740,12 @@ document.addEventListener("DOMContentLoaded", () => {
           button.classList.toggle('liked');
           if (button.classList.contains('liked')) {
               icon.classList.remove('fa-regular');
-              icon.classList.add('fa-solid'); // Change to solid heart
-               button.setAttribute('aria-label', 'Unlike this KPI');
+              icon.classList.add('fa-solid');
+              button.setAttribute('aria-label', 'Unlike this KPI'); // English Label
           } else {
               icon.classList.remove('fa-solid');
-              icon.classList.add('fa-regular'); // Change back to regular heart
-               button.setAttribute('aria-label', 'Like this KPI');
+              icon.classList.add('fa-regular');
+              button.setAttribute('aria-label', 'Like this KPI'); // English Label
           }
       });
   });
