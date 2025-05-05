@@ -1,566 +1,83 @@
+<!-- demo/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0"/> <title>BI Magics • Final Mobile Fit</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BI Magics • Demo</title>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/tsparticles@3.4.0/tsparticles.bundle.min.js" defer></script>
+  <!-- 3rd-party libs -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@3.4.0/tsparticles.bundle.min.js" defer></script>
 
-<style>
-/* ============ THEME ============ */
-:root {
- --bg-start: #0c0c12;
- --bg-end: #14141c;
- --card: #1e1e28;
- --border: #2f2f42;
- --accent: #6eee9e;
- --text: #e9e9f1;
- --radius: 12px; /* Default radius */
- --shadow: 0 5px 15px rgba(0, 0, 0, 0.4); /* Default shadow */
- font-family: 'Inter', Arial, sans-serif;
- font-size: 15px;
- scroll-behavior: smooth;
-}
-
-/* ============ GLOBAL RESETS & DEFAULTS ============ */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
-}
-
-html {
-  overflow-x: hidden; /* Prevent horizontal scroll */
-  -webkit-text-size-adjust: 100%;
-  -ms-text-size-adjust: 100%;
-}
-
-body {
-  background: linear-gradient(145deg, var(--bg-start), var(--bg-end));
-  color: var(--text);
-  overflow-x: hidden; /* Prevent horizontal scroll */
-  min-height: 100vh;
-  line-height: 1.5;
-}
-
-img, video, canvas, svg {
-    max-width: 100%; /* Ensure media doesn't overflow */
-    height: auto;
-    display: block; /* Remove extra space below canvas */
-}
-
-/* ============ PARTICLES BACKGROUND ============ */
-#tsparticles {
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-}
-
-/* ============ TOP NAVIGATION ============ */
-.top-nav {
-  position: sticky;
-  top: 0;
-  z-index: 30;
-  display: flex;
-  justify-content: center;
-  gap: 4vw; /* Mobile first gap */
-  padding: 10px 0; /* Mobile first padding */
-  background: rgba(16, 16, 26, 0.85); /* Slightly more opaque background */
-  backdrop-filter: blur(10px); /* More blur */
-  border-bottom: 1px solid #23232f;
-}
-
-.top-nav button {
-  all: unset; /* Reset button styles */
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 15px; /* Base size */
-  opacity: 0.6;
-  border-bottom: 2px solid transparent; /* Thinner active border */
-  padding: 5px 8px; /* Vertical and horizontal padding */
-  transition: opacity 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-  text-align: center;
-  flex-shrink: 0; /* Prevent buttons from shrinking too much */
-}
-.top-nav button:hover { opacity: 0.8; }
-.top-nav button.active {
-  opacity: 1;
-  color: var(--accent);
-  border-color: var(--accent);
-}
-
-/* ============ VIEW WRAPPER & INDIVIDUAL VIEWS ============ */
-.views {
-  display: flex;
-  width: 400%; /* For 4 views */
-  transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1);
-  touch-action: pan-y; /* Allow vertical scroll, handle horizontal pan */
-}
-
-.view {
-  flex: 0 0 100%;
-  width: 100%;
-  min-height: calc(100vh - 49px); /* Adjusted for smaller nav height */
-  padding: 25px 12px 90px; /* Mobile first padding */
-  overflow-y: auto;
-  overflow-x: hidden; /* CRITICAL */
-  -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
-}
-
-/* ============ CARDS ============ */
-.bi-card {
-  position: relative;
-  margin-bottom: 20px; /* Mobile first margin */
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 18px 15px 60px; /* Mobile first padding (Actions ~50px) */
-  overflow: hidden; /* Contain children */
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-.bi-card:hover {
-    transform: translateY(-2px); /* Very subtle hover */
-    box-shadow: 0 7px 18px rgba(0, 0, 0, 0.5);
-}
-
-/* Holo effect - Subtler */
-.bi-card::before {
-  content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none;
-  background: linear-gradient(135deg, transparent 35%, var(--accent) 50%, transparent 65%);
-  background-size: 250% 250%; opacity: 0.06; animation: holo 12s linear infinite; z-index: 1;
-}
-@keyframes holo { 0%{background-position:0% 100%} 50%{background-position:100% 0%} 100%{background-position:0% 100%} }
-
-.card-content { position: relative; z-index: 2; }
-
-.card-title {
-  font-weight: 600;
-  margin-bottom: 8px; /* Reduced margin */
-  font-size: 16px; /* Mobile first size */
-  line-height: 1.3;
-  color: var(--text);
-  word-break: break-word; /* Break long titles */
-}
-
-/* KPI styles */
-.kpi-big {
-  font-size: clamp(26px, 8.5vw, 46px); /* Mobile focused clamp */
-  font-weight: 700;
-  margin-bottom: 0px; /* Reduced margin */
-  color: #fff;
-  display: block;
-  line-height: 1.15;
-  word-break: break-word;
-}
-.kpi-small {
-  opacity: 0.7;
-  font-size: 13px; /* Mobile first size */
-  line-height: 1.4;
-  margin-top: 2px;
-  display: block; /* Ensure it takes block space */
-  word-break: break-word;
-}
-
-/* Progress bar - Minor tweaks */
-.progress { height: 8px; background: #3a3a4a; border-radius: 4px; margin-top: 8px; overflow: hidden; position: relative; }
-.progress > div { height: 100%; background: var(--accent); border-radius: 4px; position: relative; overflow: hidden; }
-.progress > div::after { content: ''; position: absolute; top: 0; left: 0; width: 30px; height: 100%; background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0) 100%); animation: progress-shine 3s infinite linear; opacity: 0.9; }
-@keyframes progress-shine { 0%{transform:translateX(-40px)} 100%{transform:translateX(500px)} }
-
-/* Table */
-.table-wrap { overflow-x: auto; margin-top: 10px; max-width: 100%; }
-table { width: 100%; border-collapse: collapse; }
-th, td { padding: 8px 8px; border-bottom: 1px solid #2a2a35; text-align: left; font-size: 13px; white-space: nowrap; }
-th { color: var(--accent); font-weight: 600; font-size: 12px; text-transform: uppercase; }
-td:last-child, th:last-child { text-align: right; }
-
-
-/* Card Toolbar */
-.card-actions {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 50px; /* Mobile height */
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 0 12px; /* Mobile padding */
-  background: rgba(21, 21, 29, 0.85); /* Darker, more opaque */
-  border-top: 1px solid #292935;
-  backdrop-filter: blur(8px); z-index: 3;
-}
-
-.icon-btn {
-  all: unset; display: flex; align-items: center; gap: 4px; cursor: pointer;
-  font-size: 15px; /* Mobile size */
-  transition: color 0.2s ease, transform 0.2s ease; padding: 6px; /* Tap area */
-}
-.icon-btn:hover { color: var(--accent); transform: scale(1.05); } /* Subtle hover on desktop */
-.icon-btn:active { transform: scale(0.98); }
-.icon-btn.like i { transition: color 0.3s ease, transform 0.3s ease, font-weight 0.1s ease; }
-.icon-btn.like.liked i { color: #ff6b81; font-weight: 900; animation: heartBeat 0.4s ease; }
-@keyframes heartBeat { 0%{transform:scale(1)} 50%{transform:scale(1.3)} 100%{transform:scale(1)} }
-
-.views-count { opacity: 0.6; font-size: 12px; display: flex; align-items: center; gap: 4px; }
-
-/* Grid Layout */
-.grid {
-  display: grid;
-  gap: 12px; /* Mobile gap */
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Mobile columns */
-}
-
-/* Chat */
-.chat-box { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; padding: 0 5px; } /* Reduced padding */
-.msg { padding: 8px 12px; border-radius: 15px; font-size: 14px; max-width: 88%; line-height: 1.4; overflow-wrap: break-word; }
-.user { align-self: flex-end; background: #3a3a50; color: #f0f0f0; border-bottom-right-radius: 5px; }
-.bot { align-self: flex-start; background: #252535; border-bottom-left-radius: 5px; }
-
-/* AOS Animations */
-.aos-init:not(.aos-animate) { opacity: 0; transform: translateY(10px); } /* Subtle animation */
-
-/* Custom Scrollbar */
-.view::-webkit-scrollbar { width: 5px; }
-.view::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 3px; }
-.view::-webkit-scrollbar-thumb { background-color: rgba(110, 238, 158, 0.25); border-radius: 3px; }
-.view::-webkit-scrollbar-thumb:hover { background-color: rgba(110, 238, 158, 0.4); }
-
-/* =================================== */
-/* == DESKTOP & LARGER SCREEN OVERRIDES == */
-/* =================================== */
-
-@media (min-width: 600px) {
-  :root { font-size: 15px; } /* Restore base font size */
-  .view { padding: 40px 25px 100px; }
-  .top-nav { gap: 25px; padding: 12px 0; }
-  .top-nav button { font-size: 16px; padding: 5px 10px; }
-  .bi-card { margin-bottom: 25px; padding: 20px 20px 64px; border-radius: 14px; }
-  .card-actions { height: 56px; padding: 0 18px; }
-  .icon-btn { font-size: 16px; gap: 5px; }
-  .views-count { font-size: 13px; }
-  .card-title { font-size: 17px; margin-bottom: 10px; }
-  .kpi-big { font-size: clamp(30px, 9vw, 50px); }
-  .kpi-small { font-size: 14px; }
-  th, td { padding: 9px 10px; font-size: 14px; }
-  th { font-size: 13px; }
-  .grid { gap: 18px; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
-  .chat-box { gap: 10px; }
-  .msg { padding: 9px 14px; }
-}
-
-@media (min-width: 900px) {
-  .view { padding: 50px 35px 120px; }
-  .top-nav { gap: 30px; }
-  .bi-card { padding: 22px 22px 68px; border-radius: 16px; }
-  .card-actions { height: 60px; padding: 0 20px; }
-  .grid { gap: 20px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
-}
-
-@media (min-width: 1200px) {
-  .view { padding: 60px 40px 140px; }
-  .top-nav { gap: 35px; }
-}
-
-/* Special override for single column grid on narrow screens */
-@media (max-width: 400px) {
-    .grid {
-        grid-template-columns: 1fr; /* Force single column */
-        gap: 10px;
-    }
-}
-
-</style>
+  <!-- main styles -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <canvas id="tsparticles"></canvas>
 
-<canvas id="tsparticles"></canvas>
+  <!-- top navigation -->
+  <nav class="top-nav">
+    <button data-i="0" class="active">Feed</button>
+    <button data-i="1">Chat</button>
+    <button data-i="2">Connect</button>
+    <button data-i="3">Studio</button>
+  </nav>
 
-<nav class="top-nav">
- <button data-i="0" class="active">Feed</button>
- <button data-i="1">Chat</button>
- <button data-i="2">Connect</button>
- <button data-i="3">Market</button>
-</nav>
+  <!-- views wrapper (sections are injected by the JS modules) -->
+  <div id="views" class="views"></div>
 
-<div class="views" id="views">
+  <!-- main / nav logic + view modules -->
+  <script type="module">
+    import './feed.js';
+    import './chat.js';
+    import './connectors.js';
+    import './studio.js';
 
- <section class="view" id="feed">
-   <article class="bi-card" data-aos="fade-up">
-     <div class="card-content">
-         <span class="kpi-big">$12.47 M</span>
-         <span class="kpi-small">Revenue · Last 12 M</span>
-     </div>
-     <div class="card-actions">
-         <button class="icon-btn like" aria-label="Like this KPI">
-             <i class="fa-regular fa-heart"></i>
-         </button>
-         <span class="views-count"><i class="fa-regular fa-eye"></i> 1.2 K</span>
-     </div>
-   </article>
-
-   <article class="bi-card" data-aos="fade-up" data-aos-delay="50">
-     <div class="card-content">
-         <h3 class="card-title">Revenue vs Target</h3>
-         <div class="kpi-small">$1.48 M / $1.60 M</div>
-         <div class="progress"><div style="width:92%"></div></div>
-     </div>
-     <div class="card-actions">
-         <button class="icon-btn" aria-label="Add to favorites"><i class="fa-regular fa-star"></i></button>
-         <span class="views-count"><i class="fa-regular fa-eye"></i> 875</span>
-     </div>
-   </article>
-
-   <article class="bi-card" data-aos="fade-up" data-aos-delay="100">
-     <div class="card-content">
-         <h3 class="card-title">Sales by Region</h3>
-         <div style="position: relative; height: 200px; max-width: 90%; margin: 0 auto;"> <canvas id="regionPie"></canvas>
-         </div>
-     </div>
-     <div class="card-actions">
-        <button class="icon-btn" aria-label="Share"><i class="fa-regular fa-share-square"></i></button>
-        <span class="views-count"><i class="fa-regular fa-eye"></i> 2.1 K</span>
-     </div>
-   </article>
-
-   <article class="bi-card" data-aos="fade-up" data-aos-delay="150">
-      <div class="card-content">
-          <h3 class="card-title">Daily Sign-ups</h3>
-          <div style="position: relative; height: 180px;"> <canvas id="trendLine"></canvas>
-          </div>
-      </div>
-       <div class="card-actions">
-        <button class="icon-btn" aria-label="Download data"><i class="fa-solid fa-download"></i></button>
-        <span class="views-count"><i class="fa-regular fa-eye"></i> 1.8 K</span>
-     </div>
-   </article>
-
-   <article class="bi-card" data-aos="fade-up" data-aos-delay="200">
-     <div class="card-content">
-         <h3 class="card-title">Top Customers</h3>
-         <div class="table-wrap">
-             <table>
-                 <thead><tr><th>Customer</th><th>Revenue</th></tr></thead>
-                 <tbody>
-                     <tr><td>Acme Inc.</td><td>$1.2 M</td></tr>
-                     <tr><td>Globex Corp.</td><td>$985 K</td></tr>
-                     <tr><td>Umbrella Ltd.</td><td>$712 K</td></tr>
-                     <tr><td>Stark Industries</td><td>$650 K</td></tr>
-                 </tbody>
-             </table>
-         </div>
-     </div>
-      <div class="card-actions">
-        <button class="icon-btn" aria-label="More details"><i class="fa-solid fa-ellipsis"></i></button>
-        <span class="views-count"><i class="fa-regular fa-eye"></i> 650</span>
-     </div>
-   </article>
- </section>
-
- <section class="view">
-   <h2 style="text-align:center;margin-bottom:20px; font-size: 18px;" data-aos="fade-up">💬 ChatBI Demo</h2>
-   <div class="chat-box" data-aos="fade-up" data-aos-delay="50">
-     <div class="bot msg">Ask me about your data 👋</div>
-     <div class="user msg">Show Q1 revenue</div>
-     <div class="bot msg">Q1 2025 revenue is <strong>$3.4 M</strong>, up 18% YoY.</div>
-     <div class="user msg">Who was the top customer last month?</div>
-     <div class="bot msg">Checking... The top customer last month was 'Globex Corp.' with $310K in revenue.</div>
-     <div class="user msg">What's the sign-up trend looking like?</div>
-     <div class="bot msg">Sign-ups show a steady upward trend over the last 30 days, averaging around 280 per day.</div>
-   </div>
- </section>
-
- <section class="view">
-   <h2 style="text-align:center;margin-bottom:20px; font-size: 18px;" data-aos="fade-up">🔌 Connectors</h2>
-   <div class="grid" data-aos="fade-up" data-aos-delay="50">
-     <div class="bi-card"><div class="card-content"><h3 class="card-title">BigQuery</h3><p class="kpi-small">Connected ✅</p></div></div>
-     <div class="bi-card"><div class="card-content"><h3 class="card-title">Sheets</h3><p class="kpi-small">Connect in 1-click</p></div></div>
-     <div class="bi-card"><div class="card-content"><h3 class="card-title">Snowflake</h3><p class="kpi-small">Beta</p></div></div>
-     <div class="bi-card"><div class="card-content"><h3 class="card-title">Salesforce</h3><p class="kpi-small">Coming soon</p></div></div>
-     <div class="bi-card"><div class="card-content"><h3 class="card-title">Databricks</h3><p class="kpi-small">New!</p></div></div>
-     <div class="bi-card"><div class="card-content"><h3 class="card-title">HubSpot</h3><p class="kpi-small">Available</p></div></div>
-   </div>
- </section>
-
- <section class="view">
-   <h2 style="text-align:center;margin-bottom:20px; font-size: 18px;" data-aos="fade-up">🛒 Marketplace</h2>
-   <div class="grid" data-aos="fade-up" data-aos-delay="50">
-      <div class="bi-card"><div class="card-content"><h3 class="card-title">US Census 2024</h3><p class="kpi-small">Free · 560 MB</p></div></div>
-     <div class="bi-card"><div class="card-content"><h3 class="card-title">Crypto Prices</h3><p class="kpi-small">$49/mo</p></div></div>
-     <div class="bi-card"><div class="card-content"><h3 class="card-title">Weather History</h3><p class="kpi-small">Free tier</p></div></div>
-     <div class="bi-card"><div class="card-content"><h3 class="card-title">Global Traffic Data</h3><p class="kpi-small">Beta · Free</p></div></div>
-     <div class="bi-card"><div class="card-content"><h3 class="card-title">Stock Market API</h3><p class="kpi-small">$99/mo</p></div></div>
-   </div>
- </section>
-
-</div>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-
-  /* particles */
-  tsParticles.load("tsparticles", {
-    particles: {
-      number: { value: 25, density: { enable: true, area: 1000 } }, // Even fewer
-      color: { value: "#ffffff" }, shape: { type: "circle" },
-      opacity: { value: {min: 0.05, max: 0.25}, animation: { enable: true, speed: 1, sync: false } },
-      size: { value: { min: 0.8, max: 2.2 } }, // Smaller max size
-      links: { enable: true, distance: 180, color: "var(--accent)", opacity: 0.08, width: 1 }, // More subtle links
-      move: { enable: true, speed: 0.5, direction: "none", random: true, straight: false, outModes: { default: "out" } }, // Slower
-    },
-    interactivity: {
-        events: { onHover: { enable: true, mode: "grab" }, onClick: { enable: true, mode: "push" } },
-        modes: { grab: { distance: 100, links: { opacity: 0.15 } }, push: { quantity: 1 } } // Subtle interaction
-    },
-    detectRetina: true, fullScreen: { enable: false }
-  });
-
-  /* AOS */
-  AOS.init({ once: true, duration: 500, offset: 40, easing: 'ease-out-quad', delay: 30 }); // Faster, smaller offset
-
-
-  /* nav + swipe */
-  const wrap = document.getElementById("views");
-  const btns = document.querySelectorAll(".top-nav button");
-  let cur = 0; let isDragging = false; let startX, currentTranslate, windowWidth;
-
-  const go = (index, smooth = true) => {
-    cur = (index + btns.length) % btns.length;
-    wrap.style.transition = smooth ? `transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)` : 'none';
-    wrap.style.transform = `translateX(${-100 * cur}%)`;
-    btns.forEach(b => b.classList.toggle("active", +b.dataset.i === cur));
-  };
-
-  btns.forEach(b => b.onclick = () => go(+b.dataset.i));
-
-  const dragStart = (e) => {
-    if (e.target.closest('button, a, table, canvas')) return; // Ignore drag on interactive elements/canvas
-    startX = e.pageX || e.touches[0].pageX; isDragging = true; windowWidth = window.innerWidth;
-    currentTranslate = -cur * windowWidth; wrap.style.transition = "none"; wrap.style.cursor = 'grabbing';
-  };
-  const dragMove = (e) => {
-    if (!isDragging) return;
-    const currentX = e.pageX || e.touches[0].pageX; const diffX = currentX - startX;
-    wrap.style.transform = `translateX(${currentTranslate + diffX}px)`;
-  };
-  const dragEnd = (e) => {
-    if (!isDragging) return; isDragging = false; wrap.style.cursor = 'grab';
-    const endX = e.pageX || e.changedTouches[0].pageX; const diffX = endX - startX;
-    const threshold = windowWidth * 0.2; // 20% threshold
-
-    if (diffX < -threshold && cur < btns.length - 1) { go(cur + 1); }
-    else if (diffX > threshold && cur > 0) { go(cur - 1); }
-    else { go(cur); } // Snap back
-  };
-
-  wrap.addEventListener("pointerdown", dragStart, { passive: false }); // Need passive false if preventing default actions
-  document.addEventListener("pointermove", dragMove, { passive: false });
-  document.addEventListener("pointerup", dragEnd);
-  document.addEventListener("pointercancel", dragEnd);
-  wrap.style.cursor = 'grab';
-
-
-  /* charts */
-  const rnd = (m, n) => Math.floor(Math.random() * (n - m + 1)) + m;
-  const ctx = (id) => {
-      const canvas = document.getElementById(id);
-      // Explicitly set render size based on CSS size to avoid blurriness
-      if (canvas) {
-          // canvas.width = canvas.clientWidth;
-          // canvas.height = canvas.clientHeight; // Might need debouncing if size changes
-          return canvas.getContext("2d");
-      }
-      return null;
-  };
-
-
-  const commonChartOptions = {
-      responsive: true,
-      maintainAspectRatio: false, // Let container CSS control size
-      color: 'rgba(233, 233, 241, 0.7)',
-      plugins: {
-          legend: {
-              position: 'bottom', align: 'center',
-              labels: { color: 'var(--text)', padding: 10, font: { size: 11 }, boxWidth: 12 } // Compact legend
-          },
-          tooltip: {
-              enabled: true, backgroundColor: 'rgba(0, 0, 0, 0.8)', titleColor: 'var(--accent)', bodyColor: 'var(--text)',
-              padding: 6, cornerRadius: 3, titleFont: { size: 12 }, bodyFont: { size: 11 }, boxPadding: 3 // Compact tooltip
-          }
-      },
-      scales: { // Common scale styling (can be overridden)
-            y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.06)' }, ticks: { color: 'var(--text)', font: {size: 10} } },
-            x: { grid: { display: false }, ticks: { color: 'var(--text)', font: {size: 10}, autoSkipPadding: 15 } }
-      },
-      animation: { duration: 600 }, // Faster animation
-      layout: { padding: { top: 5, bottom: 0, left: 0, right: 5 } } // Minimal layout padding
-  };
-
-  // Pie Chart
-  const regionCtx = ctx("regionPie");
-  if (regionCtx) {
-    new Chart(regionCtx, {
-      type: "pie",
-      data: {
-        labels: ["NA", "EMEA", "APAC", "LATAM"],
-        datasets: [{
-          data: [38, 26, 22, 14],
-          backgroundColor: ['rgba(110, 238, 158, 0.75)', 'rgba(127, 123, 255, 0.75)', 'rgba(255, 140, 66, 0.75)', 'rgba(90, 180, 255, 0.75)'],
-          borderColor: 'var(--card)', borderWidth: 1
-        }]
-      },
-      options: { ...commonChartOptions }
+    /* particles + AOS once */
+    tsParticles.load("tsparticles", {
+      particles:{number:{value:25,density:{enable:true,area:800}},
+        color:{value:"#ffffff"},links:{enable:true,distance:180,opacity:.08,color:"var(--accent)"},
+        move:{enable:true,speed:.6},opacity:{value:{min:.05,max:.25}}},fullScreen:{enable:false}
     });
-  }
+    AOS.init({once:true,duration:500,offset:40,easing:'ease-out-quad'});
 
-  // Line Chart (Trend)
-  const trendCtx = ctx("trendLine");
-  if (trendCtx) {
-    const days = Array.from({ length: 15 }, (_, i) => `${i + 1}`);
-    new Chart(trendCtx, {
-      type: "line",
-      data: {
-        labels: days,
-        datasets: [{
-          label: 'Sign-ups', data: days.map(() => rnd(120, 430)),
-          fill: true, tension: 0.4, borderColor: 'var(--accent)', backgroundColor: 'rgba(110, 238, 158, 0.08)',
-          pointRadius: 0, pointHoverRadius: 4, borderWidth: 1.5 // Thinner line
-        }]
-      },
-      options: {
-        ...commonChartOptions,
-        plugins: { ...commonChartOptions.plugins, legend: { display: false } },
-      }
-    });
-  }
+    /* navigation + swipe */
+    const wrap=document.getElementById("views");
+    const btns=document.querySelectorAll(".top-nav button");
+    let cur=0,startX,drag=false,winW;
+    const go=i=>{
+      cur=(i+btns.length)%btns.length;
+      wrap.style.transition='transform .45s cubic-bezier(.25,1,.5,1)';
+      wrap.style.transform=`translateX(${-100*cur}%)`;
+      btns.forEach(b=>b.classList.toggle('active',+b.dataset.i===cur));
+    };
+    btns.forEach(b=>b.onclick=()=>go(+b.dataset.i));
 
-  /* Like Button Interactivity */
-  document.querySelectorAll('.icon-btn.like').forEach(button => {
-      button.addEventListener('click', () => {
-          const icon = button.querySelector('i');
-          button.classList.toggle('liked');
-          if (button.classList.contains('liked')) {
-              icon.classList.remove('fa-regular'); icon.classList.add('fa-solid');
-              button.setAttribute('aria-label', 'Unlike'); // Shorter label
-          } else {
-              icon.classList.remove('fa-solid'); icon.classList.add('fa-regular');
-              button.setAttribute('aria-label', 'Like'); // Shorter label
-          }
-      });
-  });
-
-  // Optimize resize handling if charts were dynamically sized (not strictly needed here as CSS handles it)
-  // let resizeTimer;
-  // window.addEventListener('resize', () => {
-  //   clearTimeout(resizeTimer);
-  //   resizeTimer = setTimeout(() => {
-  //       // Potentially re-init or update charts if needed
-  //   }, 250);
-  // });
-
-
-});
-</script>
-
+    const down=e=>{
+      if(e.target.closest('button,a,canvas,table'))return;
+      startX=e.pageX||e.touches[0].pageX;drag=true;winW=innerWidth;
+      wrap.style.transition='none';
+    };
+    const move=e=>{
+      if(!drag)return;
+      const x=e.pageX||e.touches[0].pageX;
+      wrap.style.transform=`translateX(${ -cur*winW + (x-startX) }px)`;
+    };
+    const up=e=>{
+      if(!drag)return;drag=false;
+      const dx=(e.pageX||e.changedTouches[0].pageX)-startX,thr=winW*0.2;
+      if(dx<-thr&&cur<btns.length-1)go(cur+1);
+      else if(dx>thr&&cur>0)go(cur-1);
+      else go(cur);
+    };
+    wrap.addEventListener('pointerdown',down,{passive:true});
+    addEventListener('pointermove',move,{passive:true});
+    addEventListener('pointerup',up);
+    addEventListener('pointercancel',up);
+  </script>
 </body>
 </html>
