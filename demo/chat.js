@@ -1,19 +1,30 @@
 // demo/chat.js
-export const chatView = (() => {
+
+const chatMessages = [
+    {type: 'bot', text: "Ask me about your data 👋 I can help you with insights!"},
+    {type: 'user', text: "Show Q1 revenue"},
+    {type: 'bot', text: "Q1 2025 revenue is <strong>$3.4 M</strong>, up 18% YoY. Impressive growth!"},
+    {type: 'user', text: "Who was the top customer last month?"},
+    {type: 'bot', text: "Last month, ‘<strong>Globex Corp.</strong>’ was the top customer with $310K in revenue."},
+    {type: 'user', text: "What's the current sign-up trend like?"},
+    {type: 'bot', text: "The sign-up trend is showing steady growth, averaging around <strong>~280 new sign-ups per day</strong> over the last 30 days."}
+];
+
+export function renderChatView() {
   const section = document.createElement('section');
   section.className = 'view';
+  section.id = 'chat';
+
+  let messagesHTML = '';
+  chatMessages.forEach((msg, index) => {
+    messagesHTML += `<div class="${msg.type} msg" data-aos="fade-up" data-aos-delay="${index * 100}">${msg.text}</div>`;
+  });
+
   section.innerHTML = `
-    <h2 style="text-align:center;margin-bottom:20px;font-size:18px" data-aos="fade-up">💬 ChatBI Demo</h2>
-    <div class="chat-box" data-aos="fade-up" data-aos-delay="60">
-      <div class="bot msg">Ask me about your data 👋</div>
-      <div class="user msg">Show Q1 revenue</div>
-      <div class="bot msg">Q1 2025 revenue is <strong>$3.4 M</strong>, up 18% YoY.</div>
-      <div class="user msg">Who was the top customer last month?</div>
-      <div class="bot msg">‘Globex Corp.’ with $310 K in revenue.</div>
-      <div class="user msg">What's the sign-up trend?</div>
-      <div class="bot msg">Steady growth: ~280 sign-ups/day last 30 days.</div>
+    <h2 class="view-title" data-aos="fade-up">💬 ChatBI Demo</h2>
+    <div class="chat-box" data-aos-delay="100">
+      ${messagesHTML}
     </div>
   `;
-  document.getElementById('views').appendChild(section);
   return section;
-})();
+}
