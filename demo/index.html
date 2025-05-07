@@ -1,20 +1,88 @@
-<!-- demo/index.html -->
+<!-- demo/index.html – fully responsive demo shell  -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>BI Magics • Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BI Magics • Live Demo</title>
 
-  <!-- libs -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
+  <!-- Icons & libs -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/tsparticles@3.4.0/tsparticles.bundle.min.js" defer></script>
 
-  <!-- main css -->
-  <link rel="stylesheet" href="style.css">
+  <!-- Base styles (override / extend style.css if present) -->
+  <style>
+    :root {
+      --bg: #0d0d1a;
+      --card: #1e1e2e;
+      --primary: #a259ff;
+      --accent: #00e6e6;
+      --text: #ffffff;
+    }
+
+    /* RESET */
+    * { box-sizing:border-box; margin:0; padding:0; }
+    html,body{height:100%;}
+    body{
+      font-family:"Inter",sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      overflow:hidden; /* prevent scroll-jank during swipes */
+    }
+
+    /* PARTICLES CANVAS covers full screen under content */
+    #tsparticles{position:fixed;inset:0;z-index:-1;pointer-events:none;}
+
+    /* TOP NAV */
+    .top-nav{
+      position:fixed;top:0;left:50%;transform:translateX(-50%);
+      display:flex;gap:.5rem;
+      background:rgba(0,0,0,.5);backdrop-filter:blur(6px);
+      padding:.35rem .6rem;border-radius:2rem;z-index:20;
+    }
+    .top-nav button{
+      all:unset;cursor:pointer;
+      padding:.55rem 1.1rem;border-radius:1.6rem;
+      font-weight:600;font-size:.88rem;color:var(--text);
+      transition:background .25s;
+    }
+    .top-nav button.active, .top-nav button:hover{background:rgba(255,255,255,.08);} 
+
+    /* VIEWS WRAPPER */
+    .views{
+      display:flex;
+      width:100%;height:100%; /* full viewport */
+      overflow:hidden;position:absolute;top:0;left:0;
+      /* initial translateX set via JS */
+    }
+
+    /* each module should append a section.view */
+    .view{
+      min-width:100vw; /* critical for correct swipe width */
+      height:calc(100vh - 72px); /* 72 ≈ nav height + margin */
+      margin-top:72px; /* pushes content below nav */
+      padding:2.5rem clamp(1rem,3vw,3rem);
+      overflow-y:auto; /* internal scroll if needed */
+      display:flex;flex-direction:column;gap:2rem;
+    }
+
+    /* cards / demo content placeholders */
+    .card{
+      background:var(--card);
+      border-radius:1rem;padding:1.5rem;
+      box-shadow:0 0 24px rgba(0,255,255,.08);
+    }
+
+    /* SMALL SCREENS */
+    @media(max-width:540px){
+      .top-nav{gap:.25rem;padding:.25rem .45rem;}
+      .top-nav button{padding:.45rem .8rem;font-size:.78rem;}
+      .view{padding:1.5rem .9rem;}
+    }
+  </style>
 </head>
 <body>
   <canvas id="tsparticles"></canvas>
@@ -26,36 +94,46 @@
     <button data-i="3">Studio</button>
   </nav>
 
-  <!-- views wrapper – המודולים מוסיפים את הסקשנים פנימה -->
+  <!-- WRAPPER: individual module JS files append their root sections here -->
   <div id="views" class="views"></div>
 
-  <!-- main logic + טעינת מודולים -->
   <script type="module">
+    /* === dynamic module loading === */
     import './connectors.js';
     import './chat.js';
     import './feed.js';
     import './studio.js';
 
-    /* bg + animations */
+    /* === particles + scroll animations === */
     tsParticles.load('tsparticles',{
       particles:{number:{value:25,density:{enable:true,area:800}},
         color:{value:'#ffffff'},links:{enable:true,distance:180,opacity:.08,color:'var(--accent)'},
-        move:{enable:true,speed:.6},opacity:{value:{min:.05,max:.25}}},fullScreen:{enable:false}});
+        move:{enable:true,speed:.6},opacity:{value:{min:.05,max:.25}}},fullScreen:{enable:false}
+    });
     AOS.init({once:true,duration:500,offset:40,easing:'ease-out-quad'});
 
-    /* nav & swipe */
+    /* === NAVIGATION / SWIPE === */
     const wrap=document.getElementById('views');
-    const btns=document.querySelectorAll('.top-nav button');
-    let cur=0,startX,drag=false,winW;
+    const btns=[...document.querySelectorAll('.top-nav button')];
+    let cur=0,startX,drag=false,winW=innerWidth;
+
+    // helper: ensure wrapper always exactly WIDTH * number-of-views
+    const updateWidth=()=>{
+      winW=innerWidth;
+      wrap.style.width=`${winW*btns.length}px`;
+      wrap.style.transform=`translateX(${-cur*winW}px)`;
+    };
+    addEventListener('resize',updateWidth);
 
     const go=i=>{
       cur=(i+btns.length)%btns.length;
       wrap.style.transition='transform .45s cubic-bezier(.25,1,.5,1)';
-      wrap.style.transform=`translateX(${-100*cur}%)`;
+      wrap.style.transform=`translateX(${-winW*cur}px)`;
       btns.forEach(b=>b.classList.toggle('active',+b.dataset.i===cur));
     };
     btns.forEach(b=>b.onclick=()=>go(+b.dataset.i));
 
+    // swipe
     const down=e=>{
       if(e.target.closest('button,a,canvas,table'))return;
       drag=true;startX=e.pageX||e.touches[0].pageX;winW=innerWidth;
@@ -77,6 +155,14 @@
     addEventListener('pointermove',move,{passive:true});
     addEventListener('pointerup',up);
     addEventListener('pointercancel',up);
+
+    /* === init after modules have appended their views === */
+    const waitModules=()=>{
+      const ready=wrap.children.length===btns.length;
+      if(!ready){requestAnimationFrame(waitModules);return;}
+      updateWidth();
+    };
+    waitModules();
   </script>
 </body>
 </html>
