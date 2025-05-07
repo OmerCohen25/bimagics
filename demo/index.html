@@ -21,7 +21,7 @@
     <button data-view-id="chat" data-index="1">Chat</button>
     <button data-view-id="feed" data-index="2">Feed</button>
     <button data-view-id="studio" data-index="3">Studio</button>
-    </nav>
+  </nav>
 
   <div id="views-wrapper">
       <div id="views-carousel" class="views">
@@ -32,40 +32,59 @@
     // Import view modules
     import { renderConnectView } from './connectors.js';
     import { renderChatView } from './chat.js';
-    import { renderFeedView } Dלאתר מ- './feed.js'; // שינוי שם הפונקציה כדי למנוע התנגשות
+    import { renderFeedView } from './feed.js';
     import { renderStudioView } from './studio.js';
-    // import { renderMarketplaceView } from './marketplace.js'; // אם תוסיף את זה
 
     const viewsCarousel = document.getElementById('views-carousel');
+    const viewsWrapper = document.getElementById('views-wrapper'); // Get the wrapper
     const navButtons = document.querySelectorAll('.top-nav button');
     const numViews = navButtons.length;
     let currentViewIndex = 0;
     let touchStartX = 0;
     let touchCurrentX = 0;
     let isDragging = false;
-    let viewWidth = window.innerWidth;
+    let viewportWidth = window.innerWidth; // Use viewportWidth for calculations involving pixels
 
-    // Pre-render all views into the carousel
     const viewRenderers = {
         'connect': renderConnectView,
         'chat': renderChatView,
         'feed': renderFeedView,
         'studio': renderStudioView,
-        // 'marketplace': renderMarketplaceView
     };
 
-    navButtons.forEach(button => {
-        const viewId = button.dataset.viewId;
-        if (viewRenderers[viewId]) {
-            const viewElement = viewRenderers[viewId](); // כל פונקציית render מחזירה את אלמנט ה-section
-            viewsCarousel.appendChild(viewElement);
-        }
-    });
-    viewsCarousel.style.width = `${numViews * 100}%`;
+    if (numViews > 0) {
+        // Set the width of the carousel strip
+        viewsCarousel.style.width = `${numViews * 100}%`; // e.g., 400% if 4 views
+
+        navButtons.forEach(button => {
+            const viewId = button.dataset.viewId;
+            if (viewRenderers[viewId]) {
+                try {
+                    const viewElement = viewRenderers[viewId]();
+                    // ***** CRITICAL FIX: Set the width of each view element *****
+                    // Each view should be (100 / numViews)% of the carousel's width
+                    // This makes each view effectively 100% of the views-wrapper's width.
+                    viewElement.style.width = `${100 / numViews}%`;
+                    // ***** END CRITICAL FIX *****
+                    viewsCarousel.appendChild(viewElement);
+                } catch (error) {
+                    console.error(`Error rendering view '${viewId}':`, error);
+                    // Optionally, display an error message in the view placeholder
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'view error-view';
+                    errorDiv.style.width = `${100 / numViews}%`; // Still need to set width
+                    errorDiv.innerHTML = `<p>Error loading view: ${viewId}. Please check the console.</p>`;
+                    viewsCarousel.appendChild(errorDiv);
+                }
+            }
+        });
+    } else {
+        console.error("No navigation buttons found, cannot initialize views.");
+    }
 
 
     function switchView(viewIndex, animate = true) {
-        if (viewIndex < 0 || viewIndex >= numViews) return;
+        if (viewIndex < 0 || viewIndex >= numViews || numViews === 0) return;
 
         currentViewIndex = viewIndex;
         if (animate) {
@@ -73,24 +92,20 @@
         } else {
             viewsCarousel.style.transition = 'none';
         }
+        // The translation is a percentage of the carousel's own width
         viewsCarousel.style.transform = `translateX(${-currentViewIndex * (100 / numViews)}%)`;
 
         navButtons.forEach((btn) => {
             btn.classList.toggle('active', parseInt(btn.dataset.index) === currentViewIndex);
         });
-
-        // Trigger AOS for the new view
-        const currentViewElement = viewsCarousel.children[currentViewIndex];
-        if (currentViewElement && window.AOS) {
-             // AOS.refreshHard() for elements that are dynamically added
-             // Or re-init AOS on specific elements if needed
-            setTimeout(() => {
-                AOS.refresh(); // Standard refresh might be enough if elements are not re-created
-                 // If cards are added dynamically, you might need to re-initialize AOS on them or call refreshHard
-                if (currentViewElement.id === 'feed' || currentViewElement.id === 'connect') {
-                    AOS.refreshHard(); // For views with dynamically loaded cards
-                }
-            }, 50); // Delay to ensure content is in place
+        
+        // Refresh AOS for the current view
+        // Note: AOS might need to be re-initialized or refreshed on elements *within* the view
+        // if they are dynamically added/modified after the view itself is shown.
+        if (window.AOS) {
+             setTimeout(() => { // Delay to allow DOM updates and transition
+                AOS.refreshHard(); // Try hard refresh for dynamically added content
+            }, animate ? 450 : 50); // After transition or immediately
         }
     }
 
@@ -99,56 +114,69 @@
     });
 
     function handlePointerDown(e) {
-        if (e.target.closest('button, a, canvas, table, .bi-card, .modal')) return;
+        if (e.target.closest('button, a, canvas, table, .bi-card, .modal, input, select, textarea') || numViews === 0) return;
+        // Added more selectors to prevent swipe interference
+
         isDragging = true;
         touchStartX = e.pageX || e.touches[0].pageX;
-        touchCurrentX = touchStartX; // Initialize current X
-        viewWidth = window.innerWidth;
+        touchCurrentX = touchStartX;
+        viewportWidth = window.innerWidth; // Update viewportWidth on each drag start
         viewsCarousel.style.transition = 'none';
-        // Add a class to the body to disable text selection during swipe
         document.body.classList.add('swiping');
     }
 
     function handlePointerMove(e) {
-        if (!isDragging) return;
+        if (!isDragging || numViews === 0) return;
         touchCurrentX = e.pageX || e.touches[0].pageX;
         const diffX = touchCurrentX - touchStartX;
-        // Calculate translateX based on the base position of the current view + drag difference
-        const baseTranslateX = -currentViewIndex * viewWidth;
-        viewsCarousel.style.transform = `translateX(${baseTranslateX + diffX}px)`;
+        
+        // Calculate the base offset in pixels for the current view
+        // The percentage offset of the current view is `currentViewIndex * (100 / numViews)%` of the carousel width.
+        // Carousel width is `numViews * viewportWidth` (effectively, as views-wrapper is viewportWidth).
+        // So, the pixel offset for view `i` is `i * viewportWidth`.
+        const basePixelOffset = -currentViewIndex * viewportWidth;
+        viewsCarousel.style.transform = `translateX(${basePixelOffset + diffX}px)`;
     }
 
     function handlePointerUp() {
-        if (!isDragging) return;
+        if (!isDragging || numViews === 0) return;
         isDragging = false;
-        document.body.classList.remove('swiping'); // Remove class
+        document.body.classList.remove('swiping');
 
         const diffX = touchCurrentX - touchStartX;
-        const threshold = viewWidth * 0.20; // Adjusted threshold
+        const threshold = viewportWidth * 0.20;
 
         if (diffX < -threshold && currentViewIndex < numViews - 1) {
             switchView(currentViewIndex + 1);
         } else if (diffX > threshold && currentViewIndex > 0) {
             switchView(currentViewIndex - 1);
         } else {
-            switchView(currentViewIndex); // Snap back
+            switchView(currentViewIndex); // Snap back to the current view's correct percentage position
         }
     }
     
-    viewsCarousel.addEventListener('pointerdown', handlePointerDown, { passive: true });
-    window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    // Add event listeners to viewsWrapper instead of viewsCarousel for broader swipe area
+    viewsWrapper.addEventListener('pointerdown', handlePointerDown, { passive: true });
+    window.addEventListener('pointermove', handlePointerMove, { passive: true }); // Keep on window for wider tracking
     window.addEventListener('pointerup', handlePointerUp);
-    window.addEventListener('pointercancel', handlePointerUp); // Also handle pointercancel
+    window.addEventListener('pointercancel', handlePointerUp);
 
 
     window.addEventListener('resize', () => {
-        viewWidth = window.innerWidth;
-        switchView(currentViewIndex, false); // Re-align without animation
+        viewportWidth = window.innerWidth;
+        // Re-calculate carousel and view widths if they depend on viewportWidth directly
+        // For the percentage based approach, only the transform needs to be updated if it was pixel based.
+        // Since switchView uses percentage, it should re-align correctly.
+        if (numViews > 0) {
+             // No need to reset carousel width if it's a percentage of wrapper
+             // No need to reset view widths if they are percentages of carousel
+            switchView(currentViewIndex, false); // Re-align without animation
+        }
     });
 
     // Initialize Particles and AOS
-    if (window.tsParticles) {
-        tsParticles.load('tsparticles', {
+    if (window.tsParticles && typeof tsParticles.load === 'function') {
+        tsParticles.load('tsparticles', { /* ... your particles config ... */
             particles: {
                 number: { value: 30, density: { enable: true, value_area: 800 } },
                 color: { value: '#ffffff' },
@@ -163,20 +191,26 @@
             interactivity: { detect_on: 'canvas', events: { onhover: { enable: false }, onclick: { enable: false } } },
             retina_detect: true,
             fullScreen: { enable: false }
-        });
+        }).catch(error => console.error('tsParticles load error:', error));
+    } else {
+        console.warn('tsParticles not available or load function missing.');
     }
 
-    if (window.AOS) {
+    if (window.AOS && typeof AOS.init === 'function') {
         AOS.init({
-            once: false, // Allow animation on scroll in different views
+            once: false,
             duration: 550,
             offset: 50,
             easing: 'ease-out-quad'
         });
+    } else {
+        console.warn('AOS not available or init function missing.');
     }
     
-    // Load initial view
-    switchView(0, false); // Load the first view without animation
+    // Load initial view only if views were processed
+    if (numViews > 0) {
+        switchView(0, false);
+    }
 
   </script>
 </body>
