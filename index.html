@@ -1,11 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="BI Magics – Your AI-Powered Data Analyst." />
-  <title>BI Magics – Magic With Your Data</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <meta name="description" content="BI Magics – AI‑powered analytics that feel like magic." />
+  <title>BI Magics – Magic With Your Data</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Heebo:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome for WhatsApp icon -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-SzlrxWriC3O9k+QNVkKq3ne+QdEh1N9N6N1Z9E+6Y5nT5p6tY52O03FfHh3k8T9KZhkTX8F0ev02eCuGZL3m2g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
   <style>
     :root {
       --bg: #0d0d1a;
@@ -13,12 +18,13 @@
       --primary: #a259ff;
       --accent: #00e6e6;
       --text: #ffffff;
+      --whatsapp: #25d366;
     }
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Inter', 'Heebo', sans-serif;
     }
     html, body {
       background: var(--bg);
@@ -26,19 +32,30 @@
       overflow-x: hidden;
     }
     body {
-      padding: 0;
+      padding: 0 1rem;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      min-height: 100vh;
       text-align: center;
     }
+    /* Language toggle */
+    .lang-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: transparent;
+      border: none;
+      font-size: 1.8rem;
+      cursor: pointer;
+    }
     header {
-      padding: 4rem 2rem 2rem;
+      padding: 5rem 0 2rem;
       animation: fadeIn 2s ease-out;
     }
     h1 {
-      font-size: 3rem;
+      font-size: 3.2rem;
       background: linear-gradient(to right, var(--primary), var(--accent));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -49,24 +66,35 @@
       color: var(--accent);
       margin: 1rem 0 2rem;
     }
+    .cta-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+    }
     .cta-button {
       background: var(--primary);
       color: white;
-      padding: 1rem 2rem;
+      padding: 0.9rem 2rem;
       border-radius: 2rem;
       border: none;
-      font-size: 1.2rem;
-      margin: 1rem;
+      font-size: 1.1rem;
       text-decoration: none;
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
       animation: pulse 2s infinite;
+    }
+    .cta-whatsapp {
+      background: var(--whatsapp);
     }
     .grid {
       display: flex;
       flex-direction: column;
       gap: 2rem;
-      padding: 2rem;
-      max-width: 800px;
+      padding: 2rem 0;
+      max-width: 900px;
+      width: 100%;
     }
     .card {
       background: var(--card);
@@ -81,14 +109,23 @@
     }
     .magic-text {
       font-size: 1.2rem;
-      color: var(--text);
       animation: float 5s ease-in-out infinite;
     }
     footer {
-      padding: 2rem;
+      padding: 2rem 0 1rem;
       font-size: 0.9rem;
       color: #aaa;
     }
+    /* RTL support */
+    body.rtl {
+      direction: rtl;
+      text-align: center;
+    }
+    body.rtl .cta-button {
+      flex-direction: row-reverse;
+    }
+
+    /* Animations */
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(-20px); }
       to { opacity: 1; transform: translateY(0); }
@@ -102,38 +139,109 @@
       50% { transform: translateY(-8px); }
     }
     @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 var(--primary); }
+      0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.2); }
       70% { box-shadow: 0 0 0 10px transparent; }
       100% { box-shadow: 0 0 0 0 transparent; }
     }
   </style>
 </head>
 <body>
+  <button class="lang-toggle" id="langToggle" aria-label="switch language">🇮🇱</button>
+
   <header>
-    <h1>BI Magics</h1>
-    <h2>Your Personal Data Wizard</h2>
-    <p class="magic-text">Chat. Analyze. Visualize. Automagically.</p>
-    <a href="https://wa.me/972506579403?text=I%27d%20love%20to%20hear%20more%20about%20BI%20Magics!" class="cta-button">✨ Start Now</a>
-    <a href="gallery/" class="cta-button">🖼️ Explore Gallery</a>
+    <h1 id="title">BI Magics</h1>
+    <h2 id="subtitle">Your Personal Data Wizard</h2>
+    <p class="magic-text" id="tagline">Chat. Analyze. Visualize. Automagically.</p>
+    <div class="cta-wrapper">
+      <a href="https://bimagics.com/demo" class="cta-button" id="startBtn">✨ Start Now</a>
+      <a href="https://wa.me/972506579403?text=I'd%20love%20to%20talk%20with%20the%20CEO%20about%20BI%20Magics!" class="cta-button cta-whatsapp" id="whatsBtn"><i class="fa-brands fa-whatsapp"></i> Chat with CEO</a>
+    </div>
   </header>
 
-  <div class="grid">
+  <div class="grid" id="features">
     <div class="card">
-      <h3>Ask Anything</h3>
-      <p>"How much did I earn last month?" – and get a chart instantly.</p>
+      <h3 id="c1h">Ask Anything</h3>
+      <p id="c1p">“How much did I earn last month?” – instant chart.</p>
     </div>
     <div class="card">
-      <h3>See Your Feed</h3>
-      <p>BI Cards updated in real-time. Like magic.</p>
+      <h3 id="c2h">See Your Feed</h3>
+      <p id="c2p">BI Cards updated in real‑time. Like magic.</p>
     </div>
     <div class="card">
-      <h3>For Everyone</h3>
-      <p>Enterprise‑grade for teams. Plug & play for small businesses.</p>
+      <h3 id="c3h">For Everyone</h3>
+      <p id="c3p">Enterprise‑grade for teams. Plug‑&‑play for SMBs.</p>
     </div>
   </div>
 
   <footer>
-    © 2025 BI Magics · Made with ✨ for dreamers of data
+    © 2025 BI Magics · Made with ✨ for dreamers of data
   </footer>
+
+  <!-- Language switcher script -->
+  <script>
+    const langToggle = document.getElementById('langToggle');
+    let currentLang = 'en';
+
+    const t = {
+      en: {
+        flag: '🇮🇱',
+        title: 'BI Magics',
+        subtitle: 'Your Personal Data Wizard',
+        tagline: 'Chat. Analyze. Visualize. Automagically.',
+        start: '✨ Start Now',
+        chat: 'Chat with CEO',
+        card1h: 'Ask Anything',
+        card1p: '“How much did I earn last month?” – instant chart.',
+        card2h: 'See Your Feed',
+        card2p: 'BI Cards updated in real‑time. Like magic.',
+        card3h: 'For Everyone',
+        card3p: 'Enterprise‑grade for teams. Plug‑&‑play for SMBs.',
+        footer: '© 2025 BI Magics · Made with ✨ for dreamers of data',
+      },
+      he: {
+        flag: '🇺🇸',
+        title: 'BI Magics',
+        subtitle: 'הקוסם האישי של הנתונים שלך',
+        tagline: 'שוחח. נתח. הצג – בקסם.',
+        start: '✨ התחל עכשיו',
+        chat: 'שיחה עם המנכ"ל',
+        card1h: 'שאל כל שאלה',
+        card1p: '“כמה הרווחתי בחודש שעבר?” – גרף מיידי.',
+        card2h: 'ראה את הפיד שלך',
+        card2p: 'כרטיסי BI מתעדכנים בזמן‑אמת. כמו קסם.',
+        card3h: 'מתאים לכולם',
+        card3p: 'דרגת אנטרפרייז לצוותים. פלאג‑אין לעסקים קטנים.',
+        footer: '© 2025 BI Magics · נוצר ✨ לחלומי הדאטה',
+      }
+    };
+
+    function applyLang(lang) {
+      const d = t[lang];
+      document.body.classList.toggle('rtl', lang === 'he');
+      document.documentElement.setAttribute('lang', lang);
+      document.documentElement.setAttribute('dir', lang === 'he' ? 'rtl' : 'ltr');
+      langToggle.textContent = d.flag;
+      document.getElementById('title').textContent = d.title;
+      document.getElementById('subtitle').textContent = d.subtitle;
+      document.getElementById('tagline').textContent = d.tagline;
+      document.getElementById('startBtn').textContent = d.start;
+      document.getElementById('whatsBtn').innerHTML = '<i class="fa-brands fa-whatsapp"></i> ' + d.chat;
+      document.getElementById('c1h').textContent = d.card1h;
+      document.getElementById('c1p').textContent = d.card1p;
+      document.getElementById('c2h').textContent = d.card2h;
+      document.getElementById('c2p').textContent = d.card2p;
+      document.getElementById('c3h').textContent = d.card3h;
+      document.getElementById('c3p').textContent = d.card3p;
+      document.querySelector('footer').textContent = d.footer;
+    }
+
+    langToggle.addEventListener('click', () => {
+      currentLang = currentLang === 'en' ? 'he' : 'en';
+      applyLang(currentLang);
+    });
+
+    // Initial
+    applyLang('en');
+  </script>
 </body>
 </html>
