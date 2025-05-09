@@ -37,22 +37,29 @@
 
     /* ===== TOP-BAR ===== */
     .topbar{
-      position:fixed;inset:0 0 auto 0;height:64px;display:flex;align-items:center;
+      position:fixed;top:0;left:0;right:0;height:64px;display:flex;align-items:center;
       justify-content:space-between;padding:0 1.5rem;background:rgba(12,14,24,.65);
       backdrop-filter:blur(10px);z-index:1000;border-bottom:1px solid rgba(255,255,255,.06);
     }
     .logo-wrap{display:flex;align-items:center;gap:.65rem}
     .logo-wrap img{width:42px}
     .logo-wrap span{font-size:1.25rem;font-weight:600;letter-spacing:-.02em}
+
     nav.top-nav{display:flex;gap:1.25rem;font-size:.95rem;font-weight:500}
     nav.top-nav a{padding:.35rem 0;color:var(--txt-alt);position:relative;transition:.25s}
     nav.top-nav a:hover,nav.top-nav a.active{color:var(--accent)}
     nav.top-nav a.active::after{
       content:'';position:absolute;bottom:-6px;left:0;width:100%;height:2px;background:var(--accent);border-radius:1px;
     }
-    /* language switch (text link) */
-    #langSwitch{font-size:.95rem;font-weight:500;color:var(--txt-alt);white-space:nowrap}
-    #langSwitch:hover{color:var(--accent)}
+    /* language button (fixed width + flag) */
+    .lang-btn{display:flex;align-items:center;gap:.35rem;justify-content:center;
+              min-width:92px;max-width:92px;height:34px;padding:0 .4rem;border:2px solid var(--accent);
+              border-radius:22px;font-size:.85rem;font-weight:600;background:none;transition:.25s}
+    .lang-btn:hover{background:rgba(56,225,183,.1)}
+    .lang-btn .flag{font-size:1.1rem;line-height:1}
+
+    /* hide nav links on mobile */
+    @media(max-width:740px){nav.top-nav{display:none}.logo-wrap span{font-size:1.1rem}}
 
     /* ---------- containers ---------- */
     .container{width:90%;max-width:1150px;margin:0 auto;padding:0 1rem}
@@ -95,24 +102,17 @@
     .section-title::after{content:'';display:block;width:78px;height:3px;background:var(--accent);margin:.55rem auto 0;border-radius:2px}
     .section-sub{color:var(--txt-alt);text-align:center;max-width:720px;margin:0 auto 3rem;font-size:1.05rem}
 
-    /* ---------- features ---------- */
+    /* ---------- features / how / footer unchanged ---------- */
     .features-grid{display:grid;gap:2rem;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
     .feature{background:var(--card);padding:2.4rem 2rem;border-radius:14px;text-align:center;transition:.3s;box-shadow:0 8px 30px var(--shadow)}
     .feature:hover{transform:translateY(-8px);box-shadow:0 12px 42px rgba(56,225,183,.25)}
     .feature .icon{font-size:2.4rem;color:var(--accent);margin-bottom:1.1rem}
     .feature h3{font-size:1.45rem;margin-bottom:.6rem}
     .feature p{color:var(--txt-alt);font-size:.97rem}
-
-    /* ---------- how it works ---------- */
     .hiw-wrap{display:flex;flex-direction:column;align-items:center;text-align:center;gap:1.6rem}
     .magic-wand{font-size:3.2rem;color:var(--primary);animation:float 3.5s ease-in-out infinite}
     @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-
-    /* ---------- footer ---------- */
     footer{border-top:1px solid rgba(255,255,255,.08);padding:2.5rem 1rem;text-align:center;color:var(--txt-alt);font-size:.9rem}
-
-    /* ---------- responsive ---------- */
-    @media(max-width:740px){nav.top-nav{display:none}}
   </style>
 </head>
 <body>
@@ -126,11 +126,12 @@
     <nav class="top-nav">
       <a href="/" class="active">Home</a>
       <a href="/demo/">Demo</a>
-      <a href="#" style="cursor:default;opacity:.45">Security</a>
-      <a href="#" style="cursor:default;opacity:.45">Customers</a>
     </nav>
 
-    <a id="langSwitch" class="lang-switch">עברית</a>
+    <!-- language button -->
+    <button id="langSwitch" class="lang-btn">
+      <span class="flag">🇮🇱</span><span class="label">עברית</span>
+    </button>
   </header>
 
   <!-- ===== HERO ===== -->
@@ -141,7 +142,7 @@
     <p class="tagline" id="tagline">Unlock the Magic in Your Data – Chat, Analyze and Visualize with AI.</p>
 
     <div class="cta-wrapper">
-      <a href="https://bimagics.com/demo" class="cta-btn cta-primary" id="startBtn">✨ Start Now</a>
+      <a href="/demo/" class="cta-btn cta-primary" id="startBtn">✨ Start Now</a>
       <a href="#" class="cta-btn cta-whatsapp" id="whatsBtn"><i class="fa-brands fa-whatsapp"></i>Chat with Our Team</a>
     </div>
   </header>
@@ -194,8 +195,10 @@
 
   <!-- ===== LANGUAGE SCRIPT ===== -->
   <script>
-    const langSwitch=document.getElementById('langSwitch');
-    let currentLang='en';
+    const btn=document.getElementById('langSwitch');
+    const flag=btn.querySelector('.flag');
+    const label=btn.querySelector('.label');
+    let cur='en';
     const t={
       en:{mainTitle:'BI Magics',subtitle:'AI-Powered Analytics. Effortless Insights.',
           tagline:'Unlock the Magic in Your Data – Chat, Analyze and Visualize with AI.',
@@ -208,37 +211,32 @@
           magicDesc:`BI Magics listens to your questions in plain language, processes huge volumes of data, and delivers interactive charts and summaries. It's like having a data scientist 24/7, revealing hidden stories in your numbers.`,
           footerTxt:'© 2025 BI Magics • Made with ✨ for data dreamers',
           whatsappMsg:`Hi, I'd love to learn more about BI Magics and how I can start talking to my data!`,
-          switchLabel:'עברית'},
+          flag:'🇮🇱',lbl:'עברית'},
       he:{mainTitle:'BI Magics',subtitle:'אנליטיקה חכמה. תובנות בקליק.',
           tagline:'גלו את הקסם בנתונים שלכם – שאלו, נתחו והציגו בעזרת AI.',
           startBtn:'✨ התחילו עכשיו',whatsBtnText:'שיחה עם הצוות',
           featuresTitle:'גלו את הקסם',featuresSubtitle:'BI Magics הופכת נתונים מורכבים לתובנות ברורות באופן מיידי. חוויית אנליטיקה אינטואיטיבית ועוצמתית.',
-          c1h:'שאלו כל דבר',c1p:'\"כמה הרווחתי בחודש שעבר?\" – גרף מיידי בשפה טבעית.',
+          c1h:'שאלו כל דבר',c1p:'"כמה הרווחתי בחודש שעבר?" – גרף מיידי בשפה טבעית.',
           c2h:'ראו את הפיד',c2p:'כרטיסי BI דינמיים, מתעדכנים בזמן אמת. תובנות שמוגשות כמו קסם.',
           c3h:'לכולם',c3p:'עוצמה ברמת Enterprise לצוותים. פשטות Plug-&-Play לעסקים קטנים.',
           howTitle:'איך הקסם קורה',howSubtitle:'אנו משלבים בינה מלאכותית עם עיצוב אינטואיטיבי כדי להפוך ניתוח נתונים לנגיש ומלא תובנות.',
           magicDesc:'BI Magics מקשיבה לשאלות שלכם בשפה חופשית, מעבדת כמויות עצומות של נתונים, ומחזירה תרשימים וסיכומים אינטראקטיביים – מדען דאטה אישי, 24/7.',
           footerTxt:'© 2025 BI Magics • נוצר באהבה ✨ לחולמי דאטה',
           whatsappMsg:'היי, אשמח ללמוד עוד על BI Magics ואיך להתחיל לדבר עם הנתונים שלי!',
-          switchLabel:'ENGLISH'}
+          flag:'🇺🇸',lbl:'ENGLISH'}
     };
-
     const ids=['mainTitle','subtitle','tagline','featuresTitle','featuresSubtitle','c1h','c1p',
                'c2h','c2p','c3h','c3p','howTitle','howSubtitle','magicDesc','footerTxt'];
-    function applyLang(lang){
-      const d=t[lang];
+    function apply(l){
+      const d=t[l];
       ids.forEach(id=>document.getElementById(id).innerHTML=d[id]);
       document.getElementById('startBtn').innerHTML=d.startBtn;
-      document.getElementById('whatsBtn').innerHTML=`<i class=\"fa-brands fa-whatsapp\"></i>${d.whatsBtnText}`;
+      document.getElementById('whatsBtn').innerHTML=`<i class="fa-brands fa-whatsapp"></i>${d.whatsBtnText}`;
       document.getElementById('whatsBtn').href=`https://wa.me/972506579403?text=${encodeURIComponent(d.whatsappMsg)}`;
-      langSwitch.textContent=d.switchLabel;
-      currentLang=lang;
+      flag.textContent=d.flag;label.textContent=d.lbl;cur=l;
     }
-    langSwitch.addEventListener('click',()=>applyLang(currentLang==='en'?'he':'en'));
-
-    /* initial */
-    const urlLang=new URLSearchParams(location.search).get('lang');
-    applyLang(urlLang==='he'?'he':'en');
+    btn.onclick=()=>apply(cur==='en'?'he':'en');
+    apply(new URLSearchParams(location.search).get('lang')==='he'?'he':'en');
   </script>
 </body>
 </html>
