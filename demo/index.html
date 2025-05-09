@@ -1,164 +1,167 @@
-<!-- FILE: demo/index.html  | 3-view carousel → Connectors ◀︎ Chat ▶︎ Feed -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
-  <title>BI Magics • Demo</title>
+<!-- FILE: demo/index.html – full replacement (09-May-2025) -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>BI Magics • Demo</title>
 
-  <!-- libs -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"              defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles@3.4.0/tsparticles.bundle.min.js" defer></script>
+<!-- libs -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"              defer></script>
+<script src="https://cdn.jsdelivr.net/npm/tsparticles@3.4.0/tsparticles.bundle.min.js" defer></script>
 
-  <link rel="stylesheet" href="./style.css"><!-- optional local styles -->
+<link rel="stylesheet" href="./style.css"><!-- unified global styles -->
 
-  <!-- overrides -->
-  <style>
-    :root{--bg:#0C0E18;--card:#1B1E2B;--primary:#B84CFF;--accent:#38E1B7;
-          --txt:#ECEFF6;--txt-alt:#A5ACC7;--shadow:rgba(56,225,183,.18);}
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);overflow:hidden}
-    a,button{font-family:inherit;text-decoration:none;color:inherit;cursor:pointer}
+<!-- overrides (מעט קוד inline) -->
+<style>
+:root{--bg:#0C0E18;--card:#1B1E2B;--accent:#38E1B7;--txt:#ECEFF6;--txt-alt:#A5ACC7;--shadow:rgba(56,225,183,.18)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);overflow:hidden}
+a,button{font-family:inherit;color:inherit;text-decoration:none;cursor:pointer}
 
-    /* ───── top-bar ───── */
-    .page-topbar{position:fixed;top:0;left:0;right:0;height:60px;display:flex;align-items:center;
-                 justify-content:space-between;padding:0 1.1rem;background:rgba(12,14,24,.68);
-                 backdrop-filter:blur(10px);z-index:1000;border-bottom:1px solid rgba(255,255,255,.06)}
-    .brand{display:flex;align-items:center;gap:.55rem}
-    .brand img{width:36px}
-    .brand span{font-weight:600;letter-spacing:-.02em;font-size:1.05rem}
-    .site-nav{display:flex;gap:1.05rem;font-size:.93rem;font-weight:500}
-    .site-nav a{color:var(--txt-alt);position:relative}
-    .site-nav a:hover,.site-nav a.active{color:var(--accent)}
-    .site-nav a.active::after{content:'';position:absolute;bottom:-6px;left:0;width:100%;height:2px;
-                              background:var(--accent);border-radius:1px}
-    /* language button – fixed width */
-    .lang-btn{display:flex;align-items:center;gap:.35rem;justify-content:center;
-              min-width:92px;max-width:92px;height:34px;padding:0 .4rem;border:2px solid var(--accent);
-              border-radius:22px;font-size:.85rem;font-weight:600;background:none;transition:.25s}
-    .lang-btn:hover{background:rgba(56,225,183,.1)}
-    .lang-btn .flag{font-size:1.1rem;line-height:1}
-    @media(max-width:760px){.site-nav{display:none}.brand span{font-size:1rem}}
+.page-topbar{position:fixed;top:0;left:0;right:0;height:60px;display:flex;align-items:center;justify-content:space-between;
+             padding:0 1.1rem;background:rgba(12,14,24,.68);backdrop-filter:blur(10px);
+             z-index:1000;border-bottom:1px solid rgba(255,255,255,.06)}
+.brand{display:flex;align-items:center;gap:.55rem}.brand img{width:36px}.brand span{font-weight:600;font-size:1.05rem}
+.site-nav{display:flex;gap:1.05rem;font-size:.93rem;font-weight:500}
+.site-nav a{color:var(--txt-alt);position:relative}
+.site-nav a:hover,.site-nav a.active{color:var(--accent)}
+.site-nav a.active::after{content:'';position:absolute;bottom:-6px;left:0;width:100%;height:2px;background:var(--accent)}
+.lang-btn{display:flex;align-items:center;gap:.35rem;min-width:92px;max-width:92px;height:34px;
+          padding:0 .4rem;border:2px solid var(--accent);border-radius:22px;font-size:.85rem;font-weight:600;background:none}
+.lang-btn:hover{background:rgba(56,225,183,.1)}.lang-btn .flag{font-size:1.1rem}
+@media(max-width:760px){.site-nav{display:none}.brand span{font-size:1rem}}
 
-    /* ───── demo nav (“pill”) ───── */
-    .view-nav{position:fixed;top:60px;left:50%;transform:translateX(-50%);
-              width:92%;max-width:520px;height:46px;display:flex;background:var(--card);
-              border-radius:28px;box-shadow:0 4px 12px var(--shadow);z-index:900}
-    .view-nav button{flex:1;background:none;border:none;color:var(--txt-alt);font-size:.9rem;font-weight:600;
-                     padding:.4rem 0;transition:.25s}
-    .view-nav button.active{background:var(--accent);color:#111;font-weight:700}
-    @media(hover:hover){.view-nav button:not(.active):hover{background:rgba(56,225,183,.07)}}
+.view-nav{position:fixed;top:60px;left:50%;transform:translateX(-50%);
+          width:92%;max-width:520px;height:46px;display:flex;background:var(--card);
+          border-radius:28px;box-shadow:0 4px 12px var(--shadow);z-index:900}
+.view-nav button{flex:1;background:none;border:none;color:var(--txt-alt);font-size:.9rem;font-weight:600;transition:.2s}
+.view-nav button.active{background:var(--accent);color:#111;font-weight:700}
+@media(hover:hover){.view-nav button:not(.active):hover{background:rgba(56,225,183,.07)}}
 
-    /* ───── carousel ───── */
-    #views-wrapper{position:absolute;top:106px;left:0;right:0;bottom:0;overflow:hidden}
-    #views-carousel{display:flex;height:100%}
-    .demo-view{height:100%;overflow-y:auto;scrollbar-width:none;padding:1rem 1.2rem}
-    .demo-view::-webkit-scrollbar{display:none}
-  </style>
-</head>
-<body>
-  <canvas id="tsparticles"></canvas>
+#views-wrapper{position:absolute;top:106px;left:0;right:0;bottom:0;overflow:hidden;touch-action:pan-y;}
+#views-carousel{display:flex;height:100%}
+.demo-view{height:100%;overflow-y:auto;scrollbar-width:none;padding:1rem 1.2rem}
+.demo-view::-webkit-scrollbar{display:none}
+</style>
+</head><body>
 
-  <!-- top-bar -->
-  <header class="page-topbar">
-    <a class="brand" href="/">
-      <img src="/Magics.png" alt="BI Magics logo"><span>BI&nbsp;MAGICS</span>
-    </a>
-    <nav class="site-nav">
-      <a href="/">Home</a>
-      <a href="/demo/" class="active">Demo</a>
-    </nav>
-    <!-- language button -->
-    <button id="langSwitch" class="lang-btn">
-      <span class="flag">🇮🇱</span><span class="label">עברית</span>
-    </button>
-  </header>
+<canvas id="tsparticles"></canvas>
 
-  <!-- demo nav -->
-  <nav class="view-nav">
-    <button data-view-id="connect" data-index="0">Connectors</button>
-    <button data-view-id="chat"    data-index="1" class="active">Chat</button>
-    <button data-view-id="feed"    data-index="2">Feed</button>
-  </nav>
+<header class="page-topbar">
+  <a class="brand" href="/"><img src="/Magics.png" alt="logo"><span>BI&nbsp;MAGICS</span></a>
+  <nav class="site-nav"><a href="/">Home</a><a href="/demo/" class="active">Demo</a></nav>
+  <button id="langSwitch" class="lang-btn"><span class="flag">🇮🇱</span><span class="label">עברית</span></button>
+</header>
 
-  <!-- carousel -->
-  <div id="views-wrapper"><div id="views-carousel"></div></div>
+<nav class="view-nav">
+  <button data-view-id="connect" data-index="0">Connectors</button>
+  <button data-view-id="chat"    data-index="1" class="active">Chat</button>
+  <button data-view-id="feed"    data-index="2">Feed</button>
+</nav>
 
-  <!-- carousel logic -->
-  <script type="module">
-    import { renderConnectView } from './connectors.js';
-    import { renderChatView    } from './chat.js';
-    import { renderFeedView    } from './feed.js';
+<div id="views-wrapper"><div id="views-carousel"></div></div>
 
-    const viewsCarousel=document.getElementById('views-carousel');
-    const viewsWrapper=document.getElementById('views-wrapper');
-    const navButtons=[...document.querySelectorAll('.view-nav button')];
-    const viewMap={connect:renderConnectView,chat:renderChatView,feed:renderFeedView};
-    const total=navButtons.length;
+<script type="module">
+import { renderConnectView } from './connectors.js';
+import { renderChatView    } from './chat.js';
+import { renderFeedView    } from './feed.js';
 
-    navButtons.forEach(btn=>{
-      const v=viewMap[btn.dataset.viewId]?.();
-      if(v){v.classList.add('demo-view');v.style.width=`${100/total}%`;viewsCarousel.appendChild(v);}
-    });
-    viewsCarousel.style.width=`${total*100}%`;
+/* -------- build views -------- */
+const carousel = document.getElementById('views-carousel');
+const wrapper  = document.getElementById('views-wrapper');
+const navBtns  = [...document.querySelectorAll('.view-nav button')];
+const viewsMap = { connect:renderConnectView, chat:renderChatView, feed:renderFeedView };
+const N        = navBtns.length;
 
-    /* switch */
-    let current=1;
-    const switchView=(i,a=true)=>{
-      current=i;
-      viewsCarousel.style.transition=a?'transform .45s cubic-bezier(.25,1,.5,1)':'none';
-      viewsCarousel.style.transform=`translateX(${-i*(100/total)}%)`;
-      navButtons.forEach(b=>b.classList.toggle('active',+b.dataset.index===i));
-      window.AOS&&setTimeout(()=>AOS.refreshHard(),a?450:50);
-    };
-    navButtons.forEach(b=>b.onclick=()=>switchView(+b.dataset.index));
+navBtns.forEach(btn=>{
+  const v = viewsMap[btn.dataset.viewId]?.();
+  if(v){ v.classList.add('demo-view'); v.style.width = `${100/N}%`; carousel.appendChild(v); }
+});
+carousel.style.width = `${N*100}%`;
 
-    /* swipe */
-    const vw=()=>innerWidth;let sx=0,cx=0,drag=false;
-    viewsWrapper.addEventListener('pointerdown',e=>{
-      if(e.target.closest('button,a,input,select,textarea,.modal'))return;
-      drag=true;sx=cx=e.pageX??e.touches?.[0].pageX;viewsCarousel.style.transition='none';
-    },{passive:true});
-    const move=e=>{if(!drag)return;cx=e.pageX??e.touches?.[0].pageX;
-                   viewsCarousel.style.transform=`translateX(${-current*vw()+(cx-sx)}px)`;}
-    const end=()=>{if(!drag)return;drag=false;
-      const dx=cx-sx,thr=vw()*0.2;
-      if(dx<-thr&&current<total-1)switchView(current+1);
-      else if(dx>thr&&current>0)switchView(current-1);
-      else switchView(current);}
-    addEventListener('pointermove',move,{passive:true});
-    addEventListener('pointerup',end);addEventListener('pointercancel',end);
-    addEventListener('resize',()=>switchView(current,false));
-    switchView(1,false);
+/* -------- switch helper -------- */
+let cur = 1;
+function switchTo(i,anim=true){
+  cur = i;
+  carousel.style.transition = anim? 'transform .45s cubic-bezier(.25,1,.5,1)' : 'none';
+  carousel.style.transform  = `translateX(${-i*(100/N)}%)`;
+  navBtns.forEach(b=>b.classList.toggle('active', +b.dataset.index===i));
+  window.AOS && setTimeout(()=>AOS.refreshHard(), anim?450:50);
+}
+navBtns.forEach(b=>b.onclick = ()=>switchTo(+b.dataset.index));
 
-    window.demoNavButtons=navButtons; // expose for lang
-    tsParticles?.load('tsparticles',{particles:{number:{value:26,density:{enable:true,value_area:800}},
-      color:{value:'#fff'},opacity:{value:.2,random:true},size:{value:2,random:true},
-      links:{enable:true,color:'#00e6e6',distance:150,opacity:.15,width:1},
-      move:{enable:true,speed:.55}},retina_detect:true,fullScreen:{enable:false}});
-    AOS?.init({once:false,duration:550,offset:50,easing:'ease-out-quad'});
-  </script>
+/* -------- swipe logic (desktop & mobile) -------- */
+let sx=0, sy=0, cx=0, cy=0, isDrag=false, decided=null;
+const vw = ()=>innerWidth;
 
-  <!-- language logic -->
-  <script>
-    const btn=document.getElementById('langSwitch');
-    const flag=btn.querySelector('.flag');
-    const label=btn.querySelector('.label');
-    let cur='en';
-    const tr={
-      en:{c:'Data',h:'Chat',f:'Feed',flag:'🇮🇱',txt:'עברית'},
-      he:{c:'נתונים',h:'צ׳אט',f:'פיד',flag:'🇺🇸',txt:'ENGLISH'}
-    };
-    function apply(l){
-      const d=tr[l],b=window.demoNavButtons??[...document.querySelectorAll('.view-nav button')];
-      if(b.length>=3){b[0].textContent=d.c;b[1].textContent=d.h;b[2].textContent=d.f;}
-      flag.textContent=d.flag;label.textContent=d.txt;cur=l;
-    }
-    btn.onclick=()=>apply(cur==='en'?'he':'en');
-    apply('en');
-  </script>
-</body>
-</html>
+wrapper.addEventListener('pointerdown', e=>{
+  if(e.target.closest('button,a,input,select,textarea,.modal')) return;
+  sx = cx = e.pageX ?? e.touches?.[0].pageX;
+  sy = cy = e.pageY ?? e.touches?.[0].pageY;
+  isDrag = true; decided = null;
+  carousel.style.transition = 'none';
+}, {passive:true});
+
+const move = e=>{
+  if(!isDrag) return;
+  cx = e.pageX ?? e.touches?.[0].pageX;
+  cy = e.pageY ?? e.touches?.[0].pageY;
+  const dx = cx - sx;
+  const dy = cy - sy;
+
+  /* decide if scroll or swipe */
+  if(decided === null){
+    if(Math.abs(dx) < 8 && Math.abs(dy) < 8) return;     // still noise
+    decided = Math.abs(dy) > Math.abs(dx);               // true = vertical scroll
+    if(decided){ isDrag=false; return; }                 // give control back to page
+    document.body.classList.add('swiping');
+  }
+  /* horizontal swipe – follow finger */
+  carousel.style.transform = `translateX(${-cur*vw() + dx}px)`;
+};
+const end = ()=>{
+  document.body.classList.remove('swiping');
+  if(!isDrag){ isDrag=false; return; }
+  isDrag = false;
+  const dx = cx - sx;
+  const thr = vw()*0.18;
+  if(dx < -thr && cur < N-1)      switchTo(cur+1);
+  else if(dx > thr && cur > 0)    switchTo(cur-1);
+  else                            switchTo(cur);
+};
+addEventListener('pointermove', move, {passive:false});
+addEventListener('pointerup',   end);
+addEventListener('pointercancel', end);
+addEventListener('resize', ()=>switchTo(cur,false));
+
+/* expose buttons for lang-switch */
+window.demoNavButtons = navBtns;
+switchTo(1,false);
+
+/* particles & AOS */
+tsParticles?.load('tsparticles',{
+  particles:{number:{value:26,density:{enable:true,value_area:800}},
+             color:{value:'#fff'},opacity:{value:.2,random:true},size:{value:2,random:true},
+             links:{enable:true,color:'#00e6e6',distance:150,opacity:.15,width:1},
+             move:{enable:true,speed:.55}},retina_detect:true,fullScreen:{enable:false}});
+AOS?.init({once:false,duration:550,offset:50,easing:'ease-out-quad'});
+</script>
+
+<!-- language switch (unchanged) -->
+<script>
+const langBtn=document.getElementById('langSwitch');
+const flag   =langBtn.querySelector('.flag');
+const label  =langBtn.querySelector('.label');
+let cur='en';
+const L={en:{c:'Connectors',h:'Chat',f:'Feed',flag:'🇮🇱',txt:'עברית'},
+         he:{c:'נתונים',     h:'צ׳אט',f:'פיד',flag:'🇺🇸',txt:'ENGLISH'}};
+function apply(l){
+  const d=L[l],b=window.demoNavButtons||[];
+  if(b.length===3){b[0].textContent=d.c;b[1].textContent=d.h;b[2].textContent=d.f;}
+  flag.textContent=d.flag;label.textContent=d.txt;cur=l;
+}
+langBtn.onclick=()=>apply(cur==='en'?'he':'en');apply('en');
+</script>
+</body></html>
