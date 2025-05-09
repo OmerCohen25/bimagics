@@ -1,119 +1,192 @@
 <!-- FILE: demo/index.html  |  3-view carousel → Connect ◀︎ Chat ▶︎ Feed -->
 <!DOCTYPE html>
-<html lang="he">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>BI Magics • Demo</title>
 
   <!-- external libs -->
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"              defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles@3.4.0/tsparticles.bundle.min.js"
-          defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@3.4.0/tsparticles.bundle.min.js" defer></script>
 
   <!-- local stylesheet -->
   <link rel="stylesheet" href="./style.css">
+
+  <!-- minimal demo-specific styles (top-bar + carousel) -->
+  <style>
+    :root{--bg:#0C0E18;--card:#1B1E2B;--primary:#B84CFF;--accent:#38E1B7;
+          --txt:#ECEFF6;--txt-alt:#A5ACC7;--shadow:rgba(56,225,183,.18);}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);overflow:hidden}
+    a,button{font-family:inherit;text-decoration:none;color:inherit;cursor:pointer}
+
+    /* ───────── Page top-bar ───────── */
+    .page-topbar{position:fixed;top:0;left:0;right:0;height:60px;display:flex;align-items:center;
+                 justify-content:space-between;padding:0 1.2rem;background:rgba(12,14,24,.65);
+                 backdrop-filter:blur(10px);z-index:1000;border-bottom:1px solid rgba(255,255,255,.06)}
+    .brand{display:flex;align-items:center;gap:.6rem}
+    .brand img{width:38px}
+    .brand span{font-weight:600;letter-spacing:-.02em}
+    .site-nav{display:flex;gap:1.1rem;font-size:.93rem;font-weight:500}
+    .site-nav a{color:var(--txt-alt);position:relative}
+    .site-nav a:hover,.site-nav a.active{color:var(--accent)}
+    .site-nav a.active::after{content:'';position:absolute;bottom:-6px;left:0;width:100%;height:2px;
+                              background:var(--accent);border-radius:1px}
+    #langSwitch{font-size:.9rem;font-weight:500;color:var(--txt-alt);white-space:nowrap}
+    #langSwitch:hover{color:var(--accent)}
+
+    /* ───────── carousel nav ───────── */
+    .view-nav{position:fixed;top:60px;left:0;right:0;height:48px;display:flex;
+              justify-content:center;gap:1.2rem;z-index:900}
+    .view-nav button{background:none;border:none;color:var(--txt-alt);font-size:.95rem;font-weight:600;
+                     padding:.4rem 0;transition:.25s}
+    .view-nav button.active,.view-nav button:hover{color:var(--accent)}
+    .view-nav button.active::after{content:'';display:block;width:100%;height:2px;margin-top:6px;
+                                   background:var(--accent);border-radius:1px}
+
+    /* ───────── carousel wrapper ───────── */
+    #views-wrapper{position:absolute;top:108px;left:0;right:0;bottom:0;overflow:hidden}
+    #views-carousel{display:flex;height:100%}
+
+    /* generic panel */
+    .demo-view{height:100%;overflow-y:auto;scrollbar-width:none;padding:1rem 1.2rem}
+    .demo-view::-webkit-scrollbar{display:none}
+  </style>
 </head>
 <body>
   <!-- background particles -->
   <canvas id="tsparticles"></canvas>
 
-  <!-- ───── Top nav: only 3 buttons ───── -->
-  <nav class="top-nav">
+  <!-- ===== site top-bar ===== -->
+  <header class="page-topbar">
+    <div class="brand">
+      <a href="/"><img src="/Magics.png" alt="BI Magics logo"></a>
+      <span>BI&nbsp;MAGICS</span>
+    </div>
+
+    <nav class="site-nav">
+      <a href="/"             >Home</a>
+      <a href="/demo/" class="active">Demo</a>
+      <a href="#" style="cursor:default;opacity:.45">Security</a>
+      <a href="#" style="cursor:default;opacity:.45">Customers</a>
+    </nav>
+
+    <a id="langSwitch">עברית</a>
+  </header>
+
+  <!-- ===== carousel nav ===== -->
+  <nav class="view-nav">
     <button data-view-id="connect" data-index="0">Connect</button>
     <button data-view-id="chat"    data-index="1" class="active">Chat</button>
     <button data-view-id="feed"    data-index="2">Feed</button>
   </nav>
 
-  <!-- ───── Swipeable carousel wrapper ───── -->
+  <!-- ===== carousel wrapper ===== -->
   <div id="views-wrapper">
-    <div id="views-carousel" class="views"></div>
+    <div id="views-carousel"></div>
   </div>
 
+  <!-- ===== core carousel logic (module) ===== -->
   <script type="module">
-    /* ------------- import views ------------- */
     import { renderConnectView } from './connectors.js';
     import { renderChatView    } from './chat.js';
     import { renderFeedView    } from './feed.js';
 
-    const viewsCarousel = document.getElementById('views-carousel');
-    const viewsWrapper  = document.getElementById('views-wrapper');
-    const navButtons    = [...document.querySelectorAll('.top-nav button')];
-    const numViews      = navButtons.length;        // === 3
+    const viewsCarousel=document.getElementById('views-carousel');
+    const viewsWrapper =document.getElementById('views-wrapper');
+    const navButtons   =[...document.querySelectorAll('.view-nav button')];
+    const viewRenderers={connect:renderConnectView,chat:renderChatView,feed:renderFeedView};
+    const numViews=navButtons.length;
 
-    const viewRenderers = { connect: renderConnectView, chat: renderChatView, feed: renderFeedView };
-
-    /* ------- build views inside carousel ------- */
-    navButtons.forEach(btn => {
-      const id = btn.dataset.viewId;
-      const view = viewRenderers[id]?.();
-      if (view) {
-        view.style.width = `${100 / numViews}%`;    // => 33.33%
-        viewsCarousel.appendChild(view);
+    /* build */
+    navButtons.forEach(btn=>{
+      const id=btn.dataset.viewId;
+      const panel=viewRenderers[id]?.();
+      if(panel){
+        panel.classList.add('demo-view');
+        panel.style.width=`${100/numViews}%`;
+        viewsCarousel.appendChild(panel);
       }
     });
-    viewsCarousel.style.width = `${numViews * 100}%`; // 300%
+    viewsCarousel.style.width=`${numViews*100}%`;
 
-    /* ------- navigation helpers ------- */
-    let current = 1;                                // default → Chat
-    const vw    = () => window.innerWidth;
-
-    function switchView(i, animate = true) {
-      current = i;
-      viewsCarousel.style.transition = animate ? 'transform .45s cubic-bezier(.25,1,.5,1)' : 'none';
-      viewsCarousel.style.transform  = `translateX(${-i * (100 / numViews)}%)`;
-      navButtons.forEach(b => b.classList.toggle('active', +b.dataset.index === i));
-      window.AOS && setTimeout(() => AOS.refreshHard(), animate ? 450 : 50);
+    /* nav -> switch */
+    let current=1;
+    function switchView(i,anim=true){
+      current=i;
+      viewsCarousel.style.transition=anim?'transform .45s cubic-bezier(.25,1,.5,1)':'none';
+      viewsCarousel.style.transform=`translateX(${-i*(100/numViews)}%)`;
+      navButtons.forEach(b=>b.classList.toggle('active',+b.dataset.index===i));
+      window.AOS&&setTimeout(()=>AOS.refreshHard(),anim?450:50);
     }
-    navButtons.forEach(b => b.onclick = () => switchView(+b.dataset.index));
+    navButtons.forEach(b=>b.onclick=()=>switchView(+b.dataset.index));
 
-    /* ------- swipe gestures ------- */
-    let sx = 0, cx = 0, dragging = false;
-    viewsWrapper.addEventListener('pointerdown', e => {
-      if (e.target.closest('button,a,input,select,textarea,.modal')) return;
-      dragging = true;
-      sx = cx = e.pageX ?? e.touches?.[0].pageX;
-      viewsCarousel.style.transition = 'none';
-      document.body.classList.add('swiping');
-    }, { passive: true });
-
-    const move = e => {
-      if (!dragging) return;
-      cx = e.pageX ?? e.touches?.[0].pageX;
-      viewsCarousel.style.transform = `translateX(${ -current * vw() + (cx - sx) }px)`;
+    /* swipe */
+    const vw=()=>window.innerWidth;
+    let sx=0,cx=0,drag=false;
+    viewsWrapper.addEventListener('pointerdown',e=>{
+      if(e.target.closest('button,a,input,select,textarea,.modal')) return;
+      drag=true; sx=cx=e.pageX??e.touches?.[0].pageX;
+      viewsCarousel.style.transition='none'; document.body.classList.add('swiping');
+    },{passive:true});
+    const move=e=>{
+      if(!drag)return;
+      cx=e.pageX??e.touches?.[0].pageX;
+      viewsCarousel.style.transform=`translateX(${-current*vw()+(cx-sx)}px)`;
     };
-    const end = () => {
-      if (!dragging) return; dragging = false; document.body.classList.remove('swiping');
-      const dx = cx - sx, thr = vw() * 0.2;
-      if      (dx < -thr && current < numViews - 1) switchView(current + 1);
-      else if (dx >  thr && current > 0)            switchView(current - 1);
-      else                                          switchView(current);
+    const end=()=>{
+      if(!drag)return; drag=false; document.body.classList.remove('swiping');
+      const dx=cx-sx,thr=vw()*0.2;
+      if(dx<-thr&&current<numViews-1) switchView(current+1);
+      else if(dx>thr&&current>0)      switchView(current-1);
+      else                            switchView(current);
     };
-    window.addEventListener('pointermove',   move, { passive: true });
-    window.addEventListener('pointerup',     end);
-    window.addEventListener('pointercancel', end);
+    window.addEventListener('pointermove',move,{passive:true});
+    window.addEventListener('pointerup',end);
+    window.addEventListener('pointercancel',end);
+    window.addEventListener('resize',()=>switchView(current,false));
 
-    window.addEventListener('resize', () => switchView(current, false));
+    /* expose buttons for lang-script */
+    window.demoNavButtons=navButtons;
 
-    /* ------- particles + AOS ------- */
-    tsParticles?.load('tsparticles', {
+    /* particles + AOS */
+    tsParticles?.load('tsparticles',{
       particles:{number:{value:30,density:{enable:true,value_area:800}},
                  color:{value:'#fff'},shape:{type:'circle'},
-                 opacity:{value:.2,random:true},size:{value:2,random:true},
+                 opacity:{value:.2,random:true},
+                 size:{value:2,random:true},
                  links:{enable:true,color:'#00e6e6',distance:150,opacity:.15,width:1},
-                 move:{enable:true,speed:.5}},
+                 move:{enable:true,speed:.55}},
       retina_detect:true,fullScreen:{enable:false}
     });
-    AOS?.init({ once:false, duration:550, offset:50, easing:'ease-out-quad' });
+    AOS?.init({once:false,duration:550,offset:50,easing:'ease-out-quad'});
 
-    /* ------- land on Chat (center) ------- */
-    switchView(1, false);
+    switchView(1,false);
+  </script>
+
+  <!-- ===== language switch (simple) ===== -->
+  <script>
+    const langSwitch=document.getElementById('langSwitch');
+    let currentLang='en';
+    const t={
+      en:{connect:'Connect',chat:'Chat',feed:'Feed',switchLabel:'עברית'},
+      he:{connect:'חיבורים',chat:'צ׳אט',feed:'פיד',switchLabel:'ENGLISH'}
+    };
+    function applyLang(lang){
+      const d=t[lang];
+      const buttons=window.demoNavButtons ?? [...document.querySelectorAll('.view-nav button')];
+      buttons[0].textContent=d.connect;
+      buttons[1].textContent=d.chat;
+      buttons[2].textContent=d.feed;
+      langSwitch.textContent=d.switchLabel;
+      currentLang=lang;
+    }
+    langSwitch.addEventListener('click',()=>applyLang(currentLang==='en'?'he':'en'));
+    applyLang('en');
   </script>
 </body>
 </html>
