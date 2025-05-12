@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BI Magics • Summon Your BI Wizard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #00f0ff;
+      --bg: #0d1117;
+      --card: #1c2230;
+      --text: #fff;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #0a0f1a, #1a1f2b);
+      font-family: 'Varela Round', sans-serif;
+      color: var(--text);
+    }
+
+    header {
+      text-align: center;
+      font-size: 2rem;
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.04);
+      box-shadow: 0 0 20px #00f0ff44;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      padding: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 0.8rem;
+      margin-top: 0.4rem;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      background: #2b2f3a;
+      color: var(--text);
+    }
+
+    input[type="file"] {
+      background: #fff;
+      color: #000;
+    }
+
+    button {
+      margin-top: 2rem;
+      width: 100%;
+      padding: 1rem;
+      font-size: 1.2rem;
+      background: linear-gradient(to right, #00f0ff, #0077ff);
+      border: none;
+      color: #fff;
+      border-radius: 40px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: linear-gradient(to right, #00ffc8, #00bfff);
+      transform: scale(1.03);
+    }
+
+    .wizard-card {
+      margin-top: 2rem;
+      padding: 1.2rem;
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: 0 0 20px #00f0ff44;
+      text-align: center;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .wizard-card img {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #00f0ff88;
+      margin-bottom: 1rem;
+    }
+
+    .magic-glow {
+      animation: pulse 3s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 8px #00f0ff55; }
+      50% { box-shadow: 0 0 24px #00f0ffcc; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media screen and (max-width: 600px) {
+      header {
+        font-size: 1.5rem;
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>✨ Summon Your BI Wizard</header>
+
+  <div class="container">
+    <label>Wizard Name</label>
+    <input type="text" id="wizardName" placeholder="e.g. Sales Wizard">
+
+    <label>Wizard Specialty</label>
+    <select id="wizardType">
+      <option value="sales">Sales Wizard</option>
+      <option value="ops">Operations Wizard</option>
+      <option value="marketing">Marketing Wizard</option>
+      <option value="finance">Finance Wizard</option>
+      <option value="support">Support Wizard</option>
+    </select>
+
+    <label>Wizard Mindset</label>
+    <textarea id="wizardPrompt" rows="3" placeholder="e.g. Answer like a sales expert focused on pipeline growth."></textarea>
+
+    <label>Upload Portrait (optional)</label>
+    <input type="file" id="wizardImage" accept="image/*" />
+
+    <label>Connected Tables</label>
+    <select id="wizardTables" multiple>
+      <option>accounts</option>
+      <option>sales_leads</option>
+      <option>campaigns</option>
+      <option>inventory_status</option>
+      <option>recommendations</option>
+    </select>
+
+    <label>Assign Users (comma-separated UIDs)</label>
+    <input type="text" id="wizardUsers" placeholder="u123, u456, u789" />
+
+    <button onclick="summonWizard()">✨ Summon Wizard</button>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    function summonWizard() {
+      const name = document.getElementById('wizardName').value || "Unnamed Wizard";
+      const type = document.getElementById('wizardType').value || "general";
+      const prompt = document.getElementById('wizardPrompt').value || "Answer as a BI assistant.";
+      const imageInput = document.getElementById('wizardImage');
+      const tables = Array.from(document.getElementById('wizardTables').selectedOptions).map(o => o.value);
+      const users = document.getElementById('wizardUsers').value.split(',').map(u => u.trim()).filter(Boolean);
+
+      let imageURL = 'https://cdn-icons-png.flaticon.com/512/2721/2721045.png';
+
+      if (imageInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          imageURL = e.target.result;
+          renderCard();
+        };
+        reader.readAsDataURL(imageInput.files[0]);
+      } else {
+        renderCard();
+      }
+
+      function renderCard() {
+        const typeLabel = {
+          sales: 'Sales Wizard',
+          ops: 'Operations Wizard',
+          marketing: 'Marketing Wizard',
+          finance: 'Finance Wizard',
+          support: 'Support Wizard'
+        };
+
+        document.getElementById('result').innerHTML = `
+          <div class="wizard-card magic-glow">
+            <img src="${imageURL}" />
+            <h2>${name}</h2>
+            <p><strong>Specialty:</strong> ${typeLabel[type]}</p>
+            <p><strong>Mindset:</strong> ${prompt}</p>
+            <p><strong>Tables:</strong> ${tables.length ? tables.join(', ') : 'None selected'}</p>
+            <p><strong>Users:</strong> ${users.length ? users.join(', ') : 'None assigned'}</p>
+          </div>
+        `;
+      }
+    }
+  </script>
+
+</body>
+</html>
