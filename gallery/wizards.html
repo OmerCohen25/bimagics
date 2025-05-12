@@ -2,310 +2,283 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>BI Magics • BI Wizard Chat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>BI Magics • Meet Your BI Wizards</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
   <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet" />
   <style>
-    :root {
-      --primary: #00f0ff;
-      --bg: #0d1117;
-      --card: #1c2230;
-      --text: #fff;
+    :root{
+      --bg1:#0a0d16;
+      --bg2:#1a2030;
+      --card:#202736;
+      --primary:#00f0ff;
+      --accent:#0077ff;
+      --text:#fff;
+    }
+    *{box-sizing:border-box;padding:0;margin:0}
+    body{
+      background:linear-gradient(135deg,var(--bg1),var(--bg2));
+      font-family:'Varela Round',sans-serif;
+      color:var(--text);
+      overflow-x:hidden;
+    }
+    header{
+      text-align:center;
+      padding:2rem 1rem 1.5rem;
+      font-size:2.6rem;
+      background:rgba(255,255,255,0.03);
+      box-shadow:0 0 25px #00f0ff55;
+    }
+    header span{
+      background:linear-gradient(90deg,var(--primary),var(--accent));
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
     }
 
-    body {
-      margin: 0;
-      background: var(--bg);
-      font-family: 'Varela Round', sans-serif;
-      color: var(--text);
+    /*  HERO  */
+    .hero{
+      text-align:center;
+      padding:2.5rem 1rem 3rem;
+    }
+    .hero h2{
+      font-size:1.4rem;
+      font-weight:normal;
+      letter-spacing:1px;
+      opacity:.9;
+    }
+    .hero p{
+      margin-top:.7rem;
+      font-size:1rem;
+      opacity:.8;
     }
 
-    header {
-      text-align: center;
-      font-size: 2rem;
-      padding: 1rem;
-      background: rgba(255, 255, 255, 0.04);
-      box-shadow: 0 0 20px #00f0ff44;
+    /*  GRID  */
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:1.5rem;
+      padding:0 1.2rem 3.5rem;
+      max-width:1200px;
+      margin:auto;
+    }
+    .card{
+      position:relative;
+      padding:1.4rem 1.2rem 1.8rem;
+      background:var(--card);
+      border-radius:18px;
+      box-shadow:0 0 18px #00f0ff22;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      transition:transform .35s ease,box-shadow .35s ease;
+    }
+    .card:hover{
+      transform:translateY(-6px) scale(1.02);
+      box-shadow:0 0 30px #00f0ff66;
+    }
+    .card img{
+      width:110px;
+      height:110px;
+      object-fit:cover;
+      border-radius:50%;
+      border:3px solid #00f0ff88;
+      margin-bottom:1rem;
+    }
+    .card h3{
+      font-size:1.3rem;
+      margin-bottom:.4rem;
+    }
+    .card p{
+      font-size:.93rem;
+      text-align:center;
+      line-height:1.35;
+      opacity:.85;
     }
 
-    .container {
-      max-width: 500px;
-      margin: auto;
-      padding: 1.5rem;
+    /*  CREATE NEW  */
+    .create-card{
+      cursor:pointer;
+      background:rgba(0,0,0,0.15);
+      border:2px dashed var(--primary);
+      justify-content:center;
+      gap:.8rem;
+    }
+    .create-card:hover{
+      transform:translateY(-6px) scale(1.03);
+      box-shadow:0 0 25px #00f0ff88;
+    }
+    .plus{
+      font-size:3.5rem;
+      color:var(--primary);
     }
 
-    label {
-      display: block;
-      margin-top: 1rem;
+    /*  MODAL  */
+    .modal-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.7);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:99;
+    }
+    .modal{
+      background:var(--card);
+      width:92%;
+      max-width:460px;
+      padding:2rem 1.5rem 2.2rem;
+      border-radius:18px;
+      position:relative;
+      box-shadow:0 0 35px #00f0ffaa;
+      animation:zoomIn .4s ease;
+    }
+    @keyframes zoomIn{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+    .modal h2{text-align:center;margin-bottom:1rem}
+    .modal label{display:block;margin-top:1rem;font-size:.9rem}
+    .modal input,.modal textarea,.modal select{
+      width:100%;margin-top:.35rem;padding:.75rem;border:none;border-radius:10px;font-size:.95rem;background:#2b3243;color:var(--text)
+    }
+    .modal textarea{resize:none;height:90px}
+    .modal input[type=file]{background:#fff;color:#000}
+    .modal button{
+      margin-top:1.8rem;width:100%;padding:1rem;border:none;border-radius:40px;font-size:1.1rem;
+      background:linear-gradient(90deg,var(--primary),var(--accent));
+      color:#000;font-weight:bold;cursor:pointer
+    }
+    .close{
+      position:absolute;right:12px;top:12px;font-size:1.5rem;background:none;border:none;color:var(--primary);cursor:pointer
     }
 
-    input, textarea, select {
-      width: 100%;
-      padding: 0.8rem;
-      margin-top: 0.4rem;
-      border: none;
-      border-radius: 12px;
-      font-size: 1rem;
-      background: #2b2f3a;
-      color: var(--text);
+    /*  FOOTER  */
+    footer{
+      text-align:center;
+      padding:1.4rem .8rem 2.2rem;
+      font-size:.85rem;
+      opacity:.6
     }
 
-    button {
-      margin-top: 2rem;
-      width: 100%;
-      padding: 1rem;
-      font-size: 1.2rem;
-      background: linear-gradient(to right, #00f0ff, #0077ff);
-      border: none;
-      color: #fff;
-      border-radius: 40px;
-      cursor: pointer;
-    }
-
-    .wizard-card {
-      text-align: center;
-      margin-top: 2rem;
-      background: var(--card);
-      padding: 1.5rem;
-      border-radius: 16px;
-      box-shadow: 0 0 20px #00f0ff55;
-    }
-
-    .wizard-card img {
-      width: 90px;
-      height: 90px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid #00f0ff88;
-      margin-bottom: 1rem;
-    }
-
-    #chatScreen {
-      display: none;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .chat-header {
-      background: #1a1f2b;
-      padding: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid #00f0ff33;
-    }
-
-    .chat-header img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      margin-right: 1rem;
-    }
-
-    .chat-header h2 {
-      margin: 0;
-      font-size: 1.2rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .chat-body {
-      flex-grow: 1;
-      overflow-y: auto;
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .chat-msg {
-      max-width: 80%;
-      padding: 0.8rem;
-      border-radius: 12px;
-    }
-
-    .user-msg {
-      background: #0077ff;
-      align-self: flex-end;
-    }
-
-    .wizard-msg {
-      background: #2a2f3a;
-      align-self: flex-start;
-    }
-
-    .chat-input {
-      display: flex;
-      padding: 1rem;
-      background: #1a1f2b;
-      border-top: 1px solid #00f0ff22;
-    }
-
-    .chat-input textarea {
-      flex: 1;
-      border-radius: 12px;
-      border: none;
-      padding: 0.8rem;
-      background: #2b2f3a;
-      color: var(--text);
-      resize: none;
-    }
-
-    .chat-input button {
-      margin-left: 0.5rem;
-      background: var(--primary);
-      border: none;
-      padding: 0.8rem 1.2rem;
-      border-radius: 12px;
-      color: #000;
-      font-weight: bold;
-    }
-
-    .settings {
-      background: #0c0f15;
-      position: fixed;
-      top: 60px;
-      right: 20px;
-      padding: 1rem;
-      border: 1px solid #00f0ff55;
-      border-radius: 12px;
-      display: none;
-      z-index: 999;
-    }
-
-    .settings textarea {
-      width: 100%;
-      height: 80px;
-    }
-
-    .settings button {
-      margin-top: 0.5rem;
-      width: 100%;
-    }
-
-    #backBtn {
-      background: none;
-      border: none;
-      color: #00f0ff;
-      font-size: 1.2rem;
-      margin-left: 1rem;
+    @media(max-width:460px){
+      header{font-size:1.9rem;padding:1.3rem;}
+      .hero h2{font-size:1.2rem}
+      .hero p{font-size:.9rem}
     }
   </style>
 </head>
 <body>
 
-  <div id="wizardForm">
-    <header>✨ Summon Your BI Wizard</header>
-    <div class="container">
-      <label>Wizard Name</label>
-      <input type="text" id="wizardName" placeholder="e.g. Sales Wizard" />
+  <header><span>BI Magics</span> • BI Wizards</header>
 
-      <label>Wizard Prompt</label>
-      <textarea id="wizardPrompt" placeholder="e.g. Think like a BI expert in sales."></textarea>
+  <section class="hero">
+    <h2>Unlock the Magic in Your Data</h2>
+    <p>Create or chat with specialized BI Wizards for Sales, Marketing, Ops, Finance, and more.<br>
+       Data-driven insights wrapped in pure <span style="color:var(--primary)">✨ magic ✨</span>.</p>
+  </section>
 
-      <label>Upload Portrait (optional)</label>
-      <input type="file" id="wizardImage" accept="image/*" />
+  <section class="grid" id="wizardGrid">
+    <!-- 4 Sample Wizards -->
+    <div class="card">
+      <img src="https://images.unsplash.com/photo-1521133573892-e44906baee46?auto=format&fit=crop&w=400&q=80" alt="Sales Wizard">
+      <h3>Sales Wizard</h3>
+      <p>Closes deals with data-driven spells.<br>Boost your pipeline & conversions.</p>
+    </div>
+    <div class="card">
+      <img src="https://images.unsplash.com/photo-1531746790731-6c087fecd65a?auto=format&fit=crop&w=400&q=80" alt="Marketing Wizard">
+      <h3>Marketing Wizard</h3>
+      <p>Turns campaigns into gold.<br>Optimize ROI, acclaim & awareness.</p>
+    </div>
+    <div class="card">
+      <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80" alt="Ops Wizard">
+      <h3>Ops Wizard</h3>
+      <p>Streamlines logistics with crystal-clear dashboards and alerts.</p>
+    </div>
+    <div class="card">
+      <img src="https://images.unsplash.com/photo-1517467139951-f5a925c2b6b8?auto=format&fit=crop&w=400&q=80" alt="Finance Wizard">
+      <h3>Finance Wizard</h3>
+      <p>Forecasts revenue & tames costs with immaculate precision.</p>
+    </div>
 
-      <button onclick="summonWizard()">✨ Summon & Chat</button>
+    <!-- Create New Wizard -->
+    <div class="card create-card" onclick="openModal()">
+      <div class="plus">+</div>
+      <h3>Create New Wizard</h3>
+      <p>Craft a custom BI Wizard for your unique needs.</p>
+    </div>
+  </section>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <button class="close" onclick="closeModal()">×</button>
+      <h2>Summon Your Wizard</h2>
+      <label>Name</label>
+      <input id="wizName" placeholder="e.g. Support Wizard" />
+      <label>Specialty</label>
+      <select id="wizType">
+        <option value="Support">Support</option>
+        <option value="HR">HR</option>
+        <option value="Analytics">Analytics</option>
+        <option value="Custom">Custom</option>
+      </select>
+      <label>Wizard Mindset</label>
+      <textarea id="wizPrompt" placeholder="Describe how this wizard should think…"></textarea>
+      <label>Portrait (optional)</label>
+      <input type="file" id="wizImg" accept="image/*" />
+      <button onclick="addWizard()">✨ Create</button>
     </div>
   </div>
 
-  <div id="chatScreen">
-    <div class="chat-header">
-      <div style="display: flex; align-items: center;">
-        <button id="backBtn" onclick="goBack()">←</button>
-        <img id="chatAvatar" src="">
-        <h2 id="chatName">Wizard</h2>
-      </div>
-      <button onclick="toggleSettings()">⚙️</button>
-    </div>
-    <div class="chat-body" id="chatBody">
-      <!-- Messages will appear here -->
-    </div>
-    <div class="chat-input">
-      <textarea id="chatInput" rows="1" placeholder="Ask your wizard anything..."></textarea>
-      <button onclick="sendMsg()">Send</button>
-    </div>
-
-    <div class="settings" id="settingsBox">
-      <label>Edit Wizard Prompt:</label>
-      <textarea id="editPrompt"></textarea>
-      <button onclick="savePrompt()">Save</button>
-    </div>
-  </div>
+  <footer>© 2025 BI Magics • Turning Data into Magic</footer>
 
   <script>
-    let wizard = {
-      name: '',
-      prompt: '',
-      image: ''
-    };
+    /* OPEN/CLOSE MODAL */
+    const modal=document.getElementById('modalOverlay');
+    const wizImgInput=document.getElementById('wizImg');
+    function openModal(){modal.style.display='flex';}
+    function closeModal(){modal.style.display='none';clearModal();}
 
-    function summonWizard() {
-      wizard.name = document.getElementById('wizardName').value || 'Unnamed Wizard';
-      wizard.prompt = document.getElementById('wizardPrompt').value || 'Be helpful and wise.';
-      const file = document.getElementById('wizardImage').files[0];
+    function clearModal(){
+      document.getElementById('wizName').value='';
+      document.getElementById('wizPrompt').value='';
+      wizImgInput.value='';
+    }
 
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          wizard.image = e.target.result;
-          launchChat();
+    /* ADD WIZARD CARD */
+    function addWizard(){
+      const name=document.getElementById('wizName').value.trim()||'Unnamed Wizard';
+      const type=document.getElementById('wizType').value;
+      const prompt=document.getElementById('wizPrompt').value.trim()||'A freshly created BI Wizard.';
+
+      // Default image
+      let imgURL='https://cdn-icons-png.flaticon.com/512/2721/2721045.png';
+
+      // If user uploaded image → convert to dataURL
+      if(wizImgInput.files[0]){
+        const reader=new FileReader();
+        reader.onload=e=>{
+          imgURL=e.target.result;
+          insertCard();
         };
-        reader.readAsDataURL(file);
-      } else {
-        wizard.image = 'https://cdn-icons-png.flaticon.com/512/2721/2721045.png';
-        launchChat();
+        reader.readAsDataURL(wizImgInput.files[0]);
+      }else{
+        insertCard();
+      }
+
+      function insertCard(){
+        const grid=document.getElementById('wizardGrid');
+        const card=document.createElement('div');
+        card.className='card';
+        card.innerHTML=`
+          <img src="${imgURL}" alt="${name}">
+          <h3>${name}</h3>
+          <p>${prompt}<br><em>${type} specialty</em></p>
+        `;
+        grid.insertBefore(card,grid.lastElementChild); /* before "Create New" card */
+        closeModal();
+        // Tiny animation
+        setTimeout(()=>card.style.transform='translateY(-6px) scale(1.02)',10);
+        setTimeout(()=>card.style.transform='',600);
       }
     }
-
-    function launchChat() {
-      document.getElementById('wizardForm').style.display = 'none';
-      document.getElementById('chatScreen').style.display = 'flex';
-      document.getElementById('chatAvatar').src = wizard.image;
-      document.getElementById('chatName').textContent = wizard.name;
-      document.getElementById('editPrompt').value = wizard.prompt;
-      addMsg(wizard.name, "Hello! I'm your BI Wizard. Ask me anything.");
-    }
-
-    function sendMsg() {
-      const input = document.getElementById('chatInput');
-      const text = input.value.trim();
-      if (!text) return;
-      addMsg('you', text);
-      input.value = '';
-
-      // simulate wizard reply
-      setTimeout(() => {
-        addMsg(wizard.name, "Magic insight coming soon...");
-      }, 1000);
-    }
-
-    function addMsg(sender, text) {
-      const msg = document.createElement('div');
-      msg.className = 'chat-msg ' + (sender === 'you' ? 'user-msg' : 'wizard-msg');
-      msg.textContent = text;
-      document.getElementById('chatBody').appendChild(msg);
-      msg.scrollIntoView({ behavior: "smooth" });
-    }
-
-    function toggleSettings() {
-      const box = document.getElementById('settingsBox');
-      box.style.display = box.style.display === 'block' ? 'none' : 'block';
-    }
-
-    function savePrompt() {
-      wizard.prompt = document.getElementById('editPrompt').value;
-      toggleSettings();
-      addMsg(wizard.name, "Prompt updated!");
-    }
-
-    function goBack() {
-      document.getElementById('chatScreen').style.display = 'none';
-      document.getElementById('wizardForm').style.display = 'block';
-    }
   </script>
+
 </body>
 </html>
