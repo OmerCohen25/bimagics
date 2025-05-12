@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>צור אייגנט קסום • BI Magics</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #1a1f2b, #2e2e3e);
+      color: white;
+      font-family: 'Varela Round', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      text-align: center;
+      padding: 2rem;
+      font-size: 2.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      box-shadow: 0 0 20px #00f0ff33;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 20px;
+      margin-top: 3rem;
+      box-shadow: 0 0 30px #00f0ff22;
+    }
+    label {
+      display: block;
+      margin-top: 1.2rem;
+      font-weight: bold;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 0.8rem;
+      margin-top: 0.5rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+    }
+    input[type="file"] {
+      background: #fff;
+      color: #000;
+    }
+    button {
+      margin-top: 2rem;
+      padding: 1rem 2rem;
+      background: linear-gradient(to right, #00f0ff, #0077ff);
+      color: #fff;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      background: linear-gradient(to right, #00ffc8, #00bfff);
+      transform: scale(1.05);
+    }
+    .agent-card {
+      margin-top: 3rem;
+      padding: 2rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid #00f0ff66;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .agent-card img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #00f0ff99;
+    }
+    .magic-glow {
+      animation: pulse 3s infinite ease-in-out;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 10px #00f0ff66; }
+      50% { box-shadow: 0 0 30px #00f0ffcc; }
+    }
+  </style>
+</head>
+<body>
+
+<header>יצירת אייגנט BI קסום</header>
+
+<div class="container">
+  <label>שם האייגנט:</label>
+  <input type="text" id="agentName" placeholder="למשל: מכירות, שיווק, תפעול">
+
+  <label>תיאור / סיסטם פרומפט:</label>
+  <textarea id="agentPrompt" rows="3" placeholder="ענה כאילו אתה עוזר למנהל מכירות..."></textarea>
+
+  <label>העלה תמונה (אופציונלי):</label>
+  <input type="file" id="agentImage" accept="image/*">
+
+  <label>בחר טבלאות רלוונטיות:</label>
+  <select id="agentTables" multiple>
+    <option>accounts</option>
+    <option>sales_leads</option>
+    <option>campaign_performance</option>
+    <option>logistics_events</option>
+    <option>recommendations</option>
+  </select>
+
+  <label>חבר יוזרים (UID מופרדים בפסיקים):</label>
+  <input type="text" id="agentUsers" placeholder="u123, u456, u789">
+
+  <button onclick="createAgent()">✨ צור את האייגנט</button>
+
+  <div id="result"></div>
+</div>
+
+<script>
+  function createAgent() {
+    const name = document.getElementById('agentName').value;
+    const prompt = document.getElementById('agentPrompt').value;
+    const imageInput = document.getElementById('agentImage');
+    const tables = Array.from(document.getElementById('agentTables').selectedOptions).map(o => o.value);
+    const users = document.getElementById('agentUsers').value.split(',').map(u => u.trim());
+
+    let imageURL = 'https://cdn-icons-png.flaticon.com/512/2721/2721045.png'; // ברירת מחדל
+    if (imageInput.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        imageURL = e.target.result;
+        renderAgent();
+      }
+      reader.readAsDataURL(imageInput.files[0]);
+    } else {
+      renderAgent();
+    }
+
+    function renderAgent() {
+      document.getElementById('result').innerHTML = `
+        <div class="agent-card magic-glow">
+          <img src="${imageURL}">
+          <div>
+            <h2>${name}</h2>
+            <p><strong>Prompt:</strong> ${prompt}</p>
+            <p><strong>טבלאות:</strong> ${tables.join(', ')}</p>
+            <p><strong>משתמשים:</strong> ${users.join(', ')}</p>
+          </div>
+        </div>
+      `;
+    }
+  }
+</script>
+
+</body>
+</html>
