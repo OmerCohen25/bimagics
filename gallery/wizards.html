@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>BI Magics • Summon Your BI Wizard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>BI Magics • BI Wizard Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -15,7 +15,7 @@
 
     body {
       margin: 0;
-      background: linear-gradient(135deg, #0a0f1a, #1a1f2b);
+      background: var(--bg);
       font-family: 'Varela Round', sans-serif;
       color: var(--text);
     }
@@ -23,7 +23,7 @@
     header {
       text-align: center;
       font-size: 2rem;
-      padding: 1.5rem;
+      padding: 1rem;
       background: rgba(255, 255, 255, 0.04);
       box-shadow: 0 0 20px #00f0ff44;
     }
@@ -37,7 +37,6 @@
     label {
       display: block;
       margin-top: 1rem;
-      font-size: 0.95rem;
     }
 
     input, textarea, select {
@@ -51,11 +50,6 @@
       color: var(--text);
     }
 
-    input[type="file"] {
-      background: #fff;
-      color: #000;
-    }
-
     button {
       margin-top: 2rem;
       width: 100%;
@@ -66,22 +60,15 @@
       color: #fff;
       border-radius: 40px;
       cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    button:hover {
-      background: linear-gradient(to right, #00ffc8, #00bfff);
-      transform: scale(1.03);
     }
 
     .wizard-card {
-      margin-top: 2rem;
-      padding: 1.2rem;
-      background: var(--card);
-      border-radius: 16px;
-      box-shadow: 0 0 20px #00f0ff44;
       text-align: center;
-      animation: fadeIn 0.5s ease-in-out;
+      margin-top: 2rem;
+      background: var(--card);
+      padding: 1.5rem;
+      border-radius: 16px;
+      box-shadow: 0 0 20px #00f0ff55;
     }
 
     .wizard-card img {
@@ -93,112 +80,232 @@
       margin-bottom: 1rem;
     }
 
-    .magic-glow {
-      animation: pulse 3s infinite ease-in-out;
+    #chatScreen {
+      display: none;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 8px #00f0ff55; }
-      50% { box-shadow: 0 0 24px #00f0ffcc; }
+    .chat-header {
+      background: #1a1f2b;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #00f0ff33;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    .chat-header img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 1rem;
     }
 
-    @media screen and (max-width: 600px) {
-      header {
-        font-size: 1.5rem;
-        padding: 1rem;
-      }
+    .chat-header h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .chat-body {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .chat-msg {
+      max-width: 80%;
+      padding: 0.8rem;
+      border-radius: 12px;
+    }
+
+    .user-msg {
+      background: #0077ff;
+      align-self: flex-end;
+    }
+
+    .wizard-msg {
+      background: #2a2f3a;
+      align-self: flex-start;
+    }
+
+    .chat-input {
+      display: flex;
+      padding: 1rem;
+      background: #1a1f2b;
+      border-top: 1px solid #00f0ff22;
+    }
+
+    .chat-input textarea {
+      flex: 1;
+      border-radius: 12px;
+      border: none;
+      padding: 0.8rem;
+      background: #2b2f3a;
+      color: var(--text);
+      resize: none;
+    }
+
+    .chat-input button {
+      margin-left: 0.5rem;
+      background: var(--primary);
+      border: none;
+      padding: 0.8rem 1.2rem;
+      border-radius: 12px;
+      color: #000;
+      font-weight: bold;
+    }
+
+    .settings {
+      background: #0c0f15;
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      padding: 1rem;
+      border: 1px solid #00f0ff55;
+      border-radius: 12px;
+      display: none;
+      z-index: 999;
+    }
+
+    .settings textarea {
+      width: 100%;
+      height: 80px;
+    }
+
+    .settings button {
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+
+    #backBtn {
+      background: none;
+      border: none;
+      color: #00f0ff;
+      font-size: 1.2rem;
+      margin-left: 1rem;
     }
   </style>
 </head>
 <body>
 
-  <header>✨ Summon Your BI Wizard</header>
+  <div id="wizardForm">
+    <header>✨ Summon Your BI Wizard</header>
+    <div class="container">
+      <label>Wizard Name</label>
+      <input type="text" id="wizardName" placeholder="e.g. Sales Wizard" />
 
-  <div class="container">
-    <label>Wizard Name</label>
-    <input type="text" id="wizardName" placeholder="e.g. Sales Wizard">
+      <label>Wizard Prompt</label>
+      <textarea id="wizardPrompt" placeholder="e.g. Think like a BI expert in sales."></textarea>
 
-    <label>Wizard Specialty</label>
-    <select id="wizardType">
-      <option value="sales">Sales Wizard</option>
-      <option value="ops">Operations Wizard</option>
-      <option value="marketing">Marketing Wizard</option>
-      <option value="finance">Finance Wizard</option>
-      <option value="support">Support Wizard</option>
-    </select>
+      <label>Upload Portrait (optional)</label>
+      <input type="file" id="wizardImage" accept="image/*" />
 
-    <label>Wizard Mindset</label>
-    <textarea id="wizardPrompt" rows="3" placeholder="e.g. Answer like a sales expert focused on pipeline growth."></textarea>
+      <button onclick="summonWizard()">✨ Summon & Chat</button>
+    </div>
+  </div>
 
-    <label>Upload Portrait (optional)</label>
-    <input type="file" id="wizardImage" accept="image/*" />
+  <div id="chatScreen">
+    <div class="chat-header">
+      <div style="display: flex; align-items: center;">
+        <button id="backBtn" onclick="goBack()">←</button>
+        <img id="chatAvatar" src="">
+        <h2 id="chatName">Wizard</h2>
+      </div>
+      <button onclick="toggleSettings()">⚙️</button>
+    </div>
+    <div class="chat-body" id="chatBody">
+      <!-- Messages will appear here -->
+    </div>
+    <div class="chat-input">
+      <textarea id="chatInput" rows="1" placeholder="Ask your wizard anything..."></textarea>
+      <button onclick="sendMsg()">Send</button>
+    </div>
 
-    <label>Connected Tables</label>
-    <select id="wizardTables" multiple>
-      <option>accounts</option>
-      <option>sales_leads</option>
-      <option>campaigns</option>
-      <option>inventory_status</option>
-      <option>recommendations</option>
-    </select>
-
-    <label>Assign Users (comma-separated UIDs)</label>
-    <input type="text" id="wizardUsers" placeholder="u123, u456, u789" />
-
-    <button onclick="summonWizard()">✨ Summon Wizard</button>
-
-    <div id="result"></div>
+    <div class="settings" id="settingsBox">
+      <label>Edit Wizard Prompt:</label>
+      <textarea id="editPrompt"></textarea>
+      <button onclick="savePrompt()">Save</button>
+    </div>
   </div>
 
   <script>
+    let wizard = {
+      name: '',
+      prompt: '',
+      image: ''
+    };
+
     function summonWizard() {
-      const name = document.getElementById('wizardName').value || "Unnamed Wizard";
-      const type = document.getElementById('wizardType').value || "general";
-      const prompt = document.getElementById('wizardPrompt').value || "Answer as a BI assistant.";
-      const imageInput = document.getElementById('wizardImage');
-      const tables = Array.from(document.getElementById('wizardTables').selectedOptions).map(o => o.value);
-      const users = document.getElementById('wizardUsers').value.split(',').map(u => u.trim()).filter(Boolean);
+      wizard.name = document.getElementById('wizardName').value || 'Unnamed Wizard';
+      wizard.prompt = document.getElementById('wizardPrompt').value || 'Be helpful and wise.';
+      const file = document.getElementById('wizardImage').files[0];
 
-      let imageURL = 'https://cdn-icons-png.flaticon.com/512/2721/2721045.png';
-
-      if (imageInput.files[0]) {
+      if (file) {
         const reader = new FileReader();
-        reader.onload = function(e) {
-          imageURL = e.target.result;
-          renderCard();
+        reader.onload = (e) => {
+          wizard.image = e.target.result;
+          launchChat();
         };
-        reader.readAsDataURL(imageInput.files[0]);
+        reader.readAsDataURL(file);
       } else {
-        renderCard();
-      }
-
-      function renderCard() {
-        const typeLabel = {
-          sales: 'Sales Wizard',
-          ops: 'Operations Wizard',
-          marketing: 'Marketing Wizard',
-          finance: 'Finance Wizard',
-          support: 'Support Wizard'
-        };
-
-        document.getElementById('result').innerHTML = `
-          <div class="wizard-card magic-glow">
-            <img src="${imageURL}" />
-            <h2>${name}</h2>
-            <p><strong>Specialty:</strong> ${typeLabel[type]}</p>
-            <p><strong>Mindset:</strong> ${prompt}</p>
-            <p><strong>Tables:</strong> ${tables.length ? tables.join(', ') : 'None selected'}</p>
-            <p><strong>Users:</strong> ${users.length ? users.join(', ') : 'None assigned'}</p>
-          </div>
-        `;
+        wizard.image = 'https://cdn-icons-png.flaticon.com/512/2721/2721045.png';
+        launchChat();
       }
     }
-  </script>
 
+    function launchChat() {
+      document.getElementById('wizardForm').style.display = 'none';
+      document.getElementById('chatScreen').style.display = 'flex';
+      document.getElementById('chatAvatar').src = wizard.image;
+      document.getElementById('chatName').textContent = wizard.name;
+      document.getElementById('editPrompt').value = wizard.prompt;
+      addMsg(wizard.name, "Hello! I'm your BI Wizard. Ask me anything.");
+    }
+
+    function sendMsg() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+      addMsg('you', text);
+      input.value = '';
+
+      // simulate wizard reply
+      setTimeout(() => {
+        addMsg(wizard.name, "Magic insight coming soon...");
+      }, 1000);
+    }
+
+    function addMsg(sender, text) {
+      const msg = document.createElement('div');
+      msg.className = 'chat-msg ' + (sender === 'you' ? 'user-msg' : 'wizard-msg');
+      msg.textContent = text;
+      document.getElementById('chatBody').appendChild(msg);
+      msg.scrollIntoView({ behavior: "smooth" });
+    }
+
+    function toggleSettings() {
+      const box = document.getElementById('settingsBox');
+      box.style.display = box.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function savePrompt() {
+      wizard.prompt = document.getElementById('editPrompt').value;
+      toggleSettings();
+      addMsg(wizard.name, "Prompt updated!");
+    }
+
+    function goBack() {
+      document.getElementById('chatScreen').style.display = 'none';
+      document.getElementById('wizardForm').style.display = 'block';
+    }
+  </script>
 </body>
 </html>
