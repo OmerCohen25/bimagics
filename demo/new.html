@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>BI Magics • AI Analyst Gallery</title>
+<title>BI Analyst Wizards • BI Magics</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -9,177 +9,261 @@
   --text:#e2e8f0;--text-dim:#9ca3af;--radius:6px
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif}
-body{background:var(--bg);color:var(--text);padding:32px}
-h1{text-align:center;font-size:1.75rem;font-weight:600;margin-bottom:6px}
-p.lead{text-align:center;color:var(--text-dim);font-size:.95rem;margin-bottom:28px}
 
-/* GRID */
-.grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));margin-bottom:40px}
+/* ---------- Layout ---------- */
+body{background:var(--bg);color:var(--text);padding:24px 24px 48px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+h1{font-size:1.6rem;font-weight:600}
+.open-chat{background:var(--accent);border:none;color:#000;padding:10px 20px;
+           border-radius:var(--radius);font-weight:600;cursor:pointer;opacity:.35;transition:.25s}
+.open-chat.enabled{opacity:1}
+.open-chat:disabled{cursor:not-allowed}
 
-/* CARD */
+.grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));margin-top:12px}
+
+/* ---------- Card ---------- */
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
       padding:20px;display:flex;align-items:center;gap:16px;transition:border .2s}
 .card:hover{border-color:var(--accent)}
-.card-icon{flex-shrink:0;width:44px;height:44px;border-radius:50%;
-           background:var(--border);display:flex;align-items:center;justify-content:center}
-.card-icon svg{width:22px;height:22px;stroke:var(--accent)}
+.card img{width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid var(--accent)}
 .card h3{font-size:1rem;font-weight:600}
 .card small{color:var(--text-dim);font-size:.75rem}
-
-/* SWITCH */
 .switch{margin-left:auto;position:relative;width:46px;height:24px}
 .switch input{opacity:0;width:0;height:0}
 .slider{position:absolute;inset:0;background:#555;border-radius:34px;cursor:pointer;transition:.3s}
-.slider:before{content:"";position:absolute;width:20px;height:20px;left:2px;bottom:2px;
+.slider:before{content:'';position:absolute;width:20px;height:20px;left:2px;bottom:2px;
                background:#fff;border-radius:50%;transition:.3s}
 input:checked + .slider{background:var(--accent)}
 input:checked + .slider:before{transform:translateX(22px)}
 
-/* SIDE-PANEL */
-.side{position:fixed;top:0;right:-420px;width:420px;height:100%;background:#161a1f;
-      border-left:1px solid var(--border);transition:right .35s;font-size:.88rem;display:flex;flex-direction:column}
+/* ---------- Side-panel ---------- */
+.side{position:fixed;top:0;right:-420px;width:420px;max-width:100%;height:100%;
+      background:#161a1f;border-left:1px solid var(--border);
+      display:flex;flex-direction:column;transition:right .35s}
 .side.open{right:0}
 .side-header{display:flex;align-items:center;gap:14px;padding:18px;border-bottom:1px solid var(--border)}
 .side-header img{width:50px;height:50px;border-radius:50%;border:2px solid var(--accent)}
 .side-header h2{font-size:1rem;font-weight:600}
 .close-btn{margin-left:auto;cursor:pointer;color:var(--text-dim)}
 .close-btn:hover{color:var(--text)}
+.side .about{color:var(--text-dim);font-size:.85rem;padding:16px 18px;border-bottom:1px solid var(--border)}
 
 .conn-list{padding:18px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
 .conn-item{display:flex;align-items:center;justify-content:space-between;background:var(--card);
-           border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px}
+           border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:.8rem}
 
 .footer{padding:16px;border-top:1px solid var(--border);display:flex;justify-content:center}
-.chat-btn{background:var(--accent);border:none;color:#000;padding:10px 20px;
-          border-radius:var(--radius);font-weight:600;cursor:pointer;transition:opacity .2s;width:100%}
-.chat-btn:disabled{opacity:.3;cursor:not-allowed}
+.chat-wizard-btn{background:var(--accent);border:none;color:#000;padding:10px 20px;
+                 border-radius:var(--radius);font-weight:600;cursor:pointer;width:100%;transition:.25s}
+.chat-wizard-btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* ---------- Chat-panel ---------- */
+.chat{position:fixed;inset:0;display:none;flex-direction:column;z-index:1000;background:#0d1117}
+.chat-header{display:flex;align-items:center;gap:16px;padding:14px 18px;background:#1a1f24;border-bottom:1px solid var(--border)}
+.chat-header img{width:50px;height:50px;border-radius:50%;border:2px solid var(--accent)}
+.chat-header select{background:#1a1f24;border:1px solid var(--border);color:var(--text);
+                    padding:6px 8px;border-radius:var(--radius);font-size:.85rem}
+.chat-body{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px;background:#101317}
+.bubble{max-width:70%;padding:10px 14px;border-radius:14px;font-size:.85rem;line-height:1.35}
+.bubble.wiz{background:#1a1f24;border:1px solid var(--border)}
+.bubble.user{background:var(--accent);color:#000;border-top-right-radius:0;margin-left:auto}
+.chat-close{margin-left:auto;cursor:pointer;color:var(--text-dim)}
+.chat-close:hover{color:var(--text)}
 </style>
 </head>
 <body>
 
-<h1>AI Analyst Wizards</h1>
-<p class="lead">Toggle a wizard to grant it data-access &nbsp;•&nbsp; Open side-panel for details.</p>
+<header>
+  <h1>BI Analyst Wizards</h1>
+  <button id="openChat" class="open-chat" disabled>Open Chat</button>
+</header>
 
 <div class="grid" id="grid"></div>
 
-<!-- SIDE PANEL -->
+<!-- Side-panel -->
 <aside class="side" id="side">
   <div class="side-header">
-    <img id="sideImg" src="" alt=""><div>
-      <h2 id="sideName">Wizard</h2>
-      <small id="sideTag">Tagline</small>
-    </div>
+    <img id="sideImg" src="" alt="">
+    <div><h2 id="sideName"></h2><small id="sideTag"></small></div>
     <span class="close-btn" onclick="side.classList.remove('open')">✕</span>
   </div>
+  <p class="about" id="sideAbout"></p>
+
   <div class="conn-list" id="connList"></div>
+
   <div class="footer">
-    <button id="chatBtn" class="chat-btn" disabled>Start Chat</button>
+    <button id="chatBtn" class="chat-wizard-btn" disabled>Start Chat</button>
   </div>
 </aside>
 
+<!-- Chat-panel -->
+<section class="chat" id="chat">
+  <div class="chat-header">
+    <img id="chatImg" src="" alt="">
+    <select id="chatSelect"></select>
+    <span class="chat-close" onclick="toggleChat(false)">✕</span>
+  </div>
+  <div class="chat-body" id="chatBody"></div>
+</section>
+
 <script>
+/* ---------- Data ---------- */
 const wizards=[
-  {name:"CEO Visionary",tag:"Exec Overview",seed:"CEOVision",
-   about:"Panoramic KPI guardian.",src:["All_Dashboards","KPI_Master","Market_Intel_API"]},
-  {name:"Sales Sage",tag:"Revenue",seed:"SalesSage",
-   about:"Pipeline prophet.",src:["CRM_Deals","Quarter_Forecast","HubSpot_API"]},
-  {name:"Ops Oracle",tag:"Operations",seed:"OpsOracle",
-   about:"Supply-chain spellcaster.",src:["Logistics_DB","Inventory_Table","SAP_API"]},
-  {name:"Marketing Mage",tag:"Growth",seed:"MarketingMage",
-   about:"ROAS conjurer.",src:["Ads_Campaigns","GA4_API","Mailchimp_Cohorts"]},
-  {name:"Agri Alchemist",tag:"Agritech",seed:"AgriAlchemist",
-   about:"Harvest insights.",src:["Drone_Imagery","IoT_Field","Weather_API"]},
-  {name:"Finance Foreseer",tag:"FP&A",seed:"FinanceForeseer",
-   about:"Cash-flow oracle.",src:["ERP_GL","Bank_FEED","Budget_vs_Actual"]},
-  {name:"People Prophet",tag:"HR",seed:"PeopleProphet",
-   about:"Talent pulse reader.",src:["HRIS_Employees","Engagement_Surveys","Recruiting_API"]},
-  {name:"Green-Invoice Guru",tag:"Small Biz",seed:"GreenInvoice",
-   about:"Bookkeeping tamer.",src:["GreenInvoice_API","Invoices_Table","Tax_Rates"]},
-  {name:"Retail Ranger",tag:"POS",seed:"RetailRanger",
-   about:"Storefront sorcery.",src:["POS_Receipts","Stock_API","Footfall_Sensors"]},
-  {name:"Restaurant Rhapsody",tag:"Food Service",seed:"RestaurantRhapsody",
-   about:"Menu insights.",src:["POS_Table","Reservation_API","Review_Scraper"]}
+  {name:"CEO Visionary",tag:"Executive",img:"https://images.unsplash.com/photo-1600369671328-589df23fbf46?auto=format&fit=crop&w=200&q=70",
+   about:"Panoramic KPI guardian. Sees the entire business constellation.",
+   src:["All_Dashboards","KPI_Master","Market_Intel_API"]},
+  {name:"Sales Sage",tag:"Revenue",img:"https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=200&q=70",
+   about:"Pipeline prophet turning CRM chaos into growth clarity.",
+   src:["CRM_Deals","Quarter_Forecast","HubSpot_API"]},
+  {name:"Ops Oracle",tag:"Operations",img:"https://images.unsplash.com/photo-1595152772835-219674b2a8a6?auto=format&fit=crop&w=200&q=70",
+   about:"Optimises supply-chain spells for flawless execution.",
+   src:["Logistics_DB","Inventory_Table","SAP_API"]},
+  {name:"Marketing Mage",tag:"Growth",img:"https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=200&q=70",
+   about:"Conjures funnels, cohorts & ROAS potions.",
+   src:["Ads_Campaigns","GA4_API","Mailchimp_Cohorts"]},
+  {name:"Agri Alchemist",tag:"Agritech",img:"https://images.unsplash.com/photo-1573497491208-6b1acb260507?auto=format&fit=crop&w=200&q=70",
+   about:"Transforms sensor data into harvest-boosting insights.",
+   src:["Drone_Imagery","IoT_Field","Weather_API"]},
+  {name:"Finance Foreseer",tag:"FP&A",img:"https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=200&q=70",
+   about:"Balances ledgers & foretells cash-flow storms.",
+   src:["ERP_GL","Bank_FEED","Budget_vs_Actual"]},
+  {name:"People Prophet",tag:"HR",img:"https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=200&q=70",
+   about:"Reads the pulse of talent kingdoms.",
+   src:["HRIS_Employees","Engagement_Surveys","Recruiting_API"]},
+  {name:"Green-Invoice Guru",tag:"Small Biz",img:"https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=200&q=70",
+   about:"Tames Green-Invoice for effortless bookkeeping.",
+   src:["GreenInvoice_API","Invoices_Table","Tax_Rates"]},
+  {name:"Retail Ranger",tag:"POS",img:"https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=200&q=70",
+   about:"Connects POS trails & stock spells for storefront sorcery.",
+   src:["POS_Receipts","Stock_API","Footfall_Sensors"]},
+  {name:"Restaurant Rhapsody",tag:"Food Svc",img:"https://images.unsplash.com/photo-1554384645-13eab165c24b?auto=format&fit=crop&w=200&q=70",
+   about:"Stirs reservations & reviews into tasty insights.",
+   src:["POS_Table","Reservation_API","Review_Scraper"]}
 ];
 
+/* ---------- Build Grid ---------- */
 const grid=document.getElementById('grid');
-const side=document.getElementById('side');
-const sideImg=document.getElementById('sideImg');
-const sideName=document.getElementById('sideName');
-const sideTag=document.getElementById('sideTag');
-const connList=document.getElementById('connList');
-const chatBtn=document.getElementById('chatBtn');
-
-const state=Array(wizards.length).fill(false);
+const active=Array(wizards.length).fill(false);
 
 wizards.forEach((w,i)=>{
   const card=document.createElement('div');card.className='card';card.dataset.i=i;
   card.innerHTML=`
-   <div class="card-icon">
-     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-         d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162
-         c.969 0 1.371 1.24.588 1.81l-3.37 2.455a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755
-         1.688-1.538 1.118l-3.37-2.455a1 1 0 00-1.175 0l-3.37 2.455c-.783.57-1.838-.197-1.539-1.118l1.288-3.957a1
-         1 0 00-.364-1.118L2.98 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0
-         00.95-.69l1.287-3.957z" />
-     </svg>
-   </div>
-   <div>
-     <h3>${w.name}</h3>
-     <small>${w.tag}</small>
-   </div>
-   <label class="switch">
-     <input type="checkbox" data-toggle>
-     <span class="slider"></span>
-   </label>`;
+    <img src="${w.img}" alt="">
+    <div><h3>${w.name}</h3><small>${w.tag}</small></div>
+    <label class="switch">
+      <input type="checkbox" data-toggle>
+      <span class="slider"></span>
+    </label>`;
   grid.appendChild(card);
 });
 
-/* Toggle Wizard */
+/* ---------- Elements ---------- */
+const openChatBtn=document.getElementById('openChat');
+const side=document.getElementById('side');
+const sideImg=document.getElementById('sideImg');
+const sideName=document.getElementById('sideName');
+const sideTag=document.getElementById('sideTag');
+const sideAbout=document.getElementById('sideAbout');
+const connList=document.getElementById('connList');
+const chatBtn=document.getElementById('chatBtn');
+const chat=document.getElementById('chat');
+const chatImg=document.getElementById('chatImg');
+const chatSelect=document.getElementById('chatSelect');
+const chatBody=document.getElementById('chatBody');
+let currentIdx=0;
+
+/* ---------- Switch handler ---------- */
 grid.addEventListener('change',e=>{
-  if(e.target.matches('[data-toggle]')){
-    const idx=+e.target.closest('.card').dataset.i;
-    state[idx]=e.target.checked;
-    e.target.closest('.card').classList.toggle('summoned',e.target.checked);
-  }
+  if(!e.target.matches('[data-toggle]')) return;
+  const idx=+e.target.closest('.card').dataset.i;
+  active[idx]=e.target.checked;
+  updateCardVisual(idx);
+  updateOpenChatState();
 });
 
-/* Open Side Panel */
+/* Card click → Side */
 grid.addEventListener('click',e=>{
-  const card=e.target.closest('.card'); if(!card) return;
-  const idx=+card.dataset.i; const w=wizards[idx];
-  sideImg.src=`https://api.dicebear.com/7.x/adventurer/svg?seed=${w.seed}`;
-  sideName.textContent=w.name; sideTag.textContent=w.tag;
-  chatBtn.disabled=!state[idx];
-  chatBtn.onclick=()=>alert(`Opening chat with ${w.name}…`);
-  document.querySelector('#masterToggle').checked=state[idx];
-  renderConnections(w.src);
-  side.classList.add('open');
+  const card=e.target.closest('.card');if(!card) return;
+  openSide(+card.dataset.i);
 });
 
-/* Master Toggle */
-document.getElementById('masterToggle').onchange=e=>{
-  const idx=wizards.findIndex(w=>w.name===sideName.textContent);
-  const card=grid.children[idx].querySelector('[data-toggle]');
-  card.checked=e.target.checked; card.dispatchEvent(new Event('change',{bubbles:true}));
-  chatBtn.disabled=!e.target.checked;
-};
+/* Side master toggle */
+document.getElementById('side').addEventListener('change',e=>{
+  if(e.target.id!=='masterToggle') return;
+  const idx=currentIdx;
+  active[idx]=e.target.checked;
+  document.querySelector(`.card[data-i="${idx}"] [data-toggle]`).checked=e.target.checked;
+  updateCardVisual(idx);updateOpenChatState();chatBtn.disabled=!active[idx];
+});
 
-/* Render connections */
-function renderConnections(arr){
+/* Open chat from side */
+chatBtn.onclick=()=>{toggleChat(true);side.classList.remove('open')};
+
+/* Open chat top-right */
+openChatBtn.onclick=()=>toggleChat(true);
+
+/* Chat select change */
+chatSelect.onchange=()=>populateChatBody(chatSelect.value);
+
+/* Functions */
+function updateCardVisual(idx){
+  const card=grid.children[idx];
+  card.classList.toggle('summoned',active[idx]);
+}
+function updateOpenChatState(){
+  openChatBtn.disabled=active.every(v=>!v);
+  openChatBtn.classList.toggle('enabled',!openChatBtn.disabled);
+}
+function openSide(idx){
+  currentIdx=idx;const w=wizards[idx];
+  sideImg.src=w.img;sideName.textContent=w.name;sideTag.textContent=w.tag;sideAbout.textContent=w.about;
+  chatBtn.disabled=!active[idx];
   connList.innerHTML='';
-  arr.forEach(src=>{
-    const item=document.createElement('div');
-    item.className='conn-item';
-    item.innerHTML=`<span>${src}</span>
-      <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>`;
-    connList.appendChild(item);
+  connList.insertAdjacentHTML('afterbegin',
+    `<div class="conn-item" style="background:transparent;border:none;padding:0 14px 6px">
+       <span>Wizard Enabled</span>
+       <label class="switch"><input type="checkbox" id="masterToggle" ${active[idx]?'checked':''}>
+         <span class="slider"></span></label>
+     </div>`);
+  w.src.forEach(s=>{
+    connList.insertAdjacentHTML('beforeend',
+      `<div class="conn-item"><span>${s}</span>
+         <label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>`);
   });
+  side.classList.add('open');
+}
+function toggleChat(show){
+  if(show){
+    chat.style.display='flex';
+    buildWizardSelect();
+  }else chat.style.display='none';
+}
+function buildWizardSelect(){
+  chatSelect.innerHTML='';
+  active.forEach((v,i)=>{if(v){
+    const opt=document.createElement('option');opt.value=i;opt.textContent=wizards[i].name;
+    chatSelect.appendChild(opt);
+  }});
+  if(chatSelect.options.length){
+    chatSelect.value=chatSelect.options[0].value;
+    populateChatHeader(chatSelect.value);
+    populateChatBody(chatSelect.value);
+  }
+}
+function populateChatHeader(idx){
+  const w=wizards[idx];chatImg.src=w.img;
+}
+function populateChatBody(idx){
+  const w=wizards[idx];populateChatHeader(idx);
+  chatBody.innerHTML=`
+    <div class="bubble wiz">Hello, I'm <b>${w.name}</b>. How can I help with your data today?</div>
+    <div class="bubble user">Show me this quarter’s headline KPIs.</div>
+    <div class="bubble wiz">Certainly — pipeline, ARR and churn trends are ready for review.</div>`;
 }
 
-/* Close side on outside click */
-window.addEventListener('click',e=>{
-  if(e.target===side) side.classList.remove('open');
-});
+/* outside click */
+window.onclick=e=>{
+  if(e.target===side){side.classList.remove('open')}
+};
 </script>
 </body></html>
