@@ -1,0 +1,185 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BI Magics • AI Analyst Gallery</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d1117;--card:#1a1f24;--border:#2d333b;--accent:#1fb8ad;
+  --text:#e2e8f0;--text-dim:#9ca3af;--radius:6px
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif}
+body{background:var(--bg);color:var(--text);padding:32px}
+h1{text-align:center;font-size:1.75rem;font-weight:600;margin-bottom:6px}
+p.lead{text-align:center;color:var(--text-dim);font-size:.95rem;margin-bottom:28px}
+
+/* GRID */
+.grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));margin-bottom:40px}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+      padding:20px;display:flex;align-items:center;gap:16px;transition:border .2s}
+.card:hover{border-color:var(--accent)}
+.card-icon{flex-shrink:0;width:44px;height:44px;border-radius:50%;
+           background:var(--border);display:flex;align-items:center;justify-content:center}
+.card-icon svg{width:22px;height:22px;stroke:var(--accent)}
+.card h3{font-size:1rem;font-weight:600}
+.card small{color:var(--text-dim);font-size:.75rem}
+
+/* SWITCH */
+.switch{margin-left:auto;position:relative;width:46px;height:24px}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:#555;border-radius:34px;cursor:pointer;transition:.3s}
+.slider:before{content:"";position:absolute;width:20px;height:20px;left:2px;bottom:2px;
+               background:#fff;border-radius:50%;transition:.3s}
+input:checked + .slider{background:var(--accent)}
+input:checked + .slider:before{transform:translateX(22px)}
+
+/* SIDE-PANEL */
+.side{position:fixed;top:0;right:-420px;width:420px;height:100%;background:#161a1f;
+      border-left:1px solid var(--border);transition:right .35s;font-size:.88rem;display:flex;flex-direction:column}
+.side.open{right:0}
+.side-header{display:flex;align-items:center;gap:14px;padding:18px;border-bottom:1px solid var(--border)}
+.side-header img{width:50px;height:50px;border-radius:50%;border:2px solid var(--accent)}
+.side-header h2{font-size:1rem;font-weight:600}
+.close-btn{margin-left:auto;cursor:pointer;color:var(--text-dim)}
+.close-btn:hover{color:var(--text)}
+
+.conn-list{padding:18px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.conn-item{display:flex;align-items:center;justify-content:space-between;background:var(--card);
+           border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px}
+
+.footer{padding:16px;border-top:1px solid var(--border);display:flex;justify-content:center}
+.chat-btn{background:var(--accent);border:none;color:#000;padding:10px 20px;
+          border-radius:var(--radius);font-weight:600;cursor:pointer;transition:opacity .2s;width:100%}
+.chat-btn:disabled{opacity:.3;cursor:not-allowed}
+</style>
+</head>
+<body>
+
+<h1>AI Analyst Wizards</h1>
+<p class="lead">Toggle a wizard to grant it data-access &nbsp;•&nbsp; Open side-panel for details.</p>
+
+<div class="grid" id="grid"></div>
+
+<!-- SIDE PANEL -->
+<aside class="side" id="side">
+  <div class="side-header">
+    <img id="sideImg" src="" alt=""><div>
+      <h2 id="sideName">Wizard</h2>
+      <small id="sideTag">Tagline</small>
+    </div>
+    <span class="close-btn" onclick="side.classList.remove('open')">✕</span>
+  </div>
+  <div class="conn-list" id="connList"></div>
+  <div class="footer">
+    <button id="chatBtn" class="chat-btn" disabled>Start Chat</button>
+  </div>
+</aside>
+
+<script>
+const wizards=[
+  {name:"CEO Visionary",tag:"Exec Overview",seed:"CEOVision",
+   about:"Panoramic KPI guardian.",src:["All_Dashboards","KPI_Master","Market_Intel_API"]},
+  {name:"Sales Sage",tag:"Revenue",seed:"SalesSage",
+   about:"Pipeline prophet.",src:["CRM_Deals","Quarter_Forecast","HubSpot_API"]},
+  {name:"Ops Oracle",tag:"Operations",seed:"OpsOracle",
+   about:"Supply-chain spellcaster.",src:["Logistics_DB","Inventory_Table","SAP_API"]},
+  {name:"Marketing Mage",tag:"Growth",seed:"MarketingMage",
+   about:"ROAS conjurer.",src:["Ads_Campaigns","GA4_API","Mailchimp_Cohorts"]},
+  {name:"Agri Alchemist",tag:"Agritech",seed:"AgriAlchemist",
+   about:"Harvest insights.",src:["Drone_Imagery","IoT_Field","Weather_API"]},
+  {name:"Finance Foreseer",tag:"FP&A",seed:"FinanceForeseer",
+   about:"Cash-flow oracle.",src:["ERP_GL","Bank_FEED","Budget_vs_Actual"]},
+  {name:"People Prophet",tag:"HR",seed:"PeopleProphet",
+   about:"Talent pulse reader.",src:["HRIS_Employees","Engagement_Surveys","Recruiting_API"]},
+  {name:"Green-Invoice Guru",tag:"Small Biz",seed:"GreenInvoice",
+   about:"Bookkeeping tamer.",src:["GreenInvoice_API","Invoices_Table","Tax_Rates"]},
+  {name:"Retail Ranger",tag:"POS",seed:"RetailRanger",
+   about:"Storefront sorcery.",src:["POS_Receipts","Stock_API","Footfall_Sensors"]},
+  {name:"Restaurant Rhapsody",tag:"Food Service",seed:"RestaurantRhapsody",
+   about:"Menu insights.",src:["POS_Table","Reservation_API","Review_Scraper"]}
+];
+
+const grid=document.getElementById('grid');
+const side=document.getElementById('side');
+const sideImg=document.getElementById('sideImg');
+const sideName=document.getElementById('sideName');
+const sideTag=document.getElementById('sideTag');
+const connList=document.getElementById('connList');
+const chatBtn=document.getElementById('chatBtn');
+
+const state=Array(wizards.length).fill(false);
+
+wizards.forEach((w,i)=>{
+  const card=document.createElement('div');card.className='card';card.dataset.i=i;
+  card.innerHTML=`
+   <div class="card-icon">
+     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+         d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162
+         c.969 0 1.371 1.24.588 1.81l-3.37 2.455a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755
+         1.688-1.538 1.118l-3.37-2.455a1 1 0 00-1.175 0l-3.37 2.455c-.783.57-1.838-.197-1.539-1.118l1.288-3.957a1
+         1 0 00-.364-1.118L2.98 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0
+         00.95-.69l1.287-3.957z" />
+     </svg>
+   </div>
+   <div>
+     <h3>${w.name}</h3>
+     <small>${w.tag}</small>
+   </div>
+   <label class="switch">
+     <input type="checkbox" data-toggle>
+     <span class="slider"></span>
+   </label>`;
+  grid.appendChild(card);
+});
+
+/* Toggle Wizard */
+grid.addEventListener('change',e=>{
+  if(e.target.matches('[data-toggle]')){
+    const idx=+e.target.closest('.card').dataset.i;
+    state[idx]=e.target.checked;
+    e.target.closest('.card').classList.toggle('summoned',e.target.checked);
+  }
+});
+
+/* Open Side Panel */
+grid.addEventListener('click',e=>{
+  const card=e.target.closest('.card'); if(!card) return;
+  const idx=+card.dataset.i; const w=wizards[idx];
+  sideImg.src=`https://api.dicebear.com/7.x/adventurer/svg?seed=${w.seed}`;
+  sideName.textContent=w.name; sideTag.textContent=w.tag;
+  chatBtn.disabled=!state[idx];
+  chatBtn.onclick=()=>alert(`Opening chat with ${w.name}…`);
+  document.querySelector('#masterToggle').checked=state[idx];
+  renderConnections(w.src);
+  side.classList.add('open');
+});
+
+/* Master Toggle */
+document.getElementById('masterToggle').onchange=e=>{
+  const idx=wizards.findIndex(w=>w.name===sideName.textContent);
+  const card=grid.children[idx].querySelector('[data-toggle]');
+  card.checked=e.target.checked; card.dispatchEvent(new Event('change',{bubbles:true}));
+  chatBtn.disabled=!e.target.checked;
+};
+
+/* Render connections */
+function renderConnections(arr){
+  connList.innerHTML='';
+  arr.forEach(src=>{
+    const item=document.createElement('div');
+    item.className='conn-item';
+    item.innerHTML=`<span>${src}</span>
+      <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>`;
+    connList.appendChild(item);
+  });
+}
+
+/* Close side on outside click */
+window.addEventListener('click',e=>{
+  if(e.target===side) side.classList.remove('open');
+});
+</script>
+</body></html>
