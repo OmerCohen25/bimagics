@@ -42,12 +42,21 @@ p.lead{text-align:center;color:#a8a8a8;margin-bottom:32px;font-size:.95rem}
             box-shadow:0 0 24px #2affb377;cursor:pointer;opacity:1}
 .cta img{width:22px;height:22px}
 
-/* ===== MODAL ===== */
+/* ===== SWITCH ===== */
+.switch{position:relative;width:46px;height:24px}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background:#555;border-radius:34px;transition:.3s}
+.slider:before{content:"";position:absolute;height:20px;width:20px;left:2px;bottom:2px;
+               background:white;border-radius:50%;transition:.3s}
+input:checked + .slider{background:#33ff99}
+input:checked + .slider:before{transform:translateX(22px)}
+
+/* ===== MODALS ===== */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;
        align-items:center;justify-content:center;z-index:999}
 .modal-content{background:#1e1e1e;padding:32px 26px;border-radius:16px;
-               max-width:420px;width:92%;box-shadow:0 0 12px rgba(0,0,0,.7);text-align:center;position:relative}
-.modal-content img{width:78px;height:78px;border-radius:50%;border:3px solid #74f2ce;margin-bottom:18px}
+               max-width:440px;width:92%;box-shadow:0 0 12px rgba(0,0,0,.7);text-align:center;position:relative}
+.modal-content img{width:82px;height:82px;border-radius:50%;border:3px solid #74f2ce;margin-bottom:18px}
 .modal-content h2{color:#74f2ce;font-size:1.25rem;margin-bottom:10px}
 .modal-content p.desc{color:#d0d0d0;font-size:.9rem;margin-bottom:22px;line-height:1.4}
 .modal-close{position:absolute;top:12px;right:16px;font-size:1.2rem;color:#aaa;cursor:pointer;transition:.2s}
@@ -56,77 +65,28 @@ p.lead{text-align:center;color:#a8a8a8;margin-bottom:32px;font-size:.95rem}
 .conn-item{display:flex;align-items:center;justify-content:space-between;background:#27282e;
            padding:10px 14px;border-radius:12px;font-size:.8rem}
 .conn-item span{font-weight:600}
-.switch{position:relative;width:42px;height:22px}
-.switch input{opacity:0;width:0;height:0}
-.slider{position:absolute;cursor:pointer;inset:0;background:#555;border-radius:34px;transition:.3s}
-.slider:before{content:"";position:absolute;height:18px;width:18px;left:2px;bottom:2px;
-               background:white;border-radius:50%;transition:.3s}
-input:checked + .slider{background:#33ff99}
-input:checked + .slider:before{transform:translateX(20px)}
+
+/* ===== CHAT PANEL ===== */
+.chat-panel{position:fixed;inset:0;display:none;flex-direction:column;z-index:1000}
+.chat-header{background:#22234a;padding:14px 18px;display:flex;align-items:center;gap:14px}
+.chat-header img{width:46px;height:46px;border-radius:50%;border:2px solid #74f2ce}
+.chat-header .info h3{font-size:1rem;color:#74f2ce;font-weight:700}
+.chat-header .info p{font-size:.75rem;color:#ccc}
+.chat-body{flex:1;overflow-y:auto;background:#181920;padding:20px;display:flex;flex-direction:column;gap:16px}
+.bubble{max-width:75%;padding:10px 14px;border-radius:14px;font-size:.85rem;line-height:1.3}
+.from-wizard{background:#2e3158;border-top-left-radius:0}
+.from-user{background:#25d366;border-top-right-radius:0;margin-left:auto;color:#000}
+.close-chat{position:absolute;right:16px;top:12px;font-size:1.2rem;color:#aaa;cursor:pointer}
+.close-chat:hover{color:#fff}
 </style>
 </head>
 <body>
 
 <h1>Summon Your BI Wizards</h1>
-<p class="lead">Choose an enchanted analyst and manage its magical data connections.</p>
+<p class="lead">Tap a wizard, toggle its data powers, and chat with your new digital analyst.</p>
 
 <!-- ===== GRID ===== -->
-<div class="grid">
-  <!-- Wizard template (6 total) -->
-  <div class="card" data-name="Sales Sage"
-       data-img="https://api.dicebear.com/7.x/adventurer/svg?seed=SalesSage"
-       data-about="Pipeline prophet turning CRM chaos into growth clarity."
-       data-sources='["CRM_Deals","Quarter_Forecast","HubSpot_API"]'>
-    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=SalesSage" alt="">
-    <div class="name">Sales Sage</div><div class="tag">Revenue</div>
-    <button class="summon-btn">Summon</button>
-  </div>
-
-  <div class="card" data-name="Ops Oracle"
-       data-img="https://api.dicebear.com/7.x/adventurer/svg?seed=OpsOracle"
-       data-about="Optimises supply-chain spells for flawless execution."
-       data-sources='["Logistics_DB","Inventory_Table","SAP_API"]'>
-    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=OpsOracle" alt="">
-    <div class="name">Ops Oracle</div><div class="tag">Operations</div>
-    <button class="summon-btn">Summon</button>
-  </div>
-
-  <div class="card" data-name="Marketing Mage"
-       data-img="https://api.dicebear.com/7.x/adventurer/svg?seed=MarketingMage"
-       data-about="Conjures ROAS potions & predictive funnels."
-       data-sources='["Ads_Campaigns","GA4_API","Mailchimp_Cohorts"]'>
-    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=MarketingMage" alt="">
-    <div class="name">Marketing Mage</div><div class="tag">Growth</div>
-    <button class="summon-btn">Summon</button>
-  </div>
-
-  <div class="card" data-name="Agri Alchemist"
-       data-img="https://api.dicebear.com/7.x/adventurer/svg?seed=AgriAlchemist"
-       data-about="Transmutes sensor data into harvest-boosting insights."
-       data-sources='["Drone_Imagery","IoT_Field","Weather_API"]'>
-    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=AgriAlchemist" alt="">
-    <div class="name">Agri Alchemist</div><div class="tag">Agritech</div>
-    <button class="summon-btn">Summon</button>
-  </div>
-
-  <div class="card" data-name="Finance Foreseer"
-       data-img="https://api.dicebear.com/7.x/adventurer/svg?seed=FinanceForeseer"
-       data-about="Balances ledgers & foretells cashflow storms."
-       data-sources='["ERP_GL","Bank_FEED","Budget_vs_Actual"]'>
-    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=FinanceForeseer" alt="">
-    <div class="name">Finance Foreseer</div><div class="tag">FP&A</div>
-    <button class="summon-btn">Summon</button>
-  </div>
-
-  <div class="card" data-name="People Prophet"
-       data-img="https://api.dicebear.com/7.x/adventurer/svg?seed=PeopleProphet"
-       data-about="Reads the pulse of talent kingdoms."
-       data-sources='["HRIS_Employees","Engagement_Surveys","Recruiting_API"]'>
-    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=PeopleProphet" alt="">
-    <div class="name">People Prophet</div><div class="tag">HR</div>
-    <button class="summon-btn">Summon</button>
-  </div>
-</div>
+<div class="grid" id="wizardGrid"></div>
 
 <!-- CTA -->
 <a id="ctaBtn" class="cta">
@@ -134,13 +94,19 @@ input:checked + .slider:before{transform:translateX(20px)}
   Chat with your Wizard
 </a>
 
-<!-- ===== MODAL ===== -->
+<!-- ===== WIZARD MODAL ===== -->
 <div class="modal" id="wizModal">
   <div class="modal-content">
     <span class="modal-close">✖</span>
     <img id="wizImg" src="" alt="">
-    <h2 id="wizName">Wizard</h2>
-    <p class="desc" id="wizAbout">About…</p>
+    <h2 id="wizName">Wizard Name</h2>
+    <p class="desc" id="wizAbout">About wizard…</p>
+
+    <!-- master toggle -->
+    <div class="conn-item" style="margin-bottom:14px">
+      <span>Wizard Enabled</span>
+      <label class="switch"><input type="checkbox" id="masterToggle"><span class="slider"></span></label>
+    </div>
 
     <div class="conn-list" id="connList"></div>
 
@@ -150,76 +116,147 @@ input:checked + .slider:before{transform:translateX(20px)}
   </div>
 </div>
 
+<!-- ===== CHAT PANEL ===== -->
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-header">
+    <img id="chatImg" src="" alt="">
+    <div class="info">
+      <h3 id="chatName">Wizard</h3>
+      <p id="chatTag">Tagline</p>
+    </div>
+    <span class="close-chat" onclick="toggleChat(false)">✖</span>
+  </div>
+  <div class="chat-body" id="chatBody">
+    <!-- bubbles injected -->
+  </div>
+</div>
+
 <script>
-document.addEventListener("DOMContentLoaded",()=>{
-  const modal=document.getElementById("wizModal"),
-        modalName=document.getElementById("wizName"),
-        modalImg=document.getElementById("wizImg"),
-        modalAbout=document.getElementById("wizAbout"),
-        connList=document.getElementById("connList"),
-        cta=document.getElementById("ctaBtn");
+/* ===== WIZARD DATA ===== */
+const wizards=[
+  {name:"CEO Visionary",tag:"Exec Overview",imgSeed:"CEOVision",
+    about:"Panoramic KPI guardian. Sees the entire business constellation.",sources:["All_Dashboards","KPI_Master","Market_Intel_API"]},
+  {name:"Sales Sage",tag:"Revenue",imgSeed:"SalesSage",
+    about:"Pipeline prophet turning CRM chaos into growth clarity.",sources:["CRM_Deals","Quarter_Forecast","HubSpot_API"]},
+  {name:"Ops Oracle",tag:"Operations",imgSeed:"OpsOracle",
+    about:"Optimises supply-chain spells for flawless execution.",sources:["Logistics_DB","Inventory_Table","SAP_API"]},
+  {name:"Marketing Mage",tag:"Growth",imgSeed:"MarketingMage",
+    about:"Conjures funnels, cohorts & ROAS potions.",sources:["Ads_Campaigns","GA4_API","Mailchimp_Cohorts"]},
+  {name:"Agri Alchemist",tag:"Agritech",imgSeed:"AgriAlchemist",
+    about:"Transforms sensor data into harvest-boosting insights.",sources:["Drone_Imagery","IoT_Field","Weather_API"]},
+  {name:"Finance Foreseer",tag:"FP&A",imgSeed:"FinanceForeseer",
+    about:"Balances ledgers & foretells cashflow storms.",sources:["ERP_GL","Bank_FEED","Budget_vs_Actual"]},
+  {name:"People Prophet",tag:"HR",imgSeed:"PeopleProphet",
+    about:"Reads the pulse of talent kingdoms.",sources:["HRIS_Employees","Engagement_Surveys","Recruiting_API"]},
+  {name:"Green-Invoice Guru",tag:"Small Biz",imgSeed:"GreenInvoice",
+    about:"Tames Green-Invoice for effortless small-biz bookkeeping.",sources:["GreenInvoice_API","Invoices_Table","Tax_Rates"]},
+  {name:"Retail Ranger",tag:"POS",imgSeed:"RetailRanger",
+    about:"Connects POS trails & stock spells for storefront sorcery.",sources:["POS_Receipts","Stock_API","Footfall_Sensors"]},
+  {name:"Restaurant Rhapsody",tag:"Food Service",imgSeed:"RestaurantRhapsody",
+    about:"Stirs reservations, orders & reviews into tasty insights.",sources:["POS_Table","Reservation_API","Review_Scraper"]}
+];
 
-  /* helpers */
-  const buildSwitch=(name,checked)=>`
-    <label class="switch">
-      <input type="checkbox" ${checked?'checked':''}>
-      <span class="slider"></span>
-    </label>`;
-
-  document.querySelectorAll(".summon-btn").forEach(btn=>{
-    btn.addEventListener("click",e=>{
-      e.stopPropagation();
-      const card=btn.closest(".card");
-      summon(card,btn);
-      openModal(card);
-    });
-  });
-  document.querySelectorAll(".card").forEach(card=>{
-    card.addEventListener("click",()=>openModal(card));
-  });
-  document.querySelector(".modal-close").onclick=()=>modal.style.display="none";
-  window.onclick=e=>{if(e.target===modal)modal.style.display="none"};
-
-  function summon(card,btn){
-    if(!card.classList.contains("summoned")){
-      card.classList.add("summoned");
-      btn.textContent="Summoned ✨";
-      enableCTA();
-    }
-  }
-  function enableCTA(){
-    if(document.querySelectorAll(".card.summoned").length){
-      cta.classList.add("active");
-      cta.href="https://wa.me/972559405006?text=Let's%20chat%20about%20Wizard%20Insights!";
-      cta.target="_blank";
-    }
-  }
-  function openModal(card){
-    modalName.textContent=card.dataset.name;
-    modalImg.src=card.dataset.img;
-    modalAbout.textContent=card.dataset.about;
-    renderConnections(card);
-    modal.style.display="flex";
-  }
-  function renderConnections(card){
-    connList.innerHTML="";
-    const sources=JSON.parse(card.dataset.sources);
-    sources.forEach(src=>{
-      const item=document.createElement("div");
-      item.className="conn-item";
-      item.innerHTML=`<span>${src}</span>${buildSwitch(src,true)}`;
-      const toggle=item.querySelector("input");
-      toggle.onchange=()=>{
-        /* אפשר להוסיף קריאת API אמיתית פה */
-        if(!toggle.checked){
-          item.querySelector("span").style.opacity=".4";
-        }else{
-          item.querySelector("span").style.opacity="1";
-        }
-      };
-      connList.appendChild(item);
-    });
-  }
+/* ===== BUILD GRID ===== */
+const grid=document.getElementById("wizardGrid");
+wizards.forEach((w,i)=>{
+  const card=document.createElement("div");
+  card.className="card";
+  card.dataset.index=i;
+  card.innerHTML=`
+    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=${w.imgSeed}" alt="">
+    <div class="name">${w.name}</div>
+    <div class="tag">${w.tag}</div>
+    <button class="summon-btn">Summon</button>`;
+  grid.appendChild(card);
 });
+
+/* ===== RUNTIME STATE ===== */
+const active=new Array(wizards.length).fill(false); // wizard enabled?
+const modal=document.getElementById("wizModal"),
+      modalImg=document.getElementById("wizImg"),
+      modalName=document.getElementById("wizName"),
+      modalAbout=document.getElementById("wizAbout"),
+      connList=document.getElementById("connList"),
+      masterToggle=document.getElementById("masterToggle"),
+      cta=document.getElementById("ctaBtn"),
+      chat=document.getElementById("chatPanel"),
+      chatImg=document.getElementById("chatImg"),
+      chatName=document.getElementById("chatName"),
+      chatTag=document.getElementById("chatTag"),
+      chatBody=document.getElementById("chatBody");
+
+let currentWizard=-1;
+
+/* helpers */
+const buildSwitch=(checked)=>`
+  <label class="switch"><input type="checkbox" ${checked?"checked":""}>
+    <span class="slider"></span></label>`;
+
+/* EVENTS */
+grid.addEventListener("click",e=>{
+  const card=e.target.closest(".card");
+  if(!card) return;
+  const idx=+card.dataset.index;
+  if(e.target.classList.contains("summon-btn")){
+    toggleWizard(idx,true,card.querySelector(".summon-btn"));
+  }
+  openModal(idx);
+});
+document.querySelector(".modal-close").onclick=()=>modal.style.display="none";
+window.onclick=e=>{ if(e.target===modal) modal.style.display="none"; };
+
+function toggleWizard(idx,enable,btn){
+  active[idx]=enable;
+  const card=grid.children[idx];
+  card.classList.toggle("summoned",enable);
+  if(btn) btn.textContent=enable?"Summoned ✨":"Summon";
+  updateCTA();
+}
+
+function openModal(idx){
+  currentWizard=idx;
+  const w=wizards[idx];
+  modalImg.src=`https://api.dicebear.com/7.x/adventurer/svg?seed=${w.imgSeed}`;
+  modalName.textContent=w.name;
+  modalAbout.textContent=w.about;
+  masterToggle.checked=active[idx];
+  connList.innerHTML="";
+  w.sources.forEach(src=>{
+    const div=document.createElement("div");
+    div.className="conn-item";
+    div.innerHTML=`<span>${src}</span>${buildSwitch(true)}`;
+    div.querySelector("input").onchange=e=>{
+      e.target.parentElement.previousElementSibling.style.opacity=e.target.checked?1:.4;
+    };
+    connList.appendChild(div);
+  });
+  modal.style.display="flex";
+}
+masterToggle.onchange=()=>toggleWizard(currentWizard,masterToggle.checked,
+                                       grid.children[currentWizard].querySelector(".summon-btn"));
+
+function updateCTA(){
+  const any=active.some(v=>v);
+  cta.classList.toggle("active",any);
+}
+cta.onclick=e=>{
+  if(!cta.classList.contains("active")) return e.preventDefault();
+  toggleChat(true);
+};
+/* ===== CHAT PANEL ===== */
+function toggleChat(show){
+  chat.style.display=show?"flex":"none";
+  if(show){
+    const i=active.findIndex(v=>v);
+    const w=wizards[i];
+    chatImg.src=`https://api.dicebear.com/7.x/adventurer/svg?seed=${w.imgSeed}`;
+    chatName.textContent=w.name;
+    chatTag.textContent=w.tag+" Wizard";
+    chatBody.innerHTML=`
+      <div class="bubble from-wizard">Greetings! I’m ${w.name}. How can I assist you today?</div>
+      <div class="bubble from-user">Show me this month’s top KPIs.</div>
+      <div class="bubble from-wizard">Here are the key metrics and a quick insight summary… ✨</div>`;
+  }
+}
 </script>
 </body></html>
