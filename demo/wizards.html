@@ -1,0 +1,190 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BI Magics • Wizard Agents Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Inter',sans-serif;background:#0f1115;color:#fff;padding:24px;
+  background-image:radial-gradient(ellipse at top,#1d2240 0%,#0f1115 70%);
+}
+h1{font-size:2rem;text-align:center;margin-bottom:8px;color:#74f2ce;font-weight:800}
+p.lead{text-align:center;color:#a5a5a5;margin-bottom:32px;font-size:.95rem}
+.grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:24px;justify-items:center;margin-bottom:40px
+}
+.card{
+  background:#1a1c22;border-radius:18px;padding:22px 14px;max-width:200px;width:100%;
+  text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.4);transition:.25s;cursor:pointer;position:relative
+}
+.card:hover{transform:translateY(-6px);background:#262932}
+.card img{width:54px;height:54px;border-radius:50%;object-fit:cover;margin-bottom:12px;border:2px solid #74f2ce}
+.card .name{font-size:1rem;font-weight:600;margin-bottom:6px}
+.card .tag{font-size:.70rem;color:#74f2ce;margin-bottom:10px;text-transform:uppercase;letter-spacing:.6px}
+.summon-btn{
+  font-size:.75rem;padding:6px 14px;border:none;border-radius:14px;
+  background:#74f2ce;color:#000;font-weight:700;transition:.2s;cursor:pointer
+}
+.summon-btn:hover{background:#5ae6bb}
+.card.summoned{
+  background:#12372b;box-shadow:0 0 18px #33ff99aa
+}
+.card.summoned .summon-btn{background:#33ff99}
+@keyframes shimmer{0%{background-position:0 0}100%{background-position:200% 0}}
+.card.summoned::after{
+  content:"";position:absolute;inset:0;border-radius:18px;pointer-events:none;
+  background:linear-gradient(120deg,transparent 0%,#33ff99aa 50%,transparent 100%);
+  background-size:200% 100%;animation:shimmer 3s linear infinite
+}
+/*  modal  */
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;
+  align-items:center;justify-content:center;z-index:999
+}
+.modal-content{
+  background:#1e1e1e;padding:32px 26px;border-radius:16px;max-width:380px;width:90%;
+  box-shadow:0 0 12px rgba(0,0,0,.7);text-align:center;position:relative
+}
+.modal-content img{width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid #74f2ce;margin-bottom:16px}
+.modal-content h2{color:#74f2ce;font-size:1.25rem;margin-bottom:8px}
+.modal-content p{color:#d0d0d0;font-size:.9rem;margin-bottom:24px;line-height:1.4}
+.modal-content button{
+  background:#74f2ce;color:#000;border:none;border-radius:12px;font-weight:700;
+  padding:10px 22px;font-size:.85rem;cursor:pointer;transition:background .2s
+}
+.modal-content button:hover{background:#5ae6bb}
+.modal-close{
+  position:absolute;top:10px;right:14px;font-size:1.1rem;color:#aaa;
+  cursor:pointer;transition:.2s
+}
+.modal-close:hover{color:#fff}
+/* CTA button */
+.cta{
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  padding:16px 28px;border-radius:32px;margin:0 auto;font-size:1rem;font-weight:700;
+  background:#444;background:linear-gradient(135deg,#3d1159,#451650);cursor:not-allowed;
+  opacity:.4;transition:.25s;user-select:none;text-decoration:none;color:#fff
+}
+.cta.active{
+  background:linear-gradient(135deg,#20e17b,#2affb3);color:#000;
+  box-shadow:0 0 24px #2affb377;cursor:pointer;opacity:1
+}
+.cta img{width:22px;height:22px}
+/* small screen tweak */
+@media(max-width:420px){h1{font-size:1.6rem}}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+  const modal=document.getElementById("wizModal");
+  const modalName=document.getElementById("wizName");
+  const modalImg=document.getElementById("wizImg");
+  const modalAbout=document.getElementById("wizAbout");
+  const closeBtn=document.querySelector(".modal-close");
+  const cta=document.getElementById("ctaBtn");
+
+  document.querySelectorAll(".summon-btn").forEach(btn=>{
+    btn.addEventListener("click",e=>{
+      e.stopPropagation();
+      const card=btn.closest(".card");
+      card.classList.add("summoned");
+      btn.textContent="Summoned ✨";
+      openModal(card.dataset);
+      enableCTA();
+    });
+  });
+  document.querySelectorAll(".card").forEach(card=>{
+    card.addEventListener("click",()=>openModal(card.dataset));
+  });
+  closeBtn.onclick=()=>modal.style.display="none";
+  window.onclick=e=>{ if(e.target===modal) modal.style.display="none"; };
+
+  function openModal(data){
+    modalName.textContent=data.name;
+    modalImg.src=data.img;
+    modalAbout.textContent=data.about;
+    modal.style.display="flex";
+  }
+  function enableCTA(){
+    const any=document.querySelectorAll(".card.summoned").length;
+    if(any){cta.classList.add("active");cta.href="https://wa.me/972559405006?text=Let's%20chat%20about%20Wizard%20Insights!";cta.target="_blank";}
+  }
+});
+</script>
+</head>
+<body>
+
+<h1>Summon Your BI Wizards</h1>
+<p class="lead">Pick an enchanted analyst and unleash insights tailored to every realm of data.</p>
+
+<div class="grid">
+  <!-- Wizard cards -->
+  <div class="card" data-name="Sales Sage" data-img="https://i.imgur.com/1fX7YzP.png"
+       data-about="Master of pipelines & revenue forecasting. Turns CRM chaos into crystal-clear growth paths.">
+    <img src="https://i.imgur.com/1fX7YzP.png" alt="">
+    <div class="name">Sales Sage</div>
+    <div class="tag">Revenue Insight</div>
+    <button class="summon-btn">Summon</button>
+  </div>
+
+  <div class="card" data-name="Ops Oracle" data-img="https://i.imgur.com/8B6XxvM.png"
+       data-about="Watches every process gear. Optimizes supply-chain spells & delivery KPIs for flawless execution.">
+    <img src="https://i.imgur.com/8B6XxvM.png" alt="">
+    <div class="name">Ops Oracle</div>
+    <div class="tag">Operations</div>
+    <button class="summon-btn">Summon</button>
+  </div>
+
+  <div class="card" data-name="Marketing Mage" data-img="https://i.imgur.com/zsyFcOQ.png"
+       data-about="Conjures funnels, cohorts & ROAS potions. Sees the campaign future before the click even happens.">
+    <img src="https://i.imgur.com/zsyFcOQ.png" alt="">
+    <div class="name">Marketing Mage</div>
+    <div class="tag">Growth</div>
+    <button class="summon-btn">Summon</button>
+  </div>
+
+  <div class="card" data-name="Agri Alchemist" data-img="https://i.imgur.com/wqtkD0r.png"
+       data-about="Specialist for Agritech & IoT crops. Transmutes field sensors into harvest-boosting insights.">
+    <img src="https://i.imgur.com/wqtkD0r.png" alt="">
+    <div class="name">Agri Alchemist</div>
+    <div class="tag">Agriculture</div>
+    <button class="summon-btn">Summon</button>
+  </div>
+
+  <div class="card" data-name="Finance Foreseer" data-img="https://i.imgur.com/0gn1O31.png"
+       data-about="Balances ledgers and foretells cashflow storms. Your guardian against budget black-holes.">
+    <img src="https://i.imgur.com/0gn1O31.png" alt="">
+    <div class="name">Finance Foreseer</div>
+    <div class="tag">FP&amp;A</div>
+    <button class="summon-btn">Summon</button>
+  </div>
+
+  <div class="card" data-name="People Prophet" data-img="https://i.imgur.com/Snz1Mmv.png"
+       data-about="Reads the pulse of talent kingdoms. Predicts churn, boosts culture & engagement enchantments.">
+    <img src="https://i.imgur.com/Snz1Mmv.png" alt="">
+    <div class="name">People Prophet</div>
+    <div class="tag">HR Analytics</div>
+    <button class="summon-btn">Summon</button>
+  </div>
+</div>
+
+<a id="ctaBtn" class="cta">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="">
+  Chat with your Wizard
+</a>
+
+<!-- MODAL -->
+<div class="modal" id="wizModal">
+  <div class="modal-content">
+    <span class="modal-close">✖</span>
+    <img id="wizImg" src="" alt="">
+    <h2 id="wizName">Wizard Name</h2>
+    <p id="wizAbout">About wizard...</p>
+    <button onclick="document.getElementById('wizModal').style.display='none'">
+      Close
+    </button>
+  </div>
+</div>
+
+</body></html>
