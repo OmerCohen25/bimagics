@@ -4,152 +4,149 @@
 <title>BI Magics • Wizard Agents Demo</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
+/* ===== GLOBAL ===== */
 *{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:'Inter',sans-serif;background:#0f1115;color:#fff;padding:24px;
-  background-image:radial-gradient(ellipse at top,#1d2240 0%,#0f1115 70%);
-}
+body{font-family:'Inter',sans-serif;background:#0f1115;color:#fff;padding:24px;
+     background-image:radial-gradient(ellipse at top,#1d2240 0%,#0f1115 70%);}
 h1{font-size:2rem;text-align:center;margin-bottom:10px;color:#74f2ce;font-weight:800}
 p.lead{text-align:center;color:#a8a8a8;margin-bottom:32px;font-size:.95rem}
 
-.grid{
-  display:grid;gap:24px;justify-items:center;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));  /* ≥2 cards */
-  margin-bottom:44px
-}
+/* ===== GRID ===== */
+.grid{display:grid;gap:24px;justify-items:center;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-bottom:44px}
 
-.card{
-  background:#1a1c22;border-radius:18px;padding:22px 14px;width:100%;max-width:240px;
-  text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.4);transition:.25s;cursor:pointer;position:relative
-}
+/* ===== CARD ===== */
+.card{background:#1a1c22;border-radius:18px;padding:22px 14px;width:100%;max-width:240px;
+      text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.4);transition:.25s;cursor:pointer;position:relative}
 .card:hover{transform:translateY(-6px);background:#262932}
-.card img{
-  width:60px;height:60px;border-radius:50%;object-fit:cover;margin-bottom:12px;
-  border:2px solid #74f2ce;background:#222
-}
+.card img{width:60px;height:60px;border-radius:50%;border:2px solid #74f2ce;margin-bottom:12px;background:#222}
 .name{font-size:1rem;font-weight:600;margin-bottom:6px}
 .tag{font-size:.7rem;color:#74f2ce;margin-bottom:12px;text-transform:uppercase;letter-spacing:.6px}
-
-.summon-btn{
-  font-size:.78rem;padding:6px 16px;border:none;border-radius:16px;
-  background:#74f2ce;color:#000;font-weight:700;cursor:pointer;transition:background .2s
-}
+.summon-btn{font-size:.78rem;padding:6px 16px;border:none;border-radius:16px;
+            background:#74f2ce;color:#000;font-weight:700;cursor:pointer;transition:background .2s}
 .summon-btn:hover{background:#5ae6bb}
-
 .card.summoned{background:#12372b;box-shadow:0 0 18px #33ff99aa}
 .card.summoned .summon-btn{background:#33ff99}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 .card.summoned::after{
   content:"";position:absolute;inset:0;border-radius:18px;pointer-events:none;
   background:linear-gradient(120deg,transparent 0%,#33ff99aa 50%,transparent 100%);
-  background-size:200% 100%;animation:shimmer 3s linear infinite
-}
+  background-size:200% 100%;animation:shimmer 3s linear infinite}
 
-/* Toast-like CTA */
-.cta{
-  display:flex;align-items:center;justify-content:center;gap:12px;
-  padding:16px 28px;border-radius:32px;margin:0 auto;font-size:1rem;font-weight:700;
-  background:#444;background:linear-gradient(135deg,#3d1159,#451650);
-  color:#fff;text-decoration:none;cursor:not-allowed;opacity:.4;transition:.25s
-}
-.cta.active{
-  background:linear-gradient(135deg,#20e17b,#2affb3);color:#000;
-  box-shadow:0 0 24px #2affb377;cursor:pointer;opacity:1
-}
+/* ===== CTA ===== */
+.cta{display:flex;align-items:center;justify-content:center;gap:12px;
+     padding:16px 28px;border-radius:32px;margin:0 auto;font-size:1rem;font-weight:700;
+     background:linear-gradient(135deg,#3d1159,#451650);color:#fff;text-decoration:none;
+     cursor:not-allowed;opacity:.4;transition:.25s}
+.cta.active{background:linear-gradient(135deg,#20e17b,#2affb3);color:#000;
+            box-shadow:0 0 24px #2affb377;cursor:pointer;opacity:1}
 .cta img{width:22px;height:22px}
 
-/* Modal */
-.modal{
-  position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;
-  align-items:center;justify-content:center;z-index:999
-}
-.modal-content{
-  background:#1e1e1e;padding:32px 26px;border-radius:16px;max-width:380px;width:90%;
-  box-shadow:0 0 12px rgba(0,0,0,.7);text-align:center;position:relative
-}
-.modal-content img{width:78px;height:78px;border-radius:50%;object-fit:cover;border:3px solid #74f2ce;margin-bottom:18px}
+/* ===== MODAL ===== */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;
+       align-items:center;justify-content:center;z-index:999}
+.modal-content{background:#1e1e1e;padding:32px 26px;border-radius:16px;
+               max-width:420px;width:92%;box-shadow:0 0 12px rgba(0,0,0,.7);text-align:center;position:relative}
+.modal-content img{width:78px;height:78px;border-radius:50%;border:3px solid #74f2ce;margin-bottom:18px}
 .modal-content h2{color:#74f2ce;font-size:1.25rem;margin-bottom:10px}
-.modal-content p{color:#d0d0d0;font-size:.9rem;margin-bottom:26px;line-height:1.4}
-.modal-content button{
-  background:#74f2ce;color:#000;border:none;border-radius:12px;font-weight:700;
-  padding:10px 24px;font-size:.85rem;cursor:pointer;transition:background .2s
-}
-.modal-content button:hover{background:#5ae6bb}
-.modal-close{
-  position:absolute;top:12px;right:16px;font-size:1.2rem;color:#aaa;cursor:pointer;transition:.2s
-}
+.modal-content p.desc{color:#d0d0d0;font-size:.9rem;margin-bottom:22px;line-height:1.4}
+.modal-close{position:absolute;top:12px;right:16px;font-size:1.2rem;color:#aaa;cursor:pointer;transition:.2s}
 .modal-close:hover{color:#fff}
+.conn-list{display:flex;flex-direction:column;gap:14px;margin-bottom:26px}
+.conn-item{display:flex;align-items:center;justify-content:space-between;background:#27282e;
+           padding:10px 14px;border-radius:12px;font-size:.8rem}
+.conn-item span{font-weight:600}
+.switch{position:relative;width:42px;height:22px}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background:#555;border-radius:34px;transition:.3s}
+.slider:before{content:"";position:absolute;height:18px;width:18px;left:2px;bottom:2px;
+               background:white;border-radius:50%;transition:.3s}
+input:checked + .slider{background:#33ff99}
+input:checked + .slider:before{transform:translateX(20px)}
 </style>
 </head>
 <body>
 
 <h1>Summon Your BI Wizards</h1>
-<p class="lead">Select an enchanted analyst and unleash hyper-relevant insights for every business realm.</p>
+<p class="lead">Choose an enchanted analyst and manage its magical data connections.</p>
 
+<!-- ===== GRID ===== -->
 <div class="grid">
-  <!-- wizard 1 -->
+  <!-- Wizard template (6 total) -->
   <div class="card" data-name="Sales Sage"
        data-img="https://api.dicebear.com/7.x/adventurer/svg?seed=SalesSage"
-       data-about="Master of pipelines & revenue forecasts. Transforms CRM chaos into growth clarity.">
+       data-about="Pipeline prophet turning CRM chaos into growth clarity."
+       data-sources='["CRM_Deals","Quarter_Forecast","HubSpot_API"]'>
     <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=SalesSage" alt="">
-    <div class="name">Sales Sage</div><div class="tag">Revenue Insight</div>
+    <div class="name">Sales Sage</div><div class="tag">Revenue</div>
     <button class="summon-btn">Summon</button>
   </div>
-  <!-- wizard 2 -->
+
   <div class="card" data-name="Ops Oracle"
        data-img="https://api.dicebear.com/7.x/adventurer/svg?seed=OpsOracle"
-       data-about="Oversees every process gear. Optimises supply-chain spells for flawless execution.">
+       data-about="Optimises supply-chain spells for flawless execution."
+       data-sources='["Logistics_DB","Inventory_Table","SAP_API"]'>
     <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=OpsOracle" alt="">
     <div class="name">Ops Oracle</div><div class="tag">Operations</div>
     <button class="summon-btn">Summon</button>
   </div>
-  <!-- wizard 3 -->
+
   <div class="card" data-name="Marketing Mage"
        data-img="https://api.dicebear.com/7.x/adventurer/svg?seed=MarketingMage"
-       data-about="Conjures funnels, cohorts & ROAS potions. Predicts campaign futures before clicks happen.">
+       data-about="Conjures ROAS potions & predictive funnels."
+       data-sources='["Ads_Campaigns","GA4_API","Mailchimp_Cohorts"]'>
     <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=MarketingMage" alt="">
     <div class="name">Marketing Mage</div><div class="tag">Growth</div>
     <button class="summon-btn">Summon</button>
   </div>
-  <!-- wizard 4 -->
+
   <div class="card" data-name="Agri Alchemist"
        data-img="https://api.dicebear.com/7.x/adventurer/svg?seed=AgriAlchemist"
-       data-about="Agritech specialist. Transmutes field-sensor data into harvest-boosting insights.">
+       data-about="Transmutes sensor data into harvest-boosting insights."
+       data-sources='["Drone_Imagery","IoT_Field","Weather_API"]'>
     <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=AgriAlchemist" alt="">
-    <div class="name">Agri Alchemist</div><div class="tag">Agriculture</div>
+    <div class="name">Agri Alchemist</div><div class="tag">Agritech</div>
     <button class="summon-btn">Summon</button>
   </div>
-  <!-- wizard 5 -->
+
   <div class="card" data-name="Finance Foreseer"
        data-img="https://api.dicebear.com/7.x/adventurer/svg?seed=FinanceForeseer"
-       data-about="Balances ledgers & foretells cashflow storms. Your guardian against budget black-holes.">
+       data-about="Balances ledgers & foretells cashflow storms."
+       data-sources='["ERP_GL","Bank_FEED","Budget_vs_Actual"]'>
     <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=FinanceForeseer" alt="">
-    <div class="name">Finance Foreseer</div><div class="tag">FP&amp;A</div>
+    <div class="name">Finance Foreseer</div><div class="tag">FP&A</div>
     <button class="summon-btn">Summon</button>
   </div>
-  <!-- wizard 6 -->
+
   <div class="card" data-name="People Prophet"
        data-img="https://api.dicebear.com/7.x/adventurer/svg?seed=PeopleProphet"
-       data-about="Reads the pulse of talent kingdoms. Predicts churn and boosts culture enchantments.">
+       data-about="Reads the pulse of talent kingdoms."
+       data-sources='["HRIS_Employees","Engagement_Surveys","Recruiting_API"]'>
     <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=PeopleProphet" alt="">
-    <div class="name">People Prophet</div><div class="tag">HR Analytics</div>
+    <div class="name">People Prophet</div><div class="tag">HR</div>
     <button class="summon-btn">Summon</button>
   </div>
 </div>
 
+<!-- CTA -->
 <a id="ctaBtn" class="cta">
   <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="">
   Chat with your Wizard
 </a>
 
-<!-- Modal -->
+<!-- ===== MODAL ===== -->
 <div class="modal" id="wizModal">
   <div class="modal-content">
     <span class="modal-close">✖</span>
     <img id="wizImg" src="" alt="">
-    <h2 id="wizName">Wizard Name</h2>
-    <p id="wizAbout">About wizard…</p>
-    <button onclick="document.getElementById('wizModal').style.display='none'">Close</button>
+    <h2 id="wizName">Wizard</h2>
+    <p class="desc" id="wizAbout">About…</p>
+
+    <div class="conn-list" id="connList"></div>
+
+    <button onclick="document.getElementById('wizModal').style.display='none'">
+      Close
+    </button>
   </div>
 </div>
 
@@ -159,33 +156,36 @@ document.addEventListener("DOMContentLoaded",()=>{
         modalName=document.getElementById("wizName"),
         modalImg=document.getElementById("wizImg"),
         modalAbout=document.getElementById("wizAbout"),
+        connList=document.getElementById("connList"),
         cta=document.getElementById("ctaBtn");
+
+  /* helpers */
+  const buildSwitch=(name,checked)=>`
+    <label class="switch">
+      <input type="checkbox" ${checked?'checked':''}>
+      <span class="slider"></span>
+    </label>`;
 
   document.querySelectorAll(".summon-btn").forEach(btn=>{
     btn.addEventListener("click",e=>{
       e.stopPropagation();
       const card=btn.closest(".card");
-      if(!card.classList.contains("summoned")){
-        card.classList.add("summoned");
-        btn.textContent="Summoned ✨";
-        enableCTA();
-      }
-      openModal(card.dataset);
+      summon(card,btn);
+      openModal(card);
     });
   });
-
   document.querySelectorAll(".card").forEach(card=>{
-    card.addEventListener("click",()=>openModal(card.dataset));
+    card.addEventListener("click",()=>openModal(card));
   });
-
   document.querySelector(".modal-close").onclick=()=>modal.style.display="none";
   window.onclick=e=>{if(e.target===modal)modal.style.display="none"};
 
-  function openModal(d){
-    modalName.textContent=d.name;
-    modalImg.src=d.img;
-    modalAbout.textContent=d.about;
-    modal.style.display="flex";
+  function summon(card,btn){
+    if(!card.classList.contains("summoned")){
+      card.classList.add("summoned");
+      btn.textContent="Summoned ✨";
+      enableCTA();
+    }
   }
   function enableCTA(){
     if(document.querySelectorAll(".card.summoned").length){
@@ -193,6 +193,32 @@ document.addEventListener("DOMContentLoaded",()=>{
       cta.href="https://wa.me/972559405006?text=Let's%20chat%20about%20Wizard%20Insights!";
       cta.target="_blank";
     }
+  }
+  function openModal(card){
+    modalName.textContent=card.dataset.name;
+    modalImg.src=card.dataset.img;
+    modalAbout.textContent=card.dataset.about;
+    renderConnections(card);
+    modal.style.display="flex";
+  }
+  function renderConnections(card){
+    connList.innerHTML="";
+    const sources=JSON.parse(card.dataset.sources);
+    sources.forEach(src=>{
+      const item=document.createElement("div");
+      item.className="conn-item";
+      item.innerHTML=`<span>${src}</span>${buildSwitch(src,true)}`;
+      const toggle=item.querySelector("input");
+      toggle.onchange=()=>{
+        /* אפשר להוסיף קריאת API אמיתית פה */
+        if(!toggle.checked){
+          item.querySelector("span").style.opacity=".4";
+        }else{
+          item.querySelector("span").style.opacity="1";
+        }
+      };
+      connList.appendChild(item);
+    });
   }
 });
 </script>
