@@ -1,0 +1,267 @@
+<!-- FILE: wizbi/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="WizBI – the self-service business wizard on WhatsApp. Instant analytics for SMBs." />
+  <title>WizBI • Your Business Wizard</title>
+
+  <!-- ===== LOGO / ICONS ===== -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/wizbi.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/wizbi.png">
+  <link rel="apple-touch-icon" href="/wizbi.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="WizBI">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#06111F">
+  <meta property="og:title" content="WizBI">
+  <meta property="og:description" content="Chat, understand and grow with your data – straight from WhatsApp.">
+  <meta property="og:image" content="https://wizbi.ai/wizbi.png">
+  <meta property="og:type" content="website">
+
+  <!-- fonts / icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+
+  <!-- ===== styles ===== -->
+  <style>
+    :root{
+      --bg:#06111F;--card:#101B2C;
+      --primary:#2D6BFF;--accent:#F6C542;
+      --txt:#F0F4FF;--txt-alt:#9DB1D9;--whatsapp:#25D366;
+      --shadow:rgba(45,107,255,.18);--sectionPad:4.5rem;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',sans-serif;color:var(--txt);background:var(--bg);line-height:1.65;overflow-x:hidden}
+    a,button{font-family:inherit;text-decoration:none;cursor:pointer;color:inherit}
+    img{max-width:100%;display:block}
+
+    /* ===== TOP-BAR ===== */
+    .topbar{
+      position:fixed;top:0;left:0;right:0;height:64px;display:flex;align-items:center;
+      justify-content:space-between;padding:0 1.5rem;background:rgba(6,17,31,.7);
+      backdrop-filter:blur(10px);z-index:1000;border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .logo-wrap{display:flex;align-items:center;gap:.65rem}
+    .logo-wrap img{width:40px}
+    .logo-wrap span{font-size:1.25rem;font-weight:600;letter-spacing:-.02em}
+
+    nav.top-nav{display:flex;gap:1.25rem;font-size:.95rem;font-weight:500}
+    nav.top-nav a{padding:.35rem 0;color:var(--txt-alt);position:relative;transition:.25s}
+    nav.top-nav a:hover,nav.top-nav a.active{color:var(--accent)}
+    nav.top-nav a.active::after{
+      content:'';position:absolute;bottom:-6px;left:0;width:100%;height:2px;background:var(--accent);border-radius:1px;
+    }
+    /* language button */
+    .lang-btn{
+      display:flex;align-items:center;gap:.35rem;justify-content:center;
+      min-width:92px;height:34px;padding:0 .4rem;border:2px solid var(--accent);
+      border-radius:22px;font-size:.85rem;font-weight:600;background:none;transition:.25s
+    }
+    .lang-btn:hover{background:rgba(246,197,66,.08)}
+    .lang-btn .flag{font-size:1.1rem;line-height:1}
+
+    @media(max-width:740px){nav.top-nav{display:none}.logo-wrap span{font-size:1.1rem}}
+
+    .container{width:90%;max-width:1150px;margin:0 auto;padding:0 1rem}
+    section{padding:var(--sectionPad) 0;position:relative}
+
+    /* ===== HERO ===== */
+    header.hero{
+      min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;
+      padding:calc(64px + 4rem) 1rem 3rem;background:linear-gradient(135deg,var(--bg) 0%,#0C1B32 100%);
+    }
+    header.hero::before{
+      content:'';position:absolute;inset:0;pointer-events:none;
+      background-image:radial-gradient(circle,var(--accent) 1px,transparent 1px);
+      background-size:55px 55px;opacity:.04;animation:stars 18s linear infinite;
+    }
+    @keyframes stars{from{transform:translateY(0)}to{transform:translateY(-700px)}}
+
+    .hero-logo{width:150px;margin-bottom:1.2rem;filter:drop-shadow(0 0 4px rgba(45,107,255,.35))}
+    .hero h1{
+      font-size:clamp(2.8rem,6vw,4.6rem);font-weight:700;margin-bottom:1rem;
+      background:linear-gradient(90deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      animation:glow 3s ease-in-out infinite alternate;
+    }
+    @keyframes glow{from{text-shadow:0 0 8px var(--accent);}to{text-shadow:0 0 16px var(--primary);}}
+    .hero h2{font-size:clamp(1.3rem,2.8vw,1.8rem);color:var(--accent);font-weight:500;margin-bottom:1.4rem;opacity:.95}
+    .tagline{font-size:clamp(1rem,2.2vw,1.25rem);color:var(--txt-alt);max-width:720px;margin-bottom:2.8rem}
+
+    /* ===== CTA BUTTONS ===== */
+    .cta-wrapper{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center}
+    .cta-btn{
+      border:none;border-radius:48px;padding:.9rem 2.3rem;font-size:1.05rem;font-weight:600;
+      display:inline-flex;align-items:center;gap:.7rem;transition:.25s;box-shadow:0 4px 16px var(--shadow)
+    }
+    .cta-primary{background:var(--primary);color:#fff}
+    .cta-primary:hover{background:#4A83FF;transform:translateY(-3px);box-shadow:0 6px 22px rgba(45,107,255,.4)}
+    .cta-whatsapp{background:var(--whatsapp);color:#fff}
+    .cta-whatsapp:hover{background:#1EBE5B;transform:translateY(-3px);box-shadow:0 6px 22px rgba(37,211,102,.45)}
+    .cta-btn i{font-size:1.2em}
+
+    /* ===== SECTION TITLES ===== */
+    .section-title{text-align:center;font-size:clamp(2.1rem,5vw,2.8rem);margin-bottom:.8rem;font-weight:600;position:relative}
+    .section-title::after{content:'';display:block;width:78px;height:3px;background:var(--accent);margin:.55rem auto 0;border-radius:2px}
+    .section-sub{color:var(--txt-alt);text-align:center;max-width:720px;margin:0 auto 3rem;font-size:1.05rem}
+
+    /* ===== FEATURES & HOW ===== */
+    .features-grid{display:grid;gap:2rem;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+    .feature{
+      background:var(--card);padding:2.4rem 2rem;border-radius:14px;text-align:center;transition:.3s;
+      box-shadow:0 8px 30px var(--shadow)
+    }
+    .feature:hover{transform:translateY(-8px);box-shadow:0 12px 42px rgba(45,107,255,.25)}
+    .feature .icon{font-size:2.4rem;color:var(--accent);margin-bottom:1.1rem}
+    .feature h3{font-size:1.45rem;margin-bottom:.6rem}
+    .feature p{color:var(--txt-alt);font-size:.97rem}
+
+    .hiw-wrap{display:flex;flex-direction:column;align-items:center;text-align:center;gap:1.6rem}
+    .magic-wand{font-size:3.2rem;color:var(--primary);animation:float 3.5s ease-in-out infinite}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+    footer{border-top:1px solid rgba(255,255,255,.08);padding:2.5rem 1rem;text-align:center;color:var(--txt-alt);font-size:.9rem}
+  </style>
+</head>
+<body>
+  <!-- ===== TOP-BAR ===== -->
+  <header class="topbar">
+    <div class="logo-wrap">
+      <a href="/"><img src="/wizbi.png" alt="WizBI logo"></a>
+      <span>WizBI</span>
+    </div>
+
+    <nav class="top-nav">
+      <a href="/" class="active">Home</a>
+      <a href="#featuresSection">Features</a>
+    </nav>
+
+    <button id="langSwitch" class="lang-btn">
+      <span class="flag">🇮🇱</span><span class="label">עברית</span>
+    </button>
+  </header>
+
+  <!-- ===== HERO ===== -->
+  <header class="hero">
+    <img class="hero-logo" src="/wizbi.png" alt="WizBI logo">
+    <h1 id="mainTitle">WizBI</h1>
+    <h2 id="subtitle">Your business wizard on WhatsApp</h2>
+    <p class="tagline" id="tagline">Ask, understand, and grow – instant insights from all your data.</p>
+
+    <div class="cta-wrapper">
+      <a href="https://wa.me/972559405006" class="cta-btn cta-primary" id="startBtn">✨ Try on WhatsApp</a>
+      <a href="https://wa.me/972559405006" class="cta-btn cta-whatsapp" id="whatsBtn"><i class="fa-brands fa-whatsapp"></i>Message the Wizard</a>
+    </div>
+  </header>
+
+  <!-- ===== FEATURES ===== -->
+  <section id="featuresSection">
+    <div class="container">
+      <h2 class="section-title" id="featuresTitle">Why WizBI</h2>
+      <p class="section-sub" id="featuresSubtitle">Self-service analytics for SMBs – zero setup, pure insight.</p>
+
+      <div class="features-grid">
+        <div class="feature">
+          <div class="icon"><i class="fas fa-comments"></i></div>
+          <h3 id="c1h">Chat in Plain English</h3>
+          <p id="c1p">Ask “What were my top products last week?” – get a crystal-clear answer.</p>
+        </div>
+        <div class="feature">
+          <div class="icon"><i class="fas fa-plug-circle-bolt"></i></div>
+          <h3 id="c2h">All Your Systems</h3>
+          <p id="c2p">POS, CRM, accounting and more – no IT required.</p>
+        </div>
+        <div class="feature">
+          <div class="icon"><i class="fas fa-bolt"></i></div>
+          <h3 id="c3h">Act Fast</h3>
+          <p id="c3p">Daily tips and alerts keep you focused on revenue and savings.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== HOW IT WORKS ===== -->
+  <section id="howSection" style="background:var(--card)">
+    <div class="container">
+      <h2 class="section-title" id="howTitle">How It Works</h2>
+      <p class="section-sub" id="howSubtitle">Three easy steps to data wizardry.</p>
+
+      <div class="hiw-wrap">
+        <div class="magic-wand"><i class="fas fa-wand-magic-sparkles"></i></div>
+        <p id="magicDesc" style="max-width:720px;font-size:1.08rem">
+          1. Sign in with Google • 2. Connect your data sources • 3. Chat with WizBI on WhatsApp – get charts, summaries and smart recommendations.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <p id="footerTxt">© 2025 WizBI • Crafted with magic ✨</p>
+  </footer>
+
+  <!-- ===== LANGUAGE SCRIPT ===== -->
+  <script>
+    const btn=document.getElementById('langSwitch');
+    const flag=btn.querySelector('.flag');
+    const label=btn.querySelector('.label');
+    let cur='en';
+    const t={
+      en:{
+        mainTitle:'WizBI',
+        subtitle:'Your business wizard on WhatsApp',
+        tagline:'Ask, understand, and grow – instant insights from all your data.',
+        startBtn:'✨ Try on WhatsApp',
+        whatsBtnText:'Message the Wizard',
+        featuresTitle:'Why WizBI',
+        featuresSubtitle:'Self-service analytics for SMBs – zero setup, pure insight.',
+        c1h:'Chat in Plain English',
+        c1p:'Ask “What were my top products last week?” – get a crystal-clear answer.',
+        c2h:'All Your Systems',
+        c2p:'POS, CRM, accounting and more – no IT required.',
+        c3h:'Act Fast',
+        c3p:'Daily tips and alerts keep you focused on revenue and savings.',
+        howTitle:'How It Works',
+        howSubtitle:'Three easy steps to data wizardry.',
+        magicDesc:'1. Sign in with Google • 2. Connect your data sources • 3. Chat with WizBI on WhatsApp – get charts, summaries and smart recommendations.',
+        footerTxt:'© 2025 WizBI • Crafted with magic ✨',
+        whatsappMsg:'Hi WizBI! I’d like to try the business wizard bot for my company.',
+        flag:'🇮🇱',lbl:'עברית'
+      },
+      he:{
+        mainTitle:'WizBI',
+        subtitle:'הקוסם העסקי שלך בווטסאפ',
+        tagline:'שאל, הבן, צמח – תובנות מיידיות מכל הנתונים שלך.',
+        startBtn:'✨ נסו בווטסאפ',
+        whatsBtnText:'שלחו הודעה לקוסם',
+        featuresTitle:'למה WizBI',
+        featuresSubtitle:'אנליטיקה Self-Service לעסקים קטנים ובינוניים – בלי התקנות, רק תובנות.',
+        c1h:'דברו בעברית פשוטה',
+        c1p:'שאלו "מה נמכר הכי הרבה השבוע?" – וקבלו תשובה ברורה.',
+        c2h:'מתחבר לכל המערכות',
+        c2p:'POS, CRM, הנה"ח ועוד – WizBI מתחבר בלי צוות IT.',
+        c3h:'פעלו מהר',
+        c3p:'טיפים והתראות יומיות שיעזרו לכם להגדיל הכנסות ולחסוך.',
+        howTitle:'איך זה עובד',
+        howSubtitle:'שלושה שלבים לקסם נתונים.',
+        magicDesc:'1. כניסה עם Google • 2. חיבור מקורות הנתונים • 3. שוחחו עם WizBI בווטסאפ – גרפים, סיכומים והמלצות חכמות.',
+        footerTxt:'© 2025 WizBI • עשוי בקסם ✨',
+        whatsappMsg:'היי WizBI! רוצה לנסות את הקוסם העסקי לעסק שלי.',
+        flag:'🇺🇸',lbl:'ENGLISH'
+      }
+    };
+    const ids=['mainTitle','subtitle','tagline','featuresTitle','featuresSubtitle','c1h','c1p','c2h','c2p','c3h','c3p','howTitle','howSubtitle','magicDesc','footerTxt'];
+    function apply(l){
+      const d=t[l];
+      ids.forEach(id=>document.getElementById(id).innerHTML=d[id]);
+      document.getElementById('startBtn').innerHTML=d.startBtn;
+      document.getElementById('whatsBtn').innerHTML=`<i class="fa-brands fa-whatsapp"></i>${d.whatsBtnText}`;
+      document.getElementById('whatsBtn').href=`https://wa.me/972559405006?text=${encodeURIComponent(d.whatsappMsg)}`;
+      flag.textContent=d.flag;label.textContent=d.lbl;cur=l;
+    }
+    btn.onclick=()=>apply(cur==='en'?'he':'en');
+    apply(new URLSearchParams(location.search).get('lang')==='he'?'he':'en');
+  </script>
+</body>
+</html>
