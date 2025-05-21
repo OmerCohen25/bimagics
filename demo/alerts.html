@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BI Magics – Alert Manager</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #161b22;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #30363d;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    .natural-input {
+      background: #161b22;
+      padding: 1rem;
+      border-radius: 8px;
+      display: flex;
+      gap: .5rem;
+      margin-bottom: 1.5rem;
+    }
+    .natural-input input {
+      flex: 1;
+      padding: .6rem;
+      border: none;
+      border-radius: 6px;
+      background: #21262d;
+      color: #c9d1d9;
+    }
+    .natural-input button {
+      background: #238636;
+      border: none;
+      border-radius: 6px;
+      padding: .6rem 1rem;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .alert-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    .alert-card .header {
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .alert-card .details {
+      padding: 1rem;
+      display: none;
+    }
+    .alert-card.open .details {
+      display: block;
+    }
+    .alert-card .details textarea,
+    .alert-card .details input,
+    .alert-card .details select {
+      width: 100%;
+      padding: .5rem;
+      margin-top: .25rem;
+      margin-bottom: .75rem;
+      border-radius: 6px;
+      border: none;
+      background: #21262d;
+      color: #c9d1d9;
+    }
+    .channel-preview {
+      margin-top: 1rem;
+      border-radius: 6px;
+      padding: 1rem;
+      white-space: pre-line;
+    }
+    .slack-preview {
+      background: #1a1d21;
+      border-left: 4px solid #4a154b;
+      font-family: monospace;
+    }
+    .whatsapp-preview {
+      background: #1f2b1f;
+      border-left: 4px solid #25d366;
+      font-family: sans-serif;
+    }
+    .email-preview {
+      background: #1d1f2b;
+      border-left: 4px solid #0a84ff;
+      font-family: Georgia, serif;
+    }
+    .run-btn {
+      margin-top: 0.5rem;
+      background: #8957e5;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Alert Manager</h1>
+</header>
+<div class="container">
+  <div class="natural-input">
+    <input id="natural-text" placeholder="e.g. Send me a daily alert with all unpaid clients" />
+    <button onclick="handleNaturalInput()">Generate</button>
+  </div>
+  <div id="alerts-container"></div>
+</div>
+<template id="alert-template">
+  <div class="alert-card">
+    <div class="header" onclick="this.parentElement.classList.toggle('open')">
+      <h3 class="alert-name">New Alert</h3>
+      <span class="toggle">▶</span>
+    </div>
+    <div class="details">
+      <label>Type:
+        <select class="alert-type">
+          <option value="rule">Rule-based</option>
+          <option value="time">Time-based</option>
+          <option value="anomaly">Anomaly</option>
+        </select>
+      </label>
+      <label>SQL / Logic:
+        <textarea class="alert-query"></textarea>
+      </label>
+      <label>Schedule:
+        <input class="alert-schedule" />
+      </label>
+      <button class="run-btn">Run</button>
+      <div class="channel-preview slack-preview"></div>
+      <div class="channel-preview whatsapp-preview"></div>
+      <div class="channel-preview email-preview"></div>
+    </div>
+  </div>
+</template>
+<script>
+const tmpl = document.getElementById('alert-template');
+const container = document.getElementById('alerts-container');
+
+function generateMockAlert(name) {
+  return `Alert: ${name}\nClient: ACME Inc\nAmount Due: $1,250\nSince: 10 days ago`;
+}
+
+function addAlert(data) {
+  const node = tmpl.content.cloneNode(true);
+  const card = node.querySelector('.alert-card');
+  card.querySelector('.alert-name').innerText = data.name;
+  card.querySelector('.alert-type').value = data.type;
+  card.querySelector('.alert-query').value = data.query;
+  card.querySelector('.alert-schedule').value = data.schedule;
+  card.querySelector('.run-btn').onclick = () => {
+    const mock = generateMockAlert(data.name);
+    card.querySelector('.slack-preview').textContent = `:rotating_light: *${data.name}*\n${mock}`;
+    card.querySelector('.whatsapp-preview').textContent = `*${data.name}*\n${mock}`;
+    card.querySelector('.email-preview').textContent = `Subject: Alert - ${data.name}\n\n${mock}`;
+  };
+  container.appendChild(node);
+}
+
+function handleNaturalInput() {
+  const input = document.getElementById('natural-text');
+  const val = input.value.trim();
+  if (!val) return;
+  input.value = '';
+  if (val.toLowerCase().includes("unpaid") && val.toLowerCase().includes("clients")) {
+    addAlert({
+      name: "Unpaid Clients",
+      type: "rule",
+      query: "SELECT client_name, amount_due FROM clients WHERE status = 'unpaid';",
+      schedule: "Every day at 08:00"
+    });
+  } else {
+    addAlert({
+      name: val,
+      type: "rule",
+      query: "-- Write query here",
+      schedule: "-- Set schedule"
+    });
+  }
+}
+
+[
+  {
+    name: "Inventory Below Threshold",
+    type: "threshold",
+    query: "SELECT product_id, quantity FROM inventory WHERE quantity < 50;",
+    schedule: "Every 2 hours"
+  },
+  {
+    name: "New Signups Daily",
+    type: "time",
+    query: "SELECT COUNT(*) FROM users WHERE signup_date = CURRENT_DATE();",
+    schedule: "Daily at 9:00 AM"
+  },
+  {
+    name: "Anomaly in Revenue",
+    type: "anomaly",
+    query: "SELECT * FROM revenue WHERE detect_anomaly(amount);",
+    schedule: "Hourly"
+  }
+].forEach(addAlert);
+</script>
+</body>
+</html>
