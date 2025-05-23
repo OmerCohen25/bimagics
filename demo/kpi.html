@@ -1,0 +1,515 @@
+<!-- filename: demo-kpi-dashboard.html --><!DOCTYPE html><html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>מחולל KPI ודשבורד חכם | BI Magics Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #14171a;
+      --card: #20232a;
+      --primary: #28e98c;
+      --primary-dark: #209c61;
+      --accent: #1a1d20;
+      --border: #353c48;
+      --text: #f1f3f8;
+      --text-light: #9ba8bb;
+      --input: #23272f;
+      --chip: #282d34;
+      --danger: #f45b5b;
+      --toast: #232b36ee;
+    }
+    body {
+      font-family: "Heebo", "Rubik", "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0; padding: 0;
+      min-height: 100vh;
+    }
+    header {
+      background: var(--card);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 16px 12px 16px;
+      box-shadow: 0 2px 8px #0003;
+      position: sticky;
+      top: 0; z-index: 10;
+    }
+    .logo {
+      font-weight: bold;
+      font-size: 1.6em;
+      letter-spacing: 1px;
+      color: var(--primary);
+    }
+    .actions { display: flex; gap: 10px; }
+    .avatar {
+      width: 38px; height: 38px;
+      border-radius: 50%; background: #2e333d;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3em; color: var(--primary);
+      border: 2px solid var(--primary-dark);
+    }
+    .input-zone {
+      margin: 0 auto; max-width: 540px;
+      padding: 22px 12px 10px 12px;
+      background: var(--accent);
+      border-radius: 16px;
+      margin-top: 10px;
+      box-shadow: 0 3px 18px #0006;
+      position: sticky; top: 68px; z-index: 9;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .input-row {
+      display: flex; gap: 8px;
+      align-items: center;
+    }
+    input, select {
+      background: var(--input);
+      border: none; outline: none;
+      color: var(--text);
+      font-size: 1.05em;
+      padding: 12px 14px;
+      border-radius: 8px;
+      flex: 1;
+      transition: box-shadow .2s;
+      box-shadow: 0 1px 2px #0002;
+    }
+    input:focus { box-shadow: 0 0 0 2px var(--primary-dark); }
+    button {
+      background: var(--primary);
+      color: #111; font-weight: bold;
+      border: none; outline: none;
+      border-radius: 8px;
+      padding: 12px 20px;
+      cursor: pointer;
+      font-size: 1.06em;
+      transition: background .13s;
+      box-shadow: 0 2px 6px #0003;
+      margin-right: 0;
+    }
+    button:active { background: var(--primary-dark); }
+    .suggestions {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin-top: 4px;
+    }
+    .chip {
+      background: var(--chip);
+      color: var(--text-light);
+      border-radius: 30px;
+      padding: 7px 15px;
+      font-size: 0.98em;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      transition: border .13s, color .13s, background .18s;
+      user-select: none;
+    }
+    .chip:hover { border: 1.5px solid var(--primary); color: var(--primary); }
+    /* ---- Dashboard / Cards ---- */
+    .dashboard {
+      margin: 18px auto 0 auto;
+      max-width: 620px;
+      display: flex; flex-direction: column; gap: 14px;
+      padding-bottom: 80px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 18px;
+      padding: 18px 18px 18px 14px;
+      box-shadow: 0 2px 14px #0006;
+      border: 1.5px solid var(--border);
+      display: flex; flex-direction: column; gap: 10px;
+      position: relative;
+      overflow: hidden;
+      min-height: 82px;
+      animation: fadein .8s cubic-bezier(.44,1.7,.78,1) backwards;
+    }
+    @keyframes fadein { from { opacity: 0; transform: translateY(40px); } }
+    .card-header {
+      display: flex; align-items: center; gap: 8px;
+      justify-content: space-between;
+    }
+    .kpi-title {
+      font-size: 1.1em; font-weight: bold; letter-spacing: 0.1px;
+      color: var(--primary);
+      flex: 1; text-align: right;
+      line-height: 1.3;
+      margin-left: 7px;
+    }
+    .card-btns {
+      display: flex; align-items: center; gap: 2px;
+    }
+    .card-btn {
+      background: transparent;
+      border: none; outline: none;
+      color: var(--primary); font-size: 1.1em;
+      padding: 2px 5px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background .13s;
+    }
+    .card-btn:hover { background: #232d2f; }
+    .kpi-value {
+      font-size: 2.1em; font-weight: bold;
+      letter-spacing: 0.5px;
+      color: var(--text);
+      margin-bottom: 5px;
+    }
+    .trend {
+      font-size: 1em; font-weight: 500;
+      color: #6df99c; margin-right: 8px;
+      display: inline-flex; align-items: center;
+    }
+    .trend.down { color: var(--danger); }
+    .card-graph {
+      margin: 4px 0 0 0;
+      width: 100%; height: 66px;
+    }
+    .mini-table {
+      width: 100%; border-collapse: collapse;
+      background: var(--input);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 7px;
+    }
+    .mini-table th, .mini-table td {
+      padding: 7px 6px; font-size: 0.97em; text-align: right;
+      border-bottom: 1px solid #263440;
+    }
+    .mini-table th {
+      color: var(--primary);
+      font-weight: 500;
+      background: #212f27;
+      border-bottom: 2px solid var(--primary-dark);
+    }
+    .mini-table tr:last-child td { border-bottom: none; }
+    .card-explainer {
+      color: var(--text-light); font-size: 1.04em;
+      margin: 6px 0 2px 0;
+    }
+    .card-tags {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;
+    }
+    .tag {
+      background: var(--chip);
+      color: var(--primary);
+      border-radius: 15px;
+      padding: 4px 10px; font-size: 0.92em;
+      margin-left: 3px;
+    }
+    /* ------ Toast ------ */
+    .toast {
+      position: fixed;
+      bottom: 28px; left: 50%; transform: translateX(-50%);
+      background: var(--toast);
+      color: var(--text);
+      padding: 16px 36px;
+      font-size: 1.13em;
+      border-radius: 13px;
+      box-shadow: 0 8px 38px #0009;
+      z-index: 999;
+      opacity: 0; pointer-events: none;
+      transition: opacity .23s;
+    }
+    .toast.show { opacity: 1; pointer-events: auto; }
+    /* ----------- Responsive ----------- */
+    @media (max-width: 650px) {
+      header, .input-zone, .dashboard { max-width: 99vw; }
+      .dashboard { padding-bottom: 120px;}
+    }
+    @media (max-width: 450px) {
+      .dashboard, .input-zone { padding: 6px 2px 0 2px;}
+      .card { padding: 12px 8px 14px 6px; }
+      .mini-table th, .mini-table td { font-size: 0.94em; padding: 5px 3px;}
+    }
+  </style>
+</head>
+<body dir="rtl">  <header>
+    <span class="logo">BI Magics</span>
+    <div class="actions">
+      <span style="color: #28e98c;font-weight:600;font-size:1.14em;">דשבורד KPIs</span>
+      <span class="avatar">👤</span>
+    </div>
+  </header>  <!-- אזור יצירת KPI/כרטיס -->  <div class="input-zone">
+    <div class="input-row">
+      <input id="kpi-input" type="text" autocomplete="off" placeholder="תכתוב או תבחר – איזה KPI/ניתוח להוסיף?">
+      <button id="add-btn">הוסף +</button>
+    </div>
+    <div class="suggestions" id="suggestions"></div>
+  </div>  <!-- אזור דשבורד -->  <div class="dashboard" id="dashboard">
+    <!-- כרטיסים נוצרים כאן -->
+  </div>  <!-- טוסט -->  <div class="toast" id="toast"></div>  <script>
+    // ---------- Demo Data & Ideas ----------
+    const SUGGESTIONS = [
+      "מספר לקוחות פעילים",
+      "הכנסות החודש לעומת חודש קודם",
+      "לקוחות שנטשו (Churn) החודש",
+      "רווח גולמי (Gross Profit)",
+      "מוצר הכי נמכר החודש",
+      "הוצאה ממוצעת ללקוח",
+      "משתמשים יומיים/שבועיים",
+      "תחזית הכנסה לחודש הבא",
+      "סך הכל חשבוניות פתוחות",
+      "דוח חובות חריגים",
+      "לקוחות חדשים לפי שבוע",
+      "צמיחה מול שנה קודמת",
+      "טבלת עסקאות אחרונות",
+      "מגמות משתמשים ב־30 ימים",
+      "אזהרות חריגות במלאי",
+      "צפיות בפיד",
+      "מספר פניות תמיכה פתוחות",
+      "דירוג שביעות רצון לקוחות",
+    ];
+
+    const KPI_DEMOS = {
+      "מספר לקוחות פעילים": () => ({
+        type: 'kpi', title: "לקוחות פעילים", value: "1,397", trend: "+2.1%", trendDir: "up",
+        tags: ["לקוחות", "פעילות"], explainer: "סך כל הלקוחות שביצעו פעולה החודש"
+      }),
+      "הכנסות החודש לעומת חודש קודם": () => ({
+        type: 'graph', title: "הכנסות – חודש נוכחי מול קודם", data: [125000,137500,119000,141000], 
+        labels: ["פבר׳", "מרץ", "אפר׳", "מאי"], tags: ["הכנסות","טרנד"],
+        explainer: "הכנסה חודשית. מגמה חיובית של 15.5% לעומת שנה שעברה."
+      }),
+      "לקוחות שנטשו (Churn) החודש": () => ({
+        type: 'kpi', title: "לקוחות שנטשו", value: "24", trend: "-12.0%", trendDir: "down",
+        tags: ["Churn"], explainer: "מספר הלקוחות שנטשו החודש (לעומת 28 בחודש קודם)"
+      }),
+      "רווח גולמי (Gross Profit)": () => ({
+        type: 'kpi', title: "רווח גולמי", value: "₪ 58,300", trend: "+5.2%", trendDir: "up",
+        tags: ["רווח"], explainer: "רווח גולמי אחרי עלויות ישירות"
+      }),
+      "מוצר הכי נמכר החודש": () => ({
+        type: 'table', title: "מוצרי החודש", table: [
+          ["מוצר", "כמות", "הכנסות"],
+          ["דשבורד AI", "322", "₪ 40,300"],
+          ["אפליקציה B2B", "181", "₪ 22,700"],
+          ["הרחבת BI", "72", "₪ 8,400"],
+        ], tags: ["מוצר"], explainer: "המוצרים המובילים במכירות החודש"
+      }),
+      "הוצאה ממוצעת ללקוח": () => ({
+        type: 'kpi', title: "הוצאה ממוצעת", value: "₪ 417", trend: "+1.8%", trendDir: "up",
+        tags: ["הוצאה"], explainer: "הוצאה ממוצעת של לקוח בחודש"
+      }),
+      "משתמשים יומיים/שבועיים": () => ({
+        type: 'graph', title: "משתמשים יומיים/שבועיים", data: [212, 280, 242, 290, 318, 351, 367],
+        labels: ["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳"], tags: ["פעילות"],
+        explainer: "מספר משתמשים פעילים כל יום בשבוע הנוכחי"
+      }),
+      "תחזית הכנסה לחודש הבא": () => ({
+        type: 'kpi', title: "תחזית הכנסה – יוני", value: "₪ 151,900", trend: "+9.3%", trendDir: "up",
+        tags: ["תחזית"], explainer: "תחזית מבוססת על מגמות אחרונות"
+      }),
+      "סך הכל חשבוניות פתוחות": () => ({
+        type: 'kpi', title: "חשבוניות פתוחות", value: "93", trend: "+13.8%", trendDir: "up",
+        tags: ["חשבוניות"], explainer: "חשבוניות שלא שולמו נכון לעכשיו"
+      }),
+      "דוח חובות חריגים": () => ({
+        type: 'table', title: "לקוחות עם חובות חריגים", table: [
+          ["שם לקוח","חוב","ימים באיחור"],
+          ["קבוצת אורן","₪ 11,300","62"],
+          ["י.שיווק","₪ 7,400","48"],
+          ["שלג לבן","₪ 6,900","52"],
+        ], tags: ["גביה"], explainer: "לקוחות שהחוב שלהם מעל 5,000₪ ובאיחור 30+ ימים"
+      }),
+      "לקוחות חדשים לפי שבוע": () => ({
+        type: 'graph', title: "לקוחות חדשים – שבועי", data: [3,7,8,6,12,10,5], 
+        labels: ["ש׳1","ש׳2","ש׳3","ש׳4","ש׳5","ש׳6","ש׳7"], tags: ["לקוחות"], explainer: "כניסות חדשות לשבוע האחרון"
+      }),
+      "צמיחה מול שנה קודמת": () => ({
+        type: 'kpi', title: "צמיחה YoY", value: "+17.2%", trend: "+17.2%", trendDir: "up",
+        tags: ["צמיחה"], explainer: "שינוי מול שנה קודמת"
+      }),
+      "טבלת עסקאות אחרונות": () => ({
+        type: 'table', title: "עסקאות אחרונות", table: [
+          ["מספר","לקוח","סכום","תאריך"],
+          ["3411","רמי ביטון","₪ 1,200","12/5"],
+          ["3409","טריווח בע\"מ","₪ 7,800","9/5"],
+          ["3405","דניס פורט","₪ 2,300","6/5"],
+        ], tags: ["עסקאות"], explainer: "שלוש העסקאות האחרונות שנרשמו במערכת"
+      }),
+      "מגמות משתמשים ב־30 ימים": () => ({
+        type: 'graph', title: "משתמשים ב־30 יום", data: [200, 240, 260, 230, 298, 310, 312, 318], 
+        labels: ["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳","א׳"], tags: ["משתמשים"],explainer: "התפלגות משתמשים פעילים ב־8 הימים האחרונים"
+      }),
+      "אזהרות חריגות במלאי": () => ({
+        type: 'warning', title: "אזהרות מלאי", value: "7 מוצרים", tags: ["מלאי", "אזהרות"],
+        explainer: "יש מוצרים במלאי מתחת לסף שנקבע, יש לטפל בהזמנה!"
+      }),
+      "צפיות בפיד": () => ({
+        type: 'kpi', title: "צפיות בפיד", value: "5,417", trend: "+6.1%", trendDir: "up",
+        tags: ["מעורבות"], explainer: "סך צפיות בפיד כל המשתמשים השבוע"
+      }),
+      "מספר פניות תמיכה פתוחות": () => ({
+        type: 'kpi', title: "פניות תמיכה פתוחות", value: "4", trend: "-2", trendDir: "down",
+        tags: ["תמיכה"], explainer: "פניות תמיכה ממתינות למענה"
+      }),
+      "דירוג שביעות רצון לקוחות": () => ({
+        type: 'kpi', title: "דירוג שביעות רצון", value: "4.7 ★", trend: "+0.1", trendDir: "up",
+        tags: ["לקוחות"], explainer: "ציון שביעות רצון ממוצע (מ־5)"
+      }),
+    };
+
+    // דמו קצר לכרטיס Placeholder ל־Free Text
+    function createSmartKpiCard(query) {
+      // ניתוח קליל ליצירת כרטיס חכם (פייק)
+      const t = query.trim();
+      if (t.includes("הוצאה") || t.includes("הוצאות")) {
+        return {
+          type: 'kpi', title: t, value: "₪ " + (Math.random()*1000+400).toFixed(0),
+          trend: (Math.random()>0.5?"+":"-")+(Math.random()*8).toFixed(1)+"%", 
+          trendDir: Math.random()>0.5?"up":"down",
+          tags: ["הוצאה"], explainer: "הערכת הוצאה נוכחית"
+        }
+      }
+      if (t.includes("טבלה")) {
+        return {
+          type: 'table', title: t, table: [
+            ["פריט", "ערך"],
+            ["A", (Math.random()*10+5).toFixed(2)],
+            ["B", (Math.random()*10+5).toFixed(2)],
+            ["C", (Math.random()*10+5).toFixed(2)],
+          ], tags: ["טבלה"], explainer: "טבלה דינמית"
+        }
+      }
+      if (t.includes("לקוחות") || t.includes("מכירות")) {
+        return {
+          type: 'graph', title: t, 
+          data: Array.from({length:7},_=>Math.floor(100+Math.random()*70)),
+          labels: ["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳"], tags: ["לקוחות"],
+          explainer: "מגמה על פי נתונים שנבחרו"
+        }
+      }
+      // otherwise - default info card
+      return {
+        type: 'info', title: t, tags: ["Custom"], explainer: "אין מידע חי – הדגמה חכמה"
+      }
+    }
+
+    // ---------- UI State ----------
+    const dashboard = document.getElementById('dashboard');
+    const kpiInput = document.getElementById('kpi-input');
+    const addBtn = document.getElementById('add-btn');
+    const suggestions = document.getElementById('suggestions');
+    const toast = document.getElementById('toast');
+
+    // Toast helper
+    function showToast(msg, time=2000) {
+      toast.innerText = msg;
+      toast.className = "toast show";
+      setTimeout(()=>toast.className="toast", time);
+    }
+
+    // הצג הצעות חכמות (autocomplete + chips)
+    function renderSuggestions(filter="") {
+      suggestions.innerHTML = "";
+      const filtered = SUGGESTIONS.filter(s => s.includes(filter));
+      filtered.forEach(s => {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.innerText = s;
+        chip.onclick = ()=>{ kpiInput.value = s; kpiInput.focus(); };
+        suggestions.appendChild(chip);
+      });
+    }
+    kpiInput.addEventListener('input', e => {
+      renderSuggestions(e.target.value);
+    });
+    // התחלה
+    renderSuggestions();
+
+    // יצירת כרטיס
+    function addCard(kpiName) {
+      let cardData;
+      if (KPI_DEMOS[kpiName]) {
+        cardData = KPI_DEMOS[kpiName]();
+      } else {
+        cardData = createSmartKpiCard(kpiName);
+      }
+      dashboard.prepend(renderCard(cardData, kpiName));
+      showToast("נוסף בהצלחה!");
+    }
+
+    // אנטר/לחיצה
+    kpiInput.addEventListener('keydown', e => {
+      if (e.key==='Enter') { e.preventDefault(); addBtn.click(); }
+    });
+    addBtn.onclick = () => {
+      const val = kpiInput.value.trim();
+      if (!val) return showToast("יש להכניס KPI/ניתוח");
+      addCard(val);
+      kpiInput.value = ""; renderSuggestions();
+    };
+
+    // ליצירת כרטיס דינמי מסוגים שונים
+    function renderCard(card, kpiName) {
+      const c = document.createElement('div');
+      c.className = 'card';
+      // header
+      let header = `<div class="card-header">
+        <span class="kpi-title">${card.title || kpiName}</span>
+        <div class="card-btns">
+          <button class="card-btn" title="אהבתי" onclick="this.classList.toggle('liked');showToast('לייק!')">❤️</button>
+          <button class="card-btn" title="שתף" onclick="showToast('קישור לשיתוף נוצר!')">🔗</button>
+          <button class="card-btn" title="ערוך" onclick="showToast('בקרוב עריכה חכמה!')">✏️</button>
+        </div>
+      </div>`;
+      // תוכן
+      let content = "";
+      if (card.type==='kpi') {
+        content = `<div class="kpi-value">${card.value}</div>`;
+        if(card.trend) content += `<span class="trend${card.trendDir==='down'?' down':''}">${card.trendDir==='down'?'⬇️':'⬆️'} ${card.trend}</span>`;
+      }
+      if (card.type==='graph') {
+        content += `<svg class="card-graph" viewBox="0 0 240 66">${renderGraph(card.data, card.labels)}</svg>`;
+      }
+      if (card.type==='table') {
+        content += `<table class="mini-table">${card.table.map((row,i) =>
+          `<tr>${row.map((cell,j) =>
+            `<${i==0?"th":"td"}>${cell}</${i==0?"th":"td"}>`).join('')}</tr>`
+          ).join('')}</table>`;
+      }
+      if (card.type==='warning') {
+        content += `<div class="kpi-value" style="color:var(--danger)">${card.value}</div>
+        <span class="trend down">⚠️ אזהרה</span>`;
+      }
+      if (card.type==='info') {
+        content += `<div class="card-explainer">${card.explainer}</div>`;
+      }
+      // explainer
+      if (card.explainer) content += `<div class="card-explainer">${card.explainer}</div>`;
+      // tags
+      if (card.tags && card.tags.length)
+        content += `<div class="card-tags">${card.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`;
+
+      c.innerHTML = header + content;
+      return c;
+    }
+
+    // מצייר גרף SVG פשוט ל־card-graph
+    function renderGraph(data, labels) {
+      if (!data || !data.length) return "";
+      const w = 240, h = 66, mx = 16, my = 10;
+      const maxY = Math.max(...data)*1.08, minY = Math.min(...data)*0.93;
+      const xStep = (w-2*mx) / (data.length-1 || 1);
+      // קו
+      let points = data.map((y,i) => 
+        [(mx + i*xStep).toFixed(2), (h-my - (y-minY)/(maxY-minY)*(h-2*my)).toFixed(2)]
+      );
+      let polyline = `<polyline fill="none" stroke="#28e98c" stroke-width="3" points="${points.map(p=>p.join(',')).join(' ')}"/>`;
+      // נקודות
+      let circles = points.map((p,i) =>
+        `<circle cx="${p[0]}" cy="${p[1]}" r="3.8" fill="#28e98c" opacity="0.74"><title>${data[i]}</title></circle>`
+      ).join('');
+      // ערכי X
+      let labelsX = labels?labels.map((l,i)=>`<text x="${mx + i*xStep}" y="${h-2}" font-size="11" fill="#77ffd7" text-anchor="middle">${l}</text>`).join(''):'';
+      return polyline + circles + labelsX;
+    }
+
+    // הפוך את ה־like לאינטראקטיבי ויפה (פונקציה גלובלית כדי לעבוד ב-onclick)
+    window.showToast = showToast;
+
+    // ------- דמו: כמה כרטיסי פתיחה -------
+    ["מספר לקוחות פעילים", "הכנסות החודש לעומת חודש קודם", "לקוחות שנטשו (Churn) החודש"].forEach(addCard);
+
+  </script></body>
+</html>
