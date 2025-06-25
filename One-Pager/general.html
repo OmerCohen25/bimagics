@@ -59,6 +59,20 @@
         .pulse-animation {
             animation: pulse 2s infinite;
         }
+        
+        /* New animation for glowing border */
+        @keyframes glow-border {
+          0%, 100% {
+             border-color: #4b5563; /* gray-600 */
+          }
+          50% {
+             border-color: #22d3ee; /* cyan-400 */
+             box-shadow: 0 0 7px #22d3ee;
+          }
+        }
+        .glowing-border-animation {
+            animation: glow-border 2.5s ease-in-out infinite;
+        }
 
         /* Styling for the comparison section */
         .comparison-card::before {
@@ -180,16 +194,16 @@
                 <div class="text-center mb-12">
                     <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">See It In Action</h2>
                     <p class="text-gray-400 max-w-2xl mx-auto">
-                        Type a question and see how BI Magics instantly provides a detailed analysis.
+                        Click "Send" to see how BI Magics instantly turns a question into analysis.
                     </p>
                 </div>
                 
                 <div class="max-w-3xl mx-auto">
-                    <div class="flex items-center gap-2 bg-gray-800/50 border border-gray-700 rounded-lg p-2 focus-within:border-cyan-500 transition-colors">
-                        <input type="text" x-model="query" class="w-full bg-transparent text-white placeholder-gray-500 p-2 focus:outline-none" placeholder="Ask a question about your data...">
+                    <div class="flex items-center gap-2 bg-gray-800/50 border border-gray-700 rounded-lg p-2 glowing-border-animation">
+                        <p class="w-full bg-transparent text-gray-300 p-2 select-none">Compare Q1 vs Q2 revenue for new customers in the US</p>
                         <button 
                             @click="loading = true; submitted = false; setTimeout(() => { submitted = true; loading = false }, 1500)"
-                            class="bg-cyan-500 text-gray-900 font-bold py-2 px-5 rounded-md transition-transform hover:scale-105 pulse-animation disabled:opacity-50"
+                            class="bg-cyan-500 text-gray-900 font-bold py-2 px-5 rounded-md transition-transform hover:scale-105 pulse-animation disabled:opacity-50 flex-shrink-0"
                             :disabled="loading">
                             <span x-show="!loading">Send</span>
                             <span x-show="loading">
@@ -203,30 +217,14 @@
 
                     <div x-show="submitted" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 transform -translate-y-5" x-transition:enter-end="opacity-100 transform translate-y-0" class="mt-8 bg-gray-800/30 border border-gray-700 rounded-xl p-6 text-left">
                         <h3 class="text-xl font-bold text-white mb-4">Analysis Result:</h3>
-                        <p class="text-gray-300 mb-4">
-                            You asked: <span class="italic text-gray-400" x-text="query"></span>
-                        </p>
-                        <div class="border-t border-gray-700 pt-4">
+                        
+                        <div class="border-t border-gray-700 pt-4 space-y-4">
                             <p class="text-lg text-gray-200">
-                                Revenue from new customers in Q2 was <span class="gradient-text font-bold text-xl">$452,120</span>, representing a <span class="text-green-400 font-bold text-xl">15.2% increase</span> from Q1's <span class="font-bold text-xl">$392,500</span>.
+                                Based on the data, revenue from new customers surged to <span class="gradient-text font-bold text-xl">$452,120</span> in Q2. This represents a significant <span class="text-green-400 font-bold text-xl">+15.2% growth</span> compared to Q1.
                             </p>
-                            
-                            <div class="mt-6">
-                                <div class="flex items-end gap-4">
-                                    <div class="text-center w-1/2">
-                                        <div class="bg-gray-700 rounded-t-md" style="height: 120px;">
-                                            <div class="bg-gradient-to-t from-cyan-600 to-cyan-400 w-full h-full rounded-t-md" style="height: 86.8%;"></div>
-                                        </div>
-                                        <p class="text-sm font-bold text-white mt-2">Q1: $392,500</p>
-                                    </div>
-                                    <div class="text-center w-1/2">
-                                        <div class="bg-gray-700 rounded-t-md" style="height: 120px;">
-                                            <div class="bg-gradient-to-t from-cyan-500 to-cyan-300 w-full h-full rounded-t-md" style="height: 100%;"></div>
-                                        </div>
-                                        <p class="text-sm font-bold text-white mt-2">Q2: $452,120</p>
-                                    </div>
-                                </div>
-                            </div>
+                             <p class="text-lg text-gray-200">
+                               <strong class="text-white">Recommendation:</strong> The current acquisition strategy shows strong positive momentum. Consider re-investing in the marketing channels that drove this Q2 growth to maximize results in Q3.
+                            </p>
                         </div>
                     </div>
                 </div>
