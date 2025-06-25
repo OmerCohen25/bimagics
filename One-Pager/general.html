@@ -144,7 +144,7 @@
                             <li class="comparison-card">Business decisions get delayed</li>
                         </ul>
                     </div>
-                     <div class="bg-green-900/10 p-6 rounded-xl border border-green-500/30 text-left">
+                    <div class="bg-green-900/10 p-6 rounded-xl border border-green-500/30 text-left">
                         <h3 class="text-2xl font-bold text-green-400 mb-4">With BI Magics</h3>
                         <ul class="space-y-3 text-gray-300">
                             <li class="comparison-card new">Complex answers in seconds</li>
@@ -168,7 +168,7 @@
                         <div class="text-3xl mb-4">💬</div>
                         <h3 class="text-xl font-bold text-white mb-2">Natural Language Questions</h3>
                         <p class="text-gray-400">
-                            Ask "What was our MRR last month?" or "Compare Campaign A vs. B," and get SQL, tables, and charts in seconds.
+                           Ask "Which marketing channels brought in the most paying users last month?" or "Correlate customer support tickets with user churn," and get instant answers.
                         </p>
                     </div>
                     <div class="bg-gray-800/50 p-6 rounded-xl border border-gray-700 hover:border-cyan-500 transition-all hover:scale-105">
@@ -190,7 +190,48 @@
         </section>
 
         <section id="demo" class="py-20">
-            <div class="container mx-auto px-6" x-data="{ query: 'Compare Q1 vs Q2 revenue for new customers in the US', submitted: false, loading: false }">
+            <div class="container mx-auto px-6" 
+                 x-data="{
+                    submitted: false,
+                    loading: false,
+                    currentIndex: 0,
+                    examples: [
+                        {
+                            department: 'Sales',
+                            question: 'Which lead sources generated the most revenue in Q2?',
+                            analysis: `Leads from 'Organic Search' generated the most revenue in Q2 with <span class='gradient-text font-bold'>$182,500</span>, followed by 'Paid Social' at <span class='gradient-text font-bold'>$121,000</span>.`,
+                            recommendation: 'The ROI on Organic Search is significantly higher. Consider increasing the SEO budget to capitalize on this trend.'
+                        },
+                        {
+                            department: 'Product',
+                            question: 'What is the 7-day retention for users who completed the new onboarding?',
+                            analysis: `The 7-day retention for users completing the new onboarding is <span class='text-green-400 font-bold'>35%</span>, a <span class='text-green-400 font-bold'>+5%</span> improvement over the old flow's 30%.`,
+                            recommendation: `The new onboarding is a success. Let's roll it out to 100% of new users and begin A/B testing the next friction point.`
+                        },
+                        {
+                            department: 'Finance',
+                            question: 'What is our monthly recurring revenue (MRR) trend for the last 6 months?',
+                            analysis: `MRR has grown steadily, from <span class='gradient-text font-bold'>$85k</span> to <span class='gradient-text font-bold'>$115k</span> in the last 6 months, with an average monthly growth of <span class='text-green-400 font-bold'>6.2%</span>.`,
+                            recommendation: 'The current growth rate is healthy and on track to meet our end-of-year revenue targets.'
+                        },
+                        {
+                            department: 'Customer Success',
+                            question: 'Show me customers with high usage but no recent logins.',
+                            analysis: `We've identified <span class='gradient-text font-bold'>15 high-tier accounts</span> with high overall product usage but no logins in the past 14 days.`,
+                            recommendation: 'This is a churn risk. Proactively reach out to these customers to offer support and gather feedback.'
+                        },
+                        {
+                            department: 'Operations',
+                            question: 'What is the average response time for high-priority support tickets?',
+                            analysis: `The average first response time for high-priority tickets this month is <span class='gradient-text font-bold'>45 minutes</span>, down from 55 minutes last month.`,
+                            recommendation: 'The new support workflow is effective. Continue monitoring this metric to ensure it stays below the 1-hour SLA.'
+                        }
+                    ],
+                    cycleExample() {
+                        this.currentIndex = (this.currentIndex + 1) % this.examples.length;
+                        this.submitted = false;
+                    }
+                 }">
                 <div class="text-center mb-12">
                     <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">See It In Action</h2>
                     <p class="text-gray-400 max-w-2xl mx-auto">
@@ -200,7 +241,14 @@
                 
                 <div class="max-w-3xl mx-auto">
                     <div class="flex items-center gap-2 bg-gray-800/50 border border-gray-700 rounded-lg p-2 glowing-border-animation">
-                        <p class="w-full bg-transparent text-gray-300 p-2 select-none">Compare Q1 vs Q2 revenue for new customers in the US</p>
+                        <p class="w-full bg-transparent text-gray-300 p-2 select-none" x-text="examples[currentIndex].question"></p>
+                        
+                        <button @click="cycleExample()" title="Try another example" class="p-2 rounded-md hover:bg-cyan-500/20 transition-colors flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M4 4l1.5 1.5A9 9 0 0120.5 16l-1.5 1.5M20 20l-1.5-1.5A9 9 0 003.5 8l1.5-1.5" />
+                            </svg>
+                        </button>
+                        
                         <button 
                             @click="loading = true; submitted = false; setTimeout(() => { submitted = true; loading = false }, 1500)"
                             class="bg-cyan-500 text-gray-900 font-bold py-2 px-5 rounded-md transition-transform hover:scale-105 pulse-animation disabled:opacity-50 flex-shrink-0"
@@ -216,14 +264,14 @@
                     </div>
 
                     <div x-show="submitted" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 transform -translate-y-5" x-transition:enter-end="opacity-100 transform translate-y-0" class="mt-8 bg-gray-800/30 border border-gray-700 rounded-xl p-6 text-left">
-                        <h3 class="text-xl font-bold text-white mb-4">Analysis Result:</h3>
-                        
+                        <h3 class="text-xl font-bold text-white mb-2">
+                           Analysis for <span class="gradient-text" x-text="examples[currentIndex].department"></span>
+                        </h3>
                         <div class="border-t border-gray-700 pt-4 space-y-4">
+                            <p class="text-lg text-gray-200" x-html="examples[currentIndex].analysis"></p>
                             <p class="text-lg text-gray-200">
-                                Based on the data, revenue from new customers surged to <span class="gradient-text font-bold text-xl">$452,120</span> in Q2. This represents a significant <span class="text-green-400 font-bold text-xl">+15.2% growth</span> compared to Q1.
-                            </p>
-                             <p class="text-lg text-gray-200">
-                               <strong class="text-white">Recommendation:</strong> The current acquisition strategy shows strong positive momentum. Consider re-investing in the marketing channels that drove this Q2 growth to maximize results in Q3.
+                               <strong class="text-white">Recommendation:</strong>
+                               <span x-text="examples[currentIndex].recommendation"></span>
                             </p>
                         </div>
                     </div>
