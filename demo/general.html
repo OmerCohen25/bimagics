@@ -44,6 +44,23 @@
         }
         .dw-warehouse { animation: pulse-dw 2s ease-in-out infinite }
         .dw-line      { stroke-dasharray: 80; animation: flow-line 3s linear infinite }
+        /* ➊ Loader – רקע מעגלי + קוביות נתונים זזות */
+        @keyframes spin-ring   { to { transform: rotate(360deg) } }
+        @keyframes float-cube  { 0%{transform:translateY(0)} 50%{transform:translateY(-8px)} 100%{transform:translateY(0)} }
+        
+        .loader-ring {
+            width: 84px; height: 84px;
+            border: 6px dashed #3b82f6;
+            border-radius: 50%;
+            animation: spin-ring 2.8s linear infinite;
+        }
+        .loader-cube {
+            width: 12px; height: 12px; background:#10b981;
+            animation: float-cube 1.4s ease-in-out infinite;
+        }
+        .loader-cube:nth-child(2){ animation-delay:.25s }
+        .loader-cube:nth-child(3){ animation-delay:.5s }
+        .loader-cube:nth-child(4){ animation-delay:.75s }
 
     </style>
 </head>
@@ -165,23 +182,24 @@
             ],
             warehouseTypes: ['Google BigQuery', 'Snowflake', 'Amazon Redshift', 'Databricks', 'PostgreSQL'],
             initialConnectionStatusHTML: `
-             <div class="flex flex-col items-center justify-center">
-               <svg viewBox="0 0 200 160" class="w-56 h-56 md:w-64 md:h-64">
-                 <!-- warehouse -->
-                 <rect x="35" y="40" width="130" height="80" rx="10"
-                       fill="#1f2937" stroke="#10b981" stroke-width="3"
-                       class="dw-warehouse" />
-                 <!-- mapping lines -->
-                 <line x1="100" y1="120" x2="20"  y2="150"
-                       stroke="#3b82f6" stroke-width="4" class="dw-line"/>
-                 <line x1="100" y1="120" x2="180" y2="150"
-                       stroke="#f97316" stroke-width="4" class="dw-line"
-                       style="animation-delay:.8s"/>
-               </svg>
-               <p class="mt-4 text-gray-400 text-center leading-snug">
-                  Awaiting connection details…
-               </p>
-             </div>`,
+              <div class="flex flex-col items-center justify-center gap-6">
+                  <!-- טבעת מסתובבת -->
+                  <div class="relative flex items-center justify-center">
+                      <div class="loader-ring"></div>
+                      <!-- קוביות "data" -->
+                      <div class="absolute flex gap-1">
+                          <div class="loader-cube"></div>
+                          <div class="loader-cube"></div>
+                          <div class="loader-cube"></div>
+                          <div class="loader-cube"></div>
+                      </div>
+                  </div>
+            
+                  <!-- טקסט מתחת -->
+                  <p class="text-gray-400 text-center leading-snug">
+                      Connecting & mapping your warehouse…
+                  </p>
+              </div>`,
             createNewWizardCardHTML: `
                 <div id="create-new-wizard-card" class="bg-gray-950/30 rounded-2xl p-8 border border-gray-700 border-dashed shadow-xl flex flex-col transform hover:-translate-y-2 transition-transform duration-300 items-center justify-center text-center hover:border-emerald-500 hover:text-emerald-400 cursor-pointer min-h-[280px]">
                     <div class="flex-shrink-0 bg-gray-700/50 text-gray-400 rounded-full h-14 w-14 flex items-center justify-center"><i data-feather="plus" class="w-7 h-7"></i></div>
@@ -344,8 +362,12 @@
         
         /* Helper Functions */
         function destroyAllchart() {
-            Object.values(chart).forEach(chart => chart?.destroy());
-            chart = {};
+            Object.entries(chart).forEach(([id, ch]) => {
+                if (id.startsWith('feed-chart-')) {      // רק הפיד
+                    ch?.destroy();
+                    delete chart[id];
+                }
+            });
         }
 
         /* UI Population & Rendering */
@@ -636,6 +658,7 @@
         }
 
         function renderFeed() {
+            destroyAllchart(); 
             const uniqueFeedItems = feedItems.filter((v,i,a) => a.findIndex(t=>(t.id === v.id && t.type===v.type)) === i);
             const feedGrid = qs('#feed-grid');
 
