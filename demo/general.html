@@ -22,16 +22,17 @@
         .fade-enter-active { opacity: 1; transform: translateY(0); transition: opacity 0.5s ease, transform 0.5s ease; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .spinner { animation: spin 1s linear infinite; }
-        .modal-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 50; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .modal-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .modal-backdrop.visible { opacity: 1; pointer-events: auto; }
         .modal-content { transform: scale(0.95); transition: transform 0.3s ease; }
         .modal-backdrop.visible .modal-content { transform: scale(1); }
         @keyframes float { 0% { transform: translateY(0px); opacity: 1; } 100% { transform: translateY(-100px); opacity: 0; } }
         .flow-dot { animation: float 2s ease-in-out infinite; }
+        .sidebar-open { transform: translateX(0) !important; }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 min-h-screen flex antialiased">
-    <aside class="w-64 xl:w-72 shrink-0 bg-gray-950/70 backdrop-blur-xl p-8 hidden md:flex flex-col">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 xl:w-72 flex-col bg-gray-950/80 backdrop-blur-xl p-8 -translate-x-full md:relative md:translate-x-0 md:flex transition-transform duration-300">
         <div>
             <h1 class="text-2xl xl:text-3xl font-black tracking-tight flex items-center gap-2">
                 <svg width="28" height="28" viewBox="0 0 24 24" class="text-emerald-400"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
@@ -44,41 +45,47 @@
             <p>&copy; 2025 BI Magics, Inc.</p>
         </div>
     </aside>
+    
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 z-40 hidden md:hidden"></div>
 
-    <main class="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-12 xl:p-16">
+    <main class="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-12 xl:p-16 relative">
+        <button id="menu-btn" class="md:hidden fixed top-6 left-6 z-30 text-gray-300 hover:text-white">
+            <i data-feather="menu" class="w-6 h-6"></i>
+        </button>
+
         <section id="step-1" class="step-section space-y-8">
             <div class="fade-enter">
-                 <h2 class="text-5xl font-extrabold mb-4 tracking-tight">1. Connect your Data Warehouse</h2>
-                 <p class="text-gray-300 max-w-2xl text-lg">Securely connect to your data source. We use read-only access and never copy your data.</p>
-                 <div class="mt-10 grid lg:grid-cols-2 gap-12">
-                     <form id="connect-form" class="space-y-6 bg-gray-950/30 rounded-2xl p-8 border border-gray-800 shadow-2xl">
-                         <div>
-                             <label class="block text-sm font-medium text-gray-400 mb-2" for="wh-type">Warehouse Type</label>
-                             <select id="wh-type" class="w-full text-base rounded-lg bg-gray-800 border-gray-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 px-4 py-3"></select>
-                         </div>
-                         <div>
-                             <label class="block text-sm font-medium text-gray-400 mb-2" for="conn-string">Project ID / Host</label>
-                             <input id="conn-string" type="text" value="acme-corp-production" class="w-full text-base rounded-lg bg-gray-800 border-gray-700 px-4 py-3" />
-                         </div>
-                         <div>
-                             <label class="block text-sm font-medium text-gray-400 mb-2" for="service-key">Service Account Key / Password</label>
-                             <input id="service-key" type="password" value="demopassword123" class="w-full text-base rounded-lg bg-gray-800 border-gray-700 px-4 py-3" />
-                         </div>
-                         <button type="button" id="connect-btn" class="w-full py-4 rounded-lg bg-emerald-600 font-semibold text-white hover:bg-emerald-500 transition-all duration-300 shadow-lg flex items-center justify-center gap-3">
-                             <i data-feather="zap" class="w-5 h-5"></i><span>Connect & Scan Schema</span>
-                         </button>
-                         <div class="text-center mt-2"><span class="text-xs text-gray-500">View-only permissions</span></div>
-                     </form>
-                     <div id="connection-status-container" class="flex items-center justify-center p-8 bg-gray-950/30 rounded-2xl border border-gray-800"></div>
-                 </div>
+                <h2 class="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">1. Connect your Data Warehouse</h2>
+                <p class="text-gray-300 max-w-2xl text-base md:text-lg">Securely connect to your data source. We use read-only access and never copy your data.</p>
+                <div class="mt-10 grid lg:grid-cols-2 gap-12">
+                    <form id="connect-form" class="space-y-6 bg-gray-950/30 rounded-2xl p-8 border border-gray-800 shadow-2xl">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2" for="wh-type">Warehouse Type</label>
+                            <select id="wh-type" class="w-full text-base rounded-lg bg-gray-800 border-gray-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 px-4 py-3"></select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2" for="conn-string">Project ID / Host</label>
+                            <input id="conn-string" type="text" value="acme-corp-production" class="w-full text-base rounded-lg bg-gray-800 border-gray-700 px-4 py-3" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2" for="service-key">Service Account Key / Password</label>
+                            <input id="service-key" type="password" value="demopassword123" class="w-full text-base rounded-lg bg-gray-800 border-gray-700 px-4 py-3" />
+                        </div>
+                        <button type="button" id="connect-btn" class="w-full py-4 rounded-lg bg-emerald-600 font-semibold text-white hover:bg-emerald-500 transition-all duration-300 shadow-lg flex items-center justify-center gap-3">
+                            <i data-feather="zap" class="w-5 h-5"></i><span>Connect & Scan Schema</span>
+                        </button>
+                        <div class="text-center mt-2"><span class="text-xs text-gray-500">View-only permissions</span></div>
+                    </form>
+                    <div id="connection-status-container" class="flex flex-col items-center justify-center min-h-[350px] p-8 bg-gray-950/30 rounded-2xl border border-gray-800"></div>
+                </div>
             </div>
         </section>
 
         <section id="step-2" class="step-section hidden"><div class="fade-enter">
-            <h2 class="text-5xl font-extrabold mb-4 tracking-tight">2. Map Tables & Context</h2>
-            <p class="text-gray-300 max-w-3xl text-lg">Review tables for analysis. Click any row for details.</p>
+            <h2 class="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">2. Map Tables & Context</h2>
+            <p class="text-gray-300 max-w-3xl text-base md:text-lg">Review tables for analysis. Click any row for details.</p>
             <div class="mt-10 bg-gray-950/30 rounded-2xl border border-gray-800 shadow-2xl overflow-hidden">
-                <div id="map-tables-container" class="p-8"></div>
+                <div id="map-tables-container" class="p-4 md:p-8"></div>
                 <div class="p-6 bg-gray-900 border-t border-gray-800 flex justify-end">
                     <button data-next class="px-8 py-3 rounded-lg bg-emerald-600 font-semibold text-white hover:bg-emerald-500 transition-all shadow-lg flex items-center gap-2">
                         <span>Confirm & Continue</span><i data-feather="arrow-right" class="w-5 h-5"></i>
@@ -88,22 +95,22 @@
         </div></section>
 
         <section id="step-3" class="step-section hidden"><div class="fade-enter">
-            <h2 class="text-5xl font-extrabold mb-4 tracking-tight">3. Activate Domain-Expert Wizards</h2>
-            <p class="text-gray-300 max-w-3xl text-lg">Wizards are pre-trained AI agents. Activate one to start asking questions.</p>
-            <div id="wizards-container" class="mt-10 grid md:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+            <h2 class="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">3. Activate Domain-Expert Wizards</h2>
+            <p class="text-gray-300 max-w-3xl text-base md:text-lg">Wizards are pre-trained AI agents. Activate one to start asking questions.</p>
+            <div id="wizards-container" class="mt-10 grid md:grid-cols-2 xl:grid-cols-4 gap-8"></div>
         </div></section>
 
         <section id="step-4" class="step-section hidden"><div class="fade-enter max-w-4xl mx-auto flex flex-col h-full">
             <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
-                <h2 id="chat-title" class="text-4xl font-extrabold tracking-tight"></h2>
+                <h2 id="chat-title" class="text-3xl md:text-4xl font-extrabold tracking-tight"></h2>
                 <div class="relative">
                     <select id="wizard-switcher" class="appearance-none pl-4 pr-10 py-2 text-base rounded-lg bg-gray-800 border-gray-700 focus:ring-2 focus:ring-emerald-500"></select>
                     <i data-feather="chevron-down" class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none"></i>
                 </div>
             </div>
-             <p id="chat-subtitle" class="text-gray-300 mb-8 text-lg text-center"></p>
-            <div class="bg-gray-950/50 backdrop-blur-sm rounded-2xl shadow-inner border border-gray-800 p-6 flex flex-col flex-grow min-h-[60vh]">
-                <div id="chat-window" class="flex-1 space-y-6 overflow-y-auto pr-4 mb-4"></div>
+            <p id="chat-subtitle" class="text-gray-300 mb-8 text-base md:text-lg text-center"></p>
+            <div class="bg-gray-950/50 backdrop-blur-sm rounded-2xl shadow-inner border border-gray-800 p-3 md:p-6 flex flex-col flex-grow min-h-[70vh]">
+                <div id="chat-window" class="flex-1 space-y-6 overflow-y-auto pr-2 md:pr-4 mb-4"></div>
                 <div id="sample-questions" class="flex flex-wrap items-center gap-2 py-3 border-t border-gray-800"></div>
                 <div class="mt-auto flex items-center gap-3 pt-2">
                     <input id="chat-input" class="flex-1 rounded-lg bg-gray-800 border-gray-700 w-full text-base focus:ring-2 px-4 py-3 text-gray-200" />
@@ -116,8 +123,8 @@
         </div></section>
 
         <section id="step-5" class="step-section hidden"><div class="fade-enter">
-            <h2 class="text-5xl font-extrabold mb-4 tracking-tight">5. Curate Your Intelligence Feed</h2>
-            <p class="text-gray-300 max-w-3xl text-lg mb-10">A live, auto-refreshing dashboard. Save key insights from your chats to add more.</p>
+            <h2 class="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">5. Curate Your Intelligence Feed</h2>
+            <p class="text-gray-300 max-w-3xl text-base md:text-lg mb-10">A live, auto-refreshing dashboard. Save key insights from your chats to add more.</p>
             <div id="feed-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
             <div class="text-center mt-12"><button id="restart-btn" class="inline-flex items-center gap-3 px-8 py-4 rounded-lg bg-emerald-600 font-semibold text-white hover:bg-emerald-500 shadow-lg"><i data-feather="refresh-cw" class="w-5 h-5"></i>Restart Demo</button></div>
         </div></section>
@@ -138,7 +145,7 @@
             warehouseTypes: ['Google BigQuery', 'Snowflake', 'Amazon Redshift', 'Databricks', 'PostgreSQL'],
             initialConnectionStatusHTML: `
                 <div class="text-center w-full h-full flex flex-col items-center justify-center">
-                    <div class="w-64 h-64 relative">
+                    <div class="w-56 h-56 md:w-64 md:h-64 relative">
                         <svg viewBox="0 0 200 200" class="w-full h-full">
                             <circle cx="100" cy="100" r="50" fill="none" stroke="#374151" stroke-width="2"/>
                             <circle cx="100" cy="20" r="8" fill="#10b981"/>
@@ -152,7 +159,7 @@
                     <p class="mt-4 text-gray-400">Awaiting connection details...</p>
                 </div>`,
             createNewWizardCardHTML: `
-                <div id="create-new-wizard-card" class="bg-gray-950/30 rounded-2xl p-8 border border-gray-700 border-dashed shadow-xl flex flex-col transform hover:-translate-y-2 transition-transform duration-300 items-center justify-center text-center hover:border-emerald-500 hover:text-emerald-400 cursor-pointer">
+                <div id="create-new-wizard-card" class="bg-gray-950/30 rounded-2xl p-8 border border-gray-700 border-dashed shadow-xl flex flex-col transform hover:-translate-y-2 transition-transform duration-300 items-center justify-center text-center hover:border-emerald-500 hover:text-emerald-400 cursor-pointer min-h-[280px]">
                     <div class="flex-shrink-0 bg-gray-700/50 text-gray-400 rounded-full h-14 w-14 flex items-center justify-center"><i data-feather="plus" class="w-7 h-7"></i></div>
                     <h3 class="text-2xl font-bold mt-6">Create New Wizard</h3>
                     <p class="text-gray-400 mt-2 flex-grow">Build a custom AI agent tailored to your specific business needs.</p>
@@ -162,7 +169,6 @@
                 expertise: "Analyzes custom operational KPIs and reports on daily user activity."
             }
         };
-
 
         // Configuration for each available table
         const TABLE_DETAILS_DATA = {
@@ -199,6 +205,17 @@
                     { name: 'cost', type: 'numeric', desc: 'Total cost for the day on that channel.' }
                 ]
             },
+            log_events: {
+                rows: "21.1 M", included: true,
+                desc: "Records key user interactions and events within the application. Used for funnel analysis, feature adoption tracking, and user behavior studies.",
+                questions: ["What is the user adoption funnel for our new feature?", "Which are the most used features?", "Show the daily active users trend."],
+                fields: [
+                    { name: 'event_id', type: 'string', desc: 'Unique identifier for each event log.' },
+                    { name: 'user_id', type: 'integer', desc: 'Identifier for the user performing the action.' },
+                    { name: 'event_name', type: 'string', desc: 'Name of the event being tracked.', values: [{ value: 'view_dashboard', pct: 35.0 }, { value: 'create_report', pct: 25.0 }, { value: 'share_report', pct: 15.0 }, { value: 'add_user', pct: 5.0 }] },
+                    { name: 'timestamp', type: 'timestamp', desc: 'Timestamp when the event occurred.' }
+                ]
+            }
         };
 
         // Configuration for each available Wizard and their chat capabilities
@@ -211,21 +228,9 @@
                 placeholder: 'Ask about ARR, churn, or top customers...',
                 questions: ['Show me quarterly ARR trend', 'What is our Average Order Value?', 'Which are my top 5 customer segments?'],
                 questionMap: {
-                    'arr': {
-                        sql: "SELECT\n  DATE_TRUNC('quarter', order_date) AS quarter,\n  SUM(total_amount) / 1000000 AS total_arr_millions\nFROM fct_orders\nGROUP BY 1\nORDER BY 1;",
-                        text: null,
-                        chartType: 'arr'
-                    },
-                    'value': {
-                        sql: "SELECT\n  AVG(total_amount)\nFROM fct_orders\nWHERE status = 'COMPLETED';",
-                        text: "The Average Order Value (AOV) for completed orders is currently <strong class='text-emerald-400'>$142.55</strong>. This is up <strong class='text-emerald-400'>3.1%</strong> from last month.",
-                        chartType: null,
-                    },
-                    'segments': {
-                        sql: "SELECT\n  c.industry,\n  SUM(o.total_amount) AS total_revenue\nFROM fct_orders o\nJOIN dim_customers c ON o.customer_id = c.customer_id\nGROUP BY 1\nORDER BY 2 DESC\nLIMIT 5;",
-                        text: null,
-                        chartType: 'segments'
-                    }
+                    'arr': { sql: "SELECT\n  DATE_TRUNC('quarter', order_date) AS quarter,\n  SUM(total_amount) / 1000000 AS total_arr_millions\nFROM fct_orders\nGROUP BY 1\nORDER BY 1;", text: null, chartType: 'arr' },
+                    'value': { sql: "SELECT\n  AVG(total_amount)\nFROM fct_orders\nWHERE status = 'COMPLETED';", text: "The Average Order Value (AOV) for completed orders is currently <strong class='text-emerald-400'>$142.55</strong>. This is up <strong class='text-emerald-400'>3.1%</strong> from last month.", chartType: null, },
+                    'segments': { sql: "SELECT\n  c.industry,\n  SUM(o.total_amount) AS total_revenue\nFROM fct_orders o\nJOIN dim_customers c ON o.customer_id = c.customer_id\nGROUP BY 1\nORDER BY 2 DESC\nLIMIT 5;", text: null, chartType: 'segments' }
                 }
             },
             'Growth Strategist': {
@@ -236,21 +241,22 @@
                 placeholder: 'Ask about user growth, funnels...',
                 questions: ['How many new users signed up this month?', 'Analyze new vs returning orders', 'Which marketing channels are most effective?'],
                 questionMap: {
-                    'users': {
-                        sql: "SELECT\n  COUNT(customer_id)\nFROM dim_customers\nWHERE DATE_TRUNC('month', signup_date) = DATE_TRUNC('month', CURRENT_DATE);",
-                        text: "This month, <strong class='text-indigo-400'>12,450</strong> new users have signed up. We are on track to exceed last month's total of 15,100.",
-                        chartType: null,
-                    },
-                    'returning': {
-                        sql: "SELECT \n  CASE WHEN is_first_order THEN 'New' ELSE 'Returning' END as customer_type, \n  COUNT(DISTINCT order_id) as order_count \nFROM fct_orders \nWHERE order_date >= CURRENT_DATE - INTERVAL '4 weeks' \nGROUP BY 1;",
-                        text: "Here is the breakdown of new vs. returning orders for the last four weeks.",
-                        chartType: 'newVsReturn'
-                    },
-                    'channels': {
-                        sql: "SELECT \n  channel, \n  SUM(spend) / COUNT(DISTINCT new_users) as cost_per_acquisition \nFROM marketing_spend \nGROUP BY 1 \nORDER BY 2 ASC;",
-                        text: "Google Ads appears to be the most effective channel with the lowest Cost Per Acquisition.",
-                        chartType: 'segments' // Can reuse chart blueprints
-                    }
+                    'users': { sql: "SELECT\n  COUNT(customer_id)\nFROM dim_customers\nWHERE DATE_TRUNC('month', signup_date) = DATE_TRUNC('month', CURRENT_DATE);", text: "This month, <strong class='text-indigo-400'>12,450</strong> new users have signed up. We are on track to exceed last month's total of 15,100.", chartType: null, },
+                    'returning': { sql: "SELECT \n  CASE WHEN is_first_order THEN 'New' ELSE 'Returning' END as customer_type, \n  COUNT(DISTINCT order_id) as order_count \nFROM fct_orders \nWHERE order_date >= CURRENT_DATE - INTERVAL '4 weeks' \nGROUP BY 1;", text: "Here is the breakdown of new vs. returning orders for the last four weeks.", chartType: 'newVsReturn' },
+                    'channels': { sql: "SELECT \n  channel, \n  SUM(spend) / COUNT(DISTINCT new_users) as cost_per_acquisition \nFROM marketing_spend \nGROUP BY 1 \nORDER BY 2 ASC;", text: "Google Ads appears to be the most effective channel with the lowest Cost Per Acquisition.", chartType: 'segments' }
+                }
+            },
+            'Product Analyst': {
+                color: 'blue', icon: 'pie-chart',
+                description: 'Tracks feature adoption, user engagement, and funnels.',
+                tables: ['log_events', 'dim_customers'],
+                subtitle: 'Ask questions about feature usage, user funnels, and engagement.',
+                placeholder: 'Ask about DAU, feature funnels...',
+                questions: ['What is the feature adoption funnel?', 'Show me Daily Active Users', 'Top 5 most frequent events?'],
+                questionMap: {
+                    'funnel': { sql: "SELECT\n event_name,\n COUNT(DISTINCT user_id) as user_count\nFROM log_events\nWHERE event_name IN ('View Feature Page', 'Click Try It', 'Configure Feature', 'Save Configuration')\nGROUP BY 1\nORDER BY FIELD(event_name, 'View Feature Page', 'Click Try It', 'Configure Feature', 'Save Configuration');", text: "Here is the user funnel for the new feature adoption. It seems there's a significant drop-off after the initial view.", chartType: 'featureFunnel' },
+                    'daily active': { sql: "SELECT\n DATE_TRUNC('day', timestamp) as day,\n COUNT(DISTINCT user_id) as dau\nFROM log_events\nWHERE timestamp >= CURRENT_DATE - INTERVAL '7 days'\nGROUP BY 1 ORDER BY 1;", text: "Daily Active Users are trending upwards, with <strong class='text-blue-400'>21,400</strong> active today.", chartType: null },
+                    'events': { sql: "SELECT\n event_name, COUNT(*) as event_count\nFROM log_events\nGROUP BY 1\nORDER BY 2 DESC\nLIMIT 5;", text: "The most frequent user actions are related to viewing dashboards and creating reports.", chartType: 'segments' }
                 }
             },
             'Ops Optimizer': {
@@ -261,21 +267,9 @@
                 placeholder: 'Ask about shipping, returns...',
                 questions: ['What is our return rate?', 'Show order status distribution', 'What is the average time to ship?'],
                 questionMap: {
-                    'rate': {
-                        sql: "SELECT\n  100.0 * COUNT(CASE WHEN status = 'RETURNED' THEN 1 END) / COUNT(*)\nFROM fct_orders;",
-                        text: "Our current return rate is <strong class='text-rose-400'>9.8%</strong> across all orders.",
-                        chartType: null
-                    },
-                    'status': {
-                        sql: "SELECT\n  status, COUNT(*) as count\nFROM fct_orders\nGROUP BY 1;",
-                        text: "Here is the distribution of all order statuses.",
-                        chartType: 'segments' // Reusing a chart type for a different purpose
-                    },
-                    'ship': {
-                        sql: "SELECT\n  AVG(shipping_date - order_date) as avg_shipping_time\nFROM fct_orders\nWHERE status = 'COMPLETED';",
-                        text: "The average time from order to shipment is <strong class='text-rose-400'>1.8 days</strong>.",
-                        chartType: null,
-                    }
+                    'rate': { sql: "SELECT\n  100.0 * COUNT(CASE WHEN status = 'RETURNED' THEN 1 END) / COUNT(*)\nFROM fct_orders;", text: "Our current return rate is <strong class='text-rose-400'>9.8%</strong> across all orders.", chartType: null },
+                    'status': { sql: "SELECT\n  status, COUNT(*) as count\nFROM fct_orders\nGROUP BY 1;", text: "Here is the distribution of all order statuses.", chartType: 'segments' },
+                    'ship': { sql: "SELECT\n  AVG(shipping_date - order_date) as avg_shipping_time\nFROM fct_orders\nWHERE status = 'COMPLETED';", text: "The average time from order to shipment is <strong class='text-rose-400'>1.8 days</strong>.", chartType: null, }
                 }
             }
         };
@@ -285,11 +279,12 @@
             charts: {
                 arr: { title: 'Quarterly ARR Trend', type: 'line', sql: WIZARD_DATA['Revenue Analyst'].questionMap['arr'].sql, data: { labels: ["Q1 '24", "Q2 '24", "Q3 '24", "Q4 '24"], datasets: [{ data: [1.2, 1.5, 1.4, 1.8], borderColor: '#10b981', tension: 0.4, fill: true }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }}, scales: { y: { ticks: { callback: v => `$${v}M` }}}}},
                 segments: { title: 'Revenue by Customer Segment', type: 'doughnut', sql: WIZARD_DATA['Revenue Analyst'].questionMap['segments'].sql, data: { labels: ['SaaS', 'E-commerce', 'Fintech', 'Healthcare', 'Other'], datasets: [{ data: [45, 25, 15, 10, 5], backgroundColor: ['#3b82f6', '#10b981', '#f97316', '#8b5cf6', '#64748b'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } }}}},
-                newVsReturn: { title: 'New vs. Returning Orders', type: 'bar', sql: WIZARD_DATA['Growth Strategist'].questionMap['returning'].sql, data: { labels: ['W1', 'W2', 'W3', 'W4'], datasets: [ { label: 'New', data: [120, 130, 155, 140], backgroundColor: '#3b82f6' }, { label: 'Returning', data: [250, 280, 310, 290], backgroundColor: '#10b981' } ] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } }, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } }} }}
+                featureFunnel: { title: 'Feature Adoption Funnel', type: 'bar', sql: WIZARD_DATA['Product Analyst'].questionMap['funnel'].sql, data: { labels: ['View Page', 'Click "Try"', 'Configure', 'Save'], datasets: [{ data: [15210, 9870, 4120, 2050], backgroundColor: ['#3b82f6', '#10b981', '#f97316', '#8b5cf6'] }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }}, scales: { x: { ticks: { callback: v => `${(v/1000).toFixed(0)}k` }}} } }
             },
             scorecards: {
                 aov: { title: 'Average Order Value', value: '$142.55', trend: '+3.1%', trendColor: 'text-emerald-400', sql: WIZARD_DATA['Revenue Analyst'].questionMap['value'].sql },
                 newUsers: { title: 'New Users (MTD)', value: '12,450', trend: '+8.2%', trendColor: 'text-emerald-400', sql: WIZARD_DATA['Growth Strategist'].questionMap['users'].sql },
+                dau: { title: 'Daily Active Users', value: '21.4k', trend: '+1.5%', trendColor: 'text-emerald-400', sql: "SELECT COUNT(DISTINCT user_id) FROM log_events WHERE DATE(timestamp) = CURRENT_DATE;" },
                 churnRate: { title: 'Monthly Churn Rate', value: '2.1%', trend: '-0.2%', trendColor: 'text-emerald-400', sql: "SELECT\n  100.0 * COUNT(CASE WHEN status = 'CHURNED' THEN 1 END) / COUNT(*)\nFROM dim_customers\nWHERE signup_date < CURRENT_DATE - INTERVAL '1 month';" }
             }
         };
@@ -298,17 +293,17 @@
         const PREPOPULATED_FEED_ITEMS = [
             { type: 'scorecard', id: 'aov' },
             { type: 'scorecard', id: 'newUsers' },
-            { type: 'scorecard', id: 'churnRate' },
+            { type: 'scorecard', id: 'dau' },
             { type: 'chart', id: 'arr' },
             { type: 'chart', id: 'segments' },
-            { type: 'chart', id: 'newVsReturn' },
+            { type: 'chart', id: 'featureFunnel' },
         ];
     </script>
 
     <script>
     window.onload = () => {
         if (typeof WIZARD_DATA === 'undefined' || typeof TABLE_DETAILS_DATA === 'undefined' || typeof APP_CONTENT === 'undefined' || typeof feedBlueprints === 'undefined' || typeof PREPOPULATED_FEED_ITEMS === 'undefined') {
-            document.body.innerHTML = `<div class='text-red-500 text-center p-8'>Error: data.js file not loaded or is missing required variables. Please ensure it's in the same directory and is not empty.</div>`;
+            document.body.innerHTML = `<div class='text-red-500 text-center p-8'>Error: Critical data is missing. Please check the script definitions.</div>`;
             return;
         }
 
@@ -343,13 +338,16 @@
 
         function populateTables() {
             const container = qs('#map-tables-container');
-            container.innerHTML = `<table class="w-full text-left text-base"><thead class="text-gray-400 border-b-2 border-gray-700"><tr><th class="p-3">Include</th><th class="p-3">Table Name</th><th class="p-3">Rows</th><th class="p-3">AI Context</th></tr></thead><tbody>` +
-            Object.entries(TABLE_DETAILS_DATA).map(([name, table]) => `
+            const tableHtml = Object.entries(TABLE_DETAILS_DATA).map(([name, table]) => `
                 <tr data-table-name="${name}" class="border-b border-gray-800 hover:bg-gray-800/40 cursor-pointer">
                     <td class="p-4"><input type="checkbox" ${table.included ? 'checked' : ''} class="h-5 w-5 rounded bg-gray-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-gray-900"></td>
-                    <td class="p-4 font-mono text-emerald-300">${name}</td><td class="p-4 font-mono">${table.rows}</td><td class="p-4 text-gray-400">${table.desc.split('.')[0]}.</td>
-                </tr>`).join('') +
-            `</tbody></table><div class="text-center mt-6 text-gray-500"><p>Showing ${Object.keys(TABLE_DETAILS_DATA).length} of 287 tables.</p></div>`;
+                    <td class="p-4 font-mono text-emerald-300">${name}</td><td class="p-4 font-mono">${table.rows}</td><td class="p-4 text-gray-400 truncate max-w-xs">${table.desc.split('.')[0]}.</td>
+                </tr>`).join('');
+            
+            container.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-left text-base min-w-[600px]">
+                <thead class="text-gray-400 border-b-2 border-gray-700"><tr><th class="p-3">Include</th><th class="p-3">Table Name</th><th class="p-3">Rows</th><th class="p-3">AI Context</th></tr></thead>
+                <tbody>${tableHtml}</tbody>
+            </table></div><div class="text-center mt-6 text-gray-500"><p>Showing ${Object.keys(TABLE_DETAILS_DATA).length} of 287 tables.</p></div>`;
         }
 
         function populateWizards() {
@@ -357,7 +355,7 @@
                 <div class="wizard-card" data-wizard-name="${name}" data-wizard-color="${wizard.color}">
                     <div class="wizard-icon"><i data-feather="${wizard.icon}" class="w-7 h-7"></i></div>
                     <h3 class="text-2xl font-bold mt-6">${name}</h3><p class="text-gray-400 mt-2 flex-grow">${wizard.description}</p>
-                    <div class="wizard-tables">Uses: ${wizard.tables.map(t => `<span class="font-mono text-xs bg-gray-700/50 px-2 py-1 rounded-md">${t}</span>`).join(' ')}</div>
+                    <div class="wizard-tables text-sm mt-4">Uses: ${wizard.tables.map(t => `<span class="font-mono text-xs bg-gray-700/50 px-2 py-1 rounded-md">${t}</span>`).join(' ')}</div>
                     <button class="wizard-button">Activate & Chat →</button>
                 </div>`).join('') + APP_CONTENT.createNewWizardCardHTML;
         }
@@ -367,9 +365,6 @@
         }
 
         function updateUI() {
-            // DEBUG LINE
-            console.log(`[DEBUG] updateUI called for step ${currentStep}. feedItems length:`, feedItems.length);
-
             qsa('.step').forEach(li => {
                 const n = +li.dataset.step, dot = li.querySelector('.step-number');
                 dot.innerHTML = '';
@@ -389,9 +384,7 @@
             if (currentStep !== 5) {
                 destroyAllCharts();
             }
-            if (currentStep === 5) {
-                renderFeed();
-            }
+            if (currentStep === 5) renderFeed();
             if (currentStep === 3) styleWizardCards();
             if (currentStep === 4) updateWizardUI();
             feather.replace();
@@ -409,9 +402,9 @@
         }
 
         function showSQLModal(sql) {
-            showModal(`<div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-2xl w-full p-8">
-                <div class="flex justify-between items-center"><h3 class="text-2xl font-bold">Generated SQL</h3><button class="modal-close-btn text-3xl">&times;</button></div>
-                <pre class="text-cyan-300 bg-black/30 p-4 rounded-lg mt-4 text-sm whitespace-pre-wrap">${sql || 'No SQL available for this item.'}</pre>
+            showModal(`<div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-2xl w-full p-6 md:p-8">
+                <div class="flex justify-between items-center"><h3 class="text-xl md:text-2xl font-bold">Generated SQL</h3><button class="modal-close-btn text-3xl">&times;</button></div>
+                <pre class="text-cyan-300 bg-black/30 p-4 rounded-lg mt-4 text-sm whitespace-pre-wrap overflow-auto">${sql || 'No SQL available for this item.'}</pre>
             </div>`);
         }
 
@@ -429,7 +422,7 @@
                 </div>` : '';
 
                 return `<div class="p-4 rounded-lg bg-gray-800/40">
-                            <div class="flex justify-between items-center">
+                            <div class="flex justify-between items-center flex-wrap gap-2">
                                 <code class="font-bold text-cyan-300">${field.name}</code>
                                 <span class="text-xs text-gray-500 font-mono bg-gray-900/50 px-2 py-1 rounded">${field.type}</span>
                             </div>
@@ -444,7 +437,7 @@
                     <span>${q}</span>
                 </li>`).join('') : '';
 
-            const content = `<div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-3xl w-full p-8 overflow-y-auto max-h-[90vh]">
+            const content = `<div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-3xl w-full p-6 md:p-8 overflow-y-auto max-h-[90vh]">
                 <div class="flex justify-between items-start">
                     <h3 class="font-mono text-emerald-300 text-2xl font-bold">${tableName}</h3>
                     <button class="modal-close-btn text-gray-500 hover:text-white text-3xl">&times;</button>
@@ -481,18 +474,20 @@
         
         /* Event Handlers */
         const handleSend = (questionOverride = null) => {
-            const question = (questionOverride || qs('#chat-input').value).trim().toLowerCase();
-            if (!question) return;
-            addChatMessage((questionOverride || qs('#chat-input').value).trim(), 'user');
-            qs('#chat-input').value = '';
+            const questionText = (questionOverride || qs('#chat-input').value).trim();
+            if (!questionText) return;
+            const questionLower = questionText.toLowerCase();
+            
+            addChatMessage(questionText, 'user');
+            if (!questionOverride) qs('#chat-input').value = '';
             qs('#send-btn').disabled = true;
 
             setTimeout(() => {
                 const wizard = WIZARD_DATA[selectedWizard];
-                const responseKey = Object.keys(wizard.questionMap).find(k => k.split(' ').every(key => question.includes(key)));
+                const responseKey = Object.keys(wizard.questionMap).find(k => k.split(' ').every(key => questionLower.includes(key)));
                 const response = wizard.questionMap[responseKey] || { text: "I'm not sure about that. Please try one of the sample questions for the best experience.", sql: null, chartType: null };
 
-                addChatMessage(`<div class="flex items-center gap-2"><div class="spinner w-4 h-4"></div>Thinking...</div>`, 'ai');
+                addChatMessage(`<div class="flex items-center gap-2"><div class="spinner w-4 h-4 border-2 border-white/50 border-t-white rounded-full"></div>Thinking...</div>`, 'ai');
 
                 setTimeout(() => {
                     qs('#chat-window').lastChild.remove();
@@ -502,11 +497,13 @@
                         if (response.text) addChatMessage(response.text, 'ai');
                         if (response.chartType) {
                             const blueprint = feedBlueprints.charts[response.chartType];
-                            const chartId = `chart-${Date.now()}`;
-                            const meta = { type: 'chart', id: response.chartType };
-                            addChatMessage(`Here's a chart for "${blueprint.title}": <div class="h-64 w-full bg-gray-800/50 p-4 rounded-lg mt-3"><canvas id="${chartId}"></canvas></div>`, 'ai', meta);
-                            const ctx = qs(`#${chartId}`).getContext('2d');
-                            charts[chartId] = new Chart(ctx, { type: blueprint.type, data: JSON.parse(JSON.stringify(blueprint.data)), options: blueprint.options });
+                            if (blueprint) {
+                                const chartId = `chart-${Date.now()}`;
+                                const meta = { type: 'chart', id: response.chartType };
+                                addChatMessage(`Here's a chart for "${blueprint.title}": <div class="h-64 w-full bg-gray-800/50 p-4 rounded-lg mt-3"><canvas id="${chartId}"></canvas></div>`, 'ai', meta);
+                                const ctx = qs(`#${chartId}`).getContext('2d');
+                                charts[chartId] = new Chart(ctx, { type: blueprint.type, data: JSON.parse(JSON.stringify(blueprint.data)), options: blueprint.options });
+                            }
                         }
                         qs('#send-btn').disabled = false;
                     }, response.sql ? 1000 : 100);
@@ -529,22 +526,26 @@
 
         /* Setup Functions */
         function setupEventListeners() {
-             document.body.addEventListener('click', e => {
-                 const target = e.target.closest('button, li.step, tr[data-table-name], .wizard-card');
-                 if (!target) return;
-                 if (target.matches('[data-next]')) { if(currentStep < totalSteps) currentStep++; updateUI(); }
-                 else if (target.matches('.wizard-button')) { e.stopPropagation(); selectedWizard = target.closest('.wizard-card').dataset.wizardName; if(currentStep < totalSteps) currentStep++; updateUI(); }
-                 else if (target.id === 'create-new-wizard-card') { showNewWizardModal(); }
-                 else if (target.matches('.view-sql-btn')) { const {type, id} = target.dataset; showSQLModal(feedBlueprints[type]?.[id]?.sql); }
-                 else if (target.matches('.save-feed-btn')) {
+            document.body.addEventListener('click', e => {
+                const target = e.target.closest('button, li.step, tr[data-table-name], .wizard-card, #sidebar-backdrop');
+                if (!target) return;
+                
+                if (target.matches('[data-next]')) { if(currentStep < totalSteps) currentStep++; updateUI(); }
+                else if (target.matches('.wizard-button')) { e.stopPropagation(); selectedWizard = target.closest('.wizard-card').dataset.wizardName; if(currentStep < totalSteps) currentStep++; updateUI(); }
+                else if (target.id === 'create-new-wizard-card') { showNewWizardModal(); }
+                else if (target.matches('.view-sql-btn')) { const {type, id} = target.dataset; showSQLModal(feedBlueprints[type]?.[id]?.sql); }
+                else if (target.matches('.save-feed-btn')) {
                     const metaData = JSON.parse(target.dataset.saveFeed);
                     if (!feedItems.some(item => item.id === metaData.id && item.type === metaData.type)) {
                         feedItems.push(metaData);
                     }
                     target.innerHTML = `<i data-feather="check" class="w-4 h-4"></i> Saved!`; target.disabled = true; feather.replace();
                 } else if (target.matches('li.step')) { currentStep = +target.dataset.step; updateUI(); }
-                 else if (target.matches('tr[data-table-name]')) { if(e.target.type !== 'checkbox') showTableDetailsModal(target.dataset.tableName); }
-             });
+                else if (target.matches('tr[data-table-name]')) { if(!e.target.closest('input')) showTableDetailsModal(target.dataset.tableName); }
+                else if (target.id === 'menu-btn') { toggleSidebar(true); }
+                else if (target.id === 'sidebar-backdrop') { toggleSidebar(false); }
+            });
+
             qs('#connect-btn').addEventListener('click', () => {
                 const statusContainer = qs('#connection-status-container');
                 statusContainer.innerHTML = `<div class="text-center"><div class="spinner w-16 h-16 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full"></div><p class="mt-4">Connecting & Scanning...</p></div>`;
@@ -557,6 +558,7 @@
                     }, 1200);
                 }, 1500);
             });
+
             qs('#send-btn').addEventListener('click', () => handleSend());
             qs('#chat-input').addEventListener('keypress', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } });
             qs('#sample-questions').addEventListener('click', e => { if(e.target.classList.contains('sample-q-btn')) handleSend(e.target.textContent); });
@@ -564,15 +566,27 @@
             qs('#wizard-switcher').addEventListener('change', e => { selectedWizard = e.target.value; qs('#chat-window').innerHTML = ''; updateWizardUI(); });
         }
 
+        function toggleSidebar(show) {
+            const sidebar = qs('#sidebar');
+            const backdrop = qs('#sidebar-backdrop');
+            if (show) {
+                sidebar.classList.add('sidebar-open');
+                backdrop.classList.remove('hidden');
+            } else {
+                sidebar.classList.remove('sidebar-open');
+                backdrop.classList.add('hidden');
+            }
+        }
+
         /* Wizard & Feed UI Functions */
         function styleWizardCards() {
             qsa('.wizard-card').forEach(card => {
                 const name = card.dataset.wizardName; if (!name) return;
-                const { color } = WIZARD_DATA[name];
+                const wizard = WIZARD_DATA[name];
                 card.className = "wizard-card bg-gray-950/30 rounded-2xl p-6 border shadow-xl flex flex-col transform hover:-translate-y-2 transition-all cursor-pointer";
-                card.querySelector('.wizard-icon').className = `wizard-icon shrink-0 rounded-full h-14 w-14 flex items-center justify-center bg-${color}-500/10 text-${color}-400`;
-                card.querySelector('.wizard-button').className = `wizard-button mt-6 w-full py-3 rounded-lg font-semibold text-white bg-${color}-600 hover:bg-${color}-500`;
-                card.classList.toggle('border-emerald-500', name === selectedWizard);
+                card.querySelector('.wizard-icon').className = `wizard-icon shrink-0 rounded-full h-14 w-14 flex items-center justify-center bg-${wizard.color}-500/10 text-${wizard.color}-400`;
+                card.querySelector('.wizard-button').className = `wizard-button mt-6 w-full py-3 rounded-lg font-semibold text-white bg-${wizard.color}-600 hover:bg-${wizard.color}-500`;
+                card.classList.toggle(`border-${wizard.color}-500`, name === selectedWizard);
                 card.classList.toggle('border-gray-800', name !== selectedWizard);
             });
             feather.replace();
@@ -585,16 +599,12 @@
             qs('#chat-title').textContent = `Chat with ${selectedWizard}`;
             qs('#chat-subtitle').textContent = wizard.subtitle;
             qs('#chat-input').placeholder = wizard.placeholder;
-            qs('#sample-questions').innerHTML = `<span class="text-sm text-gray-400">Try:</span>` + wizard.questions.map(q => `<button class="sample-q-btn px-3 py-1 bg-gray-700 rounded-full text-sm hover:bg-gray-600">${q}</button>`).join('');
-            const { color } = wizard;
-            qs('#send-btn').className = `px-6 py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 bg-${color}-600 hover:bg-${color}-500`;
-            qs('#chat-input').className = `flex-1 rounded-lg bg-gray-800 w-full text-base focus:ring-2 px-4 py-3 text-gray-200 focus:ring-${color}-500 border-gray-700`;
+            qs('#sample-questions').innerHTML = `<span class="text-sm text-gray-400 shrink-0">Try:</span>` + wizard.questions.map(q => `<button class="sample-q-btn px-3 py-1 bg-gray-700 rounded-full text-sm hover:bg-gray-600">${q}</button>`).join('');
+            qs('#send-btn').className = `px-6 py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 bg-${wizard.color}-600 hover:bg-${wizard.color}-500`;
+            qs('#chat-input').className = `flex-1 rounded-lg bg-gray-800 w-full text-base focus:ring-2 px-4 py-3 text-gray-200 focus:ring-${wizard.color}-500 border-gray-700`;
         }
 
         function renderFeed() {
-            // DEBUG LINE
-            console.log('[DEBUG] renderFeed called. feedItems content:', JSON.stringify(feedItems));
-
             const uniqueFeedItems = feedItems.filter((v,i,a) => a.findIndex(t=>(t.id === v.id && t.type===v.type)) === i);
             const feedGrid = qs('#feed-grid');
 
@@ -604,8 +614,8 @@
                     <button data-type="${item.type}" data-id="${item.id}" class="view-sql-btn hover:text-white"><i data-feather="code"></i></button>
                     <button class="hover:text-white"><i data-feather="refresh-cw"></i></button>
                     <button class="hover:text-white"><i data-feather="share-2"></i></button></div></div>`;
-                if (item.type === 'scorecard') return `<div class="bg-gray-950/30 rounded-2xl p-6 border border-gray-800 flex flex-col justify-between"><div><h3>${blueprint.title}</h3><div class="text-5xl font-bold my-4">${blueprint.value}</div><div class="text-lg ${blueprint.trendColor}">${blueprint.trend}</div></div>${footer}</div>`;
-                if (item.type === 'chart') return `<div class="bg-gray-950/30 rounded-2xl p-6 border border-gray-800 flex flex-col"><h3>${blueprint.title}</h3><div class="flex-grow mt-4 min-h-[200px]"><canvas id="feed-chart-${item.id}"></canvas></div>${footer}</div>`;
+                if (item.type === 'scorecard') return `<div class="bg-gray-950/30 rounded-2xl p-6 border border-gray-800 flex flex-col justify-between"><div><h3 class="text-gray-300">${blueprint.title}</h3><div class="text-4xl md:text-5xl font-bold my-4">${blueprint.value}</div><div class="text-lg ${blueprint.trendColor}">${blueprint.trend}</div></div>${footer}</div>`;
+                if (item.type === 'chart') return `<div class="bg-gray-950/30 rounded-2xl p-6 border border-gray-800 flex flex-col"><h3 class="text-gray-300">${blueprint.title}</h3><div class="flex-grow mt-4 min-h-[250px]"><canvas id="feed-chart-${item.id}"></canvas></div>${footer}</div>`;
             }).join('') || `<div class="col-span-full text-center p-8 bg-gray-950/30 rounded-lg border border-dashed border-gray-700"><p class="text-gray-400">Your feed is empty. Save insights from your chats to add them here.</p></div>`;
 
             uniqueFeedItems.forEach(item => {
@@ -625,9 +635,6 @@
             destroyAllCharts(); 
             currentStep = 1; 
             feedItems = [...PREPOPULATED_FEED_ITEMS];
-            // DEBUG LINE
-            console.log('[DEBUG] resetDemo called. feedItems length:', feedItems.length, 'Content:', JSON.stringify(feedItems));
-            
             selectedWizard = Object.keys(WIZARD_DATA)[0]; 
             qs('#chat-window').innerHTML = '';
             qs('#connect-form').reset(); 
@@ -636,7 +643,6 @@
         }
 
         function init() {
-            console.log("[DEBUG] Initializing application...");
             populateStaticUI();
             populateDynamicUI();
             resetDemo();
