@@ -18,6 +18,12 @@
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #111827; }
         ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+        @media (max-width: 767px) {
+            /* כל H2 בראש כל שלב */
+            main h2 { padding-left: 3.5rem }          /* מרווח מצד הכפתור */
+            #chat-title { padding-left: 3.5rem }      /* כותרת הצ’אט */
+        }
+
         .fade-enter { opacity: 0; transform: translateY(25px); }
         .fade-enter-active { opacity: 1; transform: translateY(0); transition: opacity 0.5s ease, transform 0.5s ease; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -29,6 +35,16 @@
         @keyframes float { 0% { transform: translateY(0px); opacity: 1; } 100% { transform: translateY(-100px); opacity: 0; } }
         .flow-dot { animation: float 2s ease-in-out infinite; }
         .sidebar-open { transform: translateX(0) !important; }
+        @keyframes pulse-dw {
+            0%,100% { transform: scale(1); opacity: .7 }
+            50%     { transform: scale(1.08); opacity: 1 }
+        }
+        @keyframes flow-line {
+            from { stroke-dashoffset: 80 }  to { stroke-dashoffset: 0 }
+        }
+        .dw-warehouse { animation: pulse-dw 2s ease-in-out infinite }
+        .dw-line      { stroke-dasharray: 80; animation: flow-line 3s linear infinite }
+
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 min-h-screen flex antialiased">
@@ -124,6 +140,11 @@
 
         <section id="step-5" class="step-section hidden"><div class="fade-enter">
             <h2 class="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">5. Curate Your Intelligence Feed</h2>
+            <button id="back-to-chat-btn"
+                    class="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-lg
+                           bg-gray-800 hover:bg-gray-700 text-sm md:text-base">
+                <i data-feather="arrow-left"></i> Back to Chat
+            </button>
             <p class="text-gray-300 max-w-3xl text-base md:text-lg mb-10">A live, auto-refreshing dashboard. Save key insights from your chats to add more.</p>
             <div id="feed-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
             <div class="text-center mt-12"><button id="restart-btn" class="inline-flex items-center gap-3 px-8 py-4 rounded-lg bg-emerald-600 font-semibold text-white hover:bg-emerald-500 shadow-lg"><i data-feather="refresh-cw" class="w-5 h-5"></i>Restart Demo</button></div>
@@ -144,20 +165,23 @@
             ],
             warehouseTypes: ['Google BigQuery', 'Snowflake', 'Amazon Redshift', 'Databricks', 'PostgreSQL'],
             initialConnectionStatusHTML: `
-                <div class="text-center w-full h-full flex flex-col items-center justify-center">
-                    <div class="w-56 h-56 md:w-64 md:h-64 relative">
-                        <svg viewBox="0 0 200 200" class="w-full h-full">
-                            <circle cx="100" cy="100" r="50" fill="none" stroke="#374151" stroke-width="2"/>
-                            <circle cx="100" cy="20" r="8" fill="#10b981"/>
-                            <path d="M100 28 v 52" stroke="#374151" stroke-width="2" stroke-dasharray="4 4"/>
-                            <g class="flow-dot" style="animation-delay: 0s;"><circle cx="100" cy="100" r="4" fill="#10b981"/></g>
-                            <g class="flow-dot" style="animation-delay: 0.5s;"><circle cx="100" cy="100" r="4" fill="#3b82f6"/></g>
-                            <g class="flow-dot" style="animation-delay: 1s;"><circle cx="100" cy="100" r="4" fill="#f97316"/></g>
-                            <g class="flow-dot" style="animation-delay: 1.5s;"><circle cx="100" cy="100" r="4" fill="#8b5cf6"/></g>
-                        </svg>
-                    </div>
-                    <p class="mt-4 text-gray-400">Awaiting connection details...</p>
-                </div>`,
+             <div class="flex flex-col items-center justify-center">
+               <svg viewBox="0 0 200 160" class="w-56 h-56 md:w-64 md:h-64">
+                 <!-- warehouse -->
+                 <rect x="35" y="40" width="130" height="80" rx="10"
+                       fill="#1f2937" stroke="#10b981" stroke-width="3"
+                       class="dw-warehouse" />
+                 <!-- mapping lines -->
+                 <line x1="100" y1="120" x2="20"  y2="150"
+                       stroke="#3b82f6" stroke-width="4" class="dw-line"/>
+                 <line x1="100" y1="120" x2="180" y2="150"
+                       stroke="#f97316" stroke-width="4" class="dw-line"
+                       style="animation-delay:.8s"/>
+               </svg>
+               <p class="mt-4 text-gray-400 text-center leading-snug">
+                  Awaiting connection details…
+               </p>
+             </div>`,
             createNewWizardCardHTML: `
                 <div id="create-new-wizard-card" class="bg-gray-950/30 rounded-2xl p-8 border border-gray-700 border-dashed shadow-xl flex flex-col transform hover:-translate-y-2 transition-transform duration-300 items-center justify-center text-center hover:border-emerald-500 hover:text-emerald-400 cursor-pointer min-h-[280px]">
                     <div class="flex-shrink-0 bg-gray-700/50 text-gray-400 rounded-full h-14 w-14 flex items-center justify-center"><i data-feather="plus" class="w-7 h-7"></i></div>
@@ -526,6 +550,12 @@
 
         /* Setup Functions */
         function setupEventListeners() {
+                qs('#back-to-chat-btn')?.addEventListener('click', () => {
+                    currentStep = 4;   // חזרה למסך הצ’אט
+                    updateUI();
+                    qs('#chat-window')?.focus();      // איכות חיים
+                });
+
             document.body.addEventListener('click', e => {
                 // *** FIX: Added #create-new-wizard-card to the selector ***
                 const target = e.target.closest('button, li.step, tr[data-table-name], .wizard-card, #create-new-wizard-card, #sidebar-backdrop');
