@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,6 +28,8 @@
         .modal-backdrop.visible { opacity: 1; pointer-events: auto; }
         .modal-content { transform: scale(0.95); transition: transform 0.3s ease; }
         .modal-backdrop.visible .modal-content { transform: scale(1); }
+        @keyframes float { 0% { transform: translateY(0px); opacity: 1; } 100% { transform: translateY(-100px); opacity: 0; } }
+        .flow-dot { animation: float 2s ease-in-out infinite; }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 min-h-screen flex antialiased">
@@ -167,7 +168,7 @@
             container.innerHTML = `<table class="w-full text-left text-base"><thead class="text-gray-400 border-b-2 border-gray-700"><tr><th class="p-3">Include</th><th class="p-3">Table Name</th><th class="p-3">Rows</th><th class="p-3">AI Context</th></tr></thead><tbody>` +
             Object.entries(TABLE_DETAILS_DATA).map(([name, table]) => `
                 <tr data-table-name="${name}" class="border-b border-gray-800 hover:bg-gray-800/40 cursor-pointer">
-                    <td class="p-4"><input type="checkbox" ${table.included ? 'checked' : ''} class="h-5 w-5 rounded bg-gray-700 text-emerald-500"></td>
+                    <td class="p-4"><input type="checkbox" ${table.included ? 'checked' : ''} class="h-5 w-5 rounded bg-gray-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-gray-900"></td>
                     <td class="p-4 font-mono text-emerald-300">${name}</td><td class="p-4 font-mono">${table.rows}</td><td class="p-4 text-gray-400">${table.desc.split('.')[0]}.</td>
                 </tr>`).join('') +
             `</tbody></table><div class="text-center mt-6 text-gray-500"><p>Showing ${Object.keys(TABLE_DETAILS_DATA).length} of 287 tables.</p></div>`;
@@ -178,7 +179,7 @@
                 <div class="wizard-card" data-wizard-name="${name}" data-wizard-color="${wizard.color}">
                     <div class="wizard-icon"><i data-feather="${wizard.icon}" class="w-7 h-7"></i></div>
                     <h3 class="text-2xl font-bold mt-6">${name}</h3><p class="text-gray-400 mt-2 flex-grow">${wizard.description}</p>
-                    <div class="wizard-tables">Uses: ${wizard.tables.map(t => `<span class="font-mono">${t}</span>`).join(', ')}</div>
+                    <div class="wizard-tables">Uses: ${wizard.tables.map(t => `<span class="font-mono text-xs bg-gray-700/50 px-2 py-1 rounded-md">${t}</span>`).join(' ')}</div>
                     <button class="wizard-button">Activate & Chat →</button>
                 </div>`).join('') + APP_CONTENT.createNewWizardCardHTML;
         }
@@ -232,11 +233,50 @@
         function showTableDetailsModal(tableName) {
             const tableData = TABLE_DETAILS_DATA[tableName];
             if (!tableData) return;
+
+            const fieldsHtml = tableData.fields ? tableData.fields.map(field => {
+                const valuesHtml = field.values ? `<div class="mt-3 space-y-2">${field.values.map(v => `
+                    <div class="flex items-center text-sm">
+                        <span class="w-2/5 truncate" title="${v.value}">${v.value}</span>
+                        <div class="w-3/5 bg-gray-700 rounded-full h-2.5"><div class="bg-emerald-500 h-2.5 rounded-full" style="width: ${v.pct}%"></div></div>
+                        <span class="text-xs text-gray-500 ml-3 font-mono">${v.pct}%</span>
+                    </div>`).join('')}
+                </div>` : '';
+
+                return `<div class="p-4 rounded-lg bg-gray-800/40">
+                            <div class="flex justify-between items-center">
+                                <code class="font-bold text-cyan-300">${field.name}</code>
+                                <span class="text-xs text-gray-500 font-mono bg-gray-900/50 px-2 py-1 rounded">${field.type}</span>
+                            </div>
+                            <p class="text-sm text-gray-400 mt-1">${field.desc}</p>
+                            ${valuesHtml}
+                        </div>`;
+            }).join('') : '';
+
+            const questionsHtml = tableData.questions ? tableData.questions.map(q => `
+                <li class="flex items-start gap-2">
+                    <i data-feather="message-circle" class="w-4 h-4 mt-1 text-cyan-400 shrink-0"></i>
+                    <span>${q}</span>
+                </li>`).join('') : '';
+
             const content = `<div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-3xl w-full p-8 overflow-y-auto max-h-[90vh]">
-                <div class="flex justify-between items-start"><h3 class="font-mono text-emerald-300 text-2xl font-bold">${tableName}</h3><button class="modal-close-btn text-gray-500 text-3xl">&times;</button></div>
-                <div class="mt-6 space-y-4">
-                    <div><h4 class="font-semibold mb-2 text-lg">AI Description</h4><p class="bg-gray-800/50 p-4 rounded-lg">${tableData.desc}</p></div>
-                    ${tableData.fields ? `<div><h4 class="font-semibold mb-2 text-lg">Field Analysis</h4><div class="space-y-2">${tableData.fields.map(f => `<div class="p-3 bg-gray-800/40 rounded-md"><strong class="font-mono text-cyan-300">${f.name}</strong>: <span class="text-gray-400">${f.desc}</span></div>`).join('')}</div></div>` : ''}
+                <div class="flex justify-between items-start">
+                    <h3 class="font-mono text-emerald-300 text-2xl font-bold">${tableName}</h3>
+                    <button class="modal-close-btn text-gray-500 hover:text-white text-3xl">&times;</button>
+                </div>
+                <div class="mt-8 space-y-6 text-gray-300">
+                    <div>
+                        <h4 class="font-semibold text-lg mb-2 flex items-center gap-2"><i data-feather="info" class="w-5 h-5"></i>AI-Generated Description</h4>
+                        <p class="bg-gray-800/50 p-4 rounded-lg text-gray-400">${tableData.desc}</p>
+                    </div>
+                    ${tableData.questions ? `<div>
+                        <h4 class="font-semibold text-lg mb-2 flex items-center gap-2"><i data-feather="help-circle" class="w-5 h-5"></i>Sample Questions</h4>
+                        <ul class="space-y-2 text-cyan-300 pl-2">${questionsHtml}</ul>
+                    </div>` : ''}
+                    ${tableData.fields ? `<div>
+                        <h4 class="font-semibold text-lg mb-2 flex items-center gap-2"><i data-feather="list" class="w-5 h-5"></i>Field Analysis</h4>
+                        <div class="space-y-4">${fieldsHtml}</div>
+                    </div>` : ''}
                 </div>
             </div>`;
             showModal(content);
@@ -256,23 +296,23 @@
         
         /* Event Handlers */
         const handleSend = (questionOverride = null) => {
-            const question = (questionOverride || qs('#chat-input').value).trim();
+            const question = (questionOverride || qs('#chat-input').value).trim().toLowerCase();
             if (!question) return;
-            addChatMessage(question, 'user');
+            addChatMessage((questionOverride || qs('#chat-input').value).trim(), 'user');
             qs('#chat-input').value = '';
             qs('#send-btn').disabled = true;
 
             setTimeout(() => {
                 const wizard = WIZARD_DATA[selectedWizard];
-                // Improved matching: find if any keyword from the question matches a key in the questionMap
-                const responseKey = Object.keys(wizard.questionMap).find(k => question.toLowerCase().includes(k.toLowerCase())) || Object.keys(wizard.questionMap).find(k => k.split(' ').some(word => question.toLowerCase().includes(word)));
+                // Improved matching: find if question contains the keywords from the map.
+                const responseKey = Object.keys(wizard.questionMap).find(k => k.split(' ').every(key => question.includes(key)));
                 const response = wizard.questionMap[responseKey] || { text: "I'm not sure about that. Please try one of the sample questions for the best experience.", sql: null, chartType: null };
 
                 addChatMessage(`<div class="flex items-center gap-2"><div class="spinner w-4 h-4"></div>Thinking...</div>`, 'ai');
 
                 setTimeout(() => {
                     qs('#chat-window').lastChild.remove();
-                    if(response.sql) addChatMessage(`<p class="text-gray-300 text-sm">Running query:</p><pre class="text-xs mt-2 text-cyan-300 bg-black/30 p-3 rounded-lg">${response.sql}</pre>`, 'ai');
+                    if(response.sql) addChatMessage(`<p class="text-gray-300 text-sm">Running query:</p><pre class="text-xs mt-2 text-cyan-300 bg-black/30 p-3 rounded-lg whitespace-pre-wrap">${response.sql}</pre>`, 'ai');
 
                     setTimeout(() => {
                         if (response.text) addChatMessage(response.text, 'ai');
@@ -322,7 +362,6 @@
                  else if (target.matches('tr[data-table-name]')) { if(e.target.type !== 'checkbox') showTableDetailsModal(target.dataset.tableName); }
              });
             qs('#connect-btn').addEventListener('click', () => {
-                // Simulate connection process
                 const statusContainer = qs('#connection-status-container');
                 statusContainer.innerHTML = `<div class="text-center"><div class="spinner w-16 h-16 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full"></div><p class="mt-4">Connecting & Scanning...</p></div>`;
                 setTimeout(() => {
@@ -378,8 +417,8 @@
                     <button data-type="${item.type}" data-id="${item.id}" class="view-sql-btn hover:text-white"><i data-feather="code"></i></button>
                     <button class="hover:text-white"><i data-feather="refresh-cw"></i></button>
                     <button class="hover:text-white"><i data-feather="share-2"></i></button></div></div>`;
-                if (item.type === 'scorecard') return `<div class="bg-gray-950/30 rounded-2xl p-6 border border-gray-800"><h3>${blueprint.title}</h3><div class="text-5xl font-bold mt-4">${blueprint.value}</div><div class="text-lg ${blueprint.trendColor}">${blueprint.trend}</div>${footer}</div>`;
-                if (item.type === 'chart') return `<div class="bg-gray-950/30 rounded-2xl p-6 border border-gray-800 flex flex-col"><h3>${blueprint.title}</h3><div class="flex-grow mt-4"><canvas id="feed-chart-${item.id}"></canvas></div>${footer}</div>`;
+                if (item.type === 'scorecard') return `<div class="bg-gray-950/30 rounded-2xl p-6 border border-gray-800 flex flex-col justify-between"><div><h3>${blueprint.title}</h3><div class="text-5xl font-bold my-4">${blueprint.value}</div><div class="text-lg ${blueprint.trendColor}">${blueprint.trend}</div></div>${footer}</div>`;
+                if (item.type === 'chart') return `<div class="bg-gray-950/30 rounded-2xl p-6 border border-gray-800 flex flex-col"><h3>${blueprint.title}</h3><div class="flex-grow mt-4 min-h-[200px]"><canvas id="feed-chart-${item.id}"></canvas></div>${footer}</div>`;
             }).join('') || `<div class="col-span-full text-center p-8 bg-gray-950/30 rounded-lg"><p>Your feed is empty. Save insights from the chat to add them here.</p></div>`;
 
             items.forEach(item => {
@@ -410,4 +449,3 @@
     </script>
 </body>
 </html>
-```
