@@ -190,16 +190,31 @@
     
 <script>
 /* ---------- 1. קבוע ה-Loader ------------- */
-const LOADER_HTML = `
+<!-- ---------- 1. קבועי Loader ------------- -->
+<!-- מצב “שקט” – הטבעת + קוביות (ברירת-מחדל) -->
+const LOADER_IDLE_HTML = `
   <div class="w-full h-full flex flex-col items-center justify-center gap-6">
-    <!-- Progress bar -->
-    <div class="loader-bar"><div class="loader-bar-inner"></div></div>
+    <div class="relative flex items-center justify-center">
+      <div class="loader-ring"></div>
+      <div class="absolute flex gap-1">
+        <div class="loader-cube"></div><div class="loader-cube"></div>
+        <div class="loader-cube"></div><div class="loader-cube"></div>
+      </div>
+    </div>
+    <p class="text-gray-400 text-center leading-snug">
+      Waiting to connect…
+    </p>
+  </div>`;
 
-    <!-- טקסט קצר -->
+<!-- מצב “טעינה” – פס התקדמות (יופיע רק אחרי לחיצה על Connect) -->
+const LOADER_PROGRESS_HTML = `
+  <div class="w-full h-full flex flex-col items-center justify-center gap-6">
+    <div class="loader-bar"><div class="loader-bar-inner"></div></div>
     <p class="text-gray-400 text-center leading-snug mt-2">
       Connecting &amp; scanning your warehouse…
     </p>
   </div>`;
+
 
 
   /* ---------- 2. APP_CONTENT (חדש) ---------- */
@@ -221,7 +236,7 @@ const LOADER_HTML = `
     ],
 
     /* מצביע עכשיו על הקבוע שהגדרנו למעלה */
-    initialConnectionStatusHTML: LOADER_HTML,
+    initialConnectionStatusHTML: LOADER_IDLE_HTML,
 
     /* כרטיס “Create New Wizard” */
     createNewWizardCardHTML: `
@@ -641,8 +656,8 @@ const LOADER_HTML = `
             });
 
             qs('#connect-btn').addEventListener('click', () => {
-                const statusContainer = qs('#connection-status-container');
-                statusContainer.innerHTML = LOADER_HTML;
+                 const statusContainer = qs('#connection-status-container');
+                 statusContainer.innerHTML = LOADER_PROGRESS_HTML;   // מציג את הפס-החדש
                 setTimeout(() => {
                     statusContainer.innerHTML = `<div class="text-center text-emerald-400"><i data-feather="check-circle" class="w-16 h-16 mx-auto"></i><p class="mt-2 font-semibold">Success!</p><p class="text-xs text-gray-400">Found 287 tables.</p></div>`;
                     feather.replace();
