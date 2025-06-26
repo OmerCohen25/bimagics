@@ -1,13 +1,12 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BI TikTok Feed</title>
+    <title>BI Vision Feed</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
@@ -30,27 +29,18 @@
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Heebo', sans-serif;
-            background-color: #000;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
             color: var(--text-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
             height: 100vh;
+            width: 100vw;
             overflow: hidden;
         }
 
-        #app-shell {
+        #app-container {
             width: 100%;
             height: 100%;
-            max-width: 450px;
-            max-height: 950px;
-            background-color: var(--background-color);
-            border-radius: 30px;
-            overflow: hidden;
             position: relative;
-            border: 5px solid #333;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.7);
         }
 
         #particles-js {
@@ -65,7 +55,7 @@
             height: 100%;
             overflow-y: scroll;
             scroll-snap-type: y mandatory;
-            -webkit-overflow-scrolling: touch; /* for smooth scrolling on iOS */
+            -webkit-overflow-scrolling: touch;
             z-index: 2;
             position: relative;
         }
@@ -78,7 +68,7 @@
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
-            padding: 20px;
+            padding: 20px 20px 5vh 20px;
             box-sizing: border-box;
             background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.8) 100%);
             opacity: 0;
@@ -103,6 +93,7 @@
         .post-details {
             flex-grow: 1;
             max-width: calc(100% - 70px);
+            margin-right: 15px;
         }
 
         .user-info {
@@ -116,7 +107,7 @@
             height: 50px;
             border-radius: 50%;
             border: 2px solid var(--primary-color);
-            margin-left: 12px;
+            margin-right: 12px;
         }
 
         .user-info .username {
@@ -128,11 +119,11 @@
             font-weight: 300;
             font-size: 1em;
             color: var(--text-muted);
-            margin-right: 5px;
+            margin-left: 5px;
         }
 
         .post-description {
-            font-size: 1em;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
             line-height: 1.5;
         }
         
@@ -177,10 +168,10 @@
         /* Post Content Area */
         .post-main-content {
             position: absolute;
-            top: 10%;
+            top: 8vh;
             left: 5%;
             right: 5%;
-            height: 55%;
+            height: 55vh;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -194,89 +185,49 @@
         }
         
         /* Specific Post Type Styles */
-        
-        /* KPI */
-        .kpi-content {
-            text-align: center;
-        }
-        .kpi-title {
-            font-size: 1.2em;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-        }
-        .kpi-value {
-            font-size: 5em;
-            font-weight: 700;
-            color: var(--primary-color);
-            text-shadow: var(--glow-shadow);
-            line-height: 1;
-        }
-        .kpi-change {
-            font-size: 1.5em;
-            font-weight: 500;
-        }
-        .kpi-change.positive { color: #25d366; }
-        .kpi-change.negative { color: #ff4d4d; }
-        .kpi-change i { margin-left: 5px; }
+        .kpi-content { text-align: center; }
+        .kpi-title { font-size: clamp(1rem, 4vw, 1.2rem); color: var(--text-muted); margin-bottom: 10px; }
+        .kpi-value { font-size: clamp(3.5rem, 15vw, 5rem); font-weight: 700; color: var(--primary-color); text-shadow: var(--glow-shadow); line-height: 1; }
+        .kpi-change { font-size: clamp(1.2rem, 5vw, 1.5rem); font-weight: 500; }
+        .kpi-change.positive { color: var(--like-color); }
+        .kpi-change.negative { color: var(--dislike-color); }
+        .kpi-change i { margin-right: 5px; }
 
-        /* Dashboard Review */
-        .dashboard-content img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            border-radius: 10px;
-            filter: drop-shadow(0 0 15px rgba(0, 242, 234, 0.3));
-        }
+        .dashboard-content img { width: 100%; height: 100%; object-fit: contain; border-radius: 10px; filter: drop-shadow(0 0 15px rgba(0, 242, 234, 0.3)); }
 
-        /* Data Quality Alert */
-        .alert-content {
-            text-align: center;
-            color: #ffcc00;
-        }
-        .alert-content i {
-            font-size: 4em;
-            margin-bottom: 20px;
-            animation: pulse 1.5s infinite;
-        }
-        .alert-title {
-            font-size: 1.5em;
-            font-weight: 700;
-        }
-        .alert-details {
-            font-size: 1em;
-            color: var(--text-color);
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); text-shadow: 0 0 5px #ffcc00; }
-            50% { transform: scale(1.1); text-shadow: 0 0 20px #ffcc00; }
-            100% { transform: scale(1); text-shadow: 0 0 5px #ffcc00; }
-        }
+        .alert-content { text-align: center; color: #ffcc00; }
+        .alert-content i { font-size: 4em; margin-bottom: 20px; animation: pulse 1.5s infinite; }
+        .alert-title { font-size: 1.5em; font-weight: 700; }
+        .alert-details { font-size: 1em; color: var(--text-color); }
+        @keyframes pulse { 0% { transform: scale(1); text-shadow: 0 0 5px #ffcc00; } 50% { transform: scale(1.1); text-shadow: 0 0 20px #ffcc00; } 100% { transform: scale(1); text-shadow: 0 0 5px #ffcc00; } }
 
-        /* Metadata */
-        .metadata-content {
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.5);
-            border-radius: 10px;
-            padding: 15px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.85em;
-        }
-        .metadata-content pre {
-            margin: 0;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
+        .metadata-content { width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); border-radius: 10px; padding: 15px; font-family: 'Courier New', Courier, monospace; font-size: clamp(0.75rem, 2vw, 0.85rem); }
+        .metadata-content pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }
         .metadata-content .sql-keyword { color: var(--secondary-color); }
         .metadata-content .sql-function { color: var(--primary-color); }
         .metadata-content .sql-string { color: #a5ff90; }
         .metadata-content .sql-comment { color: #888; }
+        
+        .svg-chart { width: 100%; height: 100%; }
+        .svg-chart .bar { transition: all 0.5s ease-in-out; }
+        .svg-chart .line { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: draw-line 2s ease-out forwards; }
+        .svg-chart .dot { opacity: 0; animation: fade-in 0.5s ease forwards; }
+        @keyframes draw-line { to { stroke-dashoffset: 0; } }
+        @keyframes fade-in { to { opacity: 1; } }
+
+        /* Landscape Mode Adjustments */
+        @media (orientation: landscape) {
+            .post-content-wrapper { flex-direction: column; align-items: flex-end; justify-content: center; height: 100%; }
+            .actions-sidebar { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); gap: 20px;}
+            .post-details { position: absolute; bottom: 20px; left: 20px; max-width: 60%; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; }
+            .post-main-content { top: 5vh; bottom: 5vh; left: 20px; width: 50%; height: auto; right: auto;}
+        }
+
     </style>
 </head>
 <body>
 
-    <div id="app-shell">
+    <div id="app-container">
         <canvas id="particles-js"></canvas>
         <div id="feed">
             </div>
@@ -286,43 +237,54 @@
         const mockData = [
             {
                 type: 'kpi',
-                user: { name: 'דנה כהן', avatar: 'https://i.pravatar.cc/150?img=1' },
-                actionText: 'עדכנה מדד חדש',
-                description: '<strong>שיעור הנטישה החודשי (Churn Rate)</strong> ירד משמעותית בעקבות קמפיין שימור הלקוחות האחרון. עבודה מעולה לצוות השיווק!',
+                user: { name: 'Dana Cohen', avatar: 'https://i.pravatar.cc/150?img=1' },
+                actionText: 'updated a new KPI',
+                description: '<strong>Monthly Churn Rate</strong> has significantly dropped following the latest customer retention campaign. Great work marketing team!',
                 content: {
                     title: 'Churn Rate (Monthly)',
-                    value: '1.8%',
+                    value: 1.8,
+                    suffix: '%',
                     change: '-0.5%',
-                    changeType: 'positive' // positive change is good here
+                    changeType: 'positive'
                 },
                 stats: { likes: 125, dislikes: 3, comments: 18, shares: 7 }
             },
             {
                 type: 'dashboard_review',
-                user: { name: 'אביב לוי', avatar: 'https://i.pravatar.cc/150?img=2' },
-                actionText: 'מבקש את אישורך לדשבורד',
-                description: 'יצרתי <strong>דשבורד מכירות חדש</strong> לרבעון Q2. הוא כולל פילוח לפי אזורים, מוצרים וערוצי מכירה. אשמח לפידבק לפני ההשקה הרשמית.',
+                user: { name: 'Aviv Levi', avatar: 'https://i.pravatar.cc/150?img=2' },
+                actionText: 'is requesting your approval',
+                description: 'I created a <strong>new sales dashboard</strong> for Q2. It includes breakdowns by region, product, and channel. Feedback is welcome before the official launch.',
                 content: {
-                    imageUrl: 'https://i.imgur.com/8a6VwPa.png' // A placeholder for a dashboard image
+                    imageUrl: 'https://i.imgur.com/gYq8mXF.png'
                 },
                 stats: { likes: 42, dislikes: 1, comments: 9, shares: 2 }
             },
             {
-                type: 'data_quality_alert',
-                user: { name: 'מערכת DataGuard', avatar: 'https://i.pravatar.cc/150?img=3' },
-                actionText: 'התראת איכות נתונים',
-                description: 'זוהתה <strong>אנומליה בטבלת `orders`</strong>. כ-15% מהרשומות מה-24 שעות האחרונות חסרות `customer_id`. יש לבדוק את תהליך ה-ETL בדחיפות.',
+                type: 'forecast_vs_actual',
+                user: { name: 'System AI', avatar: 'https://i.pravatar.cc/150?img=6' },
+                actionText: 'generated a forecast report',
+                description: 'Q2 revenue forecast vs. actual performance. We are currently <strong>trending above projection</strong> by 8%. Let\'s keep the momentum going!',
                 content: {
-                    title: 'ערכים חסרים (NULLs) זוהו',
-                    details: 'טבלה: `fact_orders` | עמודה: `customer_id`'
+                    title: 'Q2 Revenue: Forecast vs. Actual (in millions)',
+                },
+                stats: { likes: 302, dislikes: 5, comments: 41, shares: 15 }
+            },
+            {
+                type: 'data_quality_alert',
+                user: { name: 'DataGuard Bot', avatar: 'https://i.pravatar.cc/150?img=3' },
+                actionText: 'raised a data quality alert',
+                description: 'An <strong>anomaly detected in the `orders` table</strong>. Approx. 15% of records from the last 24 hours are missing the `customer_id`. Please investigate the ETL process urgently.',
+                content: {
+                    title: 'NULL Values Detected',
+                    details: 'Table: `fact_orders` | Column: `customer_id`'
                 },
                 stats: { likes: 5, dislikes: 35, comments: 21, shares: 11 }
             },
             {
                 type: 'metadata',
-                user: { name: 'יוסי שוורץ', avatar: 'https://i.pravatar.cc/150?img=4' },
-                actionText: 'שיתף שאילתה שימושית',
-                description: 'שאילתה מהירה למציאת <strong>5 המוצרים הנמכרים ביותר</strong> בחודש האחרון. כולל חישוב רווח גולמי. מוזמנים להשתמש ולשפר!',
+                user: { name: 'Yossi Schwartz', avatar: 'https://i.pravatar.cc/150?img=4' },
+                actionText: 'shared a useful query',
+                description: 'A quick query to find the <strong>Top 5 selling products</strong> this past month, including gross profit calculation. Feel free to use and improve!',
                 content: {
                     code: `-- Find top 5 selling products last month\n<span class="sql-keyword">SELECT</span>\n    p.product_name,\n    <span class="sql-function">COUNT</span>(o.order_id) <span class="sql-keyword">AS</span> total_orders,\n    <span class="sql-function">SUM</span>(o.price - p.cost) <span class="sql-keyword">AS</span> gross_profit\n<span class="sql-keyword">FROM</span>\n    orders o\n<span class="sql-keyword">JOIN</span>\n    products p <span class="sql-keyword">ON</span> o.product_id = p.id\n<span class="sql-keyword">WHERE</span>\n    o.order_date >= <span class="sql-function">DATE</span>(<span class="sql-string">'now'</span>, <span class="sql-string">'-1 month'</span>)\n<span class="sql-keyword">GROUP BY</span> 1\n<span class="sql-keyword">ORDER BY</span> 3 <span class="sql-keyword">DESC</span>\n<span class="sql-keyword">LIMIT</span> 5;`
                 },
@@ -330,16 +292,55 @@
             },
              {
                 type: 'kpi',
-                user: { name: 'מאיה חדד', avatar: 'https://i.pravatar.cc/150?img=5' },
-                actionText: 'מציגה KPI קריטי',
-                description: '<strong>ערך חיי לקוח (CLV)</strong> עלה ב-12% ברבעון האחרון. נתון מדהים שמצביע על נאמנות לקוחות גוברת. כל הכבוד לצוותי המוצר והשירות!',
+                user: { name: 'Maya Haddad', avatar: 'https://i.pravatar.cc/150?img=5' },
+                actionText: 'is presenting a critical KPI',
+                description: '<strong>Customer Lifetime Value (CLV)</strong> is up 12% this quarter. An incredible result indicating growing customer loyalty. Kudos to the product and service teams!',
                 content: {
                     title: 'Customer Lifetime Value (CLV)',
-                    value: '$842',
+                    value: 842,
+                    prefix: '$',
                     change: '+12%',
                     changeType: 'positive'
                 },
                 stats: { likes: 230, dislikes: 2, comments: 45, shares: 19 }
+            },
+            {
+                type: 'ab_test',
+                user: { name: 'Growth Team', avatar: 'https://i.pravatar.cc/150?img=7' },
+                actionText: 'concluded an A/B test',
+                description: 'The A/B test for the new homepage CTA button is complete. <strong>Variant B (Purple Button)</strong> showed a 23% higher conversion rate with 99% statistical significance. Rolling out to all users now!',
+                content: {
+                    title: 'Homepage CTA Test: Conversion Rate',
+                    variantA: { name: 'Variant A (Blue)', value: 4.2 },
+                    variantB: { name: 'Variant B (Purple)', value: 5.16 }
+                },
+                stats: { likes: 188, dislikes: 1, comments: 33, shares: 14 }
+            },
+             {
+                type: 'geo_insight',
+                user: { name: 'Olivia Chen', avatar: 'https://i.pravatar.cc/150?img=8' },
+                actionText: 'discovered a geospatial trend',
+                description: 'Our new marketing campaign is showing massive engagement in the <strong>Midwest region</strong>, far exceeding expectations. We should consider reallocating budget to capitalize on this trend.',
+                content: {
+                    title: 'Campaign Engagement by Region',
+                    imageUrl: 'https://i.imgur.com/7b2XU2U.png' // Placeholder for a map viz
+                },
+                stats: { likes: 154, dislikes: 3, comments: 28, shares: 9 }
+            },
+             {
+                type: 'nlp_insight',
+                user: { name: 'Data Science Dept.', avatar: 'https://i.pravatar.cc/150?img=9' },
+                actionText: 'extracted insights from text',
+                description: 'NLP analysis on 10,000+ customer reviews from last month reveals the top three mentioned topics: <strong>"fast shipping" (Positive), "UI confusing" (Negative), and "new feature request" (Neutral)</strong>. Actionable insights for Ops and Product teams.',
+                content: {
+                    title: 'Top Themes from Customer Reviews',
+                    themes: [
+                        { name: 'Fast Shipping', sentiment: 'positive', score: 8.7 },
+                        { name: 'UI Confusing', sentiment: 'negative', score: 7.9 },
+                        { name: 'Feature Request', sentiment: 'neutral', score: 8.2 },
+                    ]
+                },
+                stats: { likes: 210, dislikes: 12, comments: 51, shares: 22 }
             }
         ];
 
@@ -351,35 +352,78 @@
                     return `
                         <div class="kpi-content">
                             <div class="kpi-title">${post.content.title}</div>
-                            <div class="kpi-value">${post.content.value}</div>
+                            <div class="kpi-value" data-target-value="${post.content.value}" data-prefix="${post.content.prefix || ''}" data-suffix="${post.content.suffix || ''}">0</div>
                             <div class="kpi-change ${post.content.changeType === 'positive' ? 'positive' : 'negative'}">
                                 ${post.content.change}
                                 <i class="fas ${post.content.changeType === 'positive' ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                 case 'dashboard_review':
-                    return `
-                        <div class="dashboard-content">
-                            <img src="${post.content.imageUrl}" alt="Dashboard Preview">
-                        </div>
-                    `;
+                case 'geo_insight':
+                    return `<div class="dashboard-content"><img src="${post.content.imageUrl}" alt="Dashboard Preview"></div>`;
                 case 'data_quality_alert':
                     return `
                         <div class="alert-content">
                             <i class="fas fa-exclamation-triangle"></i>
                             <div class="alert-title">${post.content.title}</div>
                             <div class="alert-details">${post.content.details}</div>
-                        </div>
-                    `;
+                        </div>`;
                 case 'metadata':
+                    return `<div class="metadata-content"><pre><code>${post.content.code}</code></pre></div>`;
+                case 'ab_test':
+                    const total = post.content.variantA.value + post.content.variantB.value;
+                    const percentA = (post.content.variantA.value / total) * 100;
+                    const percentB = (post.content.variantB.value / total) * 100;
                     return `
-                        <div class="metadata-content">
-                            <pre><code>${post.content.code}</code></pre>
-                        </div>
+                        <div style="width:100%; text-align:center;">
+                            <h3 style="margin:0 0 20px 0; color: var(--text-muted);">${post.content.title}</h3>
+                            <svg class="svg-chart" viewBox="0 0 100 60">
+                                <text x="5" y="10" fill="white" font-size="5">${post.content.variantA.name} (${post.content.variantA.value}%)</text>
+                                <rect class="bar" x="5" y="15" width="${post.content.variantA.value * 10}" height="10" fill="url(#gradBlue)"></rect>
+                                <text x="5" y="38" fill="white" font-size="5">${post.content.variantB.name} (${post.content.variantB.value}%)</text>
+                                <rect class="bar" x="5" y="43" width="${post.content.variantB.value * 10}" height="10" fill="url(#gradPurple)"></rect>
+                                <defs>
+                                    <linearGradient id="gradBlue" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" style="stop-color:#00c6ff;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#0072ff;stop-opacity:1" />
+                                    </linearGradient>
+                                    <linearGradient id="gradPurple" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" style="stop-color:#a044ff;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:${getComputedStyle(document.documentElement).getPropertyValue('--secondary-color').trim()};stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>`;
+                case 'forecast_vs_actual':
+                    return `
+                         <div style="width:100%; text-align:center;">
+                             <h3 style="margin:0 0 10px 0; color: var(--text-muted);">${post.content.title}</h3>
+                             <svg class="svg-chart" viewBox="0 0 100 50">
+                                <line x1="10" y1="40" x2="90" y2="40" stroke="#555" stroke-width="0.5"/>
+                                <line x1="10" y1="5" x2="10" y2="40" stroke="#555" stroke-width="0.5"/>
+                                <path d="M 10 30 L 30 25 L 50 20 L 70 18 L 90 15" stroke="var(--primary-color)" stroke-width="1" fill="none" stroke-dasharray="2,2" opacity="0.7"/>
+                                <text x="12" y="29" fill="var(--primary-color)" font-size="3" opacity="0.7">Forecast</text>
+                                <path class="line" d="M 10 28 L 30 22 L 50 16 L 70 12 L 90 10" stroke="var(--secondary-color)" stroke-width="1.5" fill="none"/>
+                                <text x="12" y="21" fill="var(--secondary-color)" font-size="3">Actual</text>
+                                <circle class="dot" cx="90" cy="10" r="1.5" fill="var(--secondary-color)" style="animation-delay: 2s;"/>
+                             </svg>
+                         </div>
                     `;
-                default:
-                    return '';
+                 case 'nlp_insight':
+                    return `
+                         <div style="width:100%; text-align:left; color: white;">
+                             <h3 style="text-align:center; margin:0 0 15px 0; color: var(--text-muted);">${post.content.title}</h3>
+                             ${post.content.themes.map(theme => `
+                                <div style="display: flex; align-items: center; margin-bottom: 10px; font-size: clamp(0.9rem, 2.5vw, 1rem);">
+                                    <i class="fas ${theme.sentiment === 'positive' ? 'fa-smile' : theme.sentiment === 'negative' ? 'fa-frown' : 'fa-meh'}" style="color: ${theme.sentiment === 'positive' ? 'var(--like-color)' : theme.sentiment === 'negative' ? 'var(--dislike-color)' : '#aaa'}; margin-right: 10px; width: 20px;"></i>
+                                    <span style="flex-grow: 1;">${theme.name}</span>
+                                    <div style="width: 100px; height: 10px; background: #333; border-radius: 5px; overflow: hidden;">
+                                        <div style="width: ${theme.score * 10}%; height: 100%; background: ${theme.sentiment === 'positive' ? 'var(--like-color)' : theme.sentiment === 'negative' ? 'var(--dislike-color)' : 'var(--primary-color)'};"></div>
+                                    </div>
+                                </div>
+                             `).join('')}
+                         </div>`;
+                default: return '';
             }
         }
 
@@ -419,8 +463,7 @@
                             <span>${post.stats.shares}</span>
                         </div>
                     </div>
-                </div>
-            `;
+                </div>`;
             return postElement;
         }
         
@@ -431,23 +474,46 @@
             setupIntersectionObserver();
         }
 
+        function animateCountUp(el) {
+            const targetValue = parseFloat(el.dataset.targetValue);
+            const prefix = el.dataset.prefix || '';
+            const suffix = el.dataset.suffix || '';
+            let currentValue = 0;
+            const duration = 1500; // 1.5 seconds
+            const stepTime = 20;
+            const steps = duration / stepTime;
+            const increment = targetValue / steps;
+            
+            const timer = setInterval(() => {
+                currentValue += increment;
+                if (currentValue >= targetValue) {
+                    currentValue = targetValue;
+                    clearInterval(timer);
+                }
+                // Format number with one decimal place if it's not an integer
+                const displayValue = Number.isInteger(targetValue) ? Math.ceil(currentValue) : currentValue.toFixed(1);
+                el.textContent = prefix + displayValue + suffix;
+            }, stepTime);
+        }
+
         let observer;
         function setupIntersectionObserver() {
-            const options = {
-                root: feed,
-                threshold: 0.5 // Trigger when 50% of the element is visible
-            };
-            
+            const options = { root: feed, threshold: 0.6 };
             if (observer) observer.disconnect();
-
             observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('visible');
-                        // Infinite scroll logic
+                        
+                        // Trigger KPI count-up animation
+                        const kpiValueEl = entry.target.querySelector('.kpi-value');
+                        if (kpiValueEl && !kpiValueEl.classList.contains('animated')) {
+                            animateCountUp(kpiValueEl);
+                            kpiValueEl.classList.add('animated');
+                        }
+
                         if (entry.target === feed.lastElementChild) {
-                           //console.log("Reached the end, loading more posts...");
-                           loadPosts(mockData); // In a real app, fetch new data
+                           loadPosts(mockData);
                         }
                     }
                 });
@@ -457,21 +523,17 @@
             posts.forEach(p => observer.observe(p));
         }
         
-        // Handle like/dislike clicks
         feed.addEventListener('click', (e) => {
             const button = e.target.closest('.action-button');
             if (!button) return;
-
             const action = button.dataset.action;
             if (action === 'like' || action === 'dislike') {
                 const countSpan = button.querySelector('span');
                 let count = parseInt(countSpan.textContent);
-                
                 if (button.classList.contains(action === 'like' ? 'liked' : 'disliked')) {
                     button.classList.remove(action === 'like' ? 'liked' : 'disliked');
                     countSpan.textContent = count - 1;
                 } else {
-                    // Prevent liking and disliking at the same time
                     const oppositeAction = action === 'like' ? 'dislike' : 'like';
                     const oppositeButton = button.parentElement.querySelector(`[data-action="${oppositeAction}"]`);
                     if (oppositeButton.classList.contains(oppositeAction === 'like' ? 'liked' : 'disliked')) {
@@ -479,38 +541,39 @@
                          const oppositeCountSpan = oppositeButton.querySelector('span');
                          oppositeCountSpan.textContent = parseInt(oppositeCountSpan.textContent) - 1;
                     }
-
                     button.classList.add(action === 'like' ? 'liked' : 'disliked');
                     countSpan.textContent = count + 1;
                 }
             }
         });
 
-        // Initial load
         document.addEventListener('DOMContentLoaded', () => {
             loadPosts(mockData);
         });
         
-        // Particles.js for magical background
         const canvas = document.getElementById('particles-js');
         const ctx = canvas.getContext('2d');
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
         let particles = [];
-
-        function createParticle() {
-            const x = Math.random() * canvas.width;
-            const y = Math.random() * canvas.height;
-            const radius = Math.random() * 1.5 + 0.5;
-            const vx = Math.random() * 1 - 0.5;
-            const vy = Math.random() * 1 - 0.5;
-            const opacity = Math.random() * 0.5 + 0.2;
-            const color = Math.random() > 0.5 ? 'var(--primary-color)' : 'var(--secondary-color)';
-            particles.push({ x, y, radius, vx, vy, opacity, color });
+        
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            createParticles(70);
         }
-
-        for (let i = 0; i < 70; i++) {
-            createParticle();
+        
+        function createParticles(count) {
+            particles = [];
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 1.5 + 0.5,
+                    vx: Math.random() * 1 - 0.5,
+                    vy: Math.random() * 1 - 0.5,
+                    opacity: Math.random() * 0.5 + 0.2,
+                    color: Math.random() > 0.5 ? 'var(--primary-color)' : 'var(--secondary-color)'
+                });
+            }
         }
 
         function animateParticles() {
@@ -518,25 +581,21 @@
             particles.forEach(p => {
                 p.x += p.vx;
                 p.y += p.vy;
-
                 if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
                 if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue(p.color.slice(4, -1));
+                const colorValue = getComputedStyle(document.documentElement).getPropertyValue(p.color.slice(4, -1)).trim();
+                ctx.fillStyle = colorValue;
                 ctx.globalAlpha = p.opacity;
                 ctx.fill();
             });
             requestAnimationFrame(animateParticles);
         }
         
+        resizeCanvas();
         animateParticles();
-        window.addEventListener('resize', () => {
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-        });
-
+        window.addEventListener('resize', resizeCanvas);
     </script>
 </body>
 </html>
