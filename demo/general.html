@@ -461,14 +461,14 @@
         }
 
         function showNewWizardModal() {
-            const tablesHtml = Object.keys(TABLE_DETAILS_DATA).map(name => `<label class="flex items-center gap-3"><input type="checkbox" checked class="h-5 w-5 rounded bg-gray-700 text-emerald-500"><span>${name}</span></label>`).join('');
-            showModal(`<div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-xl w-full p-8">
-                <div class="flex justify-between items-center"><h3 class="text-2xl font-bold">Create New Wizard</h3><button class="modal-close-btn text-3xl">&times;</button></div>
+            const tablesHtml = Object.keys(TABLE_DETAILS_DATA).map(name => `<label class="flex items-center gap-3"><input type="checkbox" checked class="h-5 w-5 rounded bg-gray-700 text-emerald-500 focus:ring-emerald-500"><span>${name}</span></label>`).join('');
+            showModal(`<div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-xl w-full p-8 m-4">
+                <div class="flex justify-between items-center"><h3 class="text-2xl font-bold">Create New Wizard</h3><button class="modal-close-btn text-gray-400 hover:text-white text-3xl">&times;</button></div>
                 <div class="mt-6 space-y-4">
-                    <div><label class="block text-sm mb-1">Wizard Name</label><input type="text" value="${APP_CONTENT.newWizardDefaults.name}" class="w-full bg-gray-800 p-2 rounded"></div>
-                    <div><label class="block text-sm mb-1">Expertise (Description)</label><input type="text" value="${APP_CONTENT.newWizardDefaults.expertise}" class="w-full bg-gray-800 p-2 rounded"></div>
-                    <div><label class="block text-sm mb-1">Connected Tables</label><div class="grid grid-cols-2 gap-2 p-3 bg-gray-800/50 rounded">${tablesHtml}</div></div>
-                    <div class="flex justify-end pt-4"><button class="modal-close-btn px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500">Create Wizard</button></div>
+                    <div><label class="block text-sm mb-1 text-gray-400">Wizard Name</label><input type="text" value="${APP_CONTENT.newWizardDefaults.name}" class="w-full bg-gray-800 p-2 rounded border border-gray-700 focus:ring-2 focus:ring-emerald-500"></div>
+                    <div><label class="block text-sm mb-1 text-gray-400">Expertise (Description)</label><input type="text" value="${APP_CONTENT.newWizardDefaults.expertise}" class="w-full bg-gray-800 p-2 rounded border border-gray-700 focus:ring-2 focus:ring-emerald-500"></div>
+                    <div><label class="block text-sm mb-1 text-gray-400">Connected Tables</label><div class="grid grid-cols-2 md:grid-cols-3 gap-3 p-3 bg-gray-800/50 rounded border border-gray-700 max-h-48 overflow-y-auto">${tablesHtml}</div></div>
+                    <div class="flex justify-end pt-4"><button class="modal-close-btn px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 font-semibold">Create Wizard</button></div>
                 </div></div>`);
         }
         
@@ -527,7 +527,8 @@
         /* Setup Functions */
         function setupEventListeners() {
             document.body.addEventListener('click', e => {
-                const target = e.target.closest('button, li.step, tr[data-table-name], .wizard-card, #sidebar-backdrop');
+                // *** FIX: Added #create-new-wizard-card to the selector ***
+                const target = e.target.closest('button, li.step, tr[data-table-name], .wizard-card, #create-new-wizard-card, #sidebar-backdrop');
                 if (!target) return;
                 
                 if (target.matches('[data-next]')) { if(currentStep < totalSteps) currentStep++; updateUI(); }
