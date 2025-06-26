@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>BI TikTok Feed</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #00f2ea;
+            --secondary-color: #ff00ff;
+            --background-color: #0a0a14;
+            --card-background: rgba(20, 20, 40, 0.6);
+            --text-color: #e0e0e0;
+            --text-muted: #a0a0b0;
+            --glow-shadow: 0 0 8px var(--primary-color), 0 0 16px var(--primary-color), 0 0 24px var(--secondary-color);
+            --like-color: #25d366;
+            --dislike-color: #ff4d4d;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Heebo', sans-serif;
+            background-color: #000;
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #app-shell {
+            width: 100%;
+            height: 100%;
+            max-width: 450px;
+            max-height: 950px;
+            background-color: var(--background-color);
+            border-radius: 30px;
+            overflow: hidden;
+            position: relative;
+            border: 5px solid #333;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.7);
+        }
+
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #feed {
+            width: 100%;
+            height: 100%;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            -webkit-overflow-scrolling: touch; /* for smooth scrolling on iOS */
+            z-index: 2;
+            position: relative;
+        }
+
+        .bi-post {
+            width: 100%;
+            height: 100%;
+            scroll-snap-align: start;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 20px;
+            box-sizing: border-box;
+            background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.8) 100%);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        
+        .bi-post.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .post-content-wrapper {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            width: 100%;
+        }
+
+        .post-details {
+            flex-grow: 1;
+            max-width: calc(100% - 70px);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .user-info img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-color);
+            margin-left: 12px;
+        }
+
+        .user-info .username {
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+        
+        .user-info .action-text {
+            font-weight: 300;
+            font-size: 1em;
+            color: var(--text-muted);
+            margin-right: 5px;
+        }
+
+        .post-description {
+            font-size: 1em;
+            line-height: 1.5;
+        }
+        
+        .post-description strong {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .actions-sidebar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .action-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            color: white;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+        
+        .action-button.liked { color: var(--like-color); }
+        .action-button.disliked { color: var(--dislike-color); }
+        
+        .action-button:active {
+            transform: scale(1.2);
+        }
+
+        .action-button i {
+            font-size: 2em;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+        }
+
+        .action-button span {
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+        
+        /* Post Content Area */
+        .post-main-content {
+            position: absolute;
+            top: 10%;
+            left: 5%;
+            right: 5%;
+            height: 55%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            background: var(--card-background);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            box-sizing: border-box;
+            box-shadow: 0 8px 32px 0 rgba(0,0,0,0.37);
+        }
+        
+        /* Specific Post Type Styles */
+        
+        /* KPI */
+        .kpi-content {
+            text-align: center;
+        }
+        .kpi-title {
+            font-size: 1.2em;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+        .kpi-value {
+            font-size: 5em;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-shadow: var(--glow-shadow);
+            line-height: 1;
+        }
+        .kpi-change {
+            font-size: 1.5em;
+            font-weight: 500;
+        }
+        .kpi-change.positive { color: #25d366; }
+        .kpi-change.negative { color: #ff4d4d; }
+        .kpi-change i { margin-left: 5px; }
+
+        /* Dashboard Review */
+        .dashboard-content img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 10px;
+            filter: drop-shadow(0 0 15px rgba(0, 242, 234, 0.3));
+        }
+
+        /* Data Quality Alert */
+        .alert-content {
+            text-align: center;
+            color: #ffcc00;
+        }
+        .alert-content i {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: pulse 1.5s infinite;
+        }
+        .alert-title {
+            font-size: 1.5em;
+            font-weight: 700;
+        }
+        .alert-details {
+            font-size: 1em;
+            color: var(--text-color);
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); text-shadow: 0 0 5px #ffcc00; }
+            50% { transform: scale(1.1); text-shadow: 0 0 20px #ffcc00; }
+            100% { transform: scale(1); text-shadow: 0 0 5px #ffcc00; }
+        }
+
+        /* Metadata */
+        .metadata-content {
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85em;
+        }
+        .metadata-content pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .metadata-content .sql-keyword { color: var(--secondary-color); }
+        .metadata-content .sql-function { color: var(--primary-color); }
+        .metadata-content .sql-string { color: #a5ff90; }
+        .metadata-content .sql-comment { color: #888; }
+    </style>
+</head>
+<body>
+
+    <div id="app-shell">
+        <canvas id="particles-js"></canvas>
+        <div id="feed">
+            </div>
+    </div>
+
+    <script>
+        const mockData = [
+            {
+                type: 'kpi',
+                user: { name: 'דנה כהן', avatar: 'https://i.pravatar.cc/150?img=1' },
+                actionText: 'עדכנה מדד חדש',
+                description: '<strong>שיעור הנטישה החודשי (Churn Rate)</strong> ירד משמעותית בעקבות קמפיין שימור הלקוחות האחרון. עבודה מעולה לצוות השיווק!',
+                content: {
+                    title: 'Churn Rate (Monthly)',
+                    value: '1.8%',
+                    change: '-0.5%',
+                    changeType: 'positive' // positive change is good here
+                },
+                stats: { likes: 125, dislikes: 3, comments: 18, shares: 7 }
+            },
+            {
+                type: 'dashboard_review',
+                user: { name: 'אביב לוי', avatar: 'https://i.pravatar.cc/150?img=2' },
+                actionText: 'מבקש את אישורך לדשבורד',
+                description: 'יצרתי <strong>דשבורד מכירות חדש</strong> לרבעון Q2. הוא כולל פילוח לפי אזורים, מוצרים וערוצי מכירה. אשמח לפידבק לפני ההשקה הרשמית.',
+                content: {
+                    imageUrl: 'https://i.imgur.com/8a6VwPa.png' // A placeholder for a dashboard image
+                },
+                stats: { likes: 42, dislikes: 1, comments: 9, shares: 2 }
+            },
+            {
+                type: 'data_quality_alert',
+                user: { name: 'מערכת DataGuard', avatar: 'https://i.pravatar.cc/150?img=3' },
+                actionText: 'התראת איכות נתונים',
+                description: 'זוהתה <strong>אנומליה בטבלת `orders`</strong>. כ-15% מהרשומות מה-24 שעות האחרונות חסרות `customer_id`. יש לבדוק את תהליך ה-ETL בדחיפות.',
+                content: {
+                    title: 'ערכים חסרים (NULLs) זוהו',
+                    details: 'טבלה: `fact_orders` | עמודה: `customer_id`'
+                },
+                stats: { likes: 5, dislikes: 35, comments: 21, shares: 11 }
+            },
+            {
+                type: 'metadata',
+                user: { name: 'יוסי שוורץ', avatar: 'https://i.pravatar.cc/150?img=4' },
+                actionText: 'שיתף שאילתה שימושית',
+                description: 'שאילתה מהירה למציאת <strong>5 המוצרים הנמכרים ביותר</strong> בחודש האחרון. כולל חישוב רווח גולמי. מוזמנים להשתמש ולשפר!',
+                content: {
+                    code: `-- Find top 5 selling products last month\n<span class="sql-keyword">SELECT</span>\n    p.product_name,\n    <span class="sql-function">COUNT</span>(o.order_id) <span class="sql-keyword">AS</span> total_orders,\n    <span class="sql-function">SUM</span>(o.price - p.cost) <span class="sql-keyword">AS</span> gross_profit\n<span class="sql-keyword">FROM</span>\n    orders o\n<span class="sql-keyword">JOIN</span>\n    products p <span class="sql-keyword">ON</span> o.product_id = p.id\n<span class="sql-keyword">WHERE</span>\n    o.order_date >= <span class="sql-function">DATE</span>(<span class="sql-string">'now'</span>, <span class="sql-string">'-1 month'</span>)\n<span class="sql-keyword">GROUP BY</span> 1\n<span class="sql-keyword">ORDER BY</span> 3 <span class="sql-keyword">DESC</span>\n<span class="sql-keyword">LIMIT</span> 5;`
+                },
+                stats: { likes: 98, dislikes: 0, comments: 12, shares: 25 }
+            },
+             {
+                type: 'kpi',
+                user: { name: 'מאיה חדד', avatar: 'https://i.pravatar.cc/150?img=5' },
+                actionText: 'מציגה KPI קריטי',
+                description: '<strong>ערך חיי לקוח (CLV)</strong> עלה ב-12% ברבעון האחרון. נתון מדהים שמצביע על נאמנות לקוחות גוברת. כל הכבוד לצוותי המוצר והשירות!',
+                content: {
+                    title: 'Customer Lifetime Value (CLV)',
+                    value: '$842',
+                    change: '+12%',
+                    changeType: 'positive'
+                },
+                stats: { likes: 230, dislikes: 2, comments: 45, shares: 19 }
+            }
+        ];
+
+        const feed = document.getElementById('feed');
+
+        function createPostContent(post) {
+            switch (post.type) {
+                case 'kpi':
+                    return `
+                        <div class="kpi-content">
+                            <div class="kpi-title">${post.content.title}</div>
+                            <div class="kpi-value">${post.content.value}</div>
+                            <div class="kpi-change ${post.content.changeType === 'positive' ? 'positive' : 'negative'}">
+                                ${post.content.change}
+                                <i class="fas ${post.content.changeType === 'positive' ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
+                            </div>
+                        </div>
+                    `;
+                case 'dashboard_review':
+                    return `
+                        <div class="dashboard-content">
+                            <img src="${post.content.imageUrl}" alt="Dashboard Preview">
+                        </div>
+                    `;
+                case 'data_quality_alert':
+                    return `
+                        <div class="alert-content">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div class="alert-title">${post.content.title}</div>
+                            <div class="alert-details">${post.content.details}</div>
+                        </div>
+                    `;
+                case 'metadata':
+                    return `
+                        <div class="metadata-content">
+                            <pre><code>${post.content.code}</code></pre>
+                        </div>
+                    `;
+                default:
+                    return '';
+            }
+        }
+
+        function createPostElement(post) {
+            const postElement = document.createElement('div');
+            postElement.className = 'bi-post';
+            postElement.innerHTML = `
+                <div class="post-main-content">
+                    ${createPostContent(post)}
+                </div>
+                <div class="post-content-wrapper">
+                    <div class="post-details">
+                        <div class="user-info">
+                            <img src="${post.user.avatar}" alt="${post.user.name}">
+                            <div>
+                                <span class="username">${post.user.name}</span>
+                                <span class="action-text">${post.actionText}</span>
+                            </div>
+                        </div>
+                        <p class="post-description">${post.description}</p>
+                    </div>
+                    <div class="actions-sidebar">
+                        <div class="action-button" data-action="like">
+                            <i class="fas fa-thumbs-up"></i>
+                            <span data-count="likes">${post.stats.likes}</span>
+                        </div>
+                        <div class="action-button" data-action="dislike">
+                            <i class="fas fa-thumbs-down"></i>
+                            <span data-count="dislikes">${post.stats.dislikes}</span>
+                        </div>
+                        <div class="action-button">
+                            <i class="fas fa-comment-dots"></i>
+                            <span>${post.stats.comments}</span>
+                        </div>
+                        <div class="action-button">
+                            <i class="fas fa-share"></i>
+                            <span>${post.stats.shares}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return postElement;
+        }
+        
+        function loadPosts(postsToLoad) {
+            postsToLoad.forEach(post => {
+                feed.appendChild(createPostElement(post));
+            });
+            setupIntersectionObserver();
+        }
+
+        let observer;
+        function setupIntersectionObserver() {
+            const options = {
+                root: feed,
+                threshold: 0.5 // Trigger when 50% of the element is visible
+            };
+            
+            if (observer) observer.disconnect();
+
+            observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        // Infinite scroll logic
+                        if (entry.target === feed.lastElementChild) {
+                           //console.log("Reached the end, loading more posts...");
+                           loadPosts(mockData); // In a real app, fetch new data
+                        }
+                    }
+                });
+            }, options);
+
+            const posts = document.querySelectorAll('.bi-post');
+            posts.forEach(p => observer.observe(p));
+        }
+        
+        // Handle like/dislike clicks
+        feed.addEventListener('click', (e) => {
+            const button = e.target.closest('.action-button');
+            if (!button) return;
+
+            const action = button.dataset.action;
+            if (action === 'like' || action === 'dislike') {
+                const countSpan = button.querySelector('span');
+                let count = parseInt(countSpan.textContent);
+                
+                if (button.classList.contains(action === 'like' ? 'liked' : 'disliked')) {
+                    button.classList.remove(action === 'like' ? 'liked' : 'disliked');
+                    countSpan.textContent = count - 1;
+                } else {
+                    // Prevent liking and disliking at the same time
+                    const oppositeAction = action === 'like' ? 'dislike' : 'like';
+                    const oppositeButton = button.parentElement.querySelector(`[data-action="${oppositeAction}"]`);
+                    if (oppositeButton.classList.contains(oppositeAction === 'like' ? 'liked' : 'disliked')) {
+                         oppositeButton.classList.remove(oppositeAction === 'like' ? 'liked' : 'disliked');
+                         const oppositeCountSpan = oppositeButton.querySelector('span');
+                         oppositeCountSpan.textContent = parseInt(oppositeCountSpan.textContent) - 1;
+                    }
+
+                    button.classList.add(action === 'like' ? 'liked' : 'disliked');
+                    countSpan.textContent = count + 1;
+                }
+            }
+        });
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPosts(mockData);
+        });
+        
+        // Particles.js for magical background
+        const canvas = document.getElementById('particles-js');
+        const ctx = canvas.getContext('2d');
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        let particles = [];
+
+        function createParticle() {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height;
+            const radius = Math.random() * 1.5 + 0.5;
+            const vx = Math.random() * 1 - 0.5;
+            const vy = Math.random() * 1 - 0.5;
+            const opacity = Math.random() * 0.5 + 0.2;
+            const color = Math.random() > 0.5 ? 'var(--primary-color)' : 'var(--secondary-color)';
+            particles.push({ x, y, radius, vx, vy, opacity, color });
+        }
+
+        for (let i = 0; i < 70; i++) {
+            createParticle();
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue(p.color.slice(4, -1));
+                ctx.globalAlpha = p.opacity;
+                ctx.fill();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        
+        animateParticles();
+        window.addEventListener('resize', () => {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        });
+
+    </script>
+</body>
+</html>
