@@ -138,7 +138,8 @@
         let currentStep = 1;
         const totalSteps = APP_CONTENT.progressSteps.length;
         let charts = {};
-        let savedFeedItems = [];
+        // CHANGE: Rename savedFeedItems to feedItems and initialize it with prepopulated data.
+        let feedItems = []; 
         let selectedWizard = Object.keys(WIZARD_DATA)[0];
 
         /* Query Selectors */
@@ -205,8 +206,14 @@
                 activeSection.classList.remove('hidden');
                 setTimeout(() => activeSection.querySelector('.fade-enter')?.classList.add('fade-enter-active'), 50);
             }
-            if (currentStep !== 5) destroyAllCharts();
-            if (currentStep === 5) renderFeed();
+            // CHANGE: Only destroy charts if we are NOT going to step 5.
+            if (currentStep !== 5) {
+                destroyAllCharts();
+            }
+            // Always call renderFeed at step 5
+            if (currentStep === 5) {
+                renderFeed();
+            }
             if (currentStep === 3) styleWizardCards();
             if (currentStep === 4) updateWizardUI();
             feather.replace();
@@ -304,7 +311,6 @@
 
             setTimeout(() => {
                 const wizard = WIZARD_DATA[selectedWizard];
-                // Improved matching: find if question contains the keywords from the map.
                 const responseKey = Object.keys(wizard.questionMap).find(k => k.split(' ').every(key => question.includes(key)));
                 const response = wizard.questionMap[responseKey] || { text: "I'm not sure about that. Please try one of the sample questions for the best experience.", sql: null, chartType: null };
 
@@ -354,8 +360,9 @@
                  else if (target.matches('.view-sql-btn')) { const {type, id} = target.dataset; showSQLModal(feedBlueprints[type]?.[id]?.sql); }
                  else if (target.matches('.save-feed-btn')) {
                      const metaData = JSON.parse(target.dataset.saveFeed);
-                     if (!savedFeedItems.some(item => item.id === metaData.id && item.type === metaData.type)) {
-                        savedFeedItems.push(metaData);
+                     // CHANGE: Push to the main feedItems array and ensure no duplicates
+                     if (!feedItems.some(item => item.id === metaData.id && item.type === metaData.type)) {
+                        feedItems.push(metaData);
                      }
                      target.innerHTML = `<i data-feather="check" class="w-4 h-4"></i> Saved!`; target.disabled = true; feather.replace();
                  } else if (target.matches('li.step')) { currentStep = +target.dataset.step; updateUI(); }
@@ -408,10 +415,11 @@
         }
 
         function renderFeed() {
-            const items = [...PREPOPULATED_FEED_ITEMS, ...savedFeedItems].filter((v,i,a)=>a.findIndex(t=>(t.id === v.id && t.type===v.type))===i);
+            // CHANGE: Directly use the feedItems array. Filter for duplicates before rendering.
+            const uniqueFeedItems = feedItems.filter((v,i,a) => a.findIndex(t=>(t.id === v.id && t.type===v.type)) === i);
             const feedGrid = qs('#feed-grid');
 
-            feedGrid.innerHTML = items.map(item => {
+            feedGrid.innerHTML = uniqueFeedItems.map(item => {
                 const blueprint = feedBlueprints[item.type]?.[item.id]; if (!blueprint) return '';
                 const footer = `<div class="text-xs text-gray-500 mt-4 pt-3 border-t border-white/10 flex justify-between items-center"><span>Updated: Just now</span><div class="flex gap-2">
                     <button data-type="${item.type}" data-id="${item.id}" class="view-sql-btn hover:text-white"><i data-feather="code"></i></button>
@@ -419,12 +427,16 @@
                     <button class="hover:text-white"><i data-feather="share-2"></i></button></div></div>`;
                 if (item.type === 'scorecard') return `<div class="bg-gray-950/30 rounded-2xl p-6 border border-gray-800 flex flex-col justify-between"><div><h3>${blueprint.title}</h3><div class="text-5xl font-bold my-4">${blueprint.value}</div><div class="text-lg ${blueprint.trendColor}">${blueprint.trend}</div></div>${footer}</div>`;
                 if (item.type === 'chart') return `<div class="bg-gray-950/30 rounded-2xl p-6 border border-gray-800 flex flex-col"><h3>${blueprint.title}</h3><div class="flex-grow mt-4 min-h-[200px]"><canvas id="feed-chart-${item.id}"></canvas></div>${footer}</div>`;
-            }).join('') || `<div class="col-span-full text-center p-8 bg-gray-950/30 rounded-lg"><p>Your feed is empty. Save insights from the chat to add them here.</p></div>`;
+            }).join('') || `<div class="col-span-full text-center p-8 bg-gray-950/30 rounded-lg border border-dashed border-gray-700"><p class="text-gray-400">Your feed is empty. Save insights from the chat to add them here.</p></div>`;
 
-            items.forEach(item => {
+            uniqueFeedItems.forEach(item => {
                 if (item.type === 'chart') {
-                    const bp = feedBlueprints.charts[item.id], ctx = qs(`#feed-chart-${item.id}`)?.getContext('2d');
-                    if (ctx) charts[`feed-${item.id}`] = new Chart(ctx, { type: bp.type, data: JSON.parse(JSON.stringify(bp.data)), options: bp.options });
+                    const chartId = `feed-chart-${item.id}`;
+                    // Destroy existing chart if it exists before re-rendering
+                    if(charts[chartId]) charts[chartId].destroy();
+
+                    const bp = feedBlueprints.charts[item.id], ctx = qs(`#${chartId}`)?.getContext('2d');
+                    if (ctx) charts[chartId] = new Chart(ctx, { type: bp.type, data: JSON.parse(JSON.stringify(bp.data)), options: bp.options });
                 }
             });
             feather.replace();
@@ -432,9 +444,14 @@
 
         /* Initialization and Reset */
         function resetDemo() {
-            destroyAllCharts(); currentStep = 1; savedFeedItems = [];
-            selectedWizard = Object.keys(WIZARD_DATA)[0]; qs('#chat-window').innerHTML = '';
-            qs('#connect-form').reset(); qs('#connection-status-container').innerHTML = APP_CONTENT.initialConnectionStatusHTML;
+            destroyAllCharts(); 
+            currentStep = 1; 
+            // CHANGE: Reset the feedItems array to a copy of the prepopulated items.
+            feedItems = [...PREPOPULATED_FEED_ITEMS]; 
+            selectedWizard = Object.keys(WIZARD_DATA)[0]; 
+            qs('#chat-window').innerHTML = '';
+            qs('#connect-form').reset(); 
+            qs('#connection-status-container').innerHTML = APP_CONTENT.initialConnectionStatusHTML;
             updateUI();
         }
 
