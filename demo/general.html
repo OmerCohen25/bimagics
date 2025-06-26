@@ -274,9 +274,9 @@
             }
         };
 
-        // Blueprints for generating charts and scorecards
+        // Blueprints for generating chart and scorecards
         const feedBlueprints = {
-            charts: {
+            chart: {
                 arr: { title: 'Quarterly ARR Trend', type: 'line', sql: WIZARD_DATA['Revenue Analyst'].questionMap['arr'].sql, data: { labels: ["Q1 '24", "Q2 '24", "Q3 '24", "Q4 '24"], datasets: [{ data: [1.2, 1.5, 1.4, 1.8], borderColor: '#10b981', tension: 0.4, fill: true }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }}, scales: { y: { ticks: { callback: v => `$${v}M` }}}}},
                 segments: { title: 'Revenue by Customer Segment', type: 'doughnut', sql: WIZARD_DATA['Revenue Analyst'].questionMap['segments'].sql, data: { labels: ['SaaS', 'E-commerce', 'Fintech', 'Healthcare', 'Other'], datasets: [{ data: [45, 25, 15, 10, 5], backgroundColor: ['#3b82f6', '#10b981', '#f97316', '#8b5cf6', '#64748b'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } }}}},
                 featureFunnel: { title: 'Feature Adoption Funnel', type: 'bar', sql: WIZARD_DATA['Product Analyst'].questionMap['funnel'].sql, data: { labels: ['View Page', 'Click "Try"', 'Configure', 'Save'], datasets: [{ data: [15210, 9870, 4120, 2050], backgroundColor: ['#3b82f6', '#10b981', '#f97316', '#8b5cf6'] }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }}, scales: { x: { ticks: { callback: v => `${(v/1000).toFixed(0)}k` }}} } }
@@ -294,9 +294,9 @@
             { type: 'scorecard', id: 'aov' },
             { type: 'scorecard', id: 'newUsers' },
             { type: 'scorecard', id: 'dau' },
-            { type: 'charts', id: 'arr' },
-            { type: 'charts', id: 'segments' },
-            { type: 'charts', id: 'featureFunnel' },
+            { type: 'chart', id: 'arr' },
+            { type: 'chart', id: 'segments' },
+            { type: 'chart', id: 'featureFunnel' },
         ];
     </script>
 
@@ -310,7 +310,7 @@
         /* State Management */
         let currentStep = 1;
         const totalSteps = APP_CONTENT.progressSteps.length;
-        let charts = {};
+        let chart = {};
         let feedItems = []; 
         let selectedWizard = Object.keys(WIZARD_DATA)[0];
 
@@ -319,9 +319,9 @@
         const qsa = s => [...document.querySelectorAll(s)];
         
         /* Helper Functions */
-        function destroyAllCharts() {
-            Object.values(charts).forEach(chart => chart?.destroy());
-            charts = {};
+        function destroyAllchart() {
+            Object.values(chart).forEach(chart => chart?.destroy());
+            chart = {};
         }
 
         /* UI Population & Rendering */
@@ -382,7 +382,7 @@
                 setTimeout(() => activeSection.querySelector('.fade-enter')?.classList.add('fade-enter-active'), 50);
             }
             if (currentStep !== 5) {
-                destroyAllCharts();
+                destroyAllchart();
             }
             if (currentStep === 5) renderFeed();
             if (currentStep === 3) styleWizardCards();
@@ -496,13 +496,13 @@
                     setTimeout(() => {
                         if (response.text) addChatMessage(response.text, 'ai');
                         if (response.chartType) {
-                            const blueprint = feedBlueprints.charts[response.chartType];
+                            const blueprint = feedBlueprints.chart[response.chartType];
                             if (blueprint) {
                                 const chartId = `chart-${Date.now()}`;
                                 const meta = { type: 'chart', id: response.chartType };
                                 addChatMessage(`Here's a chart for "${blueprint.title}": <div class="h-64 w-full bg-gray-800/50 p-4 rounded-lg mt-3"><canvas id="${chartId}"></canvas></div>`, 'ai', meta);
                                 const ctx = qs(`#${chartId}`).getContext('2d');
-                                charts[chartId] = new Chart(ctx, { type: blueprint.type, data: JSON.parse(JSON.stringify(blueprint.data)), options: blueprint.options });
+                                chart[chartId] = new Chart(ctx, { type: blueprint.type, data: JSON.parse(JSON.stringify(blueprint.data)), options: blueprint.options });
                             }
                         }
                         qs('#send-btn').disabled = false;
@@ -622,10 +622,10 @@
             uniqueFeedItems.forEach(item => {
                 if (item.type === 'chart') {
                     const chartId = `feed-chart-${item.id}`;
-                    if(charts[chartId]) charts[chartId].destroy();
+                    if(chart[chartId]) chart[chartId].destroy();
 
-                    const bp = feedBlueprints.charts[item.id], ctx = qs(`#${chartId}`)?.getContext('2d');
-                    if (ctx) charts[chartId] = new Chart(ctx, { type: bp.type, data: JSON.parse(JSON.stringify(bp.data)), options: bp.options });
+                    const bp = feedBlueprints.chart[item.id], ctx = qs(`#${chartId}`)?.getContext('2d');
+                    if (ctx) chart[chartId] = new Chart(ctx, { type: bp.type, data: JSON.parse(JSON.stringify(bp.data)), options: bp.options });
                 }
             });
             feather.replace();
@@ -633,7 +633,7 @@
 
         /* Initialization and Reset */
         function resetDemo() {
-            destroyAllCharts(); 
+            destroyAllchart(); 
             currentStep = 1; 
             feedItems = [...PREPOPULATED_FEED_ITEMS];
             selectedWizard = Object.keys(WIZARD_DATA)[0]; 
