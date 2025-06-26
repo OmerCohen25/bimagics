@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BI Magics ▸ Interactive Demo</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+    
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Custom scrollbar for a polished look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111827;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+        /* Enhanced fade-in animation */
+        .fade-enter {
+            opacity: 0;
+            transform: translateY(25px);
+        }
+        .fade-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.5s cubic-bezier(0.215, 0.610, 0.355, 1), transform 0.5s cubic-bezier(0.215, 0.610, 0.355, 1);
+        }
+        /* Keyframes for loading/success animation */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes draw-check {
+            0% { stroke-dashoffset: 30; }
+            100% { stroke-dashoffset: 0; }
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        .check {
+            stroke-dasharray: 30;
+            stroke-dashoffset: 30;
+            animation: draw-check 0.3s ease-out forwards;
+        }
+        
+        /* Styling for Chart.js tooltips */
+        .chartjs-tooltip {
+            background: rgba(31, 41, 55, 0.8);
+            backdrop-filter: blur(4px);
+            border-radius: 0.5rem;
+            color: white;
+            padding: 0.5rem 0.75rem;
+            pointer-events: none;
+            position: absolute;
+            transform: translate(-50%, -100%);
+            transition: all 0.2s ease;
+        }
+        /* Styling for Modals */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-backdrop.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            transform: scale(0.95);
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal-backdrop.visible .modal-content {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 min-h-screen flex antialiased">
+    <aside class="w-64 xl:w-72 shrink-0 bg-gray-950/70 backdrop-blur-xl p-8 hidden md:flex flex-col">
+        <div>
+            <h1 class="text-2xl xl:text-3xl font-black tracking-tight leading-snug flex items-center gap-2">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-emerald-400"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                BI Magics
+            </h1>
+            <p class="text-sm text-gray-400 mt-2 mb-10">From raw data to critical insight in 5 steps.</p>
+        </div>
+        <ol id="progress" class="space-y-6 select-none">
+            <li data-step="1" class="step group flex items-center cursor-pointer">
+                <span class="step-number w-9 h-9 flex items-center justify-center rounded-full border-2 border-gray-700 transition-all duration-300">1</span>
+                <span class="ml-4 group-hover:text-emerald-300 transition-colors">Connect Warehouse</span>
+            </li>
+            <li data-step="2" class="step group flex items-center cursor-pointer">
+                <span class="step-number w-9 h-9 flex items-center justify-center rounded-full border-2 border-gray-700 transition-all duration-300">2</span>
+                <span class="ml-4 group-hover:text-emerald-300 transition-colors">Map Tables</span>
+            </li>
+            <li data-step="3" class="step group flex items-center cursor-pointer">
+                <span class="step-number w-9 h-9 flex items-center justify-center rounded-full border-2 border-gray-700 transition-all duration-300">3</span>
+                <span class="ml-4 group-hover:text-emerald-300 transition-colors">Create Wizards</span>
+            </li>
+            <li data-step="4" class="step group flex items-center cursor-pointer">
+                <span class="step-number w-9 h-9 flex items-center justify-center rounded-full border-2 border-gray-700 transition-all duration-300">4</span>
+                <span class="ml-4 group-hover:text-emerald-300 transition-colors">Chat with Data</span>
+            </li>
+            <li data-step="5" class="step group flex items-center cursor-pointer">
+                <span class="step-number w-9 h-9 flex items-center justify-center rounded-full border-2 border-gray-700 transition-all duration-300">5</span>
+                <span class="ml-4 group-hover:text-emerald-300 transition-colors">Build Feed</span>
+            </li>
+        </ol>
+        <div class="mt-auto text-center text-gray-500 text-xs">
+            <p>&copy; 2025 BI Magics, Inc.</p>
+            <p class="mt-1">A new era of business intelligence.</p>
+        </div>
+    </aside>
+    <main class="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-12 xl:p-16">
+        
+        <section id="step-1" class="step-section space-y-8">
+            <div class="fade-enter">
+                <h2 class="text-5xl font-extrabold mb-4 tracking-tight">1. Connect your Data Warehouse</h2>
+                <p class="text-gray-300 max-w-2xl text-lg">Securely connect to your data source. We use read-only access and never copy your data. Zero-copy, zero-hassle.</p>
+                <div class="mt-10 grid lg:grid-cols-2 gap-12">
+                    <form id="connect-form" class="space-y-6 bg-gray-950/30 rounded-2xl p-8 border border-gray-800 shadow-2xl">
+                        <div>
+                             <label class="block text-sm font-medium text-gray-400 mb-2 flex items-center gap-2" for="wh-type">
+                                <span id="wh-icon-label">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                </span>
+                                <span>Warehouse Type</span>
+                            </label>
+                            <select id="wh-type" class="w-full text-base rounded-lg bg-gray-800 border-gray-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 px-4 py-3">
+                                <option value="bigquery">Google BigQuery</option>
+                                <option value="snowflake">Snowflake</option>
+                                <option value="redshift">Amazon Redshift</option>
+                                <option value="databricks">Databricks</option>
+                                <option value="postgres">PostgreSQL</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2" for="conn-string">Project ID / Host</label>
+                            <input id="conn-string" type="text" value="acme-corp-production" class="w-full text-base rounded-lg bg-gray-800 border-gray-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 px-4 py-3" />
+                        </div>
+                         <div>
+                            <button type="button" id="toggle-optional-btn" class="text-sm text-gray-400 hover:text-emerald-300">Show optional settings ▼</button>
+                            <div id="optional-settings" class="hidden mt-4 space-y-6">
+                                <label class="block text-sm font-medium text-gray-400 mb-2" for="incremental">Primary Timestamp Column</label>
+                                <input id="incremental" type="text" value="updated_at" class="w-full text-base rounded-lg bg-gray-800 border-gray-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 px-4 py-3" />
+                            </div>
+                        </div>
+                        <button type="button" id="connect-btn" class="w-full py-4 rounded-lg bg-emerald-600 font-semibold text-white hover:bg-emerald-500 transition-all duration-300 shadow-lg shadow-emerald-900/50 flex items-center justify-center gap-3">
+                            <i data-feather="zap" class="w-5 h-5"></i>
+                            <span>Connect & Scan Schema</span>
+                        </button>
+                        <div class="text-center mt-2">
+                            <span class="text-xs text-gray-500">≈ 350 rows scanned • Demo-scale ready</span>
+                        </div>
+                    </form>
+                    <div class="flex items-center justify-center p-8 bg-gray-950/30 rounded-2xl border border-gray-800">
+                        <div id="connection-status" class="text-center">
+                             <img src="https://storage.googleapis.com/gemini-prod-us-west1-assets/images/cb_2_light.gif" alt="Data flowing animation" class="max-h-72 object-contain" />
+                             <p class="mt-4 text-gray-400">Awaiting connection details...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section id="step-2" class="step-section hidden space-y-8">
+            <div class="fade-enter">
+                <h2 class="text-5xl font-extrabold mb-4 tracking-tight">2. Map Tables & Context</h2>
+                <p class="text-gray-300 max-w-3xl text-lg">Our AI has scanned your schema and suggested relevant tables. Review and confirm the tables you want to make available for analysis. Click any row for more details.</p>
+                <div class="mt-10 bg-gray-950/30 rounded-2xl border border-gray-800 shadow-2xl overflow-hidden">
+                    <div class="p-8">
+                        <table class="w-full text-left text-base" id="map-tables-table">
+                            <thead class="text-gray-400 border-b-2 border-gray-700">
+                                <tr>
+                                    <th class="py-3 pr-4 font-semibold w-16">Include</th>
+                                    <th class="py-3 px-4 font-semibold">Table Name</th>
+                                    <th class="py-3 px-4 font-semibold">Rows</th>
+                                    <th class="py-3 px-4 font-semibold">AI-Generated Context</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr data-table-name="fct_orders" class="border-b border-gray-800 hover:bg-gray-800/40 transition-colors cursor-pointer">
+                                    <td class="py-4 pr-4"><input type="checkbox" checked class="h-5 w-5 rounded bg-gray-700 border-gray-600 text-emerald-500 focus:ring-emerald-600"></td>
+                                    <td class="py-4 px-4 font-mono text-emerald-300">fct_orders</td>
+                                    <td class="py-4 px-4 font-mono">5.3 M</td>
+                                    <td class="py-4 px-4 text-gray-400">Core fact table for all e-commerce transactions and purchases.</td>
+                                </tr>
+                                <tr data-table-name="dim_customers" class="border-b border-gray-800 hover:bg-gray-800/40 transition-colors cursor-pointer">
+                                    <td class="py-4 pr-4"><input type="checkbox" checked class="h-5 w-5 rounded bg-gray-700 border-gray-600 text-emerald-500 focus:ring-emerald-600"></td>
+                                    <td class="py-4 px-4 font-mono text-emerald-300">dim_customers</td>
+                                    <td class="py-4 px-4 font-mono">820 K</td>
+                                    <td class="py-4 px-4 text-gray-400">Dimension table containing user profiles, segments, and sign-up dates.</td>
+                                </tr>
+                                 <tr data-table-name="marketing_spend" class="border-b border-gray-800 hover:bg-gray-800/40 transition-colors cursor-pointer">
+                                    <td class="py-4 pr-4"><input type="checkbox" checked class="h-5 w-5 rounded bg-gray-700 border-gray-600 text-emerald-500 focus:ring-emerald-600"></td>
+                                    <td class="py-4 px-4 font-mono text-emerald-300">marketing_spend</td>
+                                    <td class="py-4 px-4 font-mono">15.7 K</td>
+                                    <td class="py-4 px-4 text-gray-400">Tracks daily ad spend across all channels (Google, Meta, etc.).</td>
+                                </tr>
+                                <tr data-table-name="ga4_events_raw" class="border-b border-gray-800 hover:bg-gray-800/40 transition-colors cursor-pointer">
+                                    <td class="py-4 pr-4"><input type="checkbox" class="h-5 w-5 rounded bg-gray-700 border-gray-600 text-emerald-500 focus:ring-emerald-600"></td>
+                                    <td class="py-4 px-4 font-mono text-gray-500">ga4_events_raw</td>
+                                    <td class="py-4 px-4 font-mono">18.1 B</td>
+                                    <td class="py-4 px-4 text-gray-500">Raw, unprocessed Google Analytics 4 event stream. (Large)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="p-6 bg-gray-900 border-t border-gray-800 flex justify-end">
+                         <button data-next class="px-8 py-3 rounded-lg bg-emerald-600 font-semibold text-white hover:bg-emerald-500 transition-all duration-300 shadow-lg shadow-emerald-900/50 flex items-center gap-2">
+                           <span>Confirm Mapping & Continue</span>
+                           <i data-feather="arrow-right" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section id="step-3" class="step-section hidden space-y-8">
+            <div class="fade-enter">
+                <h2 class="text-5xl font-extrabold mb-4 tracking-tight">3. Activate Domain-Expert Wizards</h2>
+                <p class="text-gray-300 max-w-3xl text-lg">Wizards are pre-trained AI agents with specific domain knowledge. Activate them to get specialized insights from your data instantly.</p>
+                <div class="mt-10 grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="bg-gray-950/30 rounded-2xl p-8 border border-gray-800 shadow-2xl flex flex-col transform hover:-translate-y-2 transition-transform duration-300">
+                        <div class="flex-shrink-0 bg-indigo-500/10 text-indigo-400 rounded-full h-14 w-14 flex items-center justify-center">
+                            <i data-feather="bar-chart-2" class="w-7 h-7"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mt-6">Growth Strategist</h3>
+                        <p class="text-gray-400 mt-2 flex-grow">Analyzes user acquisition, feature adoption, and funnel conversion KPIs. Ideal for Product and Marketing teams.</p>
+                        <div class="text-xs text-gray-500 mt-4">Uses: <span class="font-mono text-gray-400">dim_customers</span>, <span class="font-mono text-gray-400">ga4_events_raw</span></div>
+                        <button data-next class="mt-4 w-full py-3 rounded-lg bg-indigo-600 font-semibold text-white hover:bg-indigo-500 transition-all duration-300">Activate & Chat →</button>
+                    </div>
+                    <div class="bg-gray-950/30 rounded-2xl p-8 border-2 border-emerald-500 shadow-2xl shadow-emerald-900/40 flex flex-col transform hover:-translate-y-2 transition-transform duration-300 ring-4 ring-emerald-500/10">
+                        <div class="flex-shrink-0 bg-emerald-500/10 text-emerald-400 rounded-full h-14 w-14 flex items-center justify-center">
+                           <i data-feather="dollar-sign" class="w-7 h-7"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mt-6">Revenue Analyst</h3>
+                        <p class="text-gray-400 mt-2 flex-grow">Tracks financial metrics like ARR, LTV, and churn. Provides revenue forecasts and identifies upsell opportunities.</p>
+                        <div class="text-xs text-gray-500 mt-4">Uses: <span class="font-mono text-emerald-300">fct_orders</span>, <span class="font-mono text-emerald-300">dim_customers</span>, <span class="font-mono text-emerald-300">marketing_spend</span></div>
+                         <button data-next class="mt-4 w-full py-3 rounded-lg bg-emerald-600 font-semibold text-white hover:bg-emerald-500 transition-all duration-300">Activate & Chat →</button>
+                    </div>
+                    <div class="bg-gray-950/30 rounded-2xl p-8 border border-gray-800 shadow-2xl flex flex-col transform hover:-translate-y-2 transition-transform duration-300">
+                         <div class="flex-shrink-0 bg-rose-500/10 text-rose-400 rounded-full h-14 w-14 flex items-center justify-center">
+                            <i data-feather="truck" class="w-7 h-7"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mt-6">Ops Optimizer</h3>
+                        <p class="text-gray-400 mt-2 flex-grow">Monitors supply chain, inventory levels, and shipping logistics. Spots bottlenecks and cost-saving areas.</p>
+                        <div class="text-xs text-gray-500 mt-4">Uses: <span class="font-mono text-gray-400">fct_orders</span></div>
+                         <button data-next class="mt-4 w-full py-3 rounded-lg bg-rose-600 font-semibold text-white hover:bg-rose-500 transition-all duration-300">Activate & Chat →</button>
+                    </div>
+                    <div class="bg-gray-950/30 rounded-2xl p-8 border border-gray-700 border-dashed shadow-xl flex flex-col transform hover:-translate-y-2 transition-transform duration-300 items-center justify-center text-center hover:border-emerald-500 hover:text-emerald-400 cursor-pointer">
+                        <div class="flex-shrink-0 bg-gray-700/50 text-gray-400 rounded-full h-14 w-14 flex items-center justify-center group-hover:bg-emerald-500/10 group-hover:text-emerald-400">
+                           <i data-feather="plus" class="w-7 h-7"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mt-6">Create New Wizard</h3>
+                        <p class="text-gray-400 mt-2 flex-grow">Build a custom AI agent tailored to your specific business needs.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section id="step-4" class="step-section hidden">
+            <div class="fade-enter max-w-4xl mx-auto flex flex-col h-full">
+                <div class="text-center">
+                    <h2 class="text-5xl font-extrabold mb-4 tracking-tight">4. Chat with your Revenue Analyst</h2>
+                    <p class="text-gray-300 mb-8 text-lg">Ask questions in plain English. The Wizard translates them into SQL, runs queries, and visualizes the results.</p>
+                </div>
+                <div class="bg-gray-950/50 backdrop-blur-sm rounded-2xl shadow-inner border border-gray-800 p-6 flex flex-col flex-grow min-h-[60vh]">
+                    <div id="chat-window" class="flex-1 space-y-6 overflow-y-auto pr-4 mb-4">
+                        </div>
+                    <div id="sample-questions" class="flex flex-wrap items-center gap-2 py-3 border-t border-gray-800">
+                        <span class="text-sm text-gray-400">Try these:</span>
+                        <button class="sample-q-btn">Show me quarterly ARR</button>
+                        <button class="sample-q-btn">Which are my top 5 customer segments?</button>
+                        <button class="sample-q-btn">Analyze new vs returning orders</button>
+                    </div>
+                    <div class="mt-auto flex items-center gap-3 pt-2">
+                        <input id="chat-input" placeholder="Ask about ARR, churn, or top customers..." class="flex-1 rounded-lg bg-gray-800 border-gray-700 w-full text-base focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 px-4 py-3 text-gray-200" />
+                        <button id="send-btn" class="px-6 py-3 rounded-lg bg-emerald-600 font-semibold text-white hover:bg-emerald-500 transition-all duration-300 flex items-center justify-center gap-2">
+                           <span>Send</span> <i data-feather="send" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+                 <div class="text-center mt-6">
+                    <button data-next class="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors">Or, skip to build your feed →</button>
+                </div>
+            </div>
+        </section>
+        <section id="step-5" class="step-section hidden space-y-8">
+            <div class="fade-enter">
+                 <h2 class="text-5xl font-extrabold mb-4 tracking-tight">5. Curate Your Intelligence Feed</h2>
+                 <p class="text-gray-300 max-w-3xl text-lg mb-10">Save key insights from your chats to a live, auto-refreshing feed. Share with your team to keep everyone aligned.</p>
+                <div id="feed-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    </div>
+                <div class="text-center mt-12">
+                    <button id="restart-btn" class="inline-flex items-center gap-3 px-8 py-4 rounded-lg bg-emerald-600 font-semibold text-white hover:bg-emerald-500 transition-all duration-300 shadow-lg shadow-emerald-900/50">
+                        <i data-feather="refresh-cw" class="w-5 h-5"></i>
+                        Restart Demo
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <div id="confirm-connection-modal" class="modal-backdrop">
+        <div class="modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl max-w-lg w-full p-8">
+            <h3 class="text-2xl font-bold flex items-center gap-3"><i data-feather="database" class="text-emerald-400"></i>Confirm Connection</h3>
+            <p class="text-gray-400 mt-2">Please confirm the details below before proceeding.</p>
+            <div class="mt-6 space-y-3 bg-gray-800/50 p-4 rounded-lg">
+                <div><span class="font-semibold text-gray-300">Warehouse:</span> <span id="modal-wh-type"></span></div>
+                <div><span class="font-semibold text-gray-300">Project/Host:</span> <span id="modal-conn-string" class="font-mono"></span></div>
+            </div>
+            <div class="mt-8 flex justify-end gap-4">
+                <button id="modal-cancel-btn" class="px-6 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors">Cancel</button>
+                <button id="modal-confirm-btn" class="px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 font-semibold transition-colors">Confirm & Connect</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="table-details-modal" class="modal-backdrop">
+        <div class="modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl max-w-2xl w-full p-8">
+            <div class="flex justify-between items-start">
+                <h3 id="modal-table-name" class="text-2xl font-bold font-mono text-emerald-300"></h3>
+                <button id="modal-close-table-btn" class="text-gray-500 hover:text-white transition-colors">&times;</button>
+            </div>
+            <div class="mt-6 space-y-6 text-gray-300">
+                <div>
+                    <h4 class="font-semibold text-lg mb-2">AI-Generated Description</h4>
+                    <p id="modal-table-desc" class="text-gray-400 bg-gray-800/50 p-4 rounded-lg"></p>
+                </div>
+                 <div>
+                    <h4 class="font-semibold text-lg mb-2">Sample Questions</h4>
+                    <ul id="modal-table-questions" class="list-disc list-inside space-y-1 text-cyan-400"></ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-lg mb-2">Top Value Columns</h4>
+                    <p id="modal-table-columns" class="text-gray-400 font-mono"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        /* State Management ---------------------------------------------------- */
+        const totalSteps = 5;
+        let currentStep = 1;
+        let charts = {}; // To hold chart instances
+        let savedFeedItems = []; // To store items saved from chat
+        const WAREHOUSE_ICONS = { // SVGs for warehouse icons
+            bigquery: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8.341 1.256a1 1 0 0 0-1.682 0L.343 12.256a1 1 0 0 0 .841 1.58h13.632a1 1 0 0 0 .84-1.58L8.341 1.256zm-1.12-..333L13.136 12h-2.27L5.5 5.583v5.75L4.095 12H1.864L7.22 1.583zm1.61.333L8.417 4h3.91l-2.66-2.417zM9.5 5.5v2.75l1.636 1.25L12.559 5.5H9.5z"/></svg>`,
+            snowflake: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 1a7 7 0 0 1 7 7 7 7 0 0 1-7 7 7 7 0 0 1-7-7 7 7 0 0 1 7-7zM8 0a8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8 8 8 0 0 0-8-8z"/><path d="M8 4.646l.793.793-.647.646.647.646-.647.646.647.646-.647.646.647.646-1.439 1.439-.646-.647.646-.647-.646-.647.646-.647-.646-.647.646-.647L8 4.646zm0 1.414l-.793-.793.647-.646-.647-.646.647-.646-.647-.646.647-.646-.647-.646 1.439-1.439.646.647-.646.647.646.647-.646.647.646.647-.646.647L8 6.06z"/></svg>`,
+            redshift: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 16a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM6 6a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5V6zm.5 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3z"/></svg>`,
+            databricks: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5.914 4.343L8 6.43l2.086-2.087a.5.5 0 0 1 .707.707L8.707 7.137 10.8 9.224a.5.5 0 0 1-.707.707L8 7.854l-2.086 2.086a.5.5 0 0 1-.707-.707L7.293 7.137 5.207 5.05a.5.5 0 0 1 .707-.707z"/><path d="M2.146 2.146A.5.5 0 0 1 2.5 2h11a.5.5 0 0 1 .5.5v11a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11zM3 13h10V3H3v10z"/></svg>`,
+            postgres: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 8a.5.5 0 0 1-.5-.5V3h-1.5A1.5 1.5 0 0 0 4.5 4.5v7A1.5 1.5 0 0 0 6 13h4a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 10 3H8.5v4.5a.5.5 0 0 1-.5.5z"/><path d="M8 0C3.582 0 0 3.582 0 8s3.582 8 8 8 8-3.582 8-8-3.582-8-8-8zm2 11.5a2.5 2.5 0 0 1-5 0v-7A2.5 2.5 0 0 1 7.5 2H8v1.5a.5.5 0 0 0 1 0V2h.5A2.5 2.5 0 0 1 13 4.5v7a.5.5 0 0 1-1 0v-7a1.5 1.5 0 0 0-1.5-1.5H8.5V8a.5.5 0 0 0 1 0V6.5a.5.5 0 0 1 1 0V11.5z"/></svg>`
+        };
+        const TABLE_DETAILS_DATA = {
+            fct_orders: {
+                desc: "This is the core fact table containing all transactional data. Each row represents a single order with details like order amount, date, customer ID, and status. It's the source of truth for all revenue and sales metrics.",
+                questions: ["<li>What is the total revenue per month?</li>", "<li>How many orders were placed last week?</li>", "<li>Show the average order value (AOV).</li>"],
+                columns: "order_id, customer_id, order_date, total_amount, status"
+            },
+            dim_customers: {
+                desc: "Dimension table with customer profile information. It includes demographics, sign-up dates, and segmentation data like industry or region. This table is used to slice and dice revenue data by customer attributes.",
+                questions: ["<li>Who are the top 10 customers by lifetime value?</li>", "<li>What is the distribution of customers by industry?</li>", "<li>How many new customers signed up last month?</li>"],
+                columns: "customer_id, customer_name, signup_date, industry, region"
+            },
+            marketing_spend: {
+                desc: "Tracks daily marketing and advertising spend across various channels like Google Ads, Meta (Facebook), and LinkedIn. Essential for calculating customer acquisition cost (CAC) and return on ad spend (ROAS).",
+                questions: ["<li>What was our total ad spend last quarter?</li>", "<li>Which channel has the best ROAS?</li>", "<li>Compare spend vs. new customers acquired.</li>"],
+                columns: "spend_date, channel, campaign_name, cost, impressions, clicks"
+            },
+            ga4_events_raw: {
+                desc: "This is a very large, semi-structured table containing raw event data from Google Analytics 4. It's used for deep user behavior analysis but is often slow to query directly. It's recommended to use aggregated tables for most analyses.",
+                questions: ["<li>What is the most common user journey on the website?</li>", "<li>Analyze the conversion funnel for the 'free trial' goal.</li>"],
+                columns: "event_timestamp, event_name, user_pseudo_id, event_params"
+            }
+        };
+
+        /* Query Selectors ----------------------------------------------------- */
+        const qs = s => document.querySelector(s);
+        const qsa = s => [...document.querySelectorAll(s)];
+
+        /* Helper Functions ---------------------------------------------------- */
+        function destroyAllCharts() {
+            Object.values(charts).forEach(chart => {
+                if(chart && typeof chart.destroy === 'function') {
+                    chart.destroy();
+                }
+            });
+            charts = {};
+        }
+
+        function updateProgress() {
+            // Update sidebar navigation
+            qsa('.step').forEach(li => {
+                const n = +li.dataset.step;
+                const dot = li.querySelector('.step-number');
+                dot.innerHTML = ''; // Clear previous content (text or icon)
+                if (n === currentStep) {
+                    dot.className = 'step-number w-9 h-9 flex items-center justify-center rounded-full bg-emerald-500 text-gray-900 font-bold shadow-lg shadow-emerald-800/40 transition-all duration-300';
+                    dot.textContent = n;
+                } else if (n < currentStep) {
+                    dot.className = 'step-number w-9 h-9 flex items-center justify-center rounded-full bg-emerald-600/50 text-emerald-300 transition-all duration-300';
+                    const checkIcon = document.createElement('i');
+                    checkIcon.setAttribute('data-feather', 'check');
+                    checkIcon.classList.add('w-5', 'h-5');
+                    dot.appendChild(checkIcon);
+                } else {
+                    dot.className = 'step-number w-9 h-9 flex items-center justify-center rounded-full border-2 border-gray-700 text-gray-400 transition-all duration-300';
+                    dot.textContent = n;
+                }
+            });
+            // Toggle visibility of main content sections
+            qsa('.step-section').forEach(sec => {
+                const isVisible = sec.id === `step-${currentStep}`;
+                if (isVisible) {
+                    sec.classList.remove('hidden');
+                    setTimeout(() => {
+                         const fadeElement = sec.querySelector('.fade-enter');
+                         if (fadeElement) fadeElement.classList.add('fade-enter-active');
+                    }, 50);
+
+                    // Destroy old charts and create new ones if needed
+                    if(currentStep !== 4 && currentStep !== 5) destroyAllCharts();
+
+                    if (currentStep === 5) {
+                        renderFeed();
+                    }
+                } else {
+                    sec.classList.add('hidden');
+                    const fadeElement = sec.querySelector('.fade-enter');
+                    if (fadeElement) fadeElement.classList.remove('fade-enter-active');
+                }
+            });
+            
+            feather.replace();
+            qs('main').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /* Charting Functions -------------------------------------------------- */
+        Chart.defaults.color = '#9ca3af';
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+        
+        function createChatArrChart(canvasId) {
+            if (charts[canvasId]) charts[canvasId].destroy();
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
+            gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+            charts[canvasId] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'ARR',
+                        data: [120000, 135000, 142000, 160000, 158000, 185000],
+                        fill: true, backgroundColor: gradient, borderColor: '#10b981', borderWidth: 2, pointBackgroundColor: '#10b981', pointRadius: 4, tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: false, ticks: { callback: value => '$' + (value / 1000) + 'k' }}},
+                    plugins: { legend: { display: false }, tooltip: { enabled: true, mode: 'index', intersect: false }}
+                }
+            });
+        }
+
+        const feedChartBlueprints = {
+            arr: {
+                title: 'Quarterly ARR Trend',
+                description: 'Annual Recurring Revenue growth.',
+                type: 'line',
+                data: {
+                    labels: ['Q1', 'Q2', 'Q3', 'Q4', "Q1 '25"],
+                    datasets: [{ data: [1.2, 1.5, 1.4, 1.8, 2.1], borderColor: '#10b981', tension: 0.4, fill: true }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }}, scales: { y: { ticks: { callback: v => `$${v}M` }}}}
+            },
+            segments: {
+                title: 'Top 5 Customer Segments',
+                description: 'Revenue by customer industry.',
+                type: 'doughnut',
+                data: {
+                    labels: ['SaaS', 'E-commerce', 'Fintech', 'Healthcare', 'Other'],
+                    datasets: [{ data: [45, 25, 15, 10, 5], backgroundColor: ['#3b82f6', '#10b981', '#f97316', '#8b5cf6', '#64748b'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } }}}
+            },
+            newVsReturn: {
+                title: 'New vs. Returning Orders',
+                description: 'Last 30 days.',
+                type: 'bar',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [
+                        { label: 'New', data: [120, 130, 155, 140], backgroundColor: '#3b82f6' },
+                        { label: 'Returning', data: [250, 280, 310, 290], backgroundColor: '#10b981' }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } }, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } }} }
+            }
+        };
+
+        function renderFeed() {
+            destroyAllCharts();
+            const feedGrid = qs('#feed-grid');
+            feedGrid.innerHTML = ''; // Clear previous feed
+
+            const itemsToRender = savedFeedItems.length > 0 ? savedFeedItems : Object.keys(feedChartBlueprints).map(key => ({chartType: key}));
+            
+            if (itemsToRender.length === 0) {
+                 feedGrid.innerHTML = `<div class="col-span-full text-center p-8 bg-gray-950/30 rounded-lg border border-gray-800"><p class="text-gray-400">Your feed is empty. Go to Step 4 to chat with your data and save insights here!</p></div>`;
+            }
+
+            itemsToRender.forEach((item, index) => {
+                const blueprint = feedChartBlueprints[item.chartType];
+                if (!blueprint) return;
+                
+                const chartId = `feed-chart-${item.chartType}-${index}`;
+                const card = document.createElement('div');
+                card.className = "bg-gray-950/30 rounded-2xl p-6 border border-gray-800 shadow-2xl flex flex-col";
+                card.innerHTML = `
+                    <h3 class="text-xl font-bold text-white">${blueprint.title}</h3>
+                    <p class="text-sm text-gray-400 mb-4">${blueprint.description}</p>
+                    <div class="flex-grow"><canvas id="${chartId}"></canvas></div>
+                `;
+                feedGrid.appendChild(card);
+                
+                const ctx = qs(`#${chartId}`).getContext('2d');
+
+                // Special handling for gradient on line chart
+                 if(blueprint.type === 'line' && ctx) {
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 150);
+                    gradient.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
+                    gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+                    blueprint.data.datasets[0].backgroundColor = gradient;
+                }
+
+                charts[chartId] = new Chart(ctx, {
+                    type: blueprint.type,
+                    data: blueprint.data,
+                    options: blueprint.options
+                });
+            });
+        }
+
+        /* Event Listeners ---------------------------------------------------- */
+        
+        // Clicks on "Next" buttons
+        qsa('[data-next]').forEach(btn => btn.addEventListener('click', () => {
+            if (currentStep < totalSteps) currentStep++;
+            updateProgress();
+        }));
+        
+        // Clicks on sidebar navigation
+        qsa('.step').forEach(li => li.addEventListener('click', () => {
+            currentStep = +li.dataset.step;
+            updateProgress();
+        }));
+        
+        // Step 1: Logic
+        qs('#connect-btn').addEventListener('click', () => {
+            const whType = qs('#wh-type option:checked').textContent;
+            const connString = qs('#conn-string').value;
+
+            qs('#modal-wh-type').textContent = whType;
+            qs('#modal-conn-string').textContent = connString;
+            qs('#confirm-connection-modal').classList.add('visible');
+            feather.replace();
+        });
+
+        qs('#modal-cancel-btn').addEventListener('click', () => qs('#confirm-connection-modal').classList.remove('visible'));
+        qs('#modal-confirm-btn').addEventListener('click', () => {
+            qs('#confirm-connection-modal').classList.remove('visible');
+            const statusDiv = qs('#connection-status');
+            const button = qs('#connect-btn');
+            
+            button.disabled = true;
+            button.innerHTML = `<div class="spinner w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div><span>Connecting...</span>`;
+            
+            // Ensure any previous checkmark animation classes are removed for re-runs
+            statusDiv.innerHTML = `
+                <div class="w-24 h-24 mx-auto border-4 border-emerald-500/30 border-t-emerald-500 rounded-full spinner"></div>
+                <p class="mt-4 text-gray-300">Scanning schema on <span class="font-semibold text-white">${qs('#conn-string').value}</span>...</p>
+            `;
+
+            setTimeout(() => {
+                statusDiv.innerHTML = `
+                    <svg class="w-24 h-24 mx-auto text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path class="check-bg" d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline class="check" points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    <p class="mt-4 text-emerald-400 font-semibold text-lg">Connection Successful!</p>
+                    <p class="text-gray-400">Found 4 relevant tables.</p>
+                `;
+                
+                setTimeout(() => {
+                    if (currentStep < totalSteps) currentStep++;
+                    updateProgress();
+                    button.disabled = false;
+                    button.innerHTML = `<i data-feather="zap" class="w-5 h-5"></i><span>Connect & Scan Schema</span>`;
+                    feather.replace();
+                }, 1500);
+            }, 2000);
+        });
+
+        qs('#toggle-optional-btn').addEventListener('click', (e) => {
+            const optionalSettings = qs('#optional-settings');
+            optionalSettings.classList.toggle('hidden');
+            e.target.textContent = optionalSettings.classList.contains('hidden') ? 'Show optional settings ▼' : 'Hide optional settings ▲';
+        });
+
+        qs('#wh-type').addEventListener('change', (e) => {
+            qs('#wh-icon-label').innerHTML = WAREHOUSE_ICONS[e.target.value] || WAREHOUSE_ICONS['bigquery'];
+        });
+        qs('#wh-icon-label').innerHTML = WAREHOUSE_ICONS['bigquery'];
+
+
+        // Step 2: Table Details Modal
+        qs('#map-tables-table').addEventListener('click', (e) => {
+            const row = e.target.closest('tr');
+            if (!row || !row.dataset.tableName) return;
+            // Allow checkbox to work normally
+            if (e.target.type === 'checkbox') return;
+
+            e.preventDefault();
+            const tableName = row.dataset.tableName;
+            const tableData = TABLE_DETAILS_DATA[tableName];
+            if (!tableData) return;
+
+            qs('#modal-table-name').textContent = tableName;
+            qs('#modal-table-desc').textContent = tableData.desc;
+            qs('#modal-table-questions').innerHTML = tableData.questions.join('');
+            qs('#modal-table-columns').textContent = tableData.columns;
+            qs('#table-details-modal').classList.add('visible');
+        });
+        qs('#modal-close-table-btn').addEventListener('click', () => qs('#table-details-modal').classList.remove('visible'));
+
+        // Step 4: Chat Interaction
+        const chatWindow = qs('#chat-window');
+        const chatInput = qs('#chat-input');
+        const sendBtn = qs('#send-btn');
+        
+        const addMessage = (content, sender = 'ai', meta = {}) => {
+            const msgId = `msg-${Date.now()}`;
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `w-fit max-w-lg rounded-xl px-5 py-3 shadow-md ${sender === 'user' ? 'bg-emerald-600 ml-auto' : 'bg-gray-700'}`;
+            messageDiv.id = msgId;
+
+            let finalContent = content;
+            if (meta.chartType) {
+                 finalContent += `<div class="mt-4 border-t border-gray-500 pt-3 flex justify-end">
+                    <button data-save-feed='${JSON.stringify(meta)}' class="save-feed-btn text-xs font-semibold flex items-center gap-2 bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-md hover:bg-emerald-500/40 transition">
+                        <i data-feather="save" class="w-4 h-4"></i>
+                        <span>Save to Feed</span>
+                    </button>
+                 </div>`;
+            }
+            messageDiv.innerHTML = finalContent;
+
+            chatWindow.appendChild(messageDiv);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            feather.replace();
+
+            if (meta.chartType) {
+                qs(`button[data-save-feed]`).addEventListener('click', function() {
+                    const metaData = JSON.parse(this.dataset.saveFeed);
+                    if (!savedFeedItems.find(item => item.chartType === metaData.chartType)) {
+                        savedFeedItems.push(metaData);
+                    }
+                    this.innerHTML = `<i data-feather="check" class="w-4 h-4"></i> Saved!`;
+                    this.disabled = true;
+                    feather.replace();
+                });
+            }
+        };
+        
+        const handleSend = (questionOverride = null) => {
+            const question = questionOverride || chatInput.value.trim();
+            if (!question) return;
+            addMessage(question, 'user');
+            chatInput.value = '';
+            sendBtn.disabled = true;
+
+            setTimeout(() => {
+                const thinkingId = `thinking-${Date.now()}`;
+                addMessage(`<div id="${thinkingId}" class="flex items-center gap-2 text-gray-400">
+                    <div class="spinner w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full"></div>
+                    <span>Thinking...</span>
+                </div>`);
+                
+                setTimeout(() => {
+                    qs(`#${thinkingId}`).parentElement.remove();
+                    
+                    let responseChartType = null;
+                    let responseSQL = "";
+                    let responseSummary = "";
+                    let responseChartHTML = "";
+
+                    if (question.toLowerCase().includes('arr')) {
+                        responseChartType = 'arr';
+                        responseSQL = `SELECT<br>  DATE_TRUNC('quarter', order_date) AS quarter,<br>  SUM(total_amount)/1000000 AS total_arr_millions<br>FROM fct_orders<br>GROUP BY 1 ORDER BY 1;`;
+                        responseSummary = `ARR is trending upwards. Here's a breakdown:`;
+                    } else if (question.toLowerCase().includes('segment')) {
+                        responseChartType = 'segments';
+                        responseSQL = `SELECT<br>  c.industry,<br>  SUM(o.total_amount) AS total_revenue<br>FROM fct_orders o<br>JOIN dim_customers c ON o.customer_id = c.customer_id<br>GROUP BY 1 ORDER BY 2 DESC LIMIT 5;`;
+                        responseSummary = `Your top customer segments by revenue are:`;
+                    } else if (question.toLowerCase().includes('new vs returning')) {
+                        responseChartType = 'newVsReturn';
+                        responseSQL = `SELECT<br>  DATE_TRUNC('week', order_date) AS week,<br>  COUNT(CASE WHEN is_first_order THEN 1 END) AS new_orders,<br>  COUNT(CASE WHEN NOT is_first_order THEN 1 END) AS returning_orders<br>FROM fct_orders<br>GROUP BY 1 ORDER BY 1 DESC LIMIT 4;`;
+                        responseSummary = `Here's the breakdown of new vs. returning orders:`;
+                    }
+
+                    addMessage(`<p class="text-gray-300">Okay, here's the query:</p><pre class="text-xs mt-3 text-cyan-300 bg-black/30 p-3 rounded-lg font-mono">${responseSQL}</pre>`);
+                    
+                    setTimeout(() => {
+                        if (responseChartType) {
+                            const chartId = `chart-${Date.now()}`;
+                             const chartCanvas = `<div class="h-64 w-full bg-gray-800/50 p-4 rounded-lg mt-3"><canvas id="${chartId}"></canvas></div>`;
+                            addMessage(`${responseSummary}${chartCanvas}`, 'ai', { chartType: responseChartType });
+                            
+                            const blueprint = feedChartBlueprints[responseChartType];
+                            const ctx = qs(`#${chartId}`).getContext('2d');
+                            charts[chartId] = new Chart(ctx, { type: blueprint.type, data: blueprint.data, options: blueprint.options });
+                        }
+                         sendBtn.disabled = false;
+                    }, 1500);
+                }, 1500);
+            }, 500);
+        };
+
+        sendBtn.addEventListener('click', () => handleSend());
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+            }
+        });
+        qsa('.sample-q-btn').forEach(btn => {
+            btn.classList.add('px-3', 'py-1', 'bg-gray-700', 'rounded-full', 'text-sm', 'hover:bg-emerald-600', 'transition-colors');
+            btn.addEventListener('click', () => {
+                handleSend(btn.textContent);
+            });
+        });
+
+        // Global: Restart button
+        qs('#restart-btn').addEventListener('click', () => {
+            destroyAllCharts();
+            currentStep = 1;
+            savedFeedItems = [];
+            qs('#chat-window').innerHTML = '';
+            qs('#connect-form').reset();
+            const connStatus = qs('#connection-status');
+            connStatus.innerHTML = `<img src="https://storage.googleapis.com/gemini-prod-us-west1-assets/images/cb_2_light.gif" alt="Data flowing animation" class="max-h-72 object-contain" /><p class="mt-4 text-gray-400">Awaiting connection details...</p>`;
+            updateProgress();
+        });
+
+        // Initial setup call
+        updateProgress();
+    });
+    </script>
+</body>
+</html>
