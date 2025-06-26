@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BI Magics ▸ Interactive Demo</title>
+    <title>BI Magics ▸ Interactive Demo (Debug Mode)</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -367,6 +367,9 @@
         }
 
         function updateUI() {
+            // DEBUG LINE
+            console.log(`[DEBUG] updateUI called for step ${currentStep}. feedItems length:`, feedItems.length);
+
             qsa('.step').forEach(li => {
                 const n = +li.dataset.step, dot = li.querySelector('.step-number');
                 dot.innerHTML = '';
@@ -589,6 +592,9 @@
         }
 
         function renderFeed() {
+            // DEBUG LINE
+            console.log('[DEBUG] renderFeed called. feedItems content:', JSON.stringify(feedItems));
+
             const uniqueFeedItems = feedItems.filter((v,i,a) => a.findIndex(t=>(t.id === v.id && t.type===v.type)) === i);
             const feedGrid = qs('#feed-grid');
 
@@ -600,7 +606,7 @@
                     <button class="hover:text-white"><i data-feather="share-2"></i></button></div></div>`;
                 if (item.type === 'scorecard') return `<div class="bg-gray-950/30 rounded-2xl p-6 border border-gray-800 flex flex-col justify-between"><div><h3>${blueprint.title}</h3><div class="text-5xl font-bold my-4">${blueprint.value}</div><div class="text-lg ${blueprint.trendColor}">${blueprint.trend}</div></div>${footer}</div>`;
                 if (item.type === 'chart') return `<div class="bg-gray-950/30 rounded-2xl p-6 border border-gray-800 flex flex-col"><h3>${blueprint.title}</h3><div class="flex-grow mt-4 min-h-[200px]"><canvas id="feed-chart-${item.id}"></canvas></div>${footer}</div>`;
-            }).join('') || `<div class="col-span-full text-center p-8 bg-gray-950/30 rounded-lg border border-dashed border-gray-700"><p class="text-gray-400">Your feed is empty. Save insights from the chat to add them here.</p></div>`;
+            }).join('') || `<div class="col-span-full text-center p-8 bg-gray-950/30 rounded-lg border border-dashed border-gray-700"><p class="text-gray-400">Your feed is empty. Save insights from your chats to add them here.</p></div>`;
 
             uniqueFeedItems.forEach(item => {
                 if (item.type === 'chart') {
@@ -618,7 +624,10 @@
         function resetDemo() {
             destroyAllCharts(); 
             currentStep = 1; 
-            feedItems = [...PREPOPULATED_FEED_ITEMS]; 
+            feedItems = [...PREPOPULATED_FEED_ITEMS];
+            // DEBUG LINE
+            console.log('[DEBUG] resetDemo called. feedItems length:', feedItems.length, 'Content:', JSON.stringify(feedItems));
+            
             selectedWizard = Object.keys(WIZARD_DATA)[0]; 
             qs('#chat-window').innerHTML = '';
             qs('#connect-form').reset(); 
@@ -627,6 +636,7 @@
         }
 
         function init() {
+            console.log("[DEBUG] Initializing application...");
             populateStaticUI();
             populateDynamicUI();
             resetDemo();
