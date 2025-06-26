@@ -181,21 +181,15 @@
                 { title: 'Curate Feed' },
             ],
             warehouseTypes: ['Google BigQuery', 'Snowflake', 'Amazon Redshift', 'Databricks', 'PostgreSQL'],
-            initialConnectionStatusHTML: `
-              <div class="flex flex-col items-center justify-center gap-6">
-                  <!-- טבעת מסתובבת -->
+            const LOADER_HTML = `
+              <div class="w-full h-full flex flex-col items-center justify-center gap-6">
                   <div class="relative flex items-center justify-center">
                       <div class="loader-ring"></div>
-                      <!-- קוביות "data" -->
                       <div class="absolute flex gap-1">
-                          <div class="loader-cube"></div>
-                          <div class="loader-cube"></div>
-                          <div class="loader-cube"></div>
-                          <div class="loader-cube"></div>
+                          <div class="loader-cube"></div><div class="loader-cube"></div>
+                          <div class="loader-cube"></div><div class="loader-cube"></div>
                       </div>
                   </div>
-            
-                  <!-- טקסט מתחת -->
                   <p class="text-gray-400 text-center leading-snug">
                       Connecting & mapping your warehouse…
                   </p>
@@ -432,7 +426,13 @@
             }
             if (currentStep === 5) renderFeed();
             if (currentStep === 3) styleWizardCards();
-            if (currentStep === 4) updateWizardUI();
+            if (currentStep === 4) {
+                    updateWizardUI();
+                    // ⬅️ הוסף:
+                    Object.entries(chart).forEach(([id,c]) => {
+                        if (!id.startsWith('feed-chart-')) c.resize();
+                    });
+                }
             feather.replace();
             qs('main').scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -601,7 +601,7 @@
 
             qs('#connect-btn').addEventListener('click', () => {
                 const statusContainer = qs('#connection-status-container');
-                statusContainer.innerHTML = `<div class="text-center"><div class="spinner w-16 h-16 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full"></div><p class="mt-4">Connecting & Scanning...</p></div>`;
+                statusContainer.innerHTML = LOADER_HTML;
                 setTimeout(() => {
                     statusContainer.innerHTML = `<div class="text-center text-emerald-400"><i data-feather="check-circle" class="w-16 h-16 mx-auto"></i><p class="mt-2 font-semibold">Success!</p><p class="text-xs text-gray-400">Found 287 tables.</p></div>`;
                     feather.replace();
