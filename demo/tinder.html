@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>BI-Swipe | Magical BI Insights</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- Magical Theming & Aurora Background --- */
+        :root {
+            --bg-color: #0d0d0f;
+            --card-bg: rgba(28, 28, 32, 0.75);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #f0f0f0;
+            --text-secondary: #b0b0b0;
+            --accent-glow: #00f2ea;
+            --like-color: #00ff87;
+            --pass-color: #ff4757;
+            --info-color: #5352ed;
+            --shadow-color: rgba(0, 0, 0, 0.6);
+            --blur-intensity: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+        }
+
+        /* Animated Aurora Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(83, 82, 237, 0.3), transparent 40%),
+                radial-gradient(circle at 80% 90%, rgba(0, 242, 234, 0.3), transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(255, 71, 87, 0.2), transparent 50%);
+            animation: aurora 20s infinite alternate ease-in-out;
+        }
+
+        @keyframes aurora {
+            0% { transform: scale(1) rotate(0deg); opacity: 0.8; }
+            50% { transform: scale(1.2) rotate(10deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 0.8; }
+        }
+
+        /* --- Main App Layout --- */
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            max-width: 480px; /* Mobile-first design */
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* --- Header --- */
+        .app-header {
+            padding: 15px 20px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+        .app-header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        /* --- Card Stack --- */
+        .card-stack {
+            flex-grow: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            perspective: 1500px; /* For 3D effects */
+        }
+        
+        /* The card container for 3D flip */
+        .card-container {
+            position: absolute;
+            width: 95%;
+            height: 85%;
+            max-height: 600px;
+            transition: transform 0.4s ease, opacity 0.4s ease;
+            transform-style: preserve-3d;
+        }
+
+        .card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px var(--shadow-color);
+            cursor: grab;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+            touch-action: none; /* Important for touch devices */
+            backdrop-filter: blur(var(--blur-intensity));
+            -webkit-backdrop-filter: blur(var(--blur-intensity));
+            transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+            backface-visibility: hidden; /* For the flip */
+            -webkit-backface-visibility: hidden;
+        }
+        
+        .card-back {
+            transform: rotateY(180deg);
+        }
+        
+        .card-container.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-container.dragging {
+            cursor: grabbing;
+            transition: none;
+        }
+
+        .card-container:nth-last-child(2) {
+            transform: scale(0.95) translateY(-15px);
+            opacity: 0.7;
+            filter: blur(2px);
+        }
+
+        .card-container:nth-last-child(3) {
+            transform: scale(0.9) translateY(-30px);
+            opacity: 0.4;
+            filter: blur(4px);
+        }
+        
+        .card-container:not(:first-child) {
+             pointer-events: none;
+        }
+
+        .card-container.go-left {
+            transform: translateX(-150%) rotate(-45deg) !important;
+            opacity: 0 !important;
+        }
+
+        .card-container.go-right {
+            transform: translateX(150%) rotate(45deg) !important;
+            opacity: 0 !important;
+        }
+
+        /* --- Card Content --- */
+        .card-content {
+            padding: 20px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .card-content::-webkit-scrollbar { display: none; } /* Hide scrollbar */
+
+        .card-title {
+            font-size: clamp(1.1rem, 4vw, 1.3rem); /* Fluid typography */
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--accent-glow);
+            padding-bottom: 10px;
+            text-shadow: 0 0 5px var(--accent-glow);
+        }
+
+        .card-type {
+            font-size: 0.8rem;
+            font-weight: 300;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 5px;
+        }
+        
+        /* Card-specific styles */
+        .kpi-value {
+            font-size: clamp(3rem, 12vw, 4rem);
+            font-weight: 700;
+            color: var(--accent-glow);
+            text-align: center;
+            margin: 20px 0;
+            text-shadow: 0 0 20px var(--accent-glow);
+        }
+        .kpi-trend {
+            font-size: 1.2rem;
+            text-align: center;
+        }
+        .kpi-trend.up { color: var(--like-color); text-shadow: 0 0 10px var(--like-color); }
+        .kpi-trend.down { color: var(--pass-color); text-shadow: 0 0 10px var(--pass-color); }
+
+        pre {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85rem;
+            color: #d4d4d4;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .sql-keyword { color: #569cd6; font-weight: bold; }
+        .sql-function { color: #dcdcaa; }
+        .sql-string { color: #ce9178; }
+        .sql-number { color: #b5cea8; }
+        .sql-comment { color: #6a9955; }
+        
+        .insight-text {
+            font-size: 1.25rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .metadata-list {
+            list-style: none;
+            padding: 10px;
+        }
+        .metadata-list li {
+            margin-bottom: 15px;
+        }
+        .metadata-list strong {
+            color: var(--accent-glow);
+            display: block;
+        }
+
+        /* Swipe indicator overlay */
+        .swipe-indicator {
+            position: absolute;
+            top: 40px;
+            border: 5px solid;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            text-shadow: 0 0 10px;
+        }
+        .swipe-indicator.like {
+            color: var(--like-color);
+            border-color: var(--like-color);
+            right: 20px;
+            transform: rotate(15deg);
+        }
+        .swipe-indicator.pass {
+            color: var(--pass-color);
+            border-color: var(--pass-color);
+            left: 20px;
+            transform: rotate(-15deg);
+        }
+        .card-container.dragging .swipe-indicator.like {
+            opacity: var(--like-opacity, 0);
+        }
+        .card-container.dragging .swipe-indicator.pass {
+            opacity: var(--pass-opacity, 0);
+        }
+
+        /* --- Action Buttons --- */
+        .actions {
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            padding: 20px 0;
+            position: relative;
+            z-index: 10;
+        }
+
+        .action-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 50%;
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(var(--blur-intensity));
+            -webkit-backdrop-filter: blur(var(--blur-intensity));
+        }
+        
+        .action-btn:active {
+            transform: scale(0.9);
+        }
+
+        .action-btn svg {
+            width: 32px;
+            height: 32px;
+            transition: fill 0.2s ease, transform 0.2s ease;
+        }
+
+        .action-btn.pass { box-shadow: 0 0 20px -5px var(--pass-color); }
+        .action-btn.pass:hover { background-color: var(--pass-color); box-shadow: 0 0 25px 0px var(--pass-color); }
+        .action-btn.pass svg { fill: var(--pass-color); }
+        .action-btn.pass:hover svg { fill: #fff; }
+
+        .action-btn.like { box-shadow: 0 0 20px -5px var(--like-color); }
+        .action-btn.like:hover { background-color: var(--like-color); box-shadow: 0 0 25px 0px var(--like-color); }
+        .action-btn.like svg { fill: var(--like-color); }
+        .action-btn.like:hover svg { fill: #fff; }
+        
+        .action-btn.info { box-shadow: 0 0 20px -5px var(--info-color); }
+        .action-btn.info:hover { background-color: var(--info-color); box-shadow: 0 0 25px 0px var(--info-color); }
+        .action-btn.info svg { fill: var(--info-color); }
+        .action-btn.info:hover svg { fill: #fff; }
+
+        .action-btn.share { box-shadow: 0 0 20px -5px var(--text-secondary); }
+        .action-btn.share:hover { background-color: var(--text-secondary); box-shadow: 0 0 25px 0px var(--text-secondary); }
+        .action-btn.share svg { fill: var(--text-secondary); }
+        .action-btn.share:hover svg { fill: #fff; }
+        
+        /* End of stack message */
+        .no-more-cards {
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        .no-more-cards.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+    </style>
+</head>
+<body>
+
+    <main class="app">
+        <header class="app-header">
+            <h1>BI-Swipe</h1>
+        </header>
+
+        <div class="card-stack" id="card-stack">
+            <!-- Cards will be injected here by JavaScript -->
+        </div>
+
+        <div class="actions">
+            <button class="action-btn share" id="share-btn" aria-label="Share">
+                <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3z"/></svg>
+            </button>
+            <button class="action-btn pass" id="pass-btn" aria-label="Pass">
+                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+            <button class="action-btn like" id="like-btn" aria-label="Like">
+                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            </button>
+            <button class="action-btn info" id="info-btn" aria-label="More Info">
+                <svg viewBox="0 0 24 24"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+            </button>
+        </div>
+    </main>
+
+    <script>
+    const cardData = [
+        {
+            type: 'KPI',
+            title: 'Monthly Recurring Revenue (MRR)',
+            content: { value: '$1.2M', trend: 'up', trendText: '+12% vs last month' },
+            metadata: {
+                'MRR': 'The predictable recurring revenue a company can expect to receive every month.',
+                'Calculation': 'Sum of all active subscriptions\' monthly fees.',
+                'Source': 'Stripe Billing API'
+            }
+        },
+        {
+            type: 'SQL Query',
+            title: 'Find Power Users by Monthly Activity',
+            content: `<pre><span class="sql-comment">-- CTE to get user monthly activity</span>
+<span class="sql-keyword">WITH</span> UserActivity <span class="sql-keyword">AS</span> (
+  <span class="sql-keyword">SELECT</span> user_id, <span class="sql-function">DATE_TRUNC</span>(...)
+  <span class="sql-keyword">FROM</span> events ...
+)
+<span class="sql-keyword">SELECT</span> user_id, event_count
+<span class="sql-keyword">FROM</span> UserActivity
+<span class="sql-keyword">WHERE</span> event_count > <span class="sql-number">50</span>;</pre>`,
+            metadata: {
+                'Objective': 'Identify users who are highly engaged in the current month.',
+                'Key Function': 'DATE_TRUNC to standardize dates, COUNT(DISTINCT) for accuracy.',
+                'Business Use': 'Target these users for beta features or feedback sessions.'
+            }
+        },
+        {
+            type: 'BI Insight',
+            title: 'Churn Analysis',
+            content: '<p class="insight-text">User churn is highest within the first <strong>7 days</strong> for customers acquired via Paid Social channels.</p>',
+            metadata: {
+                'Insight': 'A mismatch exists between ad promise and initial product experience for this cohort.',
+                'Actionable Step': 'Create a custom onboarding flow for users from Paid Social campaigns.',
+                'Data Source': 'Mixpanel Funnels & Amplitude Cohort Analysis.'
+            }
+        },
+        // ... Add more cards here with a 'metadata' property
+        {
+            type: 'Data Table',
+            title: 'A/B Test Results: New Checkout Button',
+            content: `
+                <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+                    <thead><tr><th style="padding:8px; border:1px solid #444; background:#2a2a2a;">Variant</th><th>Conversions</th><th>Rate</th></tr></thead>
+                    <tbody>
+                        <tr><td style="padding:8px; border:1px solid #444;">Control (A)</td><td>1,254</td><td>12.00%</td></tr>
+                        <tr style="background:rgba(0, 255, 135, 0.2);"><td style="padding:8px; border:1px solid #444;">Variant (B)</td><td>1,471</td><td>14.00%</td></tr>
+                    </tbody>
+                </table>
+                <p style="text-align:center; margin-top:10px; font-size: 0.9em; color: var(--like-color);">Result: Statistically significant uplift.</p>
+            `,
+            metadata: {
+                'Hypothesis': 'A green, larger checkout button will increase conversion rate.',
+                'Tool': 'Google Optimize',
+                'Conclusion': 'Variant B is the winner. Roll out to 100% of users.'
+            }
+        }
+    ];
+
+    // --- Main Script ---
+    
+    const stack = document.getElementById('card-stack');
+    const likeBtn = document.getElementById('like-btn');
+    const passBtn = document.getElementById('pass-btn');
+    const infoBtn = document.getElementById('info-btn');
+    const shareBtn = document.getElementById('share-btn');
+
+    let currentCardContainer = null;
+    let isDragging = false;
+    let startX = 0;
+    let currentX = 0;
+
+    function createCard(data) {
+        const cardContainer = document.createElement('div');
+        cardContainer.classList.add('card-container');
+        
+        // Front of the card
+        const cardFront = document.createElement('div');
+        cardFront.classList.add('card', 'card-front');
+        
+        let contentHTML = '';
+        switch (data.type) {
+            case 'KPI':
+                contentHTML = `<div class="kpi-value">${data.content.value}</div><div class="kpi-trend ${data.content.trend}">${data.content.trend === 'up' ? '▲' : '▼'} ${data.content.trendText}</div>`;
+                break;
+            default:
+                contentHTML = data.content;
+                break;
+        }
+
+        cardFront.innerHTML = `
+            <div class="swipe-indicator like">LIKE</div>
+            <div class="swipe-indicator pass">PASS</div>
+            <div class="card-content">
+                <p class="card-type">${data.type}</p>
+                <h2 class="card-title">${data.title}</h2>
+                ${contentHTML}
+            </div>
+        `;
+        
+        // Back of the card
+        const cardBack = document.createElement('div');
+        cardBack.classList.add('card', 'card-back');
+        
+        const metadataList = Object.entries(data.metadata).map(([key, value]) => {
+            return `<li><strong>${key}:</strong> ${value}</li>`;
+        }).join('');
+
+        cardBack.innerHTML = `
+            <div class="card-content">
+                 <p class="card-type">Metadata</p>
+                 <h2 class="card-title">${data.title}</h2>
+                 <ul class="metadata-list">${metadataList}</ul>
+            </div>
+        `;
+
+        cardContainer.appendChild(cardFront);
+        cardContainer.appendChild(cardBack);
+        
+        return cardContainer;
+    }
+
+    function renderCards() {
+        stack.innerHTML = '';
+        // Create cards in reverse order for correct stacking
+        cardData.slice().reverse().forEach(data => {
+            const card = createCard(data);
+            stack.appendChild(card);
+        });
+        
+        const noMoreCards = document.createElement('div');
+        noMoreCards.classList.add('no-more-cards');
+        noMoreCards.innerHTML = '<h2>No More Insights</h2><p>Come back later!</p>';
+        stack.appendChild(noMoreCards);
+        
+        initTopCard();
+    }
+    
+    function initTopCard() {
+        const cards = stack.querySelectorAll('.card-container:not(.removed)');
+        if (cards.length === 0) {
+            currentCardContainer = null;
+            document.querySelector('.no-more-cards').classList.add('visible');
+            return;
+        }
+        currentCardContainer = cards[0];
+
+        currentCardContainer.addEventListener('mousedown', dragStart);
+        currentCardContainer.addEventListener('touchstart', dragStart, { passive: false });
+    }
+
+    function dragStart(e) {
+        if (!currentCardContainer || currentCardContainer.classList.contains('is-flipped')) return;
+        isDragging = true;
+        currentCardContainer.classList.add('dragging');
+        startX = e.pageX || e.touches[0].pageX;
+        
+        window.addEventListener('mousemove', dragMove);
+        window.addEventListener('touchmove', dragMove, { passive: false });
+        window.addEventListener('mouseup', dragEnd);
+        window.addEventListener('touchend', dragEnd);
+    }
+
+    function dragMove(e) {
+        if (!isDragging || !currentCardContainer) return;
+        
+        e.preventDefault(); // Prevent scroll on mobile
+        
+        const currentXPos = e.pageX || e.touches[0].pageX;
+        currentX = currentXPos - startX;
+        
+        const rotation = currentX * 0.1;
+        // Add dynamic tilt based on vertical mouse position
+        const rect = currentCardContainer.getBoundingClientRect();
+        const yPos = (e.clientY || e.touches[0].clientY) - rect.top;
+        const tiltY = (0.5 - yPos / rect.height) * -15; // Tilt forward/backward
+        
+        currentCardContainer.style.transform = `translateX(${currentX}px) rotateZ(${rotation}deg) rotateX(${tiltY}deg)`;
+        
+        const decisionThreshold = 80;
+        const likeOpacity = Math.max(0, currentX / decisionThreshold - 0.2);
+        const passOpacity = Math.max(0, -currentX / decisionThreshold - 0.2);
+        currentCardContainer.style.setProperty('--like-opacity', likeOpacity);
+        currentCardContainer.style.setProperty('--pass-opacity', passOpacity);
+    }
+
+    function dragEnd(e) {
+        if (!isDragging || !currentCardContainer) return;
+        isDragging = false;
+        
+        window.removeEventListener('mousemove', dragMove);
+        window.removeEventListener('touchmove', dragMove);
+        window.removeEventListener('mouseup', dragEnd);
+        window.removeEventListener('touchend', dragEnd);
+
+        currentCardContainer.classList.remove('dragging');
+        
+        const decisionThreshold = 100;
+        
+        if (currentX > decisionThreshold) {
+            swipe(true);
+        } else if (currentX < -decisionThreshold) {
+            swipe(false);
+        } else {
+            currentCardContainer.style.transform = 'translateX(0) rotateZ(0) rotateX(0)';
+            currentCardContainer.style.setProperty('--like-opacity', 0);
+            currentCardContainer.style.setProperty('--pass-opacity', 0);
+        }
+    }
+    
+    function swipe(isLike) {
+        if (!currentCardContainer) return;
+        
+        currentCardContainer.classList.add(isLike ? 'go-right' : 'go-left');
+        currentCardContainer.classList.add('removed');
+
+        currentCardContainer.removeEventListener('mousedown', dragStart);
+        currentCardContainer.removeEventListener('touchstart', dragStart);
+        
+        // Haptic feedback for mobile devices
+        if (navigator.vibrate) {
+            navigator.vibrate(50);
+        }
+        
+        setTimeout(() => {
+            currentCardContainer.remove();
+            initTopCard();
+        }, 400);
+    }
+    
+    function flipCard() {
+        if (currentCardContainer && !isDragging) {
+            currentCardContainer.classList.toggle('is-flipped');
+        }
+    }
+    
+    async function shareCard() {
+        if (!currentCardContainer) return;
+
+        const cardIndex = cardData.length - stack.querySelectorAll('.card-container:not(.removed)').length;
+        const data = cardData[cardIndex];
+        const shareData = {
+            title: 'BI-Swipe Insight',
+            text: `Check out this BI insight: "${data.title}"`,
+            url: window.location.href,
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch (err) {
+                console.error("Share failed:", err);
+            }
+        } else {
+            // Fallback for desktop
+            navigator.clipboard.writeText(`${shareData.text}\n${shareData.url}`).then(() => {
+                alert('Insight link copied to clipboard!');
+            });
+        }
+    }
+    
+    likeBtn.addEventListener('click', () => swipe(true));
+    passBtn.addEventListener('click', () => swipe(false));
+    infoBtn.addEventListener('click', flipCard);
+    shareBtn.addEventListener('click', shareCard);
+
+    // Initial load
+    renderCards();
+    </script>
+
+</body>
+</html>
+
