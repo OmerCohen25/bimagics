@@ -1,23 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BI-Swipe | Tinder for BI Insights</title>
+    <title>BI-Swipe | Solid & Content-Rich</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* --- General Setup & Theming --- */
         :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-primary: #e0e0e0;
-            --text-secondary: #a0a0a0;
-            --accent-color: #03dac6;
-            --like-color: #4caf50;
-            --pass-color: #f44336;
-            --info-color: #2196f3;
+            --bg-color: #101012;
+            --card-bg: #1e1e24;
+            --card-border: #333338;
+            --text-primary: #f0f0f0;
+            --text-secondary: #a0a0a8;
+            --accent-glow: #00f2ea;
+            --like-color: #00ff87;
+            --pass-color: #ff4757;
+            --info-color: #5352ed;
             --shadow-color: rgba(0, 0, 0, 0.5);
         }
 
@@ -36,33 +36,29 @@
             color: var(--text-primary);
         }
 
-        /* --- Main App Layout --- */
         .app {
             display: flex;
             flex-direction: column;
             height: 100%;
             width: 100%;
-            max-width: 480px; /* Mobile-first design */
+            max-width: 480px;
             margin: 0 auto;
-            background-color: #181818;
             position: relative;
         }
 
-        /* --- Header --- */
         .app-header {
             padding: 15px 20px;
             text-align: center;
-            border-bottom: 1px solid #333;
+            position: relative;
+            z-index: 10;
         }
         .app-header h1 {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 700;
-            color: var(--accent-color);
-            letter-spacing: 1px;
-            text-shadow: 0 0 5px var(--accent-color);
+            color: var(--text-primary);
+            text-shadow: 0 0 10px var(--accent-glow);
         }
 
-        /* --- Card Stack --- */
         .card-stack {
             flex-grow: 1;
             position: relative;
@@ -70,77 +66,85 @@
             align-items: center;
             justify-content: center;
             padding: 10px;
+            perspective: 1500px;
+        }
+        
+        .card-container {
+            position: absolute;
+            width: 95%;
+            height: 90%;
+            max-height: 620px;
+            transform-style: preserve-3d;
+            /* New animation for appearing */
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            pointer-events: none;
+        }
+        
+        .card-container.is-top {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        .card-container.is-top.dragging {
+            transition: none; /* Smooth drag */
         }
 
         .card {
-            background: var(--card-bg);
-            border-radius: 15px;
-            box-shadow: 0 10px 20px var(--shadow-color);
             position: absolute;
-            width: 95%;
-            height: 85%;
-            max-height: 600px;
+            width: 100%;
+            height: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px var(--shadow-color);
             cursor: grab;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease, opacity 0.3s ease;
             user-select: none;
-            touch-action: none; /* Important for touch devices */
+            touch-action: none;
+            transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
         }
         
-        .card.dragging {
-            cursor: grabbing;
-            transition: none;
-        }
-
-        .card:nth-last-child(2) {
-            transform: scale(0.95) translateY(-10px);
-            opacity: 0.8;
-            filter: blur(1px);
-        }
-
-        .card:nth-last-child(3) {
-            transform: scale(0.9) translateY(-20px);
-            opacity: 0.6;
-            filter: blur(2px);
+        .card-back {
+            transform: rotateY(180deg);
         }
         
-        .card:not(:first-child) {
-             pointer-events: none;
+        .card-container.is-flipped {
+            transform: scale(1) rotateY(180deg);
         }
 
-        .card.go-left {
-            transform: translateX(-150%) rotate(-30deg) !important;
+        .card-container.go-left {
+            transform: translateX(-150%) rotate(-45deg) !important;
             opacity: 0 !important;
         }
 
-        .card.go-right {
-            transform: translateX(150%) rotate(30deg) !important;
+        .card-container.go-right {
+            transform: translateX(150%) rotate(45deg) !important;
             opacity: 0 !important;
         }
 
-        /* --- Card Content --- */
         .card-content {
             padding: 20px;
             flex-grow: 1;
             overflow-y: auto;
         }
-        .card-content::-webkit-scrollbar {
-            width: 5px;
-        }
-        .card-content::-webkit-scrollbar-thumb {
-            background: var(--accent-color);
-            border-radius: 5px;
-        }
+        .card-content::-webkit-scrollbar { width: 5px; }
+        .card-content::-webkit-scrollbar-thumb { background: var(--accent-glow); border-radius: 5px; }
 
         .card-title {
-            font-size: 1.2rem;
+            font-size: clamp(1.1rem, 4vw, 1.3rem);
             font-weight: 600;
             color: var(--text-primary);
             margin-bottom: 15px;
-            border-bottom: 1px solid var(--accent-color);
+            border-bottom: 1px solid var(--accent-glow);
             padding-bottom: 10px;
+            text-shadow: 0 0 5px var(--accent-glow);
         }
 
         .card-type {
@@ -148,239 +152,106 @@
             font-weight: 300;
             color: var(--text-secondary);
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             margin-bottom: 5px;
         }
         
-        /* Card-specific styles */
         .kpi-value {
-            font-size: 3.5rem;
+            font-size: clamp(3rem, 12vw, 4rem);
             font-weight: 700;
-            color: var(--accent-color);
+            color: var(--accent-glow);
             text-align: center;
             margin: 20px 0;
+            text-shadow: 0 0 20px var(--accent-glow);
         }
         .kpi-trend {
             font-size: 1.2rem;
             text-align: center;
         }
-        .kpi-trend.up { color: var(--like-color); }
-        .kpi-trend.down { color: var(--pass-color); }
+        .kpi-trend.up { color: var(--like-color); text-shadow: 0 0 10px var(--like-color); }
+        .kpi-trend.down { color: var(--pass-color); text-shadow: 0 0 10px var(--pass-color); }
 
         pre {
-            background: #111;
+            background: #121214;
             padding: 15px;
             border-radius: 8px;
             overflow-x: auto;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Menlo', 'Courier New', monospace;
             font-size: 0.85rem;
-            color: #d4d4d4;
-            border: 1px solid #333;
+            color: #e0e0e0;
+            border: 1px solid #2a2a2e;
         }
-        
-        .sql-keyword { color: #569cd6; font-weight: bold; }
-        .sql-function { color: #dcdcaa; }
-        .sql-string { color: #ce9178; }
-        .sql-number { color: #b5cea8; }
-        .sql-comment { color: #6a9955; }
+        .sql-keyword, .py-keyword { color: #569cd6; font-weight: bold; }
+        .sql-function, .py-function { color: #dcdcaa; }
+        .sql-string, .py-string { color: #ce9178; }
+        .sql-number, .py-number { color: #b5cea8; }
+        .sql-comment, .py-comment { color: #6a9955; }
+        .py-decorator { color: #c586c0; }
         
         .insight-text {
-            font-size: 1.2rem;
-            line-height: 1.6;
+            font-size: 1.25rem;
+            line-height: 1.7;
             color: var(--text-primary);
             text-align: center;
             padding: 20px;
         }
         
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-        th, td {
-            padding: 8px 12px;
-            border: 1px solid #444;
-            text-align: left;
-        }
-        th {
-            background-color: #2a2a2a;
-            color: var(--accent-color);
-        }
-        .highlight {
-            background-color: rgba(3, 218, 198, 0.2);
-            font-weight: bold;
-        }
+        .metadata-list { list-style: none; padding: 10px; }
+        .metadata-list li { margin-bottom: 15px; }
+        .metadata-list strong { color: var(--accent-glow); display: block; }
 
-        /* Chart Styles */
-        .chart-container {
-            width: 100%;
-            padding: 20px 0;
-        }
-        
-        /* Bar Chart */
-        .bar-chart {
-            display: flex;
-            justify-content: space-around;
-            align-items: flex-end;
-            height: 180px;
-            border-left: 2px solid var(--text-secondary);
-            border-bottom: 2px solid var(--text-secondary);
-            padding: 0 10px;
-        }
-        .bar {
-            width: 20px;
-            background: var(--accent-color);
-            position: relative;
-            animation: grow 1s ease-out;
-        }
-        .bar:hover {
-            opacity: 0.8;
-        }
-        .bar::after {
-            content: attr(data-label);
-            position: absolute;
-            bottom: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-        }
-        @keyframes grow {
-            from { height: 0; }
-        }
-
-        /* Donut Chart */
-        .donut-chart {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            margin: 20px auto;
-            position: relative;
-        }
-        .donut-chart-center {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80px;
-            height: 80px;
-            background: var(--card-bg);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            text-align: center;
-        }
-        .donut-total { font-size: 1.5rem; font-weight: 700; }
-        .donut-label { font-size: 0.7rem; color: var(--text-secondary); }
-
-        /* Marketing Funnel */
-        .funnel {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .funnel-step {
-            background: var(--accent-color);
-            color: var(--bg-color);
-            padding: 10px;
-            margin-bottom: -15px;
-            clip-path: polygon(0% 0%, 100% 0%, 90% 100%, 10% 100%);
-            text-align: center;
-            font-weight: 600;
-        }
-        .funnel-step:nth-child(1) { width: 100%; }
-        .funnel-step:nth-child(2) { width: 85%; background: #03c6b2; }
-        .funnel-step:nth-child(3) { width: 70%; background: #02b39f; }
-        .funnel-step:nth-child(4) { width: 55%; background: #01a390; }
-
-        /* Swipe indicator overlay */
         .swipe-indicator {
-            position: absolute;
-            top: 40px;
-            border: 5px solid;
-            border-radius: 10px;
-            padding: 10px 20px;
-            font-size: 2rem;
-            font-weight: 700;
-            letter-spacing: 2px;
-            opacity: 0;
-            transition: opacity 0.2s ease;
+            position: absolute; top: 40px; border: 5px solid; border-radius: 10px;
+            padding: 10px 20px; font-size: 2.5rem; font-weight: 700;
+            letter-spacing: 2px; opacity: 0; transition: opacity 0.2s ease;
+            text-shadow: 0 0 10px;
         }
         .swipe-indicator.like {
-            color: var(--like-color);
-            border-color: var(--like-color);
-            right: 20px;
-            transform: rotate(15deg);
+            color: var(--like-color); border-color: var(--like-color);
+            right: 20px; transform: rotate(15deg);
         }
         .swipe-indicator.pass {
-            color: var(--pass-color);
-            border-color: var(--pass-color);
-            left: 20px;
-            transform: rotate(-15deg);
+            color: var(--pass-color); border-color: var(--pass-color);
+            left: 20px; transform: rotate(-15deg);
         }
-        .card.dragging .swipe-indicator.like {
-            opacity: var(--like-opacity, 0);
-        }
-        .card.dragging .swipe-indicator.pass {
-            opacity: var(--pass-opacity, 0);
-        }
+        .card-container.dragging .swipe-indicator.like { opacity: var(--like-opacity, 0); }
+        .card-container.dragging .swipe-indicator.pass { opacity: var(--pass-opacity, 0); }
 
-        /* --- Action Buttons --- */
         .actions {
-            display: flex;
-            justify-content: space-evenly;
-            align-items: center;
-            padding: 20px 0;
-            border-top: 1px solid #333;
+            display: flex; justify-content: space-evenly; align-items: center;
+            padding: 20px 0; position: relative; z-index: 10;
         }
 
         .action-btn {
-            background: var(--card-bg);
-            border: 2px solid #444;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            border-radius: 50%; width: 64px; height: 64px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s ease;
         }
-
-        .action-btn svg {
-            width: 30px;
-            height: 30px;
-        }
-
-        .action-btn.pass { border-color: var(--pass-color); }
+        .action-btn:active { transform: scale(0.9); }
+        .action-btn svg { width: 32px; height: 32px; transition: fill 0.2s ease; }
+        .action-btn.pass { box-shadow: 0 0 20px -5px var(--pass-color); }
         .action-btn.pass:hover { background-color: var(--pass-color); }
         .action-btn.pass svg { fill: var(--pass-color); }
         .action-btn.pass:hover svg { fill: #fff; }
-
-        .action-btn.like { border-color: var(--like-color); }
+        .action-btn.like { box-shadow: 0 0 20px -5px var(--like-color); }
         .action-btn.like:hover { background-color: var(--like-color); }
         .action-btn.like svg { fill: var(--like-color); }
         .action-btn.like:hover svg { fill: #fff; }
-        
-        .action-btn.info { border-color: var(--info-color); }
+        .action-btn.info { box-shadow: 0 0 20px -5px var(--info-color); }
         .action-btn.info:hover { background-color: var(--info-color); }
         .action-btn.info svg { fill: var(--info-color); }
         .action-btn.info:hover svg { fill: #fff; }
-
-        .action-btn.share { border-color: var(--text-secondary); }
+        .action-btn.share { box-shadow: 0 0 20px -5px var(--text-secondary); }
         .action-btn.share:hover { background-color: var(--text-secondary); }
         .action-btn.share svg { fill: var(--text-secondary); }
         .action-btn.share:hover svg { fill: #fff; }
         
-        /* End of stack message */
         .no-more-cards {
-            text-align: center;
-            font-size: 1.5rem;
-            color: var(--text-secondary);
+            text-align: center; font-size: 1.5rem; color: var(--text-secondary);
+            opacity: 0; transform: scale(0.8); transition: opacity 0.5s, transform 0.5s;
         }
-
+        .no-more-cards.visible { opacity: 1; transform: scale(1); }
     </style>
 </head>
 <body>
@@ -389,326 +260,131 @@
         <header class="app-header">
             <h1>BI-Swipe</h1>
         </header>
-
-        <div class="card-stack" id="card-stack">
-            </div>
-
+        <div class="card-stack" id="card-stack"></div>
         <div class="actions">
-            <button class="action-btn share" aria-label="Share">
-                <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3z"/></svg>
-            </button>
-            <button class="action-btn pass" id="pass-btn" aria-label="Pass">
-                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-            </button>
-            <button class="action-btn like" id="like-btn" aria-label="Like">
-                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-            </button>
-            <button class="action-btn info" aria-label="More Info">
-                <svg viewBox="0 0 24 24"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
-            </button>
+            <button class="action-btn share" id="share-btn" aria-label="Share"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3z"/></svg></button>
+            <button class="action-btn pass" id="pass-btn" aria-label="Pass"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+            <button class="action-btn like" id="like-btn" aria-label="Like"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></button>
+            <button class="action-btn info" id="info-btn" aria-label="More Info"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg></button>
         </div>
     </main>
 
     <script>
     const cardData = [
-        {
-            type: 'KPI',
-            title: 'Monthly Recurring Revenue (MRR)',
-            content: {
-                value: '$1.2M',
-                trend: 'up',
-                trendText: '+12% vs last month'
-            }
-        },
-        {
-            type: 'SQL Query',
-            title: 'Find Power Users by Monthly Activity',
-            content: `<pre><span class="sql-comment">-- CTE to get user monthly activity</span>
-<span class="sql-keyword">WITH</span> UserActivity <span class="sql-keyword">AS</span> (
-  <span class="sql-keyword">SELECT</span>
-    user_id,
-    <span class="sql-function">DATE_TRUNC</span>(<span class="sql-string">'month'</span>, event_timestamp) <span class="sql-keyword">AS</span> activity_month,
-    <span class="sql-function">COUNT</span>(DISTINCT event_id) <span class="sql-keyword">AS</span> event_count
+        { type: 'KPI', title: 'Monthly Recurring Revenue (MRR)', content: { value: '$1.2M', trend: 'up', trendText: '+12% vs last month' }, metadata: { 'MRR': 'The predictable recurring revenue a company can expect to receive every month.', 'Calculation': 'Sum of all active subscriptions\' monthly fees.', 'Source': 'Stripe Billing API' }},
+        { type: 'KPI', title: 'Customer Lifetime Value (LTV)', content: { value: '$2,450', trend: 'up', trendText: '+5% vs last cohort' }, metadata: { 'LTV': 'A prediction of the net profit attributed to the entire future relationship with a customer.', 'Importance': 'Helps determine acquisition budget and retention strategy.', 'Formula': '(Average Purchase Value) x (Average Purchase Frequency) x (Average Customer Lifespan)' }},
+        { type: 'SQL Query', title: 'User Retention Cohort Analysis', content: `<pre><span class="sql-comment">-- Calculate weekly retention for user cohorts</span>
+<span class="sql-keyword">WITH</span> signup_cohorts <span class="sql-keyword">AS</span> (
+  <span class="sql-keyword">SELECT</span> user_id, <span class="sql-function">DATE_TRUNC</span>(<span class="sql-string">'week'</span>, signup_date) <span class="sql-keyword">AS</span> cohort_week
+  <span class="sql-keyword">FROM</span> users
+), activity_weeks <span class="sql-keyword">AS</span> (
+  <span class="sql-keyword">SELECT</span> user_id, <span class="sql-function">DATE_TRUNC</span>(<span class="sql-string">'week'</span>, event_date) <span class="sql-keyword">AS</span> activity_week
   <span class="sql-keyword">FROM</span> events
-  <span class="sql-keyword">GROUP BY</span> <span class="sql-number">1</span>, <span class="sql-number">2</span>
-)
-<span class="sql-comment">-- Select users with > 50 events in the last month</span>
-<span class="sql-keyword">SELECT</span> user_id, event_count
-<span class="sql-keyword">FROM</span> UserActivity
-<span class="sql-keyword">WHERE</span> activity_month = <span class="sql-function">DATE_TRUNC</span>(<span class="sql-string">'month'</span>, <span class="sql-function">CURRENT_DATE</span>)
-  <span class="sql-keyword">AND</span> event_count > <span class="sql-number">50</span>
-<span class="sql-keyword">ORDER BY</span> event_count <span class="sql-keyword">DESC</span>;</pre>`
-        },
-        {
-            type: 'Chart',
-            title: 'User Acquisition by Channel',
-            content: {
-                type: 'donut',
-                data: [
-                    { label: 'Organic', value: 45, color: '#03dac6' },
-                    { label: 'Paid', value: 30, color: '#f44336' },
-                    { label: 'Referral', value: 15, color: '#2196f3' },
-                    { label: 'Social', value: 10, color: '#ffeb3b' }
-                ],
-                total: '15.2k',
-                totalLabel: 'New Users'
-            }
-        },
-        {
-            type: 'BI Insight',
-            title: 'Churn Analysis',
-            content: '<p class="insight-text">User churn is highest within the first <strong>7 days</strong> for customers acquired via Paid Social channels. Suggests an onboarding-channel mismatch.</p>'
-        },
-        {
-            type: 'Chart',
-            title: 'Revenue by Quarter (YoY)',
-            content: {
-                type: 'bar',
-                data: [
-                    { label: 'Q1', value: 60 },
-                    { label: 'Q2', value: 75 },
-                    { label: 'Q3', value: 90 },
-                    { label: 'Q4', value: 85 }
-                ]
-            }
-        },
-        {
-            type: 'SQL Query',
-            title: 'Calculate Year-over-Year Growth',
-            content: `<pre><span class="sql-keyword">WITH</span> MonthlySales <span class="sql-keyword">AS</span> (
-  <span class="sql-keyword">SELECT</span>
-    <span class="sql-function">EXTRACT</span>(YEAR <span class="sql-keyword">FROM</span> order_date) <span class="sql-keyword">AS</span> sale_year,
-    <span class="sql-function">SUM</span>(sale_amount) <span class="sql-keyword">AS</span> total_sales
-  <span class="sql-keyword">FROM</span> orders
-  <span class="sql-keyword">GROUP BY</span> <span class="sql-number">1</span>
 )
 <span class="sql-keyword">SELECT</span>
-  sale_year,
-  total_sales,
-  <span class="sql-function">LAG</span>(total_sales, <span class="sql-number">1</span>) <span class="sql-keyword">OVER</span> (<span class="sql-keyword">ORDER BY</span> sale_year) <span class="sql-keyword">AS</span> previous_year_sales,
-  (total_sales / <span class="sql-function">LAG</span>(total_sales, <span class="sql-number">1</span>) <span class="sql-keyword">OVER</span> (<span class="sql-keyword">ORDER BY</span> sale_year)) - <span class="sql-number">1</span> <span class="sql-keyword">AS</span> yoy_growth
-<span class="sql-keyword">FROM</span> MonthlySales;</pre>`
-        },
-        {
-            type: 'Data Table',
-            title: 'Top 5 Performing Products (Last 30 Days)',
-            content: `
-                <table>
-                    <thead>
-                        <tr><th>Product SKU</th><th>Name</th><th>Units Sold</th><th>Revenue</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>P-0012A</td><td>Quantum Widget</td><td class="highlight">1,402</td><td>$69,990</td></tr>
-                        <tr><td>P-0045C</td><td>Omega Gear</td><td>980</td><td>$48,995</td></tr>
-                        <tr><td>P-0001X</td><td>Alpha Sprocket</td><td>855</td><td>$21,375</td></tr>
-                        <tr><td>P-0089B</td><td>Hyper-Core</td><td class="highlight">761</td><td>$114,150</td></tr>
-                        <tr><td>P-0023G</td><td>Nano-Connector</td><td>650</td><td>$9,750</td></tr>
-                    </tbody>
-                </table>
-            `
-        },
-        {
-            type: 'KPI',
-            title: 'Average Session Duration',
-            content: {
-                value: '4m 32s',
-                trend: 'down',
-                trendText: '-5% vs last week'
-            }
-        },
-        {
-            type: 'Visualization',
-            title: 'Conversion Funnel: Onboarding',
-            content: `
-                <div class="funnel">
-                    <div class="funnel-step"><span>Visited Landing Page (100%)</span></div>
-                    <div class="funnel-step"><span>Created Account (62%)</span></div>
-                    <div class="funnel-step"><span>Completed Profile (41%)</span></div>
-                    <div class="funnel-step"><span>Made First Action (28%)</span></div>
-                </div>
-            `
-        },
-        {
-            type: 'BI Insight',
-            title: 'Feature Adoption',
-            content: '<p class="insight-text">The new "Project Templates" feature has a <strong>90% adoption rate</strong> among power users, but only <strong>15%</strong> among new users. An in-app guide might bridge this gap.</p>'
-        },
-        {
-            type: 'SQL Query',
-            title: 'User Segmentation using RFM',
-            content: `<pre><span class="sql-comment">-- Simple RFM Segmentation using NTILE</span>
-<span class="sql-keyword">WITH</span> RFM_Base <span class="sql-keyword">AS</span> (
-  <span class="sql-keyword">SELECT</span>
-    customer_id,
-    <span class="sql-function">MAX</span>(order_date) <span class="sql-keyword">AS</span> last_order_date,
-    <span class="sql-function">COUNT</span>(DISTINCT order_id) <span class="sql-keyword">AS</span> frequency,
-    <span class="sql-function">SUM</span>(order_value) <span class="sql-keyword">AS</span> monetary
-  <span class="sql-keyword">FROM</span> customer_orders
-  <span class="sql-keyword">GROUP BY</span> <span class="sql-number">1</span>
+  c.cohort_week,
+  <span class="sql-function">FLOOR</span>(<span class="sql-function">DATEDIFF</span>(<span class="sql-string">'day'</span>, c.cohort_week, a.activity_week) / <span class="sql-number">7</span>) <span class="sql-keyword">AS</span> week_number,
+  <span class="sql-function">COUNT</span>(<span class="sql-keyword">DISTINCT</span> a.user_id) <span class="sql-keyword">AS</span> retained_users
+<span class="sql-keyword">FROM</span> signup_cohorts c
+<span class="sql-keyword">JOIN</span> activity_weeks a <span class="sql-keyword">ON</span> c.user_id = a.user_id
+<span class="sql-keyword">GROUP BY</span> <span class="sql-number">1</span>, <span class="sql-number">2</span>;</pre>`, metadata: { 'Objective': 'Track how many users return in the weeks following their signup.', 'Key Insight': 'Identifies drops in engagement and effectiveness of onboarding.', 'Visualization': 'Typically shown as a triangle heat map.' }},
+        { type: 'BI Insight', title: 'Feature Adoption Funnel', content: '<p class="insight-text">Only 15% of users who use the "Search" feature proceed to use "Advanced Filters". This suggests the advanced options are not discoverable.</p>', metadata: { 'Insight': 'A significant drop-off in the user journey indicates a usability problem.', 'Actionable Step': 'Add a "Try Advanced Filters" tooltip or button next to the main search bar.', 'Tool': 'Amplitude / Mixpanel Funnel Analysis' }},
+        { type: 'Python Code', title: 'Sentiment Analysis with Pandas', content: `<pre><span class="py-keyword">import</span> pandas <span class="py-keyword">as</span> pd
+<span class="py-keyword">from</span> textblob <span class="py-keyword">import</span> TextBlob
+
+<span class="py-comment"># Assuming 'df' is a DataFrame with a 'reviews' column</span>
+<span class="py-function">def</span> <span class="py-function">get_sentiment</span>(text):
+    <span class="py-keyword">return</span> TextBlob(text).sentiment.polarity
+
+df[<span class="py-string">'sentiment'</span>] = df[<span class="py-string">'reviews'</span>].<span class="py-function">apply</span>(get_sentiment)
+
+<span class="py-comment"># Classify sentiment</span>
+df[<span class="py-string">'sentiment_class'</span>] = <span class="py-function">pd.cut</span>(
+    df[<span class="py-string">'sentiment'</span>],
+    bins=[-1, -0.1, 0.1, 1],
+    labels=[<span class="py-string">'Negative'</span>, <span class="py-string">'Neutral'</span>, <span class="py-string">'Positive'</span>]
 )
-<span class="sql-keyword">SELECT</span>
-  customer_id,
-  <span class="sql-function">NTILE</span>(<span class="sql-number">5</span>) <span class="sql-keyword">OVER</span> (<span class="sql-keyword">ORDER BY</span> last_order_date <span class="sql-keyword">DESC</span>) <span class="sql-keyword">AS</span> r_score,
-  <span class="sql-function">NTILE</span>(<span class="sql-number">5</span>) <span class="sql-keyword">OVER</span> (<span class="sql-keyword">ORDER BY</span> frequency <span class="sql-keyword">DESC</span>) <span class="sql-keyword">AS</span> f_score,
-  <span class="sql-function">NTILE</span>(<span class="sql-number">5</span>) <span class="sql-keyword">OVER</span> (<span class="sql-keyword">ORDER BY</span> monetary <span class="sql-keyword">DESC</span>) <span class="sql-keyword">AS</span> m_score
-<span class="sql-keyword">FROM</span> RFM_Base;</pre>`
-        },
-        {
-            type: 'KPI',
-            title: 'Customer Acquisition Cost (CAC)',
-            content: {
-                value: '$112.50',
-                trend: 'up',
-                trendText: '+8% vs last quarter'
-            }
-        },
-        {
-            type: 'Chart',
-            title: 'Ticket Resolution Time by Priority',
-            content: {
-                type: 'bar',
-                data: [
-                    { label: 'Low', value: 20 },
-                    { label: 'Mid', value: 45 },
-                    { label: 'High', value: 70 },
-                    { label: 'Urgent', value: 95 }
-                ]
-            }
-        },
-        {
-            type: 'BI Insight',
-            title: 'Geographic Performance',
-            content: '<p class="insight-text">The EMEA region shows a <strong>30% higher LTV</strong> than North America, despite having a <strong>20% lower CAC</strong>. Recommend shifting marketing budget to EMEA.</p>'
-        },
-        {
-            type: 'Data Table',
-            title: 'A/B Test Results: New Checkout Button',
-            content: `
-                <table>
-                    <thead>
-                        <tr><th>Variant</th><th>Sessions</th><th>Conversions</th><th>Conv. Rate</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>Control (A)</td><td>10,450</td><td>1,254</td><td>12.00%</td></tr>
-                        <tr class="highlight"><td>Variant (B)</td><td>10,510</td><td>1,471</td><td>14.00%</td></tr>
-                    </tbody>
-                </table>
-                <p style="text-align:center; margin-top:10px; font-size: 0.9em; color: var(--like-color);">Result: Statistically significant uplift. Implement Variant B.</p>
-            `
-        },
-        {
-            type: 'KPI',
-            title: 'API Call Success Rate',
-            content: {
-                value: '99.98%',
-                trend: 'up',
-                trendText: '+0.01% vs yesterday'
-            }
-        },
-        {
-            type: 'Chart',
-            title: 'Device Usage Breakdown',
-            content: {
-                type: 'donut',
-                data: [
-                    { label: 'Desktop', value: 65, color: '#03dac6' },
-                    { label: 'Mobile', value: 30, color: '#f44336' },
-                    { label: 'Tablet', value: 5, color: '#2196f3' }
-                ],
-                total: '2.1M',
-                totalLabel: 'Sessions'
-            }
-        },
-        {
-            type: 'BI Insight',
-            title: 'Inventory Alert',
-            content: '<p class="insight-text">Stock for "Quantum Widget" (P-0012A) is projected to run out in <strong>less than 2 weeks</strong> based on current sales velocity. Immediate re-order required.</p>'
-        },
+<span class="py-function">print</span>(df[<span class="py-string">'sentiment_class'</span>].<span class="py-function">value_counts</span>())</pre>`, metadata: { 'Library': 'TextBlob provides a simple API for common NLP tasks.', 'Polarity': 'A float between -1 (very negative) and 1 (very positive).', 'Use Case': 'Quickly gauge customer feedback, product reviews, or social media mentions.' }},
+        { type: 'KPI', title: 'Conversion Rate (CVR)', content: { value: '3.45%', trend: 'down', trendText: '-0.2% vs last week' }, metadata: { 'CVR': 'The percentage of users who take a desired action (e.g., purchase, signup).', 'Importance': 'A key indicator of website or campaign effectiveness.', 'Formula': '(Number of Conversions / Total Visitors) * 100%' }},
+        { type: 'Concept', title: 'ETL vs. ELT', content: '<p class="insight-text"><strong>ETL</strong> (Extract, Transform, Load) transforms data <i>before</i> loading it into the data warehouse. <br/><br/><strong>ELT</strong> (Extract, Load, Transform) loads raw data first and transforms it <i>inside</i> the warehouse using its processing power.</p>', metadata: { 'ETL': 'Traditional approach, good for structured data and compliance.', 'ELT': 'Modern approach, leverages powerful cloud data warehouses (Snowflake, BigQuery), ideal for big data and flexibility.', 'Trend': 'Shift towards ELT is dominant in modern data stacks.' }},
+        { type: 'SQL Query', title: 'Find Duplicate Emails', content: `<pre><span class="sql-keyword">SELECT</span> email, <span class="sql-function">COUNT</span>(*)
+<span class="sql-keyword">FROM</span> users
+<span class="sql-keyword">GROUP BY</span> email
+<span class="sql-keyword">HAVING</span> <span class="sql-function">COUNT</span>(*) > <span class="sql-number">1</span>;</pre>`, metadata: { 'Objective': 'A fundamental data quality check.', 'HAVING Clause': 'Used to filter groups after the GROUP BY aggregation.', 'Action': 'These duplicates should be investigated and merged or deleted.' }},
+        { type: 'BI Insight', title: 'Cart Abandonment', content: '<p class="insight-text">72% of users who add items to their cart abandon it. The biggest drop-off (40%) happens at the "Shipping Costs" step.</p>', metadata: { 'Problem': 'High shipping costs are a major friction point.', 'Potential Solutions': 'Offer free shipping thresholds, be transparent about costs earlier, or run targeted "free shipping" email campaigns.', 'Data Source': 'Google Analytics E-commerce Tracking.' }},
+        { type: 'KPI', title: 'Daily Active Users (DAU)', content: { value: '14,802', trend: 'up', trendText: '+3% DoD' }, metadata: { 'DAU': 'The number of unique users who engage with the product in a 24-hour period.', 'Stickiness': 'Often compared with MAU (Monthly Active Users) to calculate a "stickiness ratio" (DAU/MAU).', 'Context': 'Growth is good, but should be compared to weekly and monthly trends.' }},
+        { type: 'Concept', title: 'Data Lake vs. Data Warehouse', content: '<p class="insight-text">A <strong>Data Warehouse</strong> stores structured, filtered data for a specific purpose. <br/><br/>A <strong>Data Lake</strong> is a vast pool of raw data, in its native format, purpose not yet defined.</p>', metadata: { 'Warehouse': 'Schema-on-write. Highly performant for BI queries.', 'Lake': 'Schema-on-read. Flexible, used for data science and ML.', 'Modern Architecture': 'Often a "Lakehouse" architecture combines the benefits of both.' }},
+        { type: 'Python Code', title: 'Anomaly Detection with Isolation Forest', content: `<pre><span class="py-keyword">from</span> sklearn.ensemble <span class="py-keyword">import</span> IsolationForest
+<span class="py-keyword">import</span> numpy <span class="py-keyword">as</span> np
+
+<span class="py-comment"># X is a 2D numpy array of data points</span>
+X = np.array([[<span class="py-number">-1.1</span>], [<span class="py-number">0.3</span>], [<span class="py-number">0.5</span>], [<span class="py-number">100</span>]])
+
+clf = IsolationForest(contamination=<span class="py-number">0.1</span>)
+preds = clf.fit_predict(X)
+
+<span class="py-comment"># preds will be -1 for anomalies, 1 for inliers</span>
+<span class="py-function">print</span>(preds)
+<span class="py-comment"># Expected output: array([ 1,  1,  1, -1])</span></pre>`, metadata: { 'Algorithm': 'Isolation Forest is an unsupervised learning algorithm that isolates observations.', 'Contamination': 'The proportion of outliers expected in the data set.', 'Use Case': 'Detecting fraudulent transactions, network intrusions, or manufacturing defects.' }},
+        { type: 'SQL Query', title: 'Running Total with Window Functions', content: `<pre><span class="sql-keyword">SELECT</span>
+  order_date,
+  revenue,
+  <span class="sql-function">SUM</span>(revenue) <span class="sql-keyword">OVER</span> (
+    <span class="sql-keyword">ORDER BY</span> order_date
+    <span class="sql-keyword">ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</span>
+  ) <span class="sql-keyword">AS</span> running_total_revenue
+<span class="sql-keyword">FROM</span> daily_sales;</pre>`, metadata: { 'Window Function': 'Performs a calculation across a set of table rows that are somehow related to the current row.', 'OVER() Clause': 'Defines the "window" or set of rows to operate on.', 'Use Case': 'Calculating cumulative sums, moving averages, or ranking.' }},
+        { type: 'KPI', title: 'Server Uptime', content: { value: '99.99%', trend: 'up', trendText: 'SLA Met' }, metadata: { 'Uptime': 'The percentage of time a server or system is operational.', 'SLA': 'Service-Level Agreement. A contractual promise of uptime.', 'Importance': 'Crucial for customer trust and reliability.' }},
+        { type: 'BI Insight', title: 'Geographic Sales', content: '<p class="insight-text">The new marketing campaign in Germany resulted in a 300% increase in leads, but only a 20% increase in sales conversion. The sales team may need localized materials.</p>', metadata: { 'Observation': 'Lead generation is successful, but lead qualification is failing.', 'Hypothesis': 'A language or cultural barrier exists in the sales process.', 'Next Step': 'A/B test localized sales scripts and product demos.' }}
     ];
 
-    // --- Main Script ---
-    
     const stack = document.getElementById('card-stack');
     const likeBtn = document.getElementById('like-btn');
     const passBtn = document.getElementById('pass-btn');
+    const infoBtn = document.getElementById('info-btn');
+    const shareBtn = document.getElementById('share-btn');
 
-    let currentCard = null;
+    let currentCardContainer = null;
     let isDragging = false;
-    let startX = 0, startY = 0;
-    let currentX = 0, currentY = 0;
+    let startX = 0;
+    let currentX = 0;
 
     function createCard(data) {
-        const card = document.createElement('div');
-        card.classList.add('card');
+        const cardContainer = document.createElement('div');
+        cardContainer.classList.add('card-container');
+        
+        const cardFront = document.createElement('div');
+        cardFront.classList.add('card', 'card-front');
         
         let contentHTML = '';
-        switch (data.type) {
-            case 'KPI':
-                contentHTML = `
-                    <p class="card-type">${data.type}</p>
-                    <h2 class="card-title">${data.title}</h2>
-                    <div class="kpi-value">${data.content.value}</div>
-                    <div class="kpi-trend ${data.content.trend}">
-                        ${data.content.trend === 'up' ? '▲' : '▼'} ${data.content.trendText}
-                    </div>
-                `;
-                break;
-            case 'SQL Query':
-            case 'Data Table':
-            case 'Visualization':
-                contentHTML = `
-                    <p class="card-type">${data.type}</p>
-                    <h2 class="card-title">${data.title}</h2>
-                    ${data.content}
-                `;
-                break;
-            case 'BI Insight':
-                 contentHTML = `
-                    <p class="card-type">${data.type}</p>
-                    <h2 class="card-title">${data.title}</h2>
-                    ${data.content}
-                `;
-                break;
-            case 'Chart':
-                let chartHTML = '';
-                if (data.content.type === 'bar') {
-                    chartHTML = `<div class="bar-chart">
-                        ${data.content.data.map(bar => `<div class="bar" style="height: ${bar.value}%;" data-label="${bar.label}"></div>`).join('')}
-                    </div>`;
-                } else if (data.content.type === 'donut') {
-                    const conicGradient = data.content.data.reduce((acc, slice, index) => {
-                        const start = acc.prevEnd;
-                        const end = start + (slice.value / 100) * 360;
-                        acc.str += `${index > 0 ? ',' : ''} ${slice.color} ${start}deg ${end}deg`;
-                        acc.prevEnd = end;
-                        return acc;
-                    }, { str: '', prevEnd: 0 }).str;
-                    
-                    chartHTML = `
-                        <div class="donut-chart" style="background: conic-gradient(${conicGradient});">
-                            <div class="donut-chart-center">
-                                <span class="donut-total">${data.content.total}</span>
-                                <span class="donut-label">${data.content.totalLabel}</span>
-                            </div>
-                        </div>
-                    `;
-                }
-                contentHTML = `
-                    <p class="card-type">${data.type}</p>
-                    <h2 class="card-title">${data.title}</h2>
-                    <div class="chart-container">${chartHTML}</div>
-                `;
-                break;
+        if (data.type === 'KPI') {
+            contentHTML = `<div class="kpi-value">${data.content.value}</div><div class="kpi-trend ${data.content.trend}">${data.content.trend === 'up' ? '▲' : '▼'} ${data.content.trendText}</div>`;
+        } else {
+            contentHTML = data.content;
         }
 
-        card.innerHTML = `
+        cardFront.innerHTML = `
             <div class="swipe-indicator like">LIKE</div>
             <div class="swipe-indicator pass">PASS</div>
             <div class="card-content">
+                <p class="card-type">${data.type}</p>
+                <h2 class="card-title">${data.title}</h2>
                 ${contentHTML}
-            </div>
-        `;
-        return card;
+            </div>`;
+        
+        const cardBack = document.createElement('div');
+        cardBack.classList.add('card', 'card-back');
+        const metadataList = Object.entries(data.metadata).map(([key, value]) => `<li><strong>${key}:</strong> ${value}</li>`).join('');
+        cardBack.innerHTML = `
+            <div class="card-content">
+                 <p class="card-type">Metadata</p>
+                 <h2 class="card-title">${data.title}</h2>
+                 <ul class="metadata-list">${metadataList}</ul>
+            </div>`;
+
+        cardContainer.appendChild(cardFront);
+        cardContainer.appendChild(cardBack);
+        return cardContainer;
     }
 
     function renderCards() {
@@ -718,105 +394,140 @@
             stack.appendChild(card);
         });
         
-        // Add "no more cards" message at the end
         const noMoreCards = document.createElement('div');
         noMoreCards.classList.add('no-more-cards');
-        noMoreCards.innerHTML = '<h2>No More Insights</h2><p>Come back later for more data goodness!</p>';
+        noMoreCards.innerHTML = '<h2>All Insights Swiped!</h2><p>Come back later for more.</p>';
         stack.appendChild(noMoreCards);
         
         initTopCard();
     }
     
     function initTopCard() {
-        const cards = stack.querySelectorAll('.card:not(.removed)');
+        const cards = stack.querySelectorAll('.card-container:not(.removed)');
         if (cards.length === 0) {
-            currentCard = null;
+            currentCardContainer = null;
+            document.querySelector('.no-more-cards').classList.add('visible');
             return;
         }
-        currentCard = cards[cards.length - 1]; // Get top card
+        currentCardContainer = cards[0];
+        currentCardContainer.classList.add('is-top');
 
-        // Attach event listeners
-        currentCard.addEventListener('mousedown', dragStart);
-        currentCard.addEventListener('touchstart', dragStart, { passive: true });
-        
-        // Listen on the whole window for move/end events
-        window.addEventListener('mousemove', dragMove);
-        window.addEventListener('touchmove', dragMove, { passive: true });
-        
-        window.addEventListener('mouseup', dragEnd);
-        window.addEventListener('touchend', dragEnd, { passive: true });
+        currentCardContainer.addEventListener('mousedown', dragStart);
+        currentCardContainer.addEventListener('touchstart', dragStart, { passive: false });
     }
 
     function dragStart(e) {
-        if (!currentCard) return;
+        if (!currentCardContainer || currentCardContainer.classList.contains('is-flipped')) return;
         isDragging = true;
-        currentCard.classList.add('dragging');
+        currentCardContainer.classList.add('dragging');
         startX = e.pageX || e.touches[0].pageX;
+        
+        window.addEventListener('mousemove', dragMove);
+        window.addEventListener('touchmove', dragMove, { passive: false });
+        window.addEventListener('mouseup', dragEnd);
+        window.addEventListener('touchend', dragEnd);
     }
 
     function dragMove(e) {
-        if (!isDragging || !currentCard) return;
+        if (!isDragging || !currentCardContainer) return;
+        e.preventDefault();
         
         const currentXPos = e.pageX || e.touches[0].pageX;
         currentX = currentXPos - startX;
         
-        // Prevent vertical scroll on touch devices
-        if (e.touches) e.preventDefault();
-        
         const rotation = currentX * 0.1;
+        const rect = currentCardContainer.getBoundingClientRect();
+        const yPos = (e.clientY || e.touches[0].clientY) - rect.top;
+        const tiltY = (0.5 - yPos / rect.height) * -15;
         
-        currentCard.style.transform = `translateX(${currentX}px) rotate(${rotation}deg)`;
+        currentCardContainer.style.transform = `scale(1) translateX(${currentX}px) rotateZ(${rotation}deg) rotateX(${tiltY}deg)`;
         
-        // Update swipe indicator opacity
         const decisionThreshold = 80;
         const likeOpacity = Math.max(0, currentX / decisionThreshold - 0.2);
         const passOpacity = Math.max(0, -currentX / decisionThreshold - 0.2);
-        currentCard.style.setProperty('--like-opacity', likeOpacity);
-        currentCard.style.setProperty('--pass-opacity', passOpacity);
+        currentCardContainer.style.setProperty('--like-opacity', likeOpacity);
+        currentCardContainer.style.setProperty('--pass-opacity', passOpacity);
     }
 
     function dragEnd(e) {
-        if (!isDragging || !currentCard) return;
+        if (!isDragging || !currentCardContainer) return;
         isDragging = false;
-        currentCard.classList.remove('dragging');
+        
+        window.removeEventListener('mousemove', dragMove);
+        window.removeEventListener('touchmove', dragMove);
+        window.removeEventListener('mouseup', dragEnd);
+        window.removeEventListener('touchend', dragEnd);
+
+        currentCardContainer.classList.remove('dragging');
         
         const decisionThreshold = 100;
-        
         if (currentX > decisionThreshold) {
             swipe(true);
         } else if (currentX < -decisionThreshold) {
             swipe(false);
         } else {
-            // Snap back
-            currentCard.style.transform = 'translateX(0) rotate(0)';
-            currentCard.style.setProperty('--like-opacity', 0);
-            currentCard.style.setProperty('--pass-opacity', 0);
+            currentCardContainer.style.transform = 'scale(1) translateX(0) rotateZ(0) rotateX(0)';
+            currentCardContainer.style.setProperty('--like-opacity', 0);
+            currentCardContainer.style.setProperty('--pass-opacity', 0);
         }
     }
     
     function swipe(isLike) {
-        if (!currentCard) return;
+        if (!currentCardContainer) return;
         
-        currentCard.classList.add(isLike ? 'go-right' : 'go-left');
-        currentCard.classList.add('removed'); // Mark for removal
+        currentCardContainer.classList.remove('is-top');
+        currentCardContainer.classList.add(isLike ? 'go-right' : 'go-left');
+        currentCardContainer.classList.add('removed');
 
-        // Clean up event listeners from this card
-        currentCard.removeEventListener('mousedown', dragStart);
-        currentCard.removeEventListener('touchstart', dragStart);
+        currentCardContainer.removeEventListener('mousedown', dragStart);
+        currentCardContainer.removeEventListener('touchstart', dragStart);
         
-        // Wait for animation to finish then set up next card
+        if (navigator.vibrate) navigator.vibrate(50);
+        
         setTimeout(() => {
-            currentCard.remove();
+            // No need to remove from DOM, just leave it hidden
             initTopCard();
-        }, 300);
+        }, 400);
+    }
+    
+    function flipCard() {
+        if (currentCardContainer && !isDragging) {
+            currentCardContainer.classList.toggle('is-flipped');
+        }
+    }
+    
+    async function shareCard() {
+        if (!currentCardContainer) return;
+
+        const cardIndex = cardData.length - stack.querySelectorAll('.card-container:not(.removed)').length;
+        const data = cardData[cardIndex];
+        const shareData = {
+            title: 'BI-Swipe Insight',
+            text: `Check out this BI insight: "${data.title}"`,
+            url: window.location.href,
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch (err) {
+                console.error("Share failed:", err);
+            }
+        } else {
+            navigator.clipboard.writeText(`${shareData.text}\n${shareData.url}`).then(() => {
+                alert('Insight link copied to clipboard!');
+            });
+        }
     }
     
     likeBtn.addEventListener('click', () => swipe(true));
     passBtn.addEventListener('click', () => swipe(false));
+    infoBtn.addEventListener('click', flipCard);
+    shareBtn.addEventListener('click', shareCard);
 
-    // Initial load
     renderCards();
     </script>
 
 </body>
 </html>
+
