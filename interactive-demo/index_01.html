@@ -1,754 +1,473 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2EY1HGXGNT"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-2EY1HGXGNT');
-    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BI Magics ▸ Interactive Demo (Debug Mode)</title>
+    <title>AIDA - Your AI Data Architect</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet" />
 
     <style>
-        body { font-family: "Inter", sans-serif; -webkit-font-smoothing: antialiased; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #111827; }
-        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
-        @media (max-width: 767px) {
-            main h2 { padding-left: 3.5rem }
-            #chat-title { padding-left: 3.5rem }
+        body {
+            font-family: 'Assistant', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            overflow-x: hidden;
         }
 
-        .fade-enter { opacity: 0; transform: translateY(25px); }
-        .fade-enter-active { opacity: 1; transform: translateY(0); transition: opacity 0.5s ease, transform 0.5s ease; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .spinner { animation: spin 1s linear infinite; }
-        .modal-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-        .modal-backdrop.visible { opacity: 1; pointer-events: auto; }
-        .modal-content { transform: scale(0.95); transition: transform 0.3s ease; }
-        .modal-backdrop.visible .modal-content { transform: scale(1); }
-        .sidebar-open { transform: translateX(0) !important; }
+        /* --- Animations & Effects --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-section {
+            opacity: 0;
+            animation: fadeIn 0.8s ease-out forwards;
+        }
         
-        /* --- ✨ NEW & IMPROVED ANIMATIONS --- */
         @keyframes pulse-glow {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
-            50% { transform: scale(1.02); box-shadow: 0 0 20px 10px rgba(22, 163, 74, 0); }
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
+            50% { transform: scale(1.03); box-shadow: 0 0 25px 10px rgba(37, 99, 235, 0); }
+        }
+        .cta-button {
+            animation: pulse-glow 3s infinite ease-out;
+        }
+
+        @keyframes background-pan {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animated-gradient-bg {
+            background: linear-gradient(90deg, #0d1117, #161b22, #0d1117);
+            background-size: 200% 200%;
+            animation: background-pan 15s ease infinite;
+        }
+
+        /* --- Analysis Progress Bar --- */
+        @keyframes progress-fill {
+            from { width: 0%; } to { width: 100%; }
+        }
+        .progress-bar-inner {
+            animation: progress-fill 2s ease-in-out forwards;
+        }
+        .analysis-step {
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
         }
         
-        .cta-button {
-            animation: pulse-glow 2.5s infinite;
-            transition: all 0.3s ease-in-out;
+        /* --- ERD Styling --- */
+        .erd-node {
+            transition: all 0.3s ease;
+            cursor: pointer;
         }
-        .cta-button:hover {
+        .erd-node:hover {
             transform: scale(1.05);
-            animation-play-state: paused;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.6);
+            border-color: #22c55e;
+            z-index: 10;
+        }
+        .erd-line {
+            transition: all 0.3s ease;
+        }
+        .erd-node:hover ~ .erd-line,
+        .erd-node.highlight ~ .erd-line {
+            stroke-width: 3;
+            stroke: #22c55e;
+        }
+        .erd-node.highlight {
+             border-color: #22c55e;
+             box-shadow: 0 0 20px rgba(34, 197, 94, 0.6);
         }
 
-        /* Loader Animation */
-        @keyframes spin-ring { to { transform: rotate(360deg) } }
-        .loader-ring {
-            width: 84px; height: 84px;
-            border: 6px dashed #3b82f6;
-            border-radius: 50%;
-            animation: spin-ring 2.8s linear infinite;
-        }
-
-        /* Progress Bar Animation */
-        @keyframes load-bar { from { width: 0% } to { width: 100% } }
-        .loader-bar-inner {
-            height: 100%;
-            background: linear-gradient(90deg, #10b981, #34d399);
-            animation: load-bar .8s ease-out forwards;
-            border-radius: 3px;
-        }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-200 min-h-screen flex antialiased">
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 xl:w-72 flex-col bg-gray-950/80 backdrop-blur-xl p-8 -translate-x-full md:relative md:translate-x-0 md:flex transition-transform duration-300">
-        <div>
-            <h1 class="text-2xl xl:text-3xl font-black tracking-tight">
-                <a href="https://bimagics.com" target="_blank" class="flex items-center gap-2 text-inherit hover:opacity-80 focus:outline-none">
-                    <svg width="28" height="28" viewBox="0 0 24 24" class="text-emerald-400">
-                      <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm-1 15v-4H8l4-5v4h3l-4 5z"/>
-                    </svg>
-                    <span>BI Magics</span>
-                </a>
-            </h1>
-            <p class="text-sm text-gray-400 mt-2 mb-10">From raw data to critical insight in 5 steps.</p>
-        </div>
-        <ol id="progress" class="space-y-6 select-none"></ol>
-        <div class="mt-auto text-center text-gray-500 text-xs">
-            <a href="https://bimagics.com" target="_blank" class="hover:underline focus:outline-none">
-                &copy; 2025 BI Magics, Inc.
-            </a>
-        </div>
-    </aside>
-    
-    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 z-40 hidden md:hidden"></div>
+<body class="bg-gray-900 text-gray-300">
 
-    <main class="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-12 xl:p-16 relative">
-        <button id="menu-btn" class="md:hidden fixed top-6 left-6 z-30 text-gray-300 hover:text-white">
-            <i data-feather="menu" class="w-6 h-6"></i>
-        </button>
+    <header id="hero" class="relative min-h-screen flex items-center justify-center text-center overflow-hidden animated-gradient-bg">
+        <div class="relative z-10 p-8 max-w-4xl mx-auto">
+            <span class="inline-block px-4 py-1 mb-4 text-sm font-semibold tracking-wider text-cyan-300 bg-cyan-900/50 rounded-full">ארכיטקט נתונים מבוסס AI</span>
+            <h1 class="text-5xl md:text-7xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-300 mb-6">הכירו את AIDA</h1>
+            <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10">
+                הסוכן החכם שממפה, מנתח ומבצע אופטימיזציה למחסן הנתונים שלכם באופן אוטומטי. הפכו כאוס לסדר, וספקו לצוותי הדאטה שלכם תובנות חסרות תקדים על המבנה והזרימה של הנתונים.
+            </p>
+            <button id="start-demo-btn" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-8 rounded-lg text-lg transition-transform duration-300 hover:scale-105 cta-button">
+                הדגם את היכולות
+            </button>
+        </div>
+    </header>
 
-        <section id="step-1" class="step-section space-y-8">
-            <div class="fade-enter">
-                <h2 class="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">1. Connect your Data Warehouse</h2>
-                <p class="text-gray-300 max-w-2xl text-base md:text-lg">Securely connect to your data source. We use read-only access and never copy your data.</p>
-                <div class="mt-10 grid lg:grid-cols-2 gap-12">
-                    <form id="connect-form" class="space-y-6 bg-gray-950/30 rounded-2xl p-8 border border-gray-800 shadow-2xl">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-400 mb-2" for="wh-type">Warehouse Type</label>
-                            <select id="wh-type" class="w-full text-base rounded-lg bg-gray-800 border-gray-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 px-4 py-3"></select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-400 mb-2" for="conn-string">Project ID / Host</label>
-                            <input id="conn-string" type="text" value="acme-corp-production" class="w-full text-base rounded-lg bg-gray-800 border-gray-700 px-4 py-3" />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-400 mb-2" for="service-key">Service Account Key / Password</label>
-                            <input id="service-key" type="password" value="demopassword123" class="w-full text-base rounded-lg bg-gray-800 border-gray-700 px-4 py-3" />
-                        </div>
-                        <button type="button" id="connect-btn" class="w-full py-4 rounded-lg bg-emerald-600 font-semibold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 transition-all duration-300 shadow-lg flex items-center justify-center gap-3 cta-button">
-                            <i data-feather="zap" class="w-5 h-5"></i><span>Connect & Scan Schema</span>
-                        </button>
-                        <div class="text-center mt-2"><span class="text-xs text-gray-500">View-only permissions</span></div>
-                    </form>
-                    <div id="connection-status-container" class="flex flex-col items-center justify-center min-h-[350px] p-8 bg-gray-950/30 rounded-2xl border border-gray-800"></div>
+    <main class="container mx-auto px-6 py-20">
+        
+        <section id="features" class="my-24">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">כל מה שארכיטקט דאטה צריך - בכלי אחד</h2>
+                <p class="text-lg text-gray-400 max-w-3xl mx-auto">AIDA סורקת את כל שכבות המידע, מקוד המקור ועד למודלים הסופיים, כדי לספק תמונה מלאה ואינטראקטיבית.</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="bg-gray-800/50 p-6 rounded-xl border border-gray-700 hover:border-blue-500 transition-colors duration-300">
+                    <i data-feather="compass" class="w-10 h-10 text-blue-400 mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2">גילוי ומיפוי אוטומטי</h3>
+                    <p class="text-gray-400">חיבור Read-Only למחסן הנתונים וסריקה אוטומטית של סכמות, טבלאות, View-ים ופרוצדורות.</p>
+                </div>
+                <div class="bg-gray-800/50 p-6 rounded-xl border border-gray-700 hover:border-blue-500 transition-colors duration-300">
+                    <i data-feather="git-merge" class="w-10 h-10 text-blue-400 mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2">יצירת ERD אינטראקטיבי</h3>
+                    <p class="text-gray-400">הצגה ויזואלית של קשרי הגומלין בין טבלאות, עם יכולת ניתוח והבנת תלויות מורכבות.</p>
+                </div>
+                <div class="bg-gray-800/50 p-6 rounded-xl border border-gray-700 hover:border-blue-500 transition-colors duration-300">
+                    <i data-feather="code" class="w-10 h-10 text-blue-400 mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2">ניתוח קוד ו-Data Lineage</h3>
+                    <p class="text-gray-400">פענוח שאילתות SQL וסקריפטים של Python כדי להבין את זרימת הנתונים משכבת הגלם ועד לדשבורד.</p>
+                </div>
+                <div class="bg-gray-800/50 p-6 rounded-xl border border-gray-700 hover:border-blue-500 transition-colors duration-300">
+                    <i data-feather="trending-up" class="w-10 h-10 text-blue-400 mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2">המלצות לאופטימיזציה</h3>
+                    <p class="text-gray-400">זיהוי צווארי בקבוק, הצעות לשיפור ביצועי שאילתות, והמלצות למבני מידול נתונים יעילים יותר.</p>
                 </div>
             </div>
         </section>
 
-        <section id="step-2" class="step-section hidden"><div class="fade-enter">
-            <h2 class="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">2. Map Tables & Context</h2>
-            <p class="text-gray-300 max-w-3xl text-base md:text-lg">Review tables for analysis. Click any row for details.</p>
-            <div class="mt-10 bg-gray-950/30 rounded-2xl border border-gray-800 shadow-2xl overflow-hidden">
-                <div id="map-tables-container" class="p-4 md:p-8"></div>
-                <div class="p-6 bg-gray-900 border-t border-gray-800 flex justify-end">
-                    <button data-next class="px-8 py-3 rounded-lg bg-emerald-600 font-semibold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 transition-all shadow-lg flex items-center gap-2 cta-button">
-                        <span>Confirm & Continue</span><i data-feather="arrow-right" class="w-5 h-5"></i>
+        <section id="demo-section" class="my-24 bg-gray-900 rounded-2xl p-8 md:p-12 border border-gray-700 shadow-2xl">
+            
+            <div id="demo-step-1">
+                <div class="text-center mb-8">
+                    <h2 class="text-4xl font-bold mb-3">בואו נראה את AIDA בפעולה</h2>
+                    <p class="text-lg text-gray-400">נתחיל בחיבור (מדומה) למחסן הנתונים של חברת "ACME Corp".</p>
+                </div>
+                <div class="max-w-xl mx-auto bg-gray-800/60 p-8 rounded-xl border border-gray-700">
+                    <form id="connect-form" class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2" for="wh-type">סוג המערכת</label>
+                            <input type="text" value="Snowflake" disabled class="w-full text-base rounded-lg bg-gray-700 border-gray-600 px-4 py-3 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2" for="host">כתובת השרת</label>
+                            <input type="text" value="acme-corp.snowflakecomputing.com" disabled class="w-full text-base rounded-lg bg-gray-700 border-gray-600 px-4 py-3 cursor-not-allowed">
+                        </div>
+                        <button type="button" id="analyze-btn" class="w-full py-4 rounded-lg bg-blue-600 font-semibold text-white hover:bg-blue-500 transition-all duration-300 shadow-lg flex items-center justify-center gap-3">
+                            <i data-feather="play-circle" class="w-6 h-6"></i>
+                            <span>התחבר ונתח את המערכת</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="demo-step-2" class="hidden">
+                 <div class="text-center mb-8">
+                    <h2 class="text-4xl font-bold mb-3">AIDA מנתחת את המערכת...</h2>
+                    <p class="text-lg text-gray-400">זהו תהליך מורכב שבו הסוכן לומד כל פינה במחסן הנתונים.</p>
+                </div>
+                <div class="max-w-2xl mx-auto space-y-4">
+                    <div id="progress-container" class="w-full bg-gray-700 rounded-full h-4 overflow-hidden">
+                        <div id="progress-bar" class="bg-gradient-to-r from-cyan-400 to-blue-500 h-4 rounded-full transition-all duration-1000 ease-out" style="width: 10%;"></div>
+                    </div>
+                    <div id="progress-status" class="text-center text-lg text-cyan-300 font-semibold h-8"></div>
+                    <div id="analysis-details" class="mt-8 bg-gray-800/50 p-6 rounded-lg border border-gray-700 min-h-[150px]">
+                        </div>
+                </div>
+            </div>
+
+            <div id="demo-step-3" class="hidden">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold mb-3">ניתוח המערכת הושלם!</h2>
+                    <p class="text-lg text-gray-400">זהו הדשבורד האינטראקטיבי ש-AIDA יצרה. כעת אפשר לחקור את המבנה, התלויות והביצועים.</p>
+                </div>
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 bg-gray-800/40 p-6 rounded-xl border border-gray-700">
+                        <h3 class="text-2xl font-bold mb-4 flex items-center gap-2"><i data-feather="git-merge"></i>תרשים קשרי גומלין (ERD)</h3>
+                        <div id="erd-container" class="relative w-full h-[500px] bg-dots rounded-lg">
+                           </div>
+                    </div>
+                    <div class="space-y-8">
+                        <div class="bg-gray-800/40 p-6 rounded-xl border border-gray-700">
+                            <h3 class="text-xl font-bold mb-4">מדדי מפתח</h3>
+                            <div class="flex justify-around text-center">
+                                <div>
+                                    <div class="text-4xl font-bold text-green-400">88%</div>
+                                    <div class="text-sm text-gray-400">ציון בריאות</div>
+                                </div>
+                                 <div>
+                                    <div class="text-4xl font-bold text-yellow-400">14</div>
+                                    <div class="text-sm text-gray-400">הזדמנויות לשיפור</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-800/40 p-6 rounded-xl border border-gray-700">
+                            <h3 class="text-xl font-bold mb-4">סייר טבלאות</h3>
+                            <div id="table-explorer" class="space-y-2 max-h-60 overflow-y-auto pr-2">
+                                </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8 bg-gray-800/40 p-6 rounded-xl border border-gray-700">
+                     <h3 class="text-2xl font-bold mb-4 flex items-center gap-2"><i data-feather="search"></i>ניתוח שאילתת SQL</h3>
+                     <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-semibold text-lg mb-2 text-red-400">שאילתה מקורית (לא יעילה)</h4>
+                            <pre class="bg-gray-900 text-sm text-gray-300 p-4 rounded-lg overflow-x-auto"><code>SELECT c.customer_name, COUNT(o.order_id)
+FROM customers c 
+JOIN orders o ON c.customer_id = o.customer_id
+WHERE c.signup_date > '2023-01-01'
+GROUP BY c.customer_name
+HAVING COUNT(o.order_id) > (SELECT AVG(order_count) FROM (SELECT COUNT(*) as order_count FROM orders GROUP BY customer_id) as sub)</code></pre>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-lg mb-2 text-green-400">הצעת אופטימיזציה של AIDA</h4>
+                             <pre class="bg-gray-900 text-sm text-gray-300 p-4 rounded-lg overflow-x-auto"><code>WITH CustomerOrderCounts AS (
+    SELECT customer_id, COUNT(*) as order_count
+    FROM orders
+    GROUP BY customer_id
+),
+AvgOrderCount AS (
+    SELECT AVG(order_count) as avg_orders
+    FROM CustomerOrderCounts
+)
+SELECT c.customer_name, coc.order_count
+FROM customers c
+JOIN CustomerOrderCounts coc ON c.customer_id = coc.customer_id
+WHERE c.signup_date > '2023-01-01'
+AND coc.order_count > (SELECT avg_orders FROM AvgOrderCount)</code></pre>
+                        </div>
+                     </div>
+                </div>
+                <div class="text-center mt-12">
+                    <button id="restart-demo-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                        התחל הדגמה מחדש
                     </button>
                 </div>
             </div>
-        </div></section>
+        </section>
 
-        <section id="step-3" class="step-section hidden"><div class="fade-enter">
-            <h2 class="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">3. Activate Domain-Expert Wizards</h2>
-            <p class="text-gray-300 max-w-3xl text-base md:text-lg">Wizards are pre-trained AI agents. Activate one to start asking questions.</p>
-            <div id="wizards-container" class="mt-10 grid md:grid-cols-2 xl:grid-cols-4 gap-8"></div>
-        </div></section>
-
-        <section id="step-4" class="step-section hidden"><div class="fade-enter max-w-4xl mx-auto flex flex-col h-full">
-            <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
-                <h2 id="chat-title" class="text-3xl md:text-4xl font-extrabold tracking-tight"></h2>
-                <div class="relative">
-                    <select id="wizard-switcher" class="appearance-none pl-4 pr-10 py-2 text-base rounded-lg bg-gray-800 border-gray-700 focus:ring-2 focus:ring-emerald-500"></select>
-                    <i data-feather="chevron-down" class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none"></i>
-                </div>
-            </div>
-            <p id="chat-subtitle" class="text-gray-300 mb-8 text-base md:text-lg text-center"></p>
-            <div class="bg-gray-950/50 backdrop-blur-sm rounded-2xl shadow-inner border border-gray-800 p-3 md:p-6 flex flex-col flex-grow min-h-[70vh]">
-                <div id="chat-window" class="flex-1 space-y-6 overflow-y-auto pr-2 md:pr-4 mb-4"></div>
-                <div id="sample-questions" class="flex flex-wrap items-center gap-2 py-3 border-t border-gray-800"></div>
-                <div class="mt-auto flex items-center gap-3 pt-2">
-                    <input id="chat-input" class="flex-1 rounded-lg bg-gray-800 border-gray-700 w-full text-base focus:ring-2 px-4 py-3 text-gray-200" />
-                    <button id="send-btn" class="px-6 py-3 rounded-lg font-semibold text-white transition-all flex items-center justify-center gap-2 cta-button">
-                        <span>Send</span> <i data-feather="send" class="w-5 h-5"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="text-center mt-6"><button data-next class="text-emerald-400 hover:text-emerald-300 font-semibold">Build your feed →</button></div>
-        </div></section>
-
-        <section id="step-5" class="step-section hidden"><div class="fade-enter">
-            <h2 class="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">5. Curate Your Intelligence Feed</h2>
-            <button id="back-to-chat-btn"
-                    class="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-lg
-                           bg-gray-800 hover:bg-gray-700 text-sm md:text-base">
-                <i data-feather="arrow-left"></i> Back to Chat
-            </button>
-            <p class="text-gray-300 max-w-3xl text-base md:text-lg mb-10">A live, auto-refreshing dashboard. Save key insights from your chats to add more.</p>
-            <div id="feed-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
-            <div class="text-center mt-12"><button id="restart-btn" class="inline-flex items-center gap-3 px-8 py-4 rounded-lg bg-emerald-600 font-semibold text-white hover:bg-emerald-500 shadow-lg cta-button"><i data-feather="refresh-cw" class="w-5 h-5"></i>Restart Demo</button></div>
-        </div></section>
     </main>
 
-    <div id="modal-container"></div>
-    
-<script>
-/* ---------- 1. Loader Constants ------------- */
-const LOADER_IDLE_HTML = `
-  <div class="w-full h-full flex flex-col items-center justify-center gap-6">
-    <div class="relative flex items-center justify-center">
-      <div class="loader-ring"></div>
-      <div class="absolute text-emerald-400">
-          <i data-feather="database" class="w-10 h-10"></i>
-      </div>
-    </div>
-    <p class="text-gray-400 text-center leading-snug">
-      Waiting to connect…
-    </p>
-  </div>`;
-
-const LOADER_PROGRESS_HTML = `
-  <div class="w-full h-full flex flex-col items-center justify-center gap-6">
-    <div class="w-full max-w-xs loader-bar"><div class="loader-bar-inner"></div></div>
-    <p class="text-gray-400 text-center leading-snug mt-2">
-      Connecting &amp; scanning your warehouse…
-    </p>
-  </div>`;
-
-
-  /* ---------- 2. APP_CONTENT ---------- */
-  const APP_CONTENT = {
-    progressSteps: [
-      { title: 'Connect Warehouse' },
-      { title: 'Map Tables' },
-      { title: 'Activate Wizards' },
-      { title: 'Chat with Data' },
-      { title: 'Curate Feed' },
-    ],
-
-    warehouseTypes: [
-      'Google BigQuery',
-      'Snowflake',
-      'Amazon Redshift',
-      'Databricks',
-      'PostgreSQL',
-    ],
-
-    initialConnectionStatusHTML: LOADER_IDLE_HTML,
-
-    createNewWizardCardHTML: `
-      <div id="create-new-wizard-card"
-           class="bg-gray-950/30 rounded-2xl p-8 border border-gray-700 border-dashed shadow-xl
-                  flex flex-col transform hover:-translate-y-2 transition-transform duration-300
-                  items-center justify-center text-center hover:border-emerald-500 hover:text-emerald-400
-                  cursor-pointer min-h-[280px]">
-        <div class="flex-shrink-0 bg-gray-700/50 text-gray-400 rounded-full h-14 w-14 flex items-center justify-center">
-          <i data-feather="plus" class="w-7 h-7"></i>
-        </div>
-        <h3 class="text-2xl font-bold mt-6">Create New Wizard</h3>
-        <p class="text-gray-400 mt-2 flex-grow">
-          Build a custom AI agent tailored to your specific business needs.
-        </p>
-      </div>`,
-
-    newWizardDefaults: {
-      name: 'My Custom Wizard',
-      expertise: 'Analyzes custom operational KPIs and reports on daily user activity.',
-    },
-  };
-</script>
-<script>
-        // Configuration for each available table
-        const TABLE_DETAILS_DATA = {
-            fct_orders: {
-                rows: "5.3 M", included: true,
-                desc: "Core fact table for all transactional data. Each row represents a single order, linking customer information, dates, and financial amounts. It serves as the single source of truth for revenue and order analysis.",
-                questions: ["What is the total revenue per month?", "How many orders were placed last week?", "Show the average order value (AOV)."],
-                fields: [
-                    { name: 'order_id', type: 'integer', desc: 'Unique identifier for each order.' },
-                    { name: 'customer_id', type: 'integer', desc: 'Foreign key to dim_customers.' },
-                    { name: 'order_date', type: 'timestamp', desc: 'Timestamp when the order was placed.' },
-                    { name: 'status', type: 'string', desc: 'The current status of the order.', values: [{ value: 'COMPLETED', pct: 85.2 }, { value: 'RETURNED', pct: 9.8 }, { value: 'CANCELLED', pct: 5.0 }] },
-                    { name: 'total_amount', type: 'numeric', desc: 'The total value of the order in USD.' }
-                ]
-            },
-            dim_customers: {
-                rows: "820 K", included: true,
-                desc: "Dimension table with customer profile information. Contains demographic and firmographic data used for segmentation and cohort analysis.",
-                questions: ["Who are the top 10 customers by lifetime value?", "What is the distribution of customers by industry?", "How has customer growth trended over time?"],
-                fields: [
-                    { name: 'customer_id', type: 'integer', desc: 'Unique identifier for each customer.' },
-                    { name: 'signup_date', type: 'date', desc: 'Date when the customer created their account.' },
-                    { name: 'region', type: 'string', desc: 'Geographic region of the customer.', values: [{ value: 'North America', pct: 45.1 }, { value: 'Europe', pct: 32.7 }, { value: 'Asia-Pacific', pct: 15.3 }] },
-                    { name: 'industry', type: 'string', desc: 'The industry segment of the customer.', values: [{ value: 'SaaS', pct: 42.1 }, { value: 'E-commerce', pct: 25.5 }, { value: 'Fintech', pct: 14.9 }] }
-                ]
-            },
-            marketing_spend: {
-                rows: "15.7 K", included: true,
-                desc: "Tracks daily marketing spend across all acquisition channels. This table is essential for calculating Cost Per Acquisition (CPA) and Return On Ad Spend (ROAS).",
-                questions: ["What was our total ad spend last quarter?", "Which channel has the best ROAS?", "How does spend correlate with new user signups?"],
-                fields: [
-                    { name: 'spend_date', type: 'date', desc: 'Date of the ad spend.' },
-                    { name: 'channel', type: 'string', desc: 'Marketing channel.', values: [{ value: 'Google Ads', pct: 55.8 }, { value: 'Meta', pct: 30.1 }, { value: 'LinkedIn', pct: 14.1 }] },
-                    { name: 'cost', type: 'numeric', desc: 'Total cost for the day on that channel.' }
-                ]
-            },
-            log_events: {
-                rows: "21.1 M", included: true,
-                desc: "Records key user interactions and events within the application. Used for funnel analysis, feature adoption tracking, and user behavior studies.",
-                questions: ["What is the user adoption funnel for our new feature?", "Which are the most used features?", "Show the daily active users trend."],
-                fields: [
-                    { name: 'event_id', type: 'string', desc: 'Unique identifier for each event log.' },
-                    { name: 'user_id', type: 'integer', desc: 'Identifier for the user performing the action.' },
-                    { name: 'event_name', type: 'string', desc: 'Name of the event being tracked.', values: [{ value: 'view_dashboard', pct: 35.0 }, { value: 'create_report', pct: 25.0 }, { value: 'share_report', pct: 15.0 }, { value: 'add_user', pct: 5.0 }] },
-                    { name: 'timestamp', type: 'timestamp', desc: 'Timestamp when the event occurred.' }
-                ]
-            }
-        };
-
-        // Configuration for each available Wizard and their chat capabilities
-        const WIZARD_DATA = {
-            'Revenue Analyst': {
-                color: 'emerald', icon: 'dollar-sign',
-                description: 'Tracks financial metrics like ARR, LTV, and churn.',
-                tables: ['fct_orders', 'dim_customers'],
-                subtitle: 'Ask questions about revenue, customers, and financial performance.',
-                placeholder: 'Ask about ARR, churn, or top customers...',
-                questions: ['Show me quarterly ARR trend', 'What is our Average Order Value?', 'Which are my top 5 customer segments?'],
-                questionMap: {
-                    'arr': { sql: "SELECT\n  DATE_TRUNC('quarter', order_date) AS quarter,\n  SUM(total_amount) / 1000000 AS total_arr_millions\nFROM fct_orders\nGROUP BY 1\nORDER BY 1;", text: null, chartType: 'arr' },
-                    'value': { sql: "SELECT\n  AVG(total_amount)\nFROM fct_orders\nWHERE status = 'COMPLETED';", text: "The Average Order Value (AOV) for completed orders is currently <strong class='text-emerald-400'>$142.55</strong>. This is up <strong class='text-emerald-400'>3.1%</strong> from last month.", chartType: null, },
-                    'segments': { sql: "SELECT\n  c.industry,\n  SUM(o.total_amount) AS total_revenue\nFROM fct_orders o\nJOIN dim_customers c ON o.customer_id = c.customer_id\nGROUP BY 1\nORDER BY 2 DESC\nLIMIT 5;", text: null, chartType: 'segments' }
-                }
-            },
-            'Growth Strategist': {
-                color: 'indigo', icon: 'bar-chart-2',
-                description: 'Analyzes user acquisition, funnels, and adoption.',
-                tables: ['dim_customers', 'marketing_spend'],
-                subtitle: 'Ask questions about user growth and marketing efficiency.',
-                placeholder: 'Ask about user growth, funnels...',
-                questions: ['How many new users signed up this month?', 'Analyze new vs returning orders', 'Which marketing channels are most effective?'],
-                questionMap: {
-                    'users': { sql: "SELECT\n  COUNT(customer_id)\nFROM dim_customers\nWHERE DATE_TRUNC('month', signup_date) = DATE_TRUNC('month', CURRENT_DATE);", text: "This month, <strong class='text-indigo-400'>12,450</strong> new users have signed up. We are on track to exceed last month's total of 15,100.", chartType: null, },
-                    'returning': { sql: "SELECT \n  CASE WHEN is_first_order THEN 'New' ELSE 'Returning' END as customer_type, \n  COUNT(DISTINCT order_id) as order_count \nFROM fct_orders \nWHERE order_date >= CURRENT_DATE - INTERVAL '4 weeks' \nGROUP BY 1;", text: "Here is the breakdown of new vs. returning orders for the last four weeks.", chartType: 'newVsReturn' },
-                    'channels': { sql: "SELECT \n  channel, \n  SUM(spend) / COUNT(DISTINCT new_users) as cost_per_acquisition \nFROM marketing_spend \nGROUP BY 1 \nORDER BY 2 ASC;", text: "Google Ads appears to be the most effective channel with the lowest Cost Per Acquisition.", chartType: 'segments' }
-                }
-            },
-            'Product Analyst': {
-                color: 'blue', icon: 'pie-chart',
-                description: 'Tracks feature adoption, user engagement, and funnels.',
-                tables: ['log_events', 'dim_customers'],
-                subtitle: 'Ask questions about feature usage, user funnels, and engagement.',
-                placeholder: 'Ask about DAU, feature funnels...',
-                questions: ['What is the feature adoption funnel?', 'Show me Daily Active Users', 'Top 5 most frequent events?'],
-                questionMap: {
-                    'funnel': { sql: "SELECT\n event_name,\n COUNT(DISTINCT user_id) as user_count\nFROM log_events\nWHERE event_name IN ('View Feature Page', 'Click Try It', 'Configure Feature', 'Save Configuration')\nGROUP BY 1\nORDER BY FIELD(event_name, 'View Feature Page', 'Click Try It', 'Configure Feature', 'Save Configuration');", text: "Here is the user funnel for the new feature adoption. It seems there's a significant drop-off after the initial view.", chartType: 'featureFunnel' },
-                    'daily active': { sql: "SELECT\n DATE_TRUNC('day', timestamp) as day,\n COUNT(DISTINCT user_id) as dau\nFROM log_events\nWHERE timestamp >= CURRENT_DATE - INTERVAL '7 days'\nGROUP BY 1 ORDER BY 1;", text: "Daily Active Users are trending upwards, with <strong class='text-blue-400'>21,400</strong> active today.", chartType: null },
-                    'events': { sql: "SELECT\n event_name, COUNT(*) as event_count\nFROM log_events\nGROUP BY 1\nORDER BY 2 DESC\nLIMIT 5;", text: "The most frequent user actions are related to viewing dashboards and creating reports.", chartType: 'segments' }
-                }
-            },
-            'Ops Optimizer': {
-                color: 'rose', icon: 'truck',
-                description: 'Monitors supply chain, inventory, and logistics.',
-                tables: ['fct_orders'],
-                subtitle: 'Ask about shipping times, returns, and order statuses.',
-                placeholder: 'Ask about shipping, returns...',
-                questions: ['What is our return rate?', 'Show order status distribution', 'What is the average time to ship?'],
-                questionMap: {
-                    'rate': { sql: "SELECT\n  100.0 * COUNT(CASE WHEN status = 'RETURNED' THEN 1 END) / COUNT(*)\nFROM fct_orders;", text: "Our current return rate is <strong class='text-rose-400'>9.8%</strong> across all orders.", chartType: null },
-                    'status': { sql: "SELECT\n  status, COUNT(*) as count\nFROM fct_orders\nGROUP BY 1;", text: "Here is the distribution of all order statuses.", chartType: 'segments' },
-                    'ship': { sql: "SELECT\n  AVG(shipping_date - order_date) as avg_shipping_time\nFROM fct_orders\nWHERE status = 'COMPLETED';", text: "The average time from order to shipment is <strong class='text-rose-400'>1.8 days</strong>.", chartType: null, }
-                }
-            }
-        };
-
-        // Blueprints for generating chart and scorecards
-        const feedBlueprints = {
-            chart: {
-                arr: { title: 'Quarterly ARR Trend', type: 'line', sql: WIZARD_DATA['Revenue Analyst'].questionMap['arr'].sql, data: { labels: ["Q1 '24", "Q2 '24", "Q3 '24", "Q4 '24"], datasets: [{ data: [1.2, 1.5, 1.4, 1.8], borderColor: '#10b981', tension: 0.4, fill: true }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }}, scales: { y: { ticks: { callback: v => `$${v}M` }}}}},
-                segments: { title: 'Revenue by Customer Segment', type: 'doughnut', sql: WIZARD_DATA['Revenue Analyst'].questionMap['segments'].sql, data: { labels: ['SaaS', 'E-commerce', 'Fintech', 'Healthcare', 'Other'], datasets: [{ data: [45, 25, 15, 10, 5], backgroundColor: ['#3b82f6', '#10b981', '#f97316', '#8b5cf6', '#64748b'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } }}}},
-                featureFunnel: { title: 'Feature Adoption Funnel', type: 'bar', sql: WIZARD_DATA['Product Analyst'].questionMap['funnel'].sql, data: { labels: ['View Page', 'Click "Try"', 'Configure', 'Save'], datasets: [{ data: [15210, 9870, 4120, 2050], backgroundColor: ['#3b82f6', '#10b981', '#f97316', '#8b5cf6'] }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }}, scales: { x: { ticks: { callback: v => `${(v/1000).toFixed(0)}k` }}} } }
-            },
-            scorecard: {
-                aov: { title: 'Average Order Value', value: '$142.55', trend: '+3.1%', trendColor: 'text-emerald-400', sql: WIZARD_DATA['Revenue Analyst'].questionMap['value'].sql },
-                newUsers: { title: 'New Users (MTD)', value: '12,450', trend: '+8.2%', trendColor: 'text-emerald-400', sql: WIZARD_DATA['Growth Strategist'].questionMap['users'].sql },
-                dau: { title: 'Daily Active Users', value: '21.4k', trend: '+1.5%', trendColor: 'text-emerald-400', sql: "SELECT COUNT(DISTINCT user_id) FROM log_events WHERE DATE(timestamp) = CURRENT_DATE;" },
-                churnRate: { title: 'Monthly Churn Rate', value: '2.1%', trend: '-0.2%', trendColor: 'text-emerald-400', sql: "SELECT\n  100.0 * COUNT(CASE WHEN status = 'CHURNED' THEN 1 END) / COUNT(*)\nFROM dim_customers\nWHERE signup_date < CURRENT_DATE - INTERVAL '1 month';" }
-            }
-        };
-
-        // Items that appear in the feed by default
-        const PREPOPULATED_FEED_ITEMS = [
-            { type: 'scorecard', id: 'aov' },
-            { type: 'scorecard', id: 'newUsers' },
-            { type: 'scorecard', id: 'dau' },
-            { type: 'chart', id: 'arr' },
-            { type: 'chart', id: 'segments' },
-            { type: 'chart', id: 'featureFunnel' },
-        ];
-    </script>
+    <footer class="text-center p-8 border-t border-gray-800">
+        <p>&copy; 2025 AIDA Technologies. כל הזכויות שמורות.</p>
+    </footer>
 
     <script>
-    window.onload = () => {
-        if (typeof WIZARD_DATA === 'undefined' || typeof TABLE_DETAILS_DATA === 'undefined' || typeof APP_CONTENT === 'undefined' || typeof feedBlueprints === 'undefined' || typeof PREPOPULATED_FEED_ITEMS === 'undefined') {
-            document.body.innerHTML = `<div class='text-red-500 text-center p-8'>Error: Critical data is missing. Please check the script definitions.</div>`;
-            return;
-        }
+        feather.replace();
 
-        /* State Management */
-        let currentStep = 1;
-        const totalSteps = APP_CONTENT.progressSteps.length;
-        let chart = {};
-        let feedItems = []; 
-        let selectedWizard = Object.keys(WIZARD_DATA)[0];
+        /* --- DOM Elements --- */
+        const qs = (selector) => document.querySelector(selector);
+        const qsa = (selector) => document.querySelectorAll(selector);
 
-        /* Query Selectors */
-        const qs = s => document.querySelector(s);
-        const qsa = s => [...document.querySelectorAll(s)];
+        const startDemoBtn = qs('#start-demo-btn');
+        const demoSection = qs('#demo-section');
         
-        /* Helper Functions */
-        function destroyAllchart() {
-            Object.entries(chart).forEach(([id, ch]) => {
-                if (id.startsWith('feed-chart-')) {
-                    ch?.destroy();
-                    delete chart[id];
-                }
-            });
-        }
+        const step1 = qs('#demo-step-1');
+        const step2 = qs('#demo-step-2');
+        const step3 = qs('#demo-step-3');
 
-        /* UI Population & Rendering */
-        function populateStaticUI() {
-            qs('#progress').innerHTML = APP_CONTENT.progressSteps.map((step, i) => `<li data-step="${i+1}" class="step group flex items-center cursor-pointer"><span class="step-number"></span><span class="ml-4">${step.title}</span></li>`).join('');
-            qs('#wh-type').innerHTML = APP_CONTENT.warehouseTypes.map(wh => `<option>${wh}</option>`).join('');
-        }
-
-        function populateDynamicUI() {
-            populateTables();
-            populateWizards();
-            populateWizardSwitcher();
-        }
-
-        function populateTables() {
-            const container = qs('#map-tables-container');
-            const tableHtml = Object.entries(TABLE_DETAILS_DATA).map(([name, table]) => `
-                <tr data-table-name="${name}" class="border-b border-gray-800 hover:bg-gray-800/40 cursor-pointer">
-                    <td class="p-4"><input type="checkbox" ${table.included ? 'checked' : ''} class="h-5 w-5 rounded bg-gray-700 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-gray-900"></td>
-                    <td class="p-4 font-mono text-emerald-300">${name}</td><td class="p-4 font-mono">${table.rows}</td><td class="p-4 text-gray-400 truncate max-w-xs">${table.desc.split('.')[0]}.</td>
-                </tr>`).join('');
-            
-            container.innerHTML = `<div class="overflow-x-auto"><table class="w-full text-left text-base min-w-[600px]">
-                <thead class="text-gray-400 border-b-2 border-gray-700"><tr><th class="p-3">Include</th><th class="p-3">Table Name</th><th class="p-3">Rows</th><th class="p-3">AI Context</th></tr></thead>
-                <tbody>${tableHtml}</tbody>
-            </table></div><div class="text-center mt-6 text-gray-500"><p>Showing ${Object.keys(TABLE_DETAILS_DATA).length} of 287 tables.</p></div>`;
-        }
-
-        function populateWizards() {
-            qs('#wizards-container').innerHTML = Object.entries(WIZARD_DATA).map(([name, wizard]) => `
-                <div class="wizard-card" data-wizard-name="${name}" data-wizard-color="${wizard.color}">
-                    <div class="wizard-icon"><i data-feather="${wizard.icon}" class="w-7 h-7"></i></div>
-                    <h3 class="text-2xl font-bold mt-6">${name}</h3><p class="text-gray-400 mt-2 flex-grow">${wizard.description}</p>
-                    <div class="wizard-tables text-sm mt-4">Uses: ${wizard.tables.map(t => `<span class="font-mono text-xs bg-gray-700/50 px-2 py-1 rounded-md">${t}</span>`).join(' ')}</div>
-                    <button class="wizard-button">Activate & Chat →</button>
-                </div>`).join('') + APP_CONTENT.createNewWizardCardHTML;
-        }
-
-        function populateWizardSwitcher() {
-            qs('#wizard-switcher').innerHTML = Object.keys(WIZARD_DATA).map(name => `<option value="${name}">${name}</option>`).join('');
-        }
-
-        function updateUI() {
-            qsa('.step').forEach(li => {
-                const n = +li.dataset.step, dot = li.querySelector('.step-number');
-                dot.innerHTML = '';
-                dot.className = 'step-number w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300';
-                if (n === currentStep) dot.classList.add('bg-emerald-500', 'text-gray-900', 'font-bold');
-                else if (n < currentStep) dot.innerHTML = '<i data-feather="check" class="w-5 h-5"></i>';
-                dot.classList.toggle('bg-emerald-600/50', n < currentStep); dot.classList.toggle('text-emerald-300', n < currentStep);
-                dot.classList.toggle('border-2', n > currentStep); dot.classList.toggle('border-gray-700', n > currentStep);
-                dot.textContent = dot.textContent || n;
-            });
-            qsa('.step-section').forEach(sec => sec.classList.add('hidden'));
-            const activeSection = qs(`#step-${currentStep}`);
-            if (activeSection) {
-                activeSection.classList.remove('hidden');
-                setTimeout(() => activeSection.querySelector('.fade-enter')?.classList.add('fade-enter-active'), 50);
-            }
-            if (currentStep !== 5) {
-                destroyAllchart();
-            }
-            if (currentStep === 5) renderFeed();
-            if (currentStep === 3) styleWizardCards();
-            if (currentStep === 4) {
-                updateWizardUI();
-                Object.entries(chart).forEach(([id,c]) => {
-                    if (!id.startsWith('feed-chart-')) c.resize();
-                });
-            }
-            feather.replace();
-            qs('main').scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        /* Modal Functions */
-        function showModal(content) {
-            const modalContainer = qs('#modal-container');
-            modalContainer.innerHTML = `<div class="modal-backdrop visible"><div class="modal-content">${content}</div></div>`;
-            modalContainer.querySelector('.modal-backdrop').addEventListener('click', e => {
-                if (e.target === e.currentTarget || e.target.closest('.modal-close-btn')) modalContainer.innerHTML = '';
-            });
-            feather.replace();
-        }
-
-        function showSQLModal(sql) {
-            showModal(`<div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-2xl w-full p-6 md:p-8">
-                <div class="flex justify-between items-center"><h3 class="text-xl md:text-2xl font-bold">Generated SQL</h3><button class="modal-close-btn text-3xl">&times;</button></div>
-                <pre class="text-cyan-300 bg-black/30 p-4 rounded-lg mt-4 text-sm whitespace-pre-wrap overflow-auto">${sql || 'No SQL available for this item.'}</pre>
-            </div>`);
-        }
-
-        function showTableDetailsModal(tableName) {
-            const tableData = TABLE_DETAILS_DATA[tableName];
-            if (!tableData) return;
-
-            const fieldsHtml = tableData.fields ? tableData.fields.map(field => {
-                const valuesHtml = field.values ? `<div class="mt-3 space-y-2">${field.values.map(v => `
-                    <div class="flex items-center text-sm">
-                        <span class="w-2/5 truncate" title="${v.value}">${v.value}</span>
-                        <div class="w-3/5 bg-gray-700 rounded-full h-2.5"><div class="bg-emerald-500 h-2.5 rounded-full" style="width: ${v.pct}%"></div></div>
-                        <span class="text-xs text-gray-500 ml-3 font-mono">${v.pct}%</span>
-                    </div>`).join('')}
-                </div>` : '';
-
-                return `<div class="p-4 rounded-lg bg-gray-800/40">
-                            <div class="flex justify-between items-center flex-wrap gap-2">
-                                <code class="font-bold text-cyan-300">${field.name}</code>
-                                <span class="text-xs text-gray-500 font-mono bg-gray-900/50 px-2 py-1 rounded">${field.type}</span>
-                            </div>
-                            <p class="text-sm text-gray-400 mt-1">${field.desc}</p>
-                            ${valuesHtml}
-                        </div>`;
-            }).join('') : '';
-
-            const questionsHtml = tableData.questions ? tableData.questions.map(q => `
-                <li class="flex items-start gap-2">
-                    <i data-feather="message-circle" class="w-4 h-4 mt-1 text-cyan-400 shrink-0"></i>
-                    <span>${q}</span>
-                </li>`).join('') : '';
-
-            const content = `<div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-3xl w-full p-6 md:p-8 overflow-y-auto max-h-[90vh]">
-                <div class="flex justify-between items-start">
-                    <h3 class="font-mono text-emerald-300 text-2xl font-bold">${tableName}</h3>
-                    <button class="modal-close-btn text-gray-500 hover:text-white text-3xl">&times;</button>
-                </div>
-                <div class="mt-8 space-y-6 text-gray-300">
-                    <div>
-                        <h4 class="font-semibold text-lg mb-2 flex items-center gap-2"><i data-feather="info" class="w-5 h-5"></i>AI-Generated Description</h4>
-                        <p class="bg-gray-800/50 p-4 rounded-lg text-gray-400">${tableData.desc}</p>
-                    </div>
-                    ${tableData.questions ? `<div>
-                        <h4 class="font-semibold text-lg mb-2 flex items-center gap-2"><i data-feather="help-circle" class="w-5 h-5"></i>Sample Questions</h4>
-                        <ul class="space-y-2 text-cyan-300 pl-2">${questionsHtml}</ul>
-                    </div>` : ''}
-                    ${tableData.fields ? `<div>
-                        <h4 class="font-semibold text-lg mb-2 flex items-center gap-2"><i data-feather="list" class="w-5 h-5"></i>Field Analysis</h4>
-                        <div class="space-y-4">${fieldsHtml}</div>
-                    </div>` : ''}
-                </div>
-            </div>`;
-            showModal(content);
-        }
-
-        function showNewWizardModal() {
-            const tablesHtml = Object.keys(TABLE_DETAILS_DATA).map(name => `<label class="flex items-center gap-3"><input type="checkbox" checked class="h-5 w-5 rounded bg-gray-700 text-emerald-500 focus:ring-emerald-500"><span>${name}</span></label>`).join('');
-            showModal(`<div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-xl w-full p-8 m-4">
-                <div class="flex justify-between items-center"><h3 class="text-2xl font-bold">Create New Wizard</h3><button class="modal-close-btn text-gray-400 hover:text-white text-3xl">&times;</button></div>
-                <div class="mt-6 space-y-4">
-                    <div><label class="block text-sm mb-1 text-gray-400">Wizard Name</label><input type="text" value="${APP_CONTENT.newWizardDefaults.name}" class="w-full bg-gray-800 p-2 rounded border border-gray-700 focus:ring-2 focus:ring-emerald-500"></div>
-                    <div><label class="block text-sm mb-1 text-gray-400">Expertise (Description)</label><input type="text" value="${APP_CONTENT.newWizardDefaults.expertise}" class="w-full bg-gray-800 p-2 rounded border border-gray-700 focus:ring-2 focus:ring-emerald-500"></div>
-                    <div><label class="block text-sm mb-1 text-gray-400">Connected Tables</label><div class="grid grid-cols-2 md:grid-cols-3 gap-3 p-3 bg-gray-800/50 rounded border border-gray-700 max-h-48 overflow-y-auto">${tablesHtml}</div></div>
-                    <div class="flex justify-end pt-4"><button class="modal-close-btn px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 font-semibold">Create Wizard</button></div>
-                </div></div>`);
-        }
+        const analyzeBtn = qs('#analyze-btn');
+        const restartDemoBtn = qs('#restart-demo-btn');
         
-        /* Event Handlers */
-        const handleSend = (questionOverride = null) => {
-            const questionText = (questionOverride || qs('#chat-input').value).trim();
-            if (!questionText) return;
-            const questionLower = questionText.toLowerCase();
-            
-            addChatMessage(questionText, 'user');
-            if (!questionOverride) qs('#chat-input').value = '';
-            qs('#send-btn').disabled = true;
+        const progressBar = qs('#progress-bar');
+        const progressStatus = qs('#progress-status');
+        const analysisDetails = qs('#analysis-details');
 
-            setTimeout(() => {
-                const wizard = WIZARD_DATA[selectedWizard];
-                const responseKey = Object.keys(wizard.questionMap).find(k => k.split(' ').every(key => questionLower.includes(key)));
-                const response = wizard.questionMap[responseKey] || { text: "I'm not sure about that. Please try one of the sample questions for the best experience.", sql: null, chartType: null };
-
-                addChatMessage(`<div class="flex items-center gap-2"><div class="spinner w-4 h-4 border-2 border-white/50 border-t-white rounded-full"></div>Thinking...</div>`, 'ai');
-
-                setTimeout(() => {
-                    qs('#chat-window').lastChild.remove();
-                    if(response.sql) addChatMessage(`<p class="text-gray-300 text-sm">Running query:</p><pre class="text-xs mt-2 text-cyan-300 bg-black/30 p-3 rounded-lg whitespace-pre-wrap">${response.sql}</pre>`, 'ai');
-
-                    setTimeout(() => {
-                        if (response.text) addChatMessage(response.text, 'ai');
-                        if (response.chartType) {
-                            const blueprint = feedBlueprints.chart[response.chartType];
-                            if (blueprint) {
-                                const chartId = `chart-${Date.now()}`;
-                                const meta = { type: 'chart', id: response.chartType };
-                                addChatMessage(`Here's a chart for "${blueprint.title}": <div class="h-64 w-full bg-gray-800/50 p-4 rounded-lg mt-3"><canvas id="${chartId}"></canvas></div>`, 'ai', meta);
-                                const ctx = qs(`#${chartId}`).getContext('2d');
-                                chart[chartId] = new Chart(ctx, { type: blueprint.type, data: JSON.parse(JSON.stringify(blueprint.data)), options: blueprint.options });
-                            }
-                        }
-                        qs('#send-btn').disabled = false;
-                    }, response.sql ? 1000 : 100);
-                }, 1000);
-            }, 500);
+        /* --- Demo Data --- */
+        const ERD_DATA = {
+            tables: [
+                { id: 'dim_customers', name: 'dim_customers', x: 5, y: 35, layer: 'Mart' },
+                { id: 'dim_products', name: 'dim_products', x: 5, y: 65, layer: 'Mart' },
+                { id: 'fct_orders', name: 'fct_orders', x: 35, y: 50, layer: 'Mart' },
+                { id: 'stg_orders', name: 'stg_orders', x: 65, y: 50, layer: 'Staging' },
+                { id: 'raw_platform_orders', name: 'raw_platform_orders', x: 90, y: 35, layer: 'Raw' },
+                { id: 'raw_erp_users', name: 'raw_erp_users', x: 90, y: 65, layer: 'Raw' },
+            ],
+            relations: [
+                { from: 'dim_customers', to: 'fct_orders' },
+                { from: 'dim_products', to: 'fct_orders' },
+                { from: 'stg_orders', to: 'fct_orders' },
+                { from: 'raw_platform_orders', to: 'stg_orders' },
+                { from: 'raw_erp_users', to: 'stg_orders' },
+            ]
         };
+        
+        const TABLE_EXPLORER_DATA = [
+            { name: 'dim_customers', layer: 'Mart' },
+            { name: 'dim_products', layer: 'Mart' },
+            { name: 'dim_dates', layer: 'Mart' },
+            { name: 'fct_orders', layer: 'Mart' },
+            { name: 'fct_sessions', layer: 'Mart' },
+            { name: 'stg_orders', layer: 'Staging' },
+            { name: 'stg_users', layer: 'Staging' },
+            { name: 'stg_inventory', layer: 'Staging' },
+            { name: 'raw_platform_orders', layer: 'Raw' },
+            { name: 'raw_erp_users', layer: 'Raw' },
+            { name: 'raw_ga_hits', layer: 'Raw' },
+        ];
 
-        function addChatMessage(content, sender = 'ai', meta = {}) {
-            const messageDiv = document.createElement('div');
-            const wizardColor = WIZARD_DATA[selectedWizard]?.color || 'emerald';
-            messageDiv.className = `w-fit max-w-lg rounded-xl px-5 py-3 shadow-md ${sender === 'user' ? `bg-${wizardColor}-600` : 'bg-gray-700'}`;
-            if (sender === 'user') messageDiv.classList.add('ml-auto');
+        /* --- Demo Logic --- */
+        startDemoBtn.addEventListener('click', () => {
+            demoSection.scrollIntoView({ behavior: 'smooth' });
+        });
 
-            const finalContent = meta.id ? `${content}<div class="mt-4 border-t border-gray-500 pt-3 flex justify-end"><button data-save-feed='${JSON.stringify(meta)}' class="save-feed-btn text-xs font-semibold flex items-center gap-2 bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-md hover:bg-emerald-500/40"><i data-feather="save" class="w-4 h-4"></i>Save to Feed</button></div>` : content;
-            messageDiv.innerHTML = finalContent;
-            qs('#chat-window').appendChild(messageDiv);
-            qs('#chat-window').scrollTop = qs('#chat-window').scrollHeight;
-            feather.replace();
-        }
+        analyzeBtn.addEventListener('click', () => {
+            step1.classList.add('hidden');
+            step2.classList.remove('hidden');
+            runAnalysisAnimation();
+        });
 
-        /* Setup Functions */
-        function setupEventListeners() {
-            qs('#back-to-chat-btn')?.addEventListener('click', () => {
-                currentStep = 4;
-                updateUI();
-                qs('#chat-window')?.focus();
-            });
+        restartDemoBtn.addEventListener('click', () => {
+            step3.classList.add('hidden');
+            step1.classList.remove('hidden');
+        });
 
-            document.body.addEventListener('click', e => {
-                const target = e.target.closest('button, li.step, tr[data-table-name], .wizard-card, #create-new-wizard-card, #sidebar-backdrop');
-                if (!target) return;
-                
-                if (target.matches('[data-next]')) { if(currentStep < totalSteps) currentStep++; updateUI(); }
-                else if (target.matches('.wizard-button')) { e.stopPropagation(); selectedWizard = target.closest('.wizard-card').dataset.wizardName; if(currentStep < totalSteps) currentStep++; updateUI(); }
-                else if (target.id === 'create-new-wizard-card') { showNewWizardModal(); }
-                else if (target.matches('.view-sql-btn')) { const {type, id} = target.dataset; showSQLModal(feedBlueprints[type]?.[id]?.sql); }
-                else if (target.matches('.save-feed-btn')) {
-                    const metaData = JSON.parse(target.dataset.saveFeed);
-                    if (!feedItems.some(item => item.id === metaData.id && item.type === metaData.type)) {
-                        feedItems.push(metaData);
-                    }
-                    target.innerHTML = `<i data-feather="check" class="w-4 h-4"></i> Saved!`; target.disabled = true; feather.replace();
-                } else if (target.matches('li.step')) { currentStep = +target.dataset.step; updateUI(); }
-                else if (target.matches('tr[data-table-name]')) { if(!e.target.closest('input')) showTableDetailsModal(target.dataset.tableName); }
-                else if (target.id === 'menu-btn') { toggleSidebar(true); }
-                else if (target.id === 'sidebar-backdrop') { toggleSidebar(false); }
-            });
+        function runAnalysisAnimation() {
+            const steps = [
+                { progress: 10, status: "מתחברת למחסן הנתונים...", detail: "מאמתת הרשאות Read-Only..."},
+                { progress: 25, status: "סורקת סכמות וטבלאות...", detail: "זיהוי 1,204 טבלאות ו-890 View-ים..."},
+                { progress: 50, status: "מנתחת שאילתות SQL...", detail: "מעבדת 2.5 מיליון שאילתות מההיסטוריה..."},
+                { progress: 75, status: "בונה גרף תלויות (Lineage)...", detail: "ממפה קשרים בין אובייקטים..."},
+                { progress: 90, status: "מחשבת מדדי ביצועים...", detail: "בודקת זמני ריצה ומזהה צווארי בקבוק..."},
+                { progress: 100, status: "יוצרת את הדשבורד...", detail: "הניתוח הושלם!"},
+            ];
 
-            qs('#connect-btn').addEventListener('click', () => {
-                const statusContainer = qs('#connection-status-container');
-                statusContainer.innerHTML = LOADER_PROGRESS_HTML;
-                setTimeout(() => {
-                    statusContainer.innerHTML = `<div class="text-center text-emerald-400"><i data-feather="check-circle" class="w-16 h-16 mx-auto"></i><p class="mt-2 font-semibold">Success!</p><p class="text-xs text-gray-400">Found 287 tables.</p></div>`;
-                    feather.replace();
+            let currentStep = 0;
+
+            const interval = setInterval(() => {
+                if (currentStep >= steps.length) {
+                    clearInterval(interval);
                     setTimeout(() => {
-                        currentStep++;
-                        updateUI();
-                    }, 1200);
-                }, 1500);
+                        step2.classList.add('hidden');
+                        step3.classList.remove('hidden');
+                        step3.classList.add('fade-in-section');
+                        renderDashboard();
+                    }, 500);
+                    return;
+                }
+
+                const step = steps[currentStep];
+                progressBar.style.width = `${step.progress}%`;
+                progressStatus.innerText = step.status;
+                
+                const detailEl = document.createElement('p');
+                detailEl.className = 'analysis-step text-gray-400 flex items-center gap-2';
+                detailEl.innerHTML = `<i data-feather="check-circle" class="w-5 h-5 text-green-500"></i> ${step.detail}`;
+                analysisDetails.appendChild(detailEl);
+                feather.replace();
+                analysisDetails.scrollTop = analysisDetails.scrollHeight;
+
+                currentStep++;
+            }, 1500);
+        }
+
+        function renderDashboard() {
+            renderERD();
+            renderTableExplorer();
+        }
+
+        function renderERD() {
+            const container = qs('#erd-container');
+            container.innerHTML = ''; // Clear previous
+            
+            const layerColors = {
+                Raw: 'border-red-500',
+                Staging: 'border-yellow-500',
+                Mart: 'border-green-500',
+            };
+
+            // Render tables (nodes)
+            ERD_DATA.tables.forEach(table => {
+                const node = document.createElement('div');
+                node.id = `node-${table.id}`;
+                node.className = `erd-node absolute bg-gray-900 p-2 rounded-md border-2 ${layerColors[table.layer]} shadow-lg`;
+                node.style.left = `${table.x}%`;
+                node.style.top = `${table.y}%`;
+                node.innerHTML = `<span class="font-bold text-sm">${table.name}</span>`;
+                container.appendChild(node);
             });
 
-            qs('#send-btn').addEventListener('click', () => handleSend());
-            qs('#chat-input').addEventListener('keypress', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } });
-            qs('#sample-questions').addEventListener('click', e => { if(e.target.classList.contains('sample-q-btn')) handleSend(e.target.textContent); });
-            qs('#restart-btn').addEventListener('click', resetDemo);
-            qs('#wizard-switcher').addEventListener('change', e => { selectedWizard = e.target.value; qs('#chat-window').innerHTML = ''; updateWizardUI(); });
-        }
-
-        function toggleSidebar(show) {
-            const sidebar = qs('#sidebar');
-            const backdrop = qs('#sidebar-backdrop');
-            if (show) {
-                sidebar.classList.add('sidebar-open');
-                backdrop.classList.remove('hidden');
-            } else {
-                sidebar.classList.remove('sidebar-open');
-                backdrop.classList.add('hidden');
-            }
-        }
-
-        /* Wizard & Feed UI Functions */
-        function styleWizardCards() {
-            qsa('.wizard-card').forEach(card => {
-                const name = card.dataset.wizardName; if (!name) return;
-                const wizard = WIZARD_DATA[name];
-                card.className = "wizard-card bg-gray-950/30 rounded-2xl p-6 border shadow-xl flex flex-col transform hover:-translate-y-2 transition-all cursor-pointer";
-                card.querySelector('.wizard-icon').className = `wizard-icon shrink-0 rounded-full h-14 w-14 flex items-center justify-center bg-${wizard.color}-500/10 text-${wizard.color}-400`;
-                card.querySelector('.wizard-button').className = `wizard-button mt-6 w-full py-3 rounded-lg font-semibold text-white bg-${wizard.color}-600 hover:bg-${wizard.color}-500 cta-button`;
-                card.classList.toggle(`border-${wizard.color}-500`, name === selectedWizard);
-                card.classList.toggle('border-gray-800', name !== selectedWizard);
+            // Render relations (lines)
+            const svgNS = "http://www.w3.org/2000/svg";
+            const svg = document.createElementNS(svgNS, "svg");
+            svg.setAttribute('class', 'absolute top-0 left-0 w-full h-full');
+            
+            ERD_DATA.relations.forEach(rel => {
+                const fromNode = qs(`#node-${rel.from}`);
+                const toNode = qs(`#node-${rel.to}`);
+                
+                const line = document.createElementNS(svgNS, 'line');
+                line.setAttribute('x1', `${fromNode.offsetLeft + fromNode.offsetWidth / 2}`);
+                line.setAttribute('y1', `${fromNode.offsetTop + fromNode.offsetHeight / 2}`);
+                line.setAttribute('x2', `${toNode.offsetLeft + toNode.offsetWidth / 2}`);
+                line.setAttribute('y2', `${toNode.offsetTop + toNode.offsetHeight / 2}`);
+                line.setAttribute('class', `erd-line stroke-current text-gray-600`);
+                line.setAttribute('stroke-width', '2');
+                svg.appendChild(line);
             });
-            feather.replace();
+            
+            container.appendChild(svg);
+            
+            // Add interactivity
+            qsa('.erd-node').forEach(node => {
+                node.addEventListener('mouseover', () => {
+                    const tableId = node.id.replace('node-', '');
+                    highlightRelations(tableId);
+                });
+                 node.addEventListener('mouseout', () => {
+                    clearHighlights();
+                });
+            });
+        }
+        
+        function highlightRelations(tableId) {
+            clearHighlights();
+            const fromRels = ERD_DATA.relations.filter(r => r.from === tableId).map(r => r.to);
+            const toRels = ERD_DATA.relations.filter(r => r.to === tableId).map(r => r.from);
+            
+            qs(`#node-${tableId}`).classList.add('highlight');
+            fromRels.forEach(id => qs(`#node-${id}`).classList.add('highlight'));
+            toRels.forEach(id => qs(`#node-${id}`).classList.add('highlight'));
+        }
+        
+        function clearHighlights() {
+            qsa('.erd-node.highlight').forEach(n => n.classList.remove('highlight'));
         }
 
-        function updateWizardUI() {
-            const wizard = WIZARD_DATA[selectedWizard]; if (!wizard) return;
-            styleWizardCards(); // Keep styles consistent
-            qs('#wizard-switcher').value = selectedWizard;
-            qs('#chat-title').textContent = `Chat with ${selectedWizard}`;
-            qs('#chat-subtitle').textContent = wizard.subtitle;
-            qs('#chat-input').placeholder = wizard.placeholder;
-            qs('#sample-questions').innerHTML = `<span class="text-sm text-gray-400 shrink-0">Try:</span>` + wizard.questions.map(q => `<button class="sample-q-btn px-3 py-1 bg-gray-700 rounded-full text-sm hover:bg-gray-600">${q}</button>`).join('');
-            qs('#send-btn').className = `px-6 py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 bg-${wizard.color}-600 hover:bg-${wizard.color}-500 cta-button`;
-            qs('#chat-input').className = `flex-1 rounded-lg bg-gray-800 w-full text-base focus:ring-2 px-4 py-3 text-gray-200 focus:ring-${wizard.color}-500 border-gray-700`;
+        function renderTableExplorer() {
+            const container = qs('#table-explorer');
+            container.innerHTML = '';
+            
+            const layerColors = {
+                Raw: 'bg-red-500/20 text-red-300',
+                Staging: 'bg-yellow-500/20 text-yellow-300',
+                Mart: 'bg-green-500/20 text-green-300',
+            };
+            
+            TABLE_EXPLORER_DATA.forEach(table => {
+                const el = document.createElement('div');
+                el.className = 'flex justify-between items-center bg-gray-700/40 p-2 rounded-md';
+                el.innerHTML = `
+                    <span class="font-mono text-sm">${table.name}</span>
+                    <span class="text-xs font-semibold px-2 py-1 rounded-full ${layerColors[table.layer]}">${table.layer}</span>
+                `;
+                container.appendChild(el);
+            });
         }
 
-        function renderFeed() {
-            destroyAllchart(); 
-            const uniqueFeedItems = feedItems.filter((v,i,a) => a.findIndex(t=>(t.id === v.id && t.type===v.type)) === i);
-            const feedGrid = qs('#feed-grid');
-
-            feedGrid.innerHTML = uniqueFeedItems.map(item => {
-                const blueprint = feedBlueprints[item.type]?.[item.id]; if (!blueprint) return '';
-                const footer = `<div class="text-xs text-gray-500 mt-4 pt-3 border-t border-white/10 flex justify-between items-center"><span>Updated: Just now</span><div class="flex gap-2">
-                    <button data-type="${item.type}" data-id="${item.id}" class="view-sql-btn hover:text-white"><i data-feather="code"></i></button>
-                    <button class="hover:text-white"><i data-feather="refresh-cw"></i></button>
-                    <button class="hover:text-white"><i data-feather="share-2"></i></button></div></div>`;
-                if (item.type === 'scorecard') return `<div class="bg-gray-950/30 rounded-2xl p-6 border border-gray-800 flex flex-col justify-between"><div><h3 class="text-gray-300">${blueprint.title}</h3><div class="text-4xl md:text-5xl font-bold my-4">${blueprint.value}</div><div class="text-lg ${blueprint.trendColor}">${blueprint.trend}</div></div>${footer}</div>`;
-                if (item.type === 'chart') return `<div class="bg-gray-950/30 rounded-2xl p-6 border border-gray-800 flex flex-col"><h3 class="text-gray-300">${blueprint.title}</h3><div class="flex-grow mt-4 min-h-[250px]"><canvas id="feed-chart-${item.id}"></canvas></div>${footer}</div>`;
-            }).join('') || `<div class="col-span-full text-center p-8 bg-gray-950/30 rounded-lg border border-dashed border-gray-700"><p class="text-gray-400">Your feed is empty. Save insights from your chats to add them here.</p></div>`;
-
-            uniqueFeedItems.forEach(item => {
-                if (item.type === 'chart') {
-                    const chartId = `feed-chart-${item.id}`;
-                    if(chart[chartId]) chart[chartId].destroy();
-
-                    const bp = feedBlueprints.chart[item.id], ctx = qs(`#${chartId}`)?.getContext('2d');
-                    if (ctx) chart[chartId] = new Chart(ctx, { type: bp.type, data: JSON.parse(JSON.stringify(bp.data)), options: bp.options });
+        // Initial setup for Intersection Observer API for scroll animations
+        const sections = qsa('section');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in-section');
                 }
             });
-            feather.replace();
-        }
+        }, { threshold: 0.1 });
 
-        /* Initialization and Reset */
-        function resetDemo() {
-            destroyAllchart(); 
-            currentStep = 1; 
-            feedItems = [...PREPOPULATED_FEED_ITEMS];
-            selectedWizard = Object.keys(WIZARD_DATA)[0]; 
-            qs('#chat-window').innerHTML = '';
-            qs('#connect-form').reset(); 
-            qs('#connection-status-container').innerHTML = APP_CONTENT.initialConnectionStatusHTML;
-            updateUI();
-        }
+        sections.forEach(section => {
+            observer.observe(section);
+        });
 
-        function init() {
-            populateStaticUI();
-            populateDynamicUI();
-            resetDemo();
-            setupEventListeners();
-        }
-        init();
-    };
     </script>
-
 </body>
 </html>
