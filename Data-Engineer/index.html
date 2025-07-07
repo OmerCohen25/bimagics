@@ -29,13 +29,13 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     .log-line { animation: fadeIn 0.5s ease-out; }
     /* ERD Line Style */
-    .erd-line { stroke: rgba(107, 114, 128, 0.7); stroke-width: 2px; }
+    .erd-line { stroke: rgba(107, 114, 128, 0.7); stroke-width: 2px; transition: all 0.2s ease-in-out; }
     .erd-line-strong { stroke: #a78bfa; stroke-width: 3px; }
   </style>
 </head>
 <body class="bg-aurora text-gray-200 antialiased" x-data="wizardPage()">
 
-  <header class="fixed top-0 inset-x-0 z-50 bg-gray-900/60 backdrop-blur-lg border-b border-gray-700/40 h-16">
+  <header class="fixed top-0 inset-x-0 z-[60] bg-gray-900/60 backdrop-blur-lg border-b border-gray-700/40 h-16">
     <nav class="container mx-auto px-4 sm:px-6 h-full flex justify-between items-center">
       <a href="#" class="text-xl font-extrabold gradient-text">🔮 Data Wizard AI</a>
       <button @click="enterImmersive()" class="bg-purple-500 hover:bg-purple-400 text-white font-semibold py-2 px-5 rounded-lg transition-transform hover:scale-105 shadow-lg shadow-purple-500/20 text-sm sm:text-base">Launch AI Demo</button>
@@ -67,13 +67,13 @@
       </div>
     </section>
 
-    <main id="demo" x-show="immersive" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" class="immersive-container bg-gray-800/30" x-data="demoWizard()" x-init="start()">
+    <main id="demo" x-show="immersive" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" class="immersive-container bg-gray-800/30" x-data="demoWizard()" x-init="init()">
 
       <template x-if="phase==='mapping'"><section class="h-full flex flex-col items-center justify-center text-center gap-4 px-4">
         <h2 class="text-2xl font-bold text-white">🚀 Initiating Autonomous Warehouse Scan...</h2>
         <div class="w-full max-w-2xl h-64 bg-black/50 rounded-lg border border-gray-700 p-4 font-mono text-xs text-left flex flex-col">
             <div class="flex-1 overflow-y-auto scrollbar-thin" id="scan-log">
-                <template x-for="line in scanLog"><p class="log-line whitespace-pre" x-html="line"></p></template>
+                <template x-for="(line, index) in scanLog" :key="index"><p class="log-line whitespace-pre" x-html="line"></p></template>
             </div>
             <div class="flex-shrink-0 pt-2 border-t border-gray-700/50 flex justify-between items-center">
                 <span class="text-cyan-300" x-text="status"></span>
@@ -92,7 +92,7 @@
                     <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-700"><p class="text-sm text-gray-400">Total Size</p><p class="text-2xl font-bold text-white" x-text="demoData.summary.totalSizeTB + ' TB'"></p></div>
                     <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-700"><p class="text-sm text-gray-400">30-Day Cost</p><p class="text-2xl font-bold text-white" x-text="'$'+demoData.summary.totalCost.toLocaleString()"></p></div>
                     <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-700"><p class="text-sm text-gray-400">Issues Found</p><p class="text-2xl font-bold text-red-400" x-text="demoData.summary.issuesFound"></p></div>
-                    <div class="bg-gray-900/60 p-4 rounded-xl border-2 border-dashed border-cyan-500/50 flex flex-col items-center justify-center text-center hover:bg-cyan-500/10 hover:border-cyan-500 transition cursor-pointer" @click="phase='builder'"><p class="font-bold text-cyan-300">Build Master View</p><p class="text-xs text-gray-400">Create a new table</p></div>
+                    <div class="bg-gray-900/60 p-4 rounded-xl border-2 border-dashed border-cyan-500/50 flex flex-col items-center justify-center text-center hover:bg-cyan-500/10 hover:border-cyan-500 transition cursor-pointer" @click="phase='builder'"><p class="font-bold text-cyan-300">Build Master View</p><p class="text-xs text-gray-400">AI-powered table creation</p></div>
                 </div>
                 <div class="flex-1 grid lg:grid-cols-3 gap-4 md:gap-6 min-h-0">
                     <div class="lg:col-span-1 bg-gray-900/60 p-4 rounded-xl border border-gray-700 flex flex-col items-center justify-center"><h3 class="text-lg font-bold mb-2">Warehouse Health Score</h3><div class="relative w-48 h-48"><canvas id="healthScoreChart"></canvas><span class="absolute inset-0 flex items-center justify-center text-3xl font-extrabold text-cyan-300" x-text="demoData.summary.healthScore + '%'"></span></div></div>
@@ -104,9 +104,9 @@
             <template x-if="phase==='builder'"><section class="h-full flex flex-col p-4 gap-4">
                 <div class="flex-shrink-0 flex justify-between items-center"><button @click="phase='dashboard'" class="text-gray-400 hover:text-white"><i class="fa-solid fa-arrow-left mr-2"></i>Dashboard</button><h2 class="text-2xl font-bold text-white">AI Master View Builder</h2><button @click="generateViewSql()" :disabled="builderState.selectedColumns.length < 2" class="bg-green-500 hover:bg-green-400 text-white font-bold px-5 py-2 rounded-lg disabled:bg-gray-500 disabled:cursor-not-allowed">Generate SQL</button></div>
                 <div class="flex-1 grid md:grid-cols-3 gap-4 min-h-0">
-                    <div class="md:col-span-1 bg-gray-900/60 border border-gray-700 rounded-xl p-4 flex flex-col"><h3 class="font-bold mb-2">1. Select Source Tables</h3><div class="flex-1 space-y-1 overflow-y-auto scrollbar-thin"><template x-for="table in demoData.tables"><div @click="toggleBuilderTable(table.name)" class="flex items-center gap-3 p-2 rounded-lg cursor-pointer" :class="builderState.sourceTables.includes(table.name) ? 'bg-purple-600/30' : 'hover:bg-gray-800'"><i class="fa-solid fa-table text-purple-300"></i><span x-text="table.name"></span></div></template></div></div>
-                    <div class="md:col-span-1 bg-gray-900/60 border border-gray-700 rounded-xl p-4 flex flex-col"><h3 class="font-bold mb-2">2. Check Columns to Include</h3><div class="flex-1 space-y-2 overflow-y-auto scrollbar-thin pr-2"><template x-for="table in builderTables"><div class="p-2 bg-gray-800/50 rounded-lg"><p class="font-semibold text-purple-300 text-sm mb-1" x-text="table.name"></p><div class="space-y-1"><template x-for="col in table.columns"><label class="flex items-center gap-2 cursor-pointer text-sm hover:text-white"><input type="checkbox" :value="`${table.name}.${col.name}`" x-model="builderState.selectedColumns" class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-purple-500 focus:ring-purple-600"> <span x-text="col.name"></span></label></template></div></div></template></div></div>
-                    <div class="md:col-span-1 bg-gray-900/60 border border-gray-700 rounded-xl p-4 flex flex-col"><h3 class="font-bold mb-2">3. Create Your View</h3><div><label class="text-sm font-semibold">New View Name</label><input type="text" x-model="builderState.newViewName" class="w-full bg-gray-800 border border-gray-600 rounded-md p-2 mt-1 text-sm"></div><div class="mt-4 flex-1 border border-dashed border-gray-600 rounded-lg p-2"><p class="text-sm font-semibold mb-1">Selected Columns:</p><div class="text-xs text-gray-400 space-y-1"><template x-for="col in builderState.selectedColumns"><span><i class="fa-solid fa-check-circle text-green-500 mr-2"></i><span x-text="col"></span><br></span></template><p x-show="builderState.selectedColumns.length === 0" class="text-gray-500">Select columns to see them here.</p></div></div></div>
+                    <div class="md:col-span-1 bg-gray-900/60 border border-gray-700 rounded-xl p-4 flex flex-col"><h3 class="font-bold mb-2">1. Select Source Tables</h3><div class="flex-1 space-y-1 overflow-y-auto scrollbar-thin"><template x-for="table in demoData.tables.filter(t => !t.isView)"><div @click="toggleBuilderTable(table.name)" class="flex items-center gap-3 p-2 rounded-lg cursor-pointer" :class="builderState.sourceTables.includes(table.name) ? 'bg-purple-600/30' : 'hover:bg-gray-800'"><i class="fa-solid fa-table text-purple-300"></i><span x-text="table.name"></span></div></template></div></div>
+                    <div class="md:col-span-1 bg-gray-900/60 border border-gray-700 rounded-xl p-4 flex flex-col"><h3 class="font-bold mb-2">2. Check Columns to Include</h3><div class="flex-1 space-y-2 overflow-y-auto scrollbar-thin pr-2"><template x-if="builderTables.length === 0"><div class="text-gray-500 text-center mt-8">Select a source table to see its columns.</div></template><template x-for="table in builderTables"><div class="p-2 bg-gray-800/50 rounded-lg"><p class="font-semibold text-purple-300 text-sm mb-1" x-text="table.name"></p><div class="space-y-1"><template x-for="col in table.columns"><label class="flex items-center gap-2 cursor-pointer text-sm hover:text-white"><input type="checkbox" :value="`${table.name}.${col.name}`" x-model="builderState.selectedColumns" class="w-4 h-4 rounded bg-gray-700 border-gray-600 text-purple-500 focus:ring-purple-600"> <span x-text="col.name"></span></label></template></div></div></template></div></div>
+                    <div class="md:col-span-1 bg-gray-900/60 border border-gray-700 rounded-xl p-4 flex flex-col"><h3 class="font-bold mb-2">3. Create Your View</h3><div><label class="text-sm font-semibold">New View Name</label><input type="text" x-model="builderState.newViewName" class="w-full bg-gray-800 border border-gray-600 rounded-md p-2 mt-1 text-sm"></div><div class="mt-4 flex-1 border border-dashed border-gray-600 rounded-lg p-2"><p class="text-sm font-semibold mb-1">Selected Columns:</p><div class="text-xs text-gray-400 space-y-1 overflow-y-auto scrollbar-thin"><template x-for="col in builderState.selectedColumns"><span><i class="fa-solid fa-check-circle text-green-500 mr-2"></i><span x-text="col"></span><br></span></template><p x-show="builderState.selectedColumns.length === 0" class="text-gray-500">Select columns to see them here.</p></div></div></div>
                 </div>
             </section></template>
 
@@ -114,32 +114,50 @@
                 <aside class="w-full md:w-72 lg:w-80 bg-gray-900/60 border border-gray-700 rounded-xl p-4 flex flex-col shrink-0">
                     <div class="flex items-center justify-between mb-3"><button @click="phase='dashboard'" class="text-gray-400 hover:text-white"><i class="fa-solid fa-arrow-left mr-2"></i>Dashboard</button><h3 class="font-bold text-white text-lg">Explorer</h3></div>
                     <div class="flex border border-gray-700 rounded-lg p-1 bg-gray-800/50 mb-3"><button @click="warehouseView='details'" class="flex-1 py-1 text-sm rounded-md transition" :class="warehouseView==='details' ? 'bg-purple-600 text-white' : 'hover:bg-gray-700/50'">Details</button><button @click="warehouseView='erd'" class="flex-1 py-1 text-sm rounded-md transition" :class="warehouseView==='erd' ? 'bg-purple-600 text-white' : 'hover:bg-gray-700/50'">ERD Map</button></div>
-                    <div class="flex-1 overflow-y-auto scrollbar-thin space-y-1"><template x-for="table in demoData.tables"><button @click="selectTable(table)" class="w-full flex items-center gap-3 text-left px-3 py-2 rounded-md hover:bg-gray-800/50 transition" :class="{'bg-purple-600/40 text-white':selectedTable?.name===table.name}"><i class="fa-solid" :class="table.isView ? 'fa-eye' : 'fa-table'"></i><span class="font-medium" x-text="table.name"></span></button></template></div>
+                    <div class="flex-1 overflow-y-auto scrollbar-thin space-y-1"><template x-for="table in demoData.tables" :key="table.name"><button @click="selectTable(table)" class="w-full flex items-center gap-3 text-left px-3 py-2 rounded-md hover:bg-gray-800/50 transition" :class="{'bg-purple-600/40 text-white':selectedTable?.name===table.name}"><i class="fa-solid" :class="table.isView ? 'fa-eye' : 'fa-table'"></i><span class="font-medium" x-text="table.name"></span></button></template></div>
                     <button @click="phase='chat'; initPreQ()" class="mt-4 w-full bg-cyan-500 hover:bg-cyan-400 text-black font-semibold px-6 py-2 rounded-lg shadow-lg shadow-cyan-500/20 transition-transform hover:scale-105">💬 Chat with Agent</button>
                 </aside>
                 <div class="flex-1 bg-gray-900/60 border border-gray-700 rounded-xl overflow-hidden flex flex-col">
-                    <template x-if="warehouseView === 'details'"></template>
+                    <template x-if="warehouseView === 'details'"><div class="p-4 md:p-6 flex flex-col min-w-0 h-full">
+                        <template x-if="!selectedTable"><div class="flex items-center justify-center h-full text-gray-500 text-center"><span><i class="fa-solid fa-arrow-left fa-lg mr-2"></i> Select a table to inspect its properties</span></div></template>
+                        <template x-if="selectedTable"><div class="flex flex-col h-full">
+                          <h3 class="text-xl lg:text-2xl font-bold text-white mb-1 flex items-center gap-3"><i class="fa-solid" :class="selectedTable.isView ? 'fa-eye' : 'fa-table'"></i><span x-text="selectedTable.name"></span></h3><p class="text-sm text-gray-400 mb-4" x-text="selectedTable.description"></p>
+                          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-center"><div class="bg-gray-800/70 p-2 rounded-lg"><div class="text-xs text-purple-300">Size</div><div class="font-semibold" x-text="selectedTable.sizeGB + ' GB'"></div></div><div class="bg-gray-800/70 p-2 rounded-lg"><div class="text-xs text-purple-300">30d Cost</div><div class="font-semibold" x-text="'$'+selectedTable.last30Cost.toLocaleString()"></div></div><div class="bg-gray-800/70 p-2 rounded-lg"><div class="text-xs text-purple-300">Partitioned</div><div class="font-semibold" x-html="selectedTable.partitioned ? `<span class='text-green-400'>Yes</span>` : `<span class='text-yellow-400'>No</span>`"></div></div><div class="bg-gray-800/70 p-2 rounded-lg"><div class="text-xs text-purple-300">Complexity</div><div class="font-semibold" x-text="selectedTable.complexityScore"></div></div></div>
+                          <div class="grid lg:grid-cols-2 gap-6 flex-1 min-h-0">
+                            <div class="overflow-y-auto pr-2 scrollbar-thin text-sm"><h4 class="font-semibold text-gray-300 mb-2 text-base">Columns</h4><table class="w-full text-left"><thead><tr class="text-purple-300 text-xs"><th class="pb-1 font-semibold pl-2">Name</th><th class="font-semibold">Type</th><th class="font-semibold">Notes</th></tr></thead><tbody><template x-for="col in selectedTable.columns" :key="col.name"><tr class="border-t border-gray-700/50"><td class="py-1.5 pl-2" x-text="col.name"></td><td class="text-gray-400" x-text="col.type"></td><td class="text-gray-400 text-xs" x-text="col.note"></td></tr></template></tbody></table></div>
+                            <div class="overflow-y-auto pr-2 scrollbar-thin text-sm"><h4 class="font-semibold text-gray-300 mb-2 text-base">Relationships</h4><template x-if="selectedTable.relations.length === 0"><p class="text-xs text-gray-500">No foreign keys detected.</p></template><div class="space-y-1"><template x-for="rel in selectedTable.relations" :key="rel.toTable"><div class="text-xs text-gray-400 bg-gray-800/50 rounded p-2 border border-gray-700" x-text="`${selectedTable.name}.${rel.from} ➜ ${rel.toTable}.${rel.to}`"></div></template></div><h4 class="font-semibold text-gray-300 mt-4 mb-2 text-base">Proactive Insights</h4><p class="text-xs text-gray-400" x-text="selectedTable.insight"></p></div>
+                          </div>
+                        </div></template>
+                    </div></template>
                     <template x-if="warehouseView === 'erd'">
                         <div class="p-2 h-full flex flex-col">
                             <div class="flex-shrink-0 mb-2 flex justify-end"><button @click="isErdModalOpen = true" class="text-sm text-gray-400 hover:text-white"><i class="fa-solid fa-expand mr-2"></i>View Fullscreen</button></div>
                             <div class="flex-1 overflow-auto scrollbar-thin relative bg-black/20 rounded-lg"><div class="relative w-[1200px] h-[700px] p-4">
-                                <template x-for="table in demoData.tables"><div :class="{'border-purple-500':selectedTable?.name === table.name}" class="absolute bg-gray-800 border-2 border-gray-600 rounded-lg p-2 w-48 shadow-lg" :style="`top:${table.pos.y}px; left:${table.pos.x}px;`"><p class="font-bold text-sm text-cyan-300" x-text="table.name"></p></div></template>
-                                <svg class="absolute top-0 left-0 w-full h-full overflow-visible z-[-1]"><template x-for="line in erdLines"><line :x1="line.x1" :y1="line.y1" :x2="line.x2" :y2="line.y2" class="erd-line" :class="{'erd-line-strong': selectedTable && (line.from === selectedTable.name || line.to === selectedTable.name)}"/></template></svg>
+                                <template x-for="table in demoData.tables" :key="table.name"><div :class="{'border-purple-500':selectedTable?.name === table.name}" class="absolute bg-gray-800 border-2 border-gray-600 rounded-lg p-2 w-48 shadow-lg z-10" :style="`top:${table.pos.y}px; left:${table.pos.x}px;`"><p class="font-bold text-sm text-cyan-300 flex items-center gap-2"><i class="fa-solid" :class="table.isView ? 'fa-eye' : 'fa-table'"></i><span x-text="table.name"></span></p></div></template>
+                                <svg class="absolute top-0 left-0 w-full h-full overflow-visible"><template x-for="line in erdLines" :key="line.key"><line :x1="line.x1" :y1="line.y1" :x2="line.x2" :y2="line.y2" class="erd-line" :class="{'erd-line-strong': selectedTable && (line.from === selectedTable.name || line.to === selectedTable.name)}"/></template></svg>
                             </div></div>
                         </div>
                     </template>
                 </div>
             </section></template>
 
-            <template x-if="phase==='chat'"></template>
+            <template x-if="phase==='chat'"><section class="h-full flex flex-col bg-gray-900/40">
+              <div class="flex items-center justify-between px-4 h-14 border-b border-gray-700 bg-gray-900/60 shrink-0"><button @click="phase='explorer'" class="text-gray-300 hover:text-white text-sm"><i class="fa-solid fa-arrow-left mr-2"></i>Back to Explorer</button><h2 class="font-semibold text-white text-sm">Data-Engineer Agent</h2><div class="w-32"></div></div>
+              <div id="chatArea" class="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin"><template x-for="msg in messages" :key="msg.id"><div class="flex" :class="msg.who==='user'?'justify-end':'justify-start'"><div class="max-w-[90%] sm:max-w-[80%] md:max-w-[70%]"><div :class="msg.who==='user'?'bg-purple-600 text-white rounded-br-none':'bg-gray-800 text-gray-200 rounded-bl-none'" class="px-4 py-2.5 rounded-xl whitespace-pre-wrap text-sm" x-html="msg.text"></div></div></div></template><div x-show="isTyping" class="flex justify-start"><div class="bg-gray-800 text-gray-200 rounded-xl rounded-bl-none px-4 py-2"><div class="typing-indicator"><span></span><span></span><span></span></div></div></div></div>
+              <div x-show="suggested.length" class="border-t border-gray-700 bg-gray-900/50 p-3 text-xs"><p class="text-gray-400 mb-2">Suggestions:</p><div class="flex flex-wrap gap-2"><template x-for="q in suggested" :key="q"><button @click="quickAsk(q)" class="bg-gray-800 hover:bg-purple-500 hover:text-white border border-gray-700 text-gray-300 px-3 py-1.5 rounded-full transition text-left">🎯 <span x-text="q"></span></button></template></div></div>
+              <div class="border-t border-gray-700 bg-gray-900/50 p-3 flex items-start sm:items-center gap-3 shrink-0"><textarea x-model="chatInput" @keydown.enter.prevent.stop="sendMsg()" placeholder="Ask about warehouse health, ERD, query optimization..." class="flex-1 bg-gray-800 text-gray-200 rounded-md px-3 py-2 resize-none h-10 focus:outline-none focus:ring-2 focus:ring-purple-500 border border-gray-700 text-sm" @input="chatInput.style.height = 'auto'; chatInput.style.height = chatInput.scrollHeight + 'px'"></textarea><button @click="sendMsg()" :disabled="!chatInput.trim()" class="bg-purple-500 hover:bg-purple-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold px-5 py-2 rounded-md transition self-end sm:self-center">Send</button></div>
+            </section></template>
         </div>
       </template>
 
-      <template x-if="isErdModalOpen"><div @click.self="isErdModalOpen = false" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="w-full h-full bg-gray-900/80 border border-gray-700 rounded-xl flex flex-col"><div class="p-2 flex-shrink-0 flex justify-end"><button @click="isErdModalOpen = false" class="px-3 py-1 bg-red-500 rounded-lg">Close</button></div><div class="flex-1 overflow-auto scrollbar-thin relative"><div class="relative w-[1400px] h-[900px] p-8"></div></div></div>
+      <template x-if="isErdModalOpen"><div @click.self="isErdModalOpen = false" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+        <div class="w-full h-full bg-gray-900/80 border border-gray-700 rounded-xl flex flex-col"><div class="p-2 flex-shrink-0 flex justify-end"><button @click="isErdModalOpen = false" class="px-3 py-1 bg-red-500 hover:bg-red-400 rounded-lg">Close</button></div><div class="flex-1 overflow-auto scrollbar-thin relative"><div class="relative w-[1400px] h-[900px] p-8">
+            <template x-for="table in demoData.tables" :key="table.name"><div :class="{'border-purple-500':selectedTable?.name === table.name}" class="absolute bg-gray-800 border-2 border-gray-600 rounded-lg p-2 w-48 shadow-lg z-10" :style="`top:${table.pos.y}px; left:${table.pos.x}px;`"><p class="font-bold text-sm text-cyan-300 flex items-center gap-2"><i class="fa-solid" :class="table.isView ? 'fa-eye' : 'fa-table'"></i><span x-text="table.name"></span></p></div></template>
+            <svg class="absolute top-0 left-0 w-full h-full overflow-visible"><template x-for="line in erdLines" :key="line.key"><line :x1="line.x1" :y1="line.y1" :x2="line.x2" :y2="line.y2" class="erd-line" :class="{'erd-line-strong': selectedTable && (line.from === selectedTable.name || line.to === selectedTable.name)}"/></template></svg>
+        </div></div></div>
       </template>
-      <template x-if="builderState.generatedSql"><div @click.self="builderState.generatedSql = ''" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="max-w-2xl w-full bg-gray-900 border border-purple-500 rounded-xl flex flex-col"><div class="p-4"><h3 class="text-lg font-bold gradient-text">SQL Generation Complete</h3><p class="text-sm text-gray-400">The AI has generated the following production-ready SQL to create your view.</p></div><pre class="bg-black/50 p-4 overflow-x-auto text-sm scrollbar-thin"><code class="language-sql" x-text="builderState.generatedSql"></code></pre><div class="p-4 flex justify-end"><button @click="confirmViewCreation()" class="bg-purple-600 hover:bg-purple-500 rounded-lg px-4 py-2">Create this View</button></div></div>
+      <template x-if="builderState.generatedSql"><div @click.self="builderState.generatedSql = ''" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+        <div class="max-w-2xl w-full bg-gray-900 border border-purple-500 rounded-xl flex flex-col"><div class="p-4"><h3 class="text-lg font-bold gradient-text">SQL Generation Complete</h3><p class="text-sm text-gray-400">The AI has generated the following production-ready SQL to create your view.</p></div><pre class="bg-black/50 p-4 overflow-x-auto text-sm scrollbar-thin"><code class="language-sql" x-text="builderState.generatedSql"></code></pre><div class="p-4 flex justify-end gap-4"><button @click="builderState.generatedSql = ''" class="text-gray-400 hover:text-white">Cancel</button><button @click="confirmViewCreation()" class="bg-purple-600 hover:bg-purple-500 rounded-lg px-4 py-2">Create this View</button></div></div>
       </template>
     </main>
 
@@ -149,9 +167,6 @@
 </div>
 
 <script>
-// NOTE: For brevity, the full JS is collapsed. The logic from the previous answer is preserved and enhanced below.
-// The main `demoWizard` object is where the new functionality resides.
-
 function wizardPage() {
     return {
         immersive: false,
@@ -171,99 +186,101 @@ function demoWizard() {
     warehouseView: 'details',
     isErdModalOpen: false,
     selectedTable: null,
-    demoData: { /* ... full data object from previous version ... */ }, // Abridged for clarity
-    builderState: {
-        sourceTables: [],
-        selectedColumns: [],
-        newViewName: 'vw_master_user_profile',
-        generatedSql: '',
+    chatInput: '',
+    messages: [],
+    msgId: 0,
+    suggested: [],
+    isTyping: false,
+    demoData: {
+      summary: { totalTables: 5, totalSizeTB: 1.6, totalCost: 44255, issuesFound: 3, healthScore: 78 },
+      tables: [
+        { name: 'fact_events', rows: 2100000000, sizeGB: 1250.7, last30Cost: 38400, partitioned: false, complexityScore: 7.2, description: 'Core table logging all user interactions.', insight: 'High cost due to full table scans. Recommend partitioning by `event_date` and clustering by `event_name`.', pos: {x: 450, y: 300}, isView: false,
+          columns: [{ name: 'event_id', type: 'UUID', note: 'PK' }, { name: 'session_id', type: 'UUID', note: 'FK to sessions' }, { name: 'user_id', type: 'INT', note: 'FK to users' }, { name: 'event_name', type: 'STRING', note: '' }, { name: 'event_time', type: 'TIMESTAMP', note: '' }], relations: [{ from: 'user_id', to: 'id', toTable: 'dim_users' }, { from: 'session_id', to: 'session_id', toTable: 'fact_sessions' }] },
+        { name: 'dim_users', rows: 85000000, sizeGB: 120.4, last30Cost: 3100, partitioned: true, complexityScore: 4.5, description: 'Dimension table for user profiles.', insight: 'Well-optimized, but `email` column has high cardinality and is often filtered. Consider adding an index.', pos: {x: 50, y: 50}, isView: false,
+          columns: [{ name: 'id', type: 'INT', note: 'PK' }, { name: 'email', type: 'STRING', note: '' }, { name: 'created_at', type: 'TIMESTAMP', note: '' }, { name: 'country_code', type: 'STRING', note: 'Partition Key' }], relations: [] },
+        { name: 'dim_payments', rows: 32000000, sizeGB: 80.2, last30Cost: 2200, partitioned: true, complexityScore: 8.8, description: 'Dimension table for payment records.', insight: 'Associated views have high complexity (nested CTEs). Recommend refactoring `vw_user_revenue` for better performance.', pos: {x: 850, y: 50}, isView: false,
+          columns: [{ name: 'payment_id', type: 'UUID', note: 'PK' }, { name: 'user_id', type: 'INT', note: 'FK to users' }, { name: 'amount_usd', type: 'NUMERIC', note: '' }], relations: [{ from: 'user_id', to: 'id', toTable: 'dim_users' }] },
+        { name: 'fact_sessions', rows: 450000000, sizeGB: 150.5, last30Cost: 550, partitioned: true, complexityScore: 6.1, description: 'Session data for user activity.', insight: 'Low query cost suggests it might be underutilized or data is archived efficiently.', pos: {x: 450, y: 50}, isView: false,
+          columns: [{ name: 'session_id', type: 'UUID', note: 'PK' }, { name: 'user_id', type: 'INT', note: 'FK to users' }, { name: 'start_time', type: 'TIMESTAMP', note: '' }, { name: 'end_time', type: 'TIMESTAMP', note: '' } ], relations: [{ from: 'user_id', to: 'id', toTable: 'dim_users' }] },
+        { name: 'stg_orphan_data', rows: 1200000, sizeGB: 0.8, last30Cost: 5, partitioned: false, complexityScore: 1.0, description: 'Temporary staging table.', insight: 'No recent queries or relations found. This is a candidate for deletion to save storage costs.', pos: {x: 850, y: 550}, isView: false,
+          columns: [{ name: 'dummy_col', type: 'STRING', note: '' }], relations: [] }
+      ]
     },
-    // ... other properties like chatInput, messages etc.
-
-    init() {
-        this.demoData.tables.forEach(t => t.isView = t.isView || false);
-        // Any other initialization logic
-    },
+    builderState: { sourceTables: [], selectedColumns: [], newViewName: 'vw_master_user_profile', generatedSql: '' },
+    
+    init() { this.start(); },
     
     start() {
         const log = [
-            `[<span class="text-green-400">OK</span>] Kernel booted. Starting warehouse scan...`,
-            `[<span class="text-yellow-400">--</span>] Connecting to data source 'prod-snowflake-cluster'...`,
-            `[<span class="text-green-400">OK</span>] Connection successful. Authenticated.`,
-            `[<span class="text-cyan-400">SCAN</span>] Fetching schema list...`,
-            `[<span class="text-green-400">OK</span>] Found 5 tables in 'PROD' database.`,
-            `[<span class="text-cyan-400">SCAN</span>] Analyzing table <span class="text-purple-300">fact_events</span>... Discovered 2.1B rows.`,
-            `[<span class="text-cyan-400">SCAN</span>] Analyzing table <span class="text-purple-300">dim_users</span>... Discovered 85M rows.`,
-            `[<span class="text-cyan-400">SCAN</span>] Analyzing table <span class="text-purple-300">dim_payments</span>... Discovered 32M rows.`,
-            `[<span class="text-cyan-400">SCAN</span>] Analyzing table <span class="text-purple-300">fact_sessions</span>... Discovered 450M rows.`,
-            `[<span class="text-cyan-400">SCAN</span>] Analyzing table <span class="text-purple-300">stg_orphan_data</span>... Discovered 1.2M rows.`,
-            `[<span class="text-yellow-400">--</span>] Computing relationships...`,
-            `[<span class="text-green-400">OK</span>] Found relation: <span class="text-purple-300">dim_users.id</span> -> <span class="text-purple-300">fact_events.user_id</span>`,
-            `[<span class="text-green-400">OK</span>] Found relation: <span class="text-purple-300">dim_users.id</span> -> <span class="text-purple-300">dim_payments.user_id</span>`,
-            `[<span class="text-yellow-400">--</span>] Calculating complexity & cost metrics...`,
-            `[<span class="text-red-400">WARN</span>] High cost anomaly detected for <span class="text-purple-300">fact_events</span>.`,
-            `[<span class="text-green-400">OK</span>] Scan complete. Generating dashboard...`
+            `[<span class="text-green-400">OK</span>] Kernel booted. Starting warehouse scan...`, `[<span class="text-yellow-400">--</span>] Connecting to data source 'prod-snowflake-cluster'...`, `[<span class="text-green-400">OK</span>] Connection successful. Authenticated.`, `[<span class="text-cyan-400">SCAN</span>] Fetching schema list...`, `[<span class="text-green-400">OK</span>] Found 5 tables in 'PROD' database.`,
+            `[<span class="text-cyan-400">SCAN</span>] Analyzing table <span class="text-purple-300">fact_events</span>... Discovered 2.1B rows.`, `[<span class="text-cyan-400">SCAN</span>] Analyzing table <span class="text-purple-300">dim_users</span>... Discovered 85M rows.`, `[<span class="text-cyan-400">SCAN</span>] Analyzing table <span class="text-purple-300">dim_payments</span>... Discovered 32M rows.`, `[<span class="text-cyan-400">SCAN</span>] Analyzing table <span class="text-purple-300">fact_sessions</span>... Discovered 450M rows.`, `[<span class="text-cyan-400">SCAN</span>] Analyzing table <span class="text-purple-300">stg_orphan_data</span>... Discovered 1.2M rows.`,
+            `[<span class="text-yellow-400">--</span>] Computing relationships...`, `[<span class="text-green-400">OK</span>] Found relation: <span class="text-purple-300">dim_users.id</span> -> <span class="text-purple-300">fact_events.user_id</span>`, `[<span class="text-green-400">OK</span>] Found relation: <span class="text-purple-300">dim_users.id</span> -> <span class="text-purple-300">dim_payments.user_id</span>`,
+            `[<span class="text-yellow-400">--</span>] Calculating complexity & cost metrics...`, `[<span class="text-red-400">WARN</span>] High cost anomaly detected for <span class="text-purple-300">fact_events</span>.`, `[<span class="text-green-400">OK</span>] Scan complete. Generating dashboard...`
         ];
-        
         let i = 0;
         const interval = setInterval(() => {
             if (i < log.length) {
                 this.scanLog.push(log[i]);
                 this.progress = Math.round(((i + 1) / log.length) * 100);
                 this.status = log[i].split(']')[1].trim().split('<')[0];
-                this.$nextTick(() => {
-                    const logEl = document.getElementById('scan-log');
-                    if(logEl) logEl.scrollTop = logEl.scrollHeight;
-                });
+                this.$nextTick(() => { const logEl = document.getElementById('scan-log'); if(logEl) logEl.scrollTop = logEl.scrollHeight; });
                 i++;
             } else {
                 clearInterval(interval);
-                setTimeout(() => {
-                    this.phase = 'dashboard';
-                    this.$nextTick(() => { this.renderDashboardCharts(); this.selectTable(this.demoData.tables[0]); });
-                }, 800);
+                setTimeout(() => { this.phase = 'dashboard'; this.$nextTick(() => { this.renderDashboardCharts(); this.selectTable(this.demoData.tables[0]); }); }, 800);
             }
         }, 300);
     },
-
-    get builderTables() {
-        return this.demoData.tables.filter(t => this.builderState.sourceTables.includes(t.name));
+    
+    renderDashboardCharts() {
+        const healthCtx = document.getElementById('healthScoreChart')?.getContext('2d');
+        if (healthCtx && Chart.getChart(healthCtx) == undefined) new Chart(healthCtx, { type: 'doughnut', data: { datasets: [{ data: [this.demoData.summary.healthScore, 100 - this.demoData.summary.healthScore], backgroundColor: ['#67e8f9', '#374151'], borderWidth: 0 }] }, options: { responsive: true, cutout: '80%', plugins: { tooltip: { enabled: false } } } });
+        const costCtx = document.getElementById('costDistributionChart')?.getContext('2d');
+        if (costCtx && Chart.getChart(costCtx) == undefined) new Chart(costCtx, { type: 'bar', data: { labels: this.demoData.tables.map(t => t.name), datasets: [{ label: '30-Day Cost', data: this.demoData.tables.map(t => t.last30Cost), backgroundColor: '#a78bfa' }] }, options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#9ca3af' } }, x: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(255,255,255,.05)' } } } } });
     },
 
+    get erdLines() {
+        const lines = [];
+        this.demoData.tables.forEach(table => {
+            table.relations.forEach(rel => {
+                const toTable = this.demoData.tables.find(t => t.name === rel.toTable);
+                if (toTable) {
+                    lines.push({ key: `${table.name}-${toTable.name}`, from: table.name, to: toTable.name, x1: table.pos.x + 96, y1: table.pos.y + 40, x2: toTable.pos.x + 96, y2: toTable.pos.y + 40 });
+                }
+            });
+        });
+        return lines;
+    },
+
+    selectTable(table) { this.selectedTable = table; },
+    
+    get builderTables() { return this.demoData.tables.filter(t => this.builderState.sourceTables.includes(t.name) && !t.isView); },
     toggleBuilderTable(tableName) {
         const index = this.builderState.sourceTables.indexOf(tableName);
         if (index > -1) {
             this.builderState.sourceTables.splice(index, 1);
-            // also remove its columns from selected
             this.builderState.selectedColumns = this.builderState.selectedColumns.filter(c => !c.startsWith(tableName + '.'));
-        } else {
-            this.builderState.sourceTables.push(tableName);
-        }
+        } else { this.builderState.sourceTables.push(tableName); }
     },
 
     generateViewSql() {
-        const selectedTables = new Set(this.builderState.selectedColumns.map(c => c.split('.')[0]));
-        if (selectedTables.size < 1) return;
-
-        const baseTable = Array.from(selectedTables)[0];
-        let sql = `CREATE OR REPLACE VIEW PROD.ANALYTICS.${this.builderState.newViewName} AS (\n`;
-        sql += `  SELECT\n`;
+        const selectedTablesSet = new Set(this.builderState.selectedColumns.map(c => c.split('.')[0]));
+        if (selectedTablesSet.size < 1) return;
+        const tablesInvolved = Array.from(selectedTablesSet);
+        const baseTable = tablesInvolved[0];
+        let sql = `CREATE OR REPLACE VIEW PROD.ANALYTICS.${this.builderState.newViewName} AS (\n  SELECT\n`;
         this.builderState.selectedColumns.forEach(col => {
             const [tableName, colName] = col.split('.');
             sql += `    ${tableName}.${colName} AS ${tableName}_${colName},\n`;
         });
-        sql = sql.slice(0, -2) + `\n`; // remove last comma
-        sql += `  FROM PROD.MART.${baseTable}\n`;
-
-        // Very simplified JOIN logic for demo
-        Array.from(selectedTables).slice(1).forEach(joinTable => {
-            const rel = this.demoData.tables.find(t => t.name === joinTable)?.relations.find(r => r.toTable === baseTable) || this.demoData.tables.find(t => t.name === baseTable)?.relations.find(r => r.toTable === joinTable);
-            if (rel) {
-                const fromTable = this.demoData.tables.find(t => t.name === joinTable)?.relations.find(r => r.toTable === baseTable) ? joinTable : baseTable;
-                const toTable = fromTable === baseTable ? joinTable : baseTable;
-                const fromKey = rel.from;
-                const toKey = rel.to;
-                 sql += `  LEFT JOIN PROD.MART.${joinTable} ON ${fromTable}.${fromKey} = ${toTable}.${toKey}\n`;
+        sql = sql.slice(0, -2) + `\n  FROM PROD.MART.${baseTable}\n`;
+        const joinedTables = new Set([baseTable]);
+        tablesInvolved.slice(1).forEach(joinTable => {
+            const allRelations = this.demoData.tables.flatMap(t => t.relations.map(r => ({ from: t.name, ...r })));
+            const rel = allRelations.find(r => (r.from === baseTable && r.toTable === joinTable) || (r.from === joinTable && r.toTable === baseTable));
+            if (rel && !joinedTables.has(joinTable)) {
+                sql += `  LEFT JOIN PROD.MART.${joinTable} ON ${rel.from}.${rel.from.includes(baseTable) ? rel.to : rel.from} = ${rel.toTable}.${rel.to}\n`;
+                joinedTables.add(joinTable);
             }
         });
         sql += `);`;
@@ -271,16 +288,10 @@ function demoWizard() {
     },
 
     confirmViewCreation() {
-        // Add the new view to the list of tables and switch to explorer
         this.demoData.tables.push({
-            name: this.builderState.newViewName,
-            isView: true,
-            rows: 0, sizeGB: 0, last30Cost: 0, partitioned: false, complexityScore: 5.0,
-            description: 'A custom master view generated by the AI Builder.',
-            insight: 'Newly created view. Monitor query performance and cost.',
-            pos: {x: 50, y: 550},
-            columns: this.builderState.selectedColumns.map(c => ({ name: c.replace('.', '_'), type: 'VARIANT', note: '' })),
-            relations: []
+            name: this.builderState.newViewName, isView: true, rows: 0, sizeGB: 0, last30Cost: 0, partitioned: false, complexityScore: 5.0,
+            description: 'A custom master view generated by the AI Builder.', insight: 'Newly created view. Monitor query performance and cost.', pos: {x: 50, y: 550},
+            columns: this.builderState.selectedColumns.map(c => ({ name: c.replace('.', '_'), type: 'VARIANT', note: '' })), relations: []
         });
         this.demoData.summary.totalTables++;
         this.builderState.generatedSql = '';
@@ -289,19 +300,37 @@ function demoWizard() {
         this.selectTable(this.demoData.tables[this.demoData.tables.length - 1]);
     },
     
+    initPreQ() {
+      this.messages = [];
+      this.chatInput = '';
+      this.messages.push({id: ++this.msgId, who: 'bot', text: 'Hello! As an advanced Data-Engineer Agent, I can help you with complex warehouse analysis. What can I do for you?'});
+      this.suggested = [ 'Explain the warehouse health score', 'Why is fact_events so expensive?', 'Show me an SQL query to improve performance for dim_payments', 'How do I use the AI View Builder?' ];
+      this.$nextTick(() => this.scrollToBottom());
+    },
+    quickAsk(q) { this.chatInput = q; this.sendMsg(); },
+    sendMsg() {
+      if (!this.chatInput.trim()) return;
+      const txt = this.chatInput.trim(); this.messages.push({ id: ++this.msgId, who: 'user', text: txt });
+      this.chatInput = ''; this.suggested = []; this.isTyping = true; this.scrollToBottom();
+      setTimeout(() => { this.botRespond(txt); this.isTyping = false; this.scrollToBottom(); }, 1200 + Math.random() * 600);
+    },
     botRespond(q) {
-        const lq = q.toLowerCase();
-        let ans = '';
-        if (lq.includes('create') && (lq.includes('view') || lq.includes('master table'))) {
-            ans = `An excellent question! You can visually construct a new master table or view using our <strong>AI View Builder</strong>.\n\nI recommend starting from the <strong>Dashboard</strong> and clicking the 'Build Master View' button. It allows you to select columns from any related tables, and I will automatically generate the correct JOINs and SQL for you. It's a very powerful feature for creating curated datasets without writing code.`;
-        } else if (lq.includes('health score')) {
-            ans = `The current <strong>Warehouse Health Score is 78%</strong>. This is based on Cost Efficiency, Structural Integrity (e.g., orphan tables), and Query Complexity. The main factor bringing the score down is the high cost and lack of partitioning on the <code>fact_events</code> table.`;
-        } else {
-            ans = 'I can help with that. Could you be more specific? You can ask about cost optimization, specific table structures, or how to use the AI View Builder.';
-        }
-        this.messages.push({ id: ++this.msgId, who: 'bot', text: ans });
-    }
-    // ... all other functions from previous version (get erdLines, renderDashboardCharts, etc.)
+      const lq = q.toLowerCase(); let ans = '';
+      if (lq.includes('create') && (lq.includes('view') || lq.includes('master table') || lq.includes('builder'))) {
+          ans = `An excellent question! You can visually construct a new master table or view using our <strong>AI View Builder</strong>.\n\nI recommend starting from the <strong>Dashboard</strong> and clicking the 'Build Master View' button. It allows you to select columns from any related tables, and I will automatically generate the correct JOINs and SQL for you. It's a very powerful feature for creating curated datasets without writing code.`;
+      } else if (lq.includes('health score')) {
+          ans = `The current <strong>Warehouse Health Score is 78%</strong>. This is based on Cost Efficiency, Structural Integrity (e.g., orphan tables), and Query Complexity. The main factor bringing the score down is the high cost and lack of partitioning on the <code>fact_events</code> table.`;
+      } else if (lq.includes('sql') && lq.includes('payments')) {
+        ans = `Certainly. I've detected a view that uses an inefficient pattern to join <code>dim_payments</code>. A better approach is to pre-aggregate before joining.\n\n<strong>💡 Optimized SQL:</strong>\n<pre><code style="color: #cbd5e1; font-size: 0.8rem; display: block; white-space: pre;">WITH payment_agg AS (\n  SELECT user_id, SUM(amount_usd) as total_paid\n  FROM dim_payments\n  GROUP BY 1\n)\nSELECT \n  u.country_code, \n  SUM(p.total_paid)\nFROM dim_users u\nJOIN payment_agg p ON u.id = p.user_id\nGROUP BY 1;</code></pre>\nThis reduces the join size and improves performance.`;
+      } else if (lq.includes('fact_events')) {
+        ans = `The <code>fact_events</code> table is expensive primarily because it is <strong>not partitioned</strong>. At 1.25 TB and with 2.1 billion rows, most queries against it result in a full table scan, which is very costly.\n\n<span class="gradient-text">💡 Recommendation:</span> Partitioning this table by a date column would drastically reduce scan sizes for time-based queries. This action alone could cut costs for this table by <strong>60-80%</strong>.`;
+      }
+      else {
+          ans = 'I can help with that. Could you be more specific? You can ask about cost optimization, specific table structures, or how to use the AI View Builder.';
+      }
+      this.messages.push({ id: ++this.msgId, who: 'bot', text: ans });
+    },
+    scrollToBottom() { this.$nextTick(() => { const area = document.getElementById('chatArea'); if (area) area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' }); }); }
   };
 }
 </script>
