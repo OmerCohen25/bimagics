@@ -1,358 +1,387 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Data Wizard – AI Data Engineer Demo</title>
-  <meta name="description" content="Watch the Data Wizard agent map your warehouse, analyse costs & complexity, and chat like a senior data-engineer – all in one live page.">
+  <title>Data Wizard – הדגמת AI למהנדסי נתונים</title>
+  <meta name="description" content="צפו איך Data Wizard ממפה את מחסן הנתונים שלכם, מנתח עלויות ומורכבות, ומספק תובנות כמו מהנדס נתונים בכיר – הכל בדף אינטראקטיבי אחד.">
   <meta name="theme-color" content="#0d1117">
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+
   <style>
-    body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
-    
-    /* Enhanced background with a radial gradient for depth and focus */
-    .bg-aurora { 
-      background-color: #0d1117; 
-      background-image: 
-        radial-gradient(ellipse at top, rgba(167, 139, 250, 0.1), transparent 50%),
-        radial-gradient(ellipse at bottom, rgba(103, 232, 249, 0.1), transparent 50%),
-        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), 
-        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px); 
-      background-size: 100% 100%, 100% 100%, 2.5rem 2.5rem, 2.5rem 2.5rem;
-    }
-    
-    .gradient-text { background: linear-gradient(to right, #a78bfa, #67e8f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Rubik', sans-serif; }
+    .bg-aurora { background: #0d1117; background-image: radial-gradient(ellipse at top, rgba(167, 139, 250, .12), transparent 55%), radial-gradient(ellipse at bottom, rgba(103, 232, 249, .12), transparent 55%), linear-gradient(rgba(255, 255, 255, .04) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .04) 1px, transparent 1px); background-size: 100% 100%, 100% 100%, 2.5rem 2.5rem, 2.5rem 2.5rem; }
+    .gradient-text { background: linear-gradient(to left, #a78bfa, #67e8f9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    @keyframes bob { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+    .typing-indicator span { height: 8px; width: 8px; margin: 0 2px; background-color: #9ca3af; border-radius: 50%; display: inline-block; animation: bob 1.4s infinite ease-in-out; }
+    .typing-indicator span:nth-child(1) { animation-delay: -.32s; }
+    .typing-indicator span:nth-child(2) { animation-delay: -.16s; }
     .scrollbar-thin::-webkit-scrollbar { width: 6px; }
     .scrollbar-thin::-webkit-scrollbar-thumb { background-color: #4b5563; border-radius: 6px; }
-
-    /* Typing indicator for chat to feel more alive */
-    .typing-indicator span {
-        height: 8px; width: 8px; margin: 0 2px;
-        background-color: #9ca3af; border-radius: 50%;
-        display: inline-block;
-        animation: bob 1.4s infinite ease-in-out;
+    /* Ensure immersive view takes full screen and is scrollable internally */
+    .immersive-container {
+        position: fixed;
+        top: 4rem; /* Height of header */
+        right: 0;
+        left: 0;
+        bottom: 0;
+        overflow-y: auto;
     }
-    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
-    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
-    @keyframes bob {
-      0%, 80%, 100% { transform: scale(0); }
-      40% { transform: scale(1.0); }
+    html.immersive-active {
+        overflow: hidden;
     }
   </style>
 </head>
-<body class="bg-aurora text-gray-200 antialiased">
-  <header class="sticky top-0 z-50 bg-gray-900/60 backdrop-blur-lg border-b border-gray-700/50">
-    <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-      <a href="#" class="text-2xl font-bold gradient-text">🔮 Data Wizard</a>
-      <a href="#live-demo" class="bg-purple-500 hover:bg-purple-400 text-white font-bold py-2 px-5 rounded-lg transition-transform hover:scale-105 shadow-lg shadow-purple-500/20">Start Interactive Demo</a>
+<body class="bg-aurora text-gray-200 antialiased" x-data="wizardPage()" x-init="init()">
+
+  <header class="fixed top-0 inset-x-0 z-50 bg-gray-900/60 backdrop-blur-lg border-b border-gray-700/40 h-16">
+    <nav class="container mx-auto px-4 sm:px-6 h-full flex justify-between items-center">
+      <a href="#" class="text-xl font-extrabold gradient-text">🔮 Data Wizard</a>
+      <button @click="enterImmersive()" class="bg-purple-500 hover:bg-purple-400 text-white font-semibold py-2 px-5 rounded-lg transition-transform hover:scale-105 shadow-lg shadow-purple-500/20 text-sm sm:text-base">
+        התחלת הדגמה אינטראקטיבית
+      </button>
     </nav>
   </header>
 
-  <section class="py-24 md:py-32 text-center overflow-hidden">
-    <div class="container mx-auto px-6">
-      <span class="bg-purple-500/10 border border-purple-500/30 text-purple-300 text-sm font-semibold px-4 py-1 rounded-full">
-        AI-Powered Data Engineering Companion
-      </span>
-      <h1 class="text-4xl md:text-6xl font-extrabold text-white mt-6 mb-4 leading-tight">
-        Optimise your <span class="gradient-text">Data Warehouse</span><br>Without lifting a finger
-      </h1>
-      <p class="text-lg md:text-xl text-gray-400 max-w-3xl mx-auto">
-        See Data Wizard discover schemas, predict cost savings & answer deep engineering questions – in minutes.
-      </p>
-      <div class="mt-10 flex justify-center gap-4 flex-wrap">
-        <a href="#live-demo" class="bg-purple-500 hover:bg-purple-400 text-white font-bold py-3 px-8 rounded-lg transition-transform hover:scale-105 text-lg shadow-lg shadow-purple-500/30">🚀 Launch Demo</a>
-        <a href="#features" class="inline-flex items-center gap-2 border border-gray-600 hover:bg-gray-800 px-6 py-3 rounded-lg transition-colors"> <i class="fa-solid fa-list-check text-purple-300"></i> Deep-Dive Features </a>
+  <div class="pt-16"> <section x-show="!immersive" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="pt-16 md:pt-24 text-center overflow-hidden select-none">
+      <div class="container mx-auto px-4 sm:px-6">
+        <span class="bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold px-4 py-1 rounded-full">
+          עוזר AI חכם לניהול דאטה
+        </span>
+        <h1 class="text-4xl md:text-6xl font-extrabold text-white mt-6 mb-4 leading-tight">
+          בצעו אופטימיזציה ל-<span class="gradient-text">Data Warehouse</span><br>בלי להרים אצבע
+        </h1>
+        <p class="text-lg md:text-xl text-gray-400 max-w-3xl mx-auto">
+          צפו ב-Data Wizard מגלה סכמות, חוזה חיסכון בעלויות ועונה על שאלות הנדסיות מורכבות – בתוך דקות.
+        </p>
+        <div class="mt-10 flex justify-center gap-4 flex-wrap">
+          <button @click="enterImmersive()" class="bg-purple-500 hover:bg-purple-400 text-white font-bold py-3 px-8 rounded-lg transition-transform hover:scale-105 text-lg shadow-lg shadow-purple-500/30">🚀 הפעלת הדמו</button>
+          <a href="#features" class="inline-flex items-center gap-2 border border-gray-600 hover:bg-gray-800 px-6 py-3 rounded-lg transition-colors"> <i class="fa-solid fa-list-check text-purple-300"></i> צפייה ביכולות </a>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section id="features" class="py-20 bg-gray-900/40">
-    <div class="container mx-auto px-6 text-center">
-      <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Built for Data Engineers</h2>
-      <p class="text-gray-400 max-w-2xl mx-auto mb-16">Automatic lineage, cost insights & query linting – right out of the box.</p>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
-        <template x-for="feat in [
-            {icon:'fa-solid fa-sack-dollar', title:'Cost Analysis', desc:'Estimate storage & query cost per table, plus optimization hints.'},
-            {icon:'fa-solid fa-code-compare', title:'SQL Complexity Scanner', desc:'Rank queries by CTE depth, join count, and anti-patterns.'},
-            {icon:'fa-solid fa-project-diagram', title:'Visual Lineage Graph', desc:'A visual map of dependencies and field-level lineage.'},
-            {icon:'fa-solid fa-shield-heart', title:'Schema Health', desc:'Detect orphan tables, missing PK/FKs, and skewed data distributions.'},
-            {icon:'fa-solid fa-user-lock', title:'Permission Analysis', desc:'Highlight tables with overly-broad access or potential security risks.'},
-            {icon:'fa-solid fa-bell', title:'Anomaly Alerts', desc:'Spot sudden cost spikes, volume anomalies, or query performance degradation.'}
-        ]" :key="feat.title">
-          <div class="bg-gray-800/60 p-6 rounded-xl border border-gray-700 hover:border-purple-500 transition-all hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/10">
-            <div class="text-3xl mb-4 text-purple-400"><i :class="feat.icon"></i></div>
-            <h3 class="text-xl font-bold text-white mb-2" x-text="feat.title"></h3>
-            <p class="text-gray-400" x-text="feat.desc"></p>
+    <section id="features" x-show="!immersive" x-transition class="py-20 bg-gray-900/40 mt-16">
+      <div class="container mx-auto px-4 sm:px-6 text-center">
+        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">נבנה עבור מהנדסי נתונים</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto mb-16">Lineage אוטומטי, תובנות עלויות וניתוח שאילתות – הכל מהקופסה.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-right">
+          <template x-for="feat in features" :key="feat.title">
+            <div class="bg-gray-800/60 p-6 rounded-xl border border-gray-700 hover:border-purple-500 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/10">
+              <div class="text-3xl mb-4 text-purple-400"><i :class="feat.icon"></i></div>
+              <h3 class="text-xl font-bold text-white mb-2" x-text="feat.title"></h3>
+              <p class="text-gray-400" x-text="feat.desc"></p>
+            </div>
+          </template>
+        </div>
+      </div>
+    </section>
+
+    <main id="demo" x-show="immersive" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="immersive-container bg-gray-800/30" x-data="demoWizard()" x-init="start()">
+
+      <template x-if="phase==='mapping'">
+        <section class="h-full flex flex-col items-center justify-center text-center gap-6 px-4">
+          <h2 class="text-2xl font-bold text-white">🔍 סורק וממפה את מחסן הנתונים…</h2>
+          <p class="text-purple-300 h-5" x-text="status"></p>
+          <div class="w-full max-w-xl bg-gray-900 rounded-full h-3.5 overflow-hidden border border-gray-700">
+            <div class="h-full bg-gradient-to-r from-cyan-400 to-purple-500 transition-all duration-500 ease-out" :style="`width:${progress}%`"></div>
           </div>
-        </template>
-      </div>
-    </div>
-  </section>
+        </section>
+      </template>
 
-  <section id="live-demo" class="py-24 bg-gray-800/30 border-t border-b border-gray-700/50" x-data="demoWizard()" x-init="startMapping()">
-    <div x-show="phase==='mapping'" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="container mx-auto px-6 text-center">
-      <h2 class="text-3xl md:text-4xl font-bold text-white mb-8">🔍 Scanning & Mapping Warehouse…</h2>
-      <p class="text-purple-300 mb-6 h-6" x-text="status"></p>
-      <div class="w-full max-w-2xl mx-auto bg-gray-900 rounded-full h-3.5 overflow-hidden border border-gray-700">
-        <div class="h-full bg-gradient-to-r from-cyan-400 to-purple-500 transition-all duration-1000 ease-out" :style="`width:${progress}%`"></div>
-      </div>
-    </div>
-
-    <div x-show="phase==='warehouse'" x-transition class="container mx-auto px-6">
-      <div class="bg-gray-900/60 border border-gray-700/80 rounded-2xl p-4 md:p-6 backdrop-blur-sm shadow-2xl">
-        <div class="grid md:grid-cols-4 gap-6">
-          <div class="md:col-span-1 bg-gray-900/50 border border-gray-700 rounded-xl p-4 h-[500px] md:h-[600px] flex flex-col">
-            <input x-model="filterTerm" placeholder="Search tables…" class="w-full bg-gray-800/50 mb-4 text-gray-200 placeholder-gray-400 border border-gray-700 rounded-md px-3 py-2 focus:outline-none focus:border-purple-400 ring-1 ring-transparent focus:ring-purple-500">
+      <template x-if="phase==='warehouse'">
+        <section class="h-full flex flex-col md:flex-row gap-4 p-4">
+          <aside class="w-full md:w-72 lg:w-80 bg-gray-900/60 border border-gray-700 rounded-xl p-4 flex flex-col shrink-0">
+            <h3 class="font-bold text-white mb-3 text-lg">טבלאות שזוהו</h3>
+            <input x-model="filterTerm" placeholder="חיפוש טבלאות..." class="bg-gray-800/50 mb-3 text-gray-200 placeholder-gray-400 border border-gray-700 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-purple-400 ring-1 ring-transparent focus:ring-purple-500 w-full">
             <div class="flex-1 overflow-y-auto scrollbar-thin space-y-1">
               <template x-for="table in filteredTables" :key="table.name">
-                <button @click="selectTable(table)" class="w-full flex justify-between items-center text-left px-3 py-2 rounded-md hover:bg-gray-800/50 transition-colors" :class="{'bg-purple-600/30 text-white': selectedTable?.name === table.name}">
-                  <span class="font-semibold" x-text="table.name"></span>
-                  <span class="text-xs text-gray-400" x-text="table.columns.length + ' cols'"></span>
+                <button @click="selectTable(table)" class="w-full flex justify-between items-center text-right px-3 py-2 rounded-md hover:bg-gray-800/50 transition" :class="{'bg-purple-600/40 text-white':selectedTable?.name===table.name}">
+                  <span class="font-medium" x-text="table.name"></span>
+                  <span class="text-xs text-gray-400" x-text="table.columns.length + ' עמודות'"></span>
                 </button>
               </template>
             </div>
-          </div>
-          <div class="md:col-span-3">
-             <div x-show="!selectedTable" class="flex items-center justify-center h-full text-gray-500">
-                <p>← Select a table to get started</p>
-             </div>
-             <div x-show="selectedTable" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="bg-gray-900/50 border border-gray-700 rounded-xl p-6 h-full">
-              <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-                <h3 class="text-2xl font-bold text-white" x-text="selectedTable?.name"></h3>
-                <div class="text-sm text-gray-400 mt-2 md:mt-0">
-                  Size: <span class="text-purple-300 font-semibold" x-text="selectedTable?.sizeGB + ' GB'"></span> • 30-day cost: <span class="text-purple-300 font-semibold" x-text="'$' + selectedTable?.last30Cost.toLocaleString()"></span>
-                </div>
+          </aside>
+
+          <div class="flex-1 bg-gray-900/60 border border-gray-700 rounded-xl p-4 md:p-6 flex flex-col min-w-0 relative">
+            <template x-if="!selectedTable">
+              <div class="flex items-center justify-center h-full text-gray-500 text-center">
+                <span><i class="fa-solid fa-arrow-right fa-lg mr-2"></i> בחרו טבלה מהרשימה כדי להתחיל</span>
               </div>
-              <div class="grid lg:grid-cols-2 gap-6">
-                <div class="text-sm">
-                  <table class="w-full text-left">
-                    <thead><tr class="text-purple-300"><th class="pb-2 font-semibold">Column</th><th class="font-semibold">Type</th></tr></thead>
-                    <tbody>
-                      <template x-for="col in selectedTable?.columns" :key="col.name">
-                        <tr class="border-t border-gray-700/50"><td class="py-1.5" x-text="col.name"></td><td class="text-gray-400" x-text="col.type"></td></tr>
-                      </template>
-                    </tbody>
-                  </table>
-                  <h4 class="font-semibold text-gray-300 mt-6 mb-2">Relationships</h4>
-                  <div class="text-xs space-y-1">
-                    <template x-if="selectedTable?.relations.length === 0"><p class="text-gray-500">No foreign keys detected.</p></template>
-                    <template x-for="rel in selectedTable?.relations" :key="rel.toTable">
-                      <div class="text-gray-400" x-text="selectedTable.name + '.' + rel.from + ' ➜ ' + rel.toTable + '.' + rel.to"></div>
-                    </template>
+            </template>
+
+            <template x-if="selectedTable">
+              <div class="flex flex-col h-full">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
+                  <h3 class="text-xl lg:text-2xl font-bold text-white" x-text="selectedTable.name"></h3>
+                  <div class="text-sm text-gray-400 flex flex-wrap gap-x-4 gap-y-1">
+                    <span>גודל: <span class="text-purple-300 font-semibold" x-text="selectedTable.sizeGB + ' GB'"></span></span>
+                    <span>עלות (30 יום): <span class="text-purple-300 font-semibold" x-text="'$'+selectedTable.last30Cost.toLocaleString()"></span></span>
                   </div>
                 </div>
-                <div class="bg-gray-800/60 p-4 rounded-lg border border-gray-700/80">
-                  <canvas x-show="selectedTable" :id="'chart-'+selectedTable?.name"></canvas>
+
+                <div class="grid lg:grid-cols-2 gap-6 flex-1 min-h-0">
+                  <div class="overflow-y-auto pr-2 scrollbar-thin text-sm flex flex-col">
+                      <h4 class="font-semibold text-gray-300 mb-2 text-base">עמודות</h4>
+                      <table class="w-full text-right">
+                          <thead><tr class="text-purple-300 text-xs"><th class="pb-1 font-semibold pr-2">שם עמודה</th><th class="font-semibold">סוג</th></tr></thead>
+                          <tbody>
+                              <template x-for="col in selectedTable.columns" :key="col.name">
+                                  <tr class="border-t border-gray-700/50"><td class="py-1.5 pr-2" x-text="col.name"></td><td class="text-gray-400" x-text="col.type"></td></tr>
+                              </template>
+                          </tbody>
+                      </table>
+
+                      <h4 class="font-semibold text-gray-300 mt-6 mb-2 text-base">קשרי גומלין (Relations)</h4>
+                      <template x-if="selectedTable.relations.length === 0"><p class="text-xs text-gray-500">לא זוהו מפתחות זרים.</p></template>
+                      <div class="space-y-1">
+                        <template x-for="rel in selectedTable.relations" :key="rel.toTable">
+                            <div class="text-xs text-gray-400 bg-gray-800/50 rounded p-2 border border-gray-700" x-text="`${selectedTable.name}.${rel.from} ➜ ${rel.toTable}.${rel.to}`"></div>
+                        </template>
+                      </div>
+                  </div>
+
+                  <div class="bg-gray-800/60 p-4 rounded-lg border border-gray-700/80 flex flex-col min-h-[250px] lg:min-h-0">
+                    <h4 class="font-semibold text-gray-300 mb-2 text-base">גרף עלויות חודשיות</h4>
+                    <div class="relative flex-1">
+                        <canvas :id="'chart-'+selectedTable.name" class="!h-full !w-full"></canvas>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex justify-center mt-6">
+                    <button @click="phase='chat'; initPreQ(); $nextTick(() => scrollToBottom())" class="bg-purple-500 hover:bg-purple-400 text-white font-semibold px-6 py-2 rounded-full shadow-lg shadow-purple-500/20 transition-transform hover:scale-105">
+                        💬 לדבר עם הסוכן
+                    </button>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="text-center mt-12">
-        <button @click="phase='chat'; initPreQ();" class="bg-purple-500 hover:bg-purple-400 text-white font-bold px-8 py-3 rounded-lg transition-transform hover:scale-105 text-lg shadow-lg shadow-purple-500/30">💬 Ask the Agent</button>
-      </div>
-    </div>
-
-    <div x-show="phase==='chat'" x-transition class="container mx-auto px-6 max-w-4xl">
-       <div class="bg-gray-900/60 border border-gray-700/80 rounded-2xl backdrop-blur-sm shadow-2xl overflow-hidden">
-        <div class="p-4 border-b border-gray-700 flex justify-between items-center">
-            <button @click="phase='warehouse'" class="bg-gray-800 hover:bg-gray-700 text-gray-200 px-4 py-2 rounded-md transition-colors"><i class="fa-solid fa-arrow-left"></i> Back</button>
-            <h2 class="text-xl font-bold text-white">Data Engineer Agent</h2>
-            <span></span>
-        </div>
-        <div class="h-[60vh] md:h-[500px] overflow-y-auto p-4 space-y-6 scrollbar-thin" id="chatArea">
-          <template x-for="msg in messages" :key="msg.id">
-            <div class="flex" :class="msg.who==='user' ? 'justify-end' : 'justify-start'">
-              <div class="max-w-[85%] md:max-w-[75%]">
-                <div :class="msg.who==='user' ? 'bg-purple-600 text-white rounded-br-none' : 'bg-gray-800 text-gray-200 rounded-bl-none'" class="px-4 py-3 rounded-xl whitespace-pre-wrap" x-html="msg.text"></div>
-              </div>
-            </div>
-          </template>
-          <div x-show="isTyping" class="flex justify-start">
-              <div class="bg-gray-800 text-gray-200 rounded-xl rounded-bl-none px-4 py-3">
-                  <div class="typing-indicator"><span></span><span></span><span></span></div>
-              </div>
-          </div>
-        </div>
-        <div class="p-4 border-t border-b border-gray-700" x-show="suggested.length">
-          <p class="text-sm text-gray-400 mb-2">Suggestions:</p>
-          <div class="flex flex-wrap gap-2">
-            <template x-for="(q,idx) in suggested" :key="idx">
-              <button @click="quickAsk(q)" class="bg-gray-800 hover:bg-purple-500 hover:text-white text-gray-300 text-sm px-3 py-1.5 rounded-full border border-gray-700 transition-colors">🎯 <span x-text="q"></span></button>
             </template>
           </div>
-        </div>
-        <div class="p-4 flex items-center bg-gray-900/50">
-          <textarea x-model="chatInput" @keydown.enter.prevent="sendMsg()" placeholder="Ask about costs, schema health, query anti-patterns…" class="flex-1 bg-gray-800 text-gray-200 rounded-md px-3 py-2 resize-none h-12 focus:outline-none focus:ring-2 focus:ring-purple-500 border border-gray-700"></textarea>
-          <button @click="sendMsg()" class="ml-3 bg-purple-500 hover:bg-purple-400 text-white font-bold px-6 py-2 rounded-md disabled:opacity-40 disabled:cursor-not-allowed transition-all" :disabled="!chatInput.trim()">Send</button>
-        </div>
-      </div>
-    </div>
-  </section>
+        </section>
+      </template>
 
-  <footer class="bg-gray-900/50 border-t border-gray-700/50 mt-24">
-    <div class="container mx-auto px-6 py-8 text-center text-gray-500">
-      <p>&copy; <span id="year"></span> BI Magics. All rights reserved.</p>
-      <p class="text-sm mt-2">Built with 🪄 for data-engineering teams</p>
-    </div>
-  </footer>
+      <template x-if="phase==='chat'">
+        <section class="h-full flex flex-col bg-gray-900/40">
+          <div class="flex items-center justify-between px-4 h-14 border-b border-gray-700 bg-gray-900/60 shrink-0">
+            <button @click="phase='warehouse'" class="text-gray-300 hover:text-white text-sm"><i class="fa-solid fa-arrow-left ml-2"></i>חזרה</button>
+            <h2 class="font-semibold text-white text-sm">סוכן Data-Engineer</h2>
+            <div class="w-16"></div> </div>
 
-  <script>
-  function demoWizard() {
-    return {
-      // Phase control & status
-      phase: 'mapping', 
-      progress: 0, 
-      status: 'Starting…',
-      
-      // Warehouse explorer state
-      filterTerm: '', 
-      selectedTable: null,
-      
-      // Chat state
-      chatInput: '', 
-      messages: [], 
-      msgId: 0,
-      suggested: [],
-      isTyping: false,
-      
-      // Demo data
-      demoData: {
-        tables: [
-          { name:'users', sizeGB:12.4, last30Cost:3100, columns:[{name:'id',type:'INT'},{name:'email',type:'STRING'},{name:'created_at',type:'TIMESTAMP'},{name:'country',type:'STRING'}], relations:[{from:'id',to:'user_id',toTable:'events'}], monthlyCosts:[2800,3100,2900,3000,3100,3050] },
-          { name:'events', sizeGB:85.7, last30Cost:28400, columns:[{name:'event_id',type:'STRING'},{name:'user_id',type:'INT'},{name:'event_name',type:'STRING'},{name:'event_time',type:'TIMESTAMP'}], relations:[{from:'user_id',to:'id',toTable:'users'}], monthlyCosts:[27000,27800,28100,28300,28200,28400] },
-          { name:'payments', sizeGB:4.2, last30Cost:1200, columns:[{name:'payment_id',type:'STRING'},{name:'user_id',type:'INT'},{name:'amount',type:'NUMERIC'},{name:'paid_at',type:'TIMESTAMP'}], relations:[{from:'user_id',to:'id',toTable:'users'}], monthlyCosts:[1000,1100,1100,1200,1200,1200] },
-          { name:'orphan_table_tmp', sizeGB:0.8, last30Cost:0, columns:[{name:'dummy',type:'STRING'}], relations:[], monthlyCosts:[0,0,0,0,0,0] }
-        ]
-      },
-      
-      // Computed properties
-      get filteredTables() {
-        if(!this.filterTerm) return this.demoData.tables;
-        const term = this.filterTerm.toLowerCase();
-        return this.demoData.tables.filter(t => t.name.toLowerCase().includes(term));
-      },
-      
-      // Methods
-      startMapping(){
-        const steps=['Scanning tables…','Discovering PK/FK relationships…','Computing lineage…','Estimating costs…','Generating insights…', 'Finalizing report...'];
-        steps.forEach((txt, i) => {
-            setTimeout(() => {
-                this.status = txt;
-                this.progress = Math.round(((i + 1) / steps.length) * 100);
-            }, i * 1000);
+          <div id="chatArea" class="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin">
+            <template x-for="msg in messages" :key="msg.id">
+              <div class="flex" :class="msg.who==='user'?'justify-end':'justify-start'">
+                <div class="max-w-[90%] sm:max-w-[80%] md:max-w-[70%]">
+                  <div :class="msg.who==='user'?'bg-purple-600 text-white rounded-bl-none':'bg-gray-800 text-gray-200 rounded-br-none'" class="px-4 py-2.5 rounded-xl whitespace-pre-wrap text-sm" x-html="msg.text"></div>
+                </div>
+              </div>
+            </template>
+            <div x-show="isTyping" class="flex justify-start">
+              <div class="bg-gray-800 text-gray-200 rounded-xl rounded-br-none px-4 py-2">
+                <div class="typing-indicator"><span></span><span></span><span></span></div>
+              </div>
+            </div>
+          </div>
+
+          <div x-show="suggested.length" class="border-t border-gray-700 bg-gray-900/50 p-3 text-xs">
+            <p class="text-gray-400 mb-2">הצעות:</p>
+            <div class="flex flex-wrap gap-2">
+              <template x-for="q in suggested" :key="q">
+                <button @click="quickAsk(q)" class="bg-gray-800 hover:bg-purple-500 hover:text-white border border-gray-700 text-gray-300 px-3 py-1.5 rounded-full transition text-right">🎯 <span x-text="q"></span></button>
+              </template>
+            </div>
+          </div>
+
+          <div class="border-t border-gray-700 bg-gray-900/50 p-3 flex items-start sm:items-center gap-3 shrink-0">
+            <textarea x-model="chatInput" @keydown.enter.prevent.stop="sendMsg()" placeholder="שאלו על עלויות, תקינות סכמה, אנטי-דפוסים בשאילתות..." class="flex-1 bg-gray-800 text-gray-200 rounded-md px-3 py-2 resize-none h-10 focus:outline-none focus:ring-2 focus:ring-purple-500 border border-gray-700 text-sm" @input="chatInput.style.height = 'auto'; chatInput.style.height = chatInput.scrollHeight + 'px'"></textarea>
+            <button @click="sendMsg()" :disabled="!chatInput.trim()" class="bg-purple-500 hover:bg-purple-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold px-5 py-2 rounded-md transition self-end sm:self-center">שלח</button>
+          </div>
+        </section>
+      </template>
+
+    </main>
+
+    <footer x-show="!immersive" class="bg-gray-900/50 border-t border-gray-700/40 py-10 text-center text-gray-500">
+      <p>&copy; <span x-text="year"></span> BI Magics. כל הזכויות שמורות.</p>
+      <p class="text-xs mt-2">נבנה ב-🪄 עבור צוותי הנדסת נתונים</p>
+    </footer>
+  </div>
+
+<script>
+function wizardPage() {
+  return {
+    immersive: false,
+    year: new Date().getFullYear(),
+    features: [
+      { icon: 'fa-solid fa-sack-dollar', title: 'ניתוח עלויות', desc: 'הערכת עלויות אחסון ושאילתות לכל טבלה, כולל הצעות לאופטימיזציה.' },
+      { icon: 'fa-solid fa-code-compare', title: 'סורק מורכבות SQL', desc: 'דירוג שאילתות לפי עומק CTE, מספר JOIN-ים וזיהוי אנטי-דפוסים.' },
+      { icon: 'fa-solid fa-project-diagram', title: 'גרף Lineage ויזואלי', desc: 'מפה של תלויות ו-Lineage ברמת השדה הבודד.' },
+      { icon: 'fa-solid fa-shield-heart', title: 'בדיקת תקינות סכמה', desc: 'איתור טבלאות יתומות, מפתחות חסרים והתפלגויות נתונים לא מאוזנות.' },
+      { icon: 'fa-solid fa-user-lock', title: 'ניתוח הרשאות', desc: 'הדגשת הרשאות רחבות מדי או סיכוני אבטחה פוטנציאליים.' },
+      { icon: 'fa-solid fa-bell', title: 'התראות על אנומליות', desc: 'זיהוי קפיצות פתאומיות בעלויות או ירידה בביצועי שאילתות.' }
+    ],
+    enterImmersive() {
+      this.immersive = true;
+      document.documentElement.classList.add('immersive-active');
+    },
+    init() {
+        // AlpineJS will call this. We can add logic if needed.
+    }
+  }
+}
+
+function demoWizard() {
+  return {
+    phase: 'mapping',
+    progress: 0,
+    status: 'מאתחל...',
+    filterTerm: '',
+    selectedTable: null,
+    chatInput: '',
+    messages: [],
+    msgId: 0,
+    suggested: [],
+    isTyping: false,
+    demoData: {
+      tables: [
+        { name: 'events_log', sizeGB: 125.7, last30Cost: 38400, columns: [{ name: 'event_id', type: 'STRING' }, { name: 'user_id', type: 'INT' }, { name: 'event_name', type: 'STRING' }, { name: 'event_time', type: 'TIMESTAMP' }, { name: 'platform', type: 'STRING' }], relations: [{ from: 'user_id', to: 'id', toTable: 'users_profiles' }], monthlyCosts: [27000, 27800, 31100, 34300, 38200, 38400] },
+        { name: 'users_profiles', sizeGB: 12.4, last30Cost: 3100, columns: [{ name: 'id', type: 'INT' }, { name: 'email', type: 'STRING' }, { name: 'created_at', type: 'TIMESTAMP' }, { name: 'country_code', type: 'STRING' }], relations: [{ from: 'id', to: 'user_id', toTable: 'events_log' }, { from: 'id', to: 'user_id', toTable: 'payments_records' }], monthlyCosts: [2800, 3100, 2900, 3000, 3100, 3050] },
+        { name: 'payments_records', sizeGB: 8.2, last30Cost: 2200, columns: [{ name: 'payment_id', type: 'STRING' }, { name: 'user_id', type: 'INT' }, { name: 'amount_usd', type: 'NUMERIC' }, { name: 'paid_at', type: 'TIMESTAMP' }], relations: [{ from: 'user_id', to: 'id', toTable: 'users_profiles' }], monthlyCosts: [1600, 1800, 1950, 2200, 2150, 2200] },
+        { name: 'marketing_campaigns', sizeGB: 1.5, last30Cost: 150, columns: [{ name: 'campaign_id', type: 'STRING' }, { name: 'name', type: 'STRING' }, { name: 'start_date', type: 'DATE' }], relations: [], monthlyCosts: [100, 120, 150, 140, 160, 150] },
+        { name: 'orphan_table_tmp', sizeGB: 0.8, last30Cost: 5, columns: [{ name: 'dummy_col', type: 'STRING' }, { name: 'notes', type: 'STRING' }], relations: [], monthlyCosts: [5, 5, 5, 5, 5, 5] }
+      ]
+    },
+    get filteredTables() { if (!this.filterTerm) return this.demoData.tables; const term = this.filterTerm.toLowerCase(); return this.demoData.tables.filter(t => t.name.toLowerCase().includes(term)) },
+    start() {
+      const steps = ['סורק טבלאות...', 'מגלה מפתחות PK/FK...', 'מחשב Lineage...', 'מעריך עלויות...', 'מפיק תובנות...', 'מסיים דוח...'];
+      steps.forEach((txt, i) => setTimeout(() => { this.status = txt; this.progress = Math.round(((i + 1) / steps.length) * 100) }, i * 700));
+      setTimeout(() => {
+        this.phase = 'warehouse';
+        this.$nextTick(() => {
+            this.selectTable(this.demoData.tables[0]);
         });
-        setTimeout(() => {
-            this.phase = 'warehouse';
-            this.progress = 100;
-            this.$nextTick(() => this.selectTable(this.demoData.tables[1])); // Auto-select a table for immediate engagement
-        }, steps.length * 1000 + 400);
-      },
-      
-      selectTable(t){
+      }, steps.length * 700 + 300);
+    },
+    selectTable(t) {
         this.selectedTable = t;
-        const chartId = 'chart-' + t.name;
-        // Destroy old chart instance if it exists to prevent memory leaks and rendering issues
-        const existingChart = Chart.getChart(chartId);
-        if (existingChart) {
-            existingChart.destroy();
+        const id = 'chart-' + t.name;
+        // Destroy existing chart to prevent canvas reuse issues
+        const oldChart = Chart.getChart(id);
+        if (oldChart) {
+            oldChart.destroy();
         }
-        this.$nextTick(() => this.renderCostChart(t, chartId));
-      },
-      
-      renderCostChart(t, chartId){
-        const ctx = document.getElementById(chartId);
-        if(!ctx) return;
+        this.$nextTick(() => this.renderCostChart(t, id));
+    },
+    renderCostChart(t, canvasId) {
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return;
         new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['-5mo', '-4mo', '-3mo', '-2mo', 'Last Mo', 'This Mo'],
+                labels: ['לפני 5 חודשים', 'לפני 4', 'לפני 3', 'לפני 2', 'חודש שעבר', 'החודש'],
                 datasets: [{
-                    label: 'Monthly Cost',
+                    label: 'עלות חודשית',
                     data: t.monthlyCosts,
                     borderColor: '#a78bfa',
-                    backgroundColor: 'rgba(167, 139, 250, 0.2)',
+                    backgroundColor: 'rgba(167, 139, 250, .18)',
                     fill: true,
                     tension: 0.4,
                     borderWidth: 2
                 }]
             },
             options: {
-                responsive: true, maintainAspectRatio: false,
+                responsive: true,
+                maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: { 
-                    y: { beginAtZero: true, ticks: { display: false }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                    x: { ticks: { display: false }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { display: false },
+                        grid: { color: 'rgba(255, 255, 255, .05)' }
+                    },
+                    x: {
+                        ticks: {
+                            display: true,
+                            color: '#9ca3af',
+                            font: { size: 10 }
+                        },
+                        grid: { display: false }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index',
+                },
+                tooltips: {
+                    enabled: true
                 }
             }
         });
-      },
-      
-      // Chat methods
-      initPreQ(){
-        this.suggested=[
-          'List top 3 costliest tables',
-          'Find orphan tables not queried in 90 days',
-          'Suggest clustering keys for the events table',
-          'Detect anti-patterns in our SQL views',
-          'Estimate savings if we partition payments by date'
-        ];
-      },
-      
-      quickAsk(q){ this.chatInput=q; this.sendMsg(); },
-      
-      sendMsg(){
-        if(!this.chatInput.trim()) return;
-        const userText = this.chatInput.trim();
-        this.messages.push({ id: ++this.msgId, who: 'user', text: userText });
-        this.chatInput = '';
-        this.suggested = []; // Hide suggestions after asking
-        this.isTyping = true;
+    },
+    initPreQ() {
+      this.messages.push({id: ++this.msgId, who: 'bot', text: 'שלום! אני סוכן הנתונים של Data Wizard. במה אוכל לעזור היום?'});
+      this.suggested = [
+          'מהן 3 הטבלאות היקרות ביותר?',
+          'מצא טבלאות יתומות שלא נשאלו ב-90 הימים האחרונים',
+          'הצע מפתחות קלאסטרינג לטבלת events_log',
+          'זהה אנטי-דפוסים במודלי ה-SQL שלנו',
+          'הערך חיסכון אם נפצל את טבלת payments לפי תאריך'
+      ];
+    },
+    quickAsk(q) {
+      this.chatInput = q;
+      this.sendMsg();
+    },
+    sendMsg() {
+      if (!this.chatInput.trim()) return;
+      const txt = this.chatInput.trim();
+      this.messages.push({ id: ++this.msgId, who: 'user', text: txt });
+      this.chatInput = '';
+      this.suggested = [];
+      this.isTyping = true;
+      this.scrollToBottom();
+      setTimeout(() => {
+        this.botRespond(txt);
+        this.isTyping = false;
         this.scrollToBottom();
-        
-        setTimeout(() => {
-          this.botRespond(userText);
-          this.isTyping = false;
-          this.scrollToBottom();
-        }, 1500 + Math.random() * 800); // Simulate network and thinking time
-      },
-      
-      botRespond(q){
-        let ans = '';
-        const lq = q.toLowerCase();
-        if(lq.includes('costliest') || lq.includes('cost')){
-            ans = '<strong>Top Costly Tables (30-day):</strong>\n1. <code>events</code> — $28,400\n2. <code>users</code> — $3,100\n3. <code>payments</code> — $1,200\n\n<span class="gradient-text">Recommendation:</span> Consider clustering the <code>events</code> table by <code>event_name</code> & date to save an estimated ~22% on query scans.';
-        } else if(lq.includes('orphan')){
-            ans = 'I\'ve identified one potentially orphan table:\n• <code>orphan_table_tmp</code> (0.8 GB, $0 cost)\n\nThis table has not been queried in over 180 days. I recommend you <span class="gradient-text">verify with the relevant team before dropping it</span>.';
-        } else if(lq.includes('anti-pattern')){
-            ans = 'Certainly. I found 2 views with common anti-patterns:\n• <code>user_revenue_v</code> – Uses `SELECT *` and a `LEFT JOIN` that could introduce nulls unexpectedly.\n• <code>daily_events_v</code> – Contains an unused, expensive sub-query.\n\nRefactoring these will improve performance and readability.';
-        } else if(lq.includes('clustering') || lq.includes('cluster')){
-            ans = 'For the <code>events</code> table (~85GB), creating a clustering key on (<code>event_name</code>, DATE(<code>event_time</code>)) is estimated to reduce data scanned by up to 40% for common queries.';
-        } else {
-            ans = 'That\'s an excellent question. Here is a general optimization tip I found:\nAdding a partition filter on the <code>country</code> column when querying the <code>users</code> table can reduce scanned data by up to 85% for country-specific lookups.';
-        }
-        this.messages.push({id: ++this.msgId, who:'bot', text: ans});
-      },
-
-      scrollToBottom() {
-        this.$nextTick(() => {
-          const area = document.getElementById('chatArea');
-          area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' });
-        });
+      }, 1200 + Math.random() * 600);
+    },
+    botRespond(q) {
+      const lq = q.toLowerCase();
+      let ans = '';
+      if (lq.includes('היקרות') || lq.includes('עלות')) {
+        ans = '<strong>3 הטבלאות היקרות ביותר (30 יום אחרונים):</strong>\n1. <code>events_log</code> — $38,400\n2. <code>users_profiles</code> — $3,100\n3. <code>payments_records</code> — $2,200\n\n<span class="gradient-text">💡 המלצה:</span> ניתן לחסוך כ-25% מעלות הסריקה בטבלת <code>events_log</code> על ידי הוספת Clustering על עמודות <code>platform</code> ו-<code>DATE(event_time)</code>.';
+      } else if (lq.includes('יתומות') || lq.includes('orphan')) {
+        ans = 'זיהיתי טבלה אחת שעשויה להיות יתומה:\n• <code>orphan_table_tmp</code> (גודל: 0.8 GB, עלות: $5)\n\nהטבלה הזו לא משתתפת באף קשר גומלין ולא מצאתי שאילתות שמשתמשות בה ב-90 הימים האחרונים. מומלץ לוודא שהיא אינה בשימוש ולשקול למחוק אותה כדי לחסוך בעלויות אחסון.';
+      } else if (lq.includes('אנטי-דפוסים') || lq.includes('anti-pattern')) {
+        ans = 'סרקתי את ה-Views במערכת ומצאתי מספר אנטי-דפוסים נפוצים:\n\n• <strong>ב-View בשם <code>vw_user_revenue</code>:</strong> שימוש ב-<code>SELECT *</code> המקשה על אופטימיזציה, ו-<code>LEFT JOIN</code> שיוצר כמות גדולה של ערכי NULL ומייקר את השאילתות.\n• <strong>ב-View בשם <code>vw_daily_events</code>:</strong> זיהיתי תת-שאילתה (subquery) יקרה שאינה משפיעה על התוצאה הסופית.\n\nתיקון דפוסים אלו יכול לשפר את ביצועי השאילתות ולהוזיל עלויות באופן משמעותי.';
+      } else if (lq.includes('קלאסטרינג') || lq.includes('cluster')) {
+        ans = 'בהחלט. עבור טבלת <code>events_log</code> (בגודל ~125GB), אני ממליץ על הגדרת מפתח קלאסטרינג משולב:\n\n<code>CLUSTER BY (platform, DATE(event_time))</code>\n\n<strong>נימוק:</strong><br>1. <strong>Platform:</strong> רוב השאילתות כנראה מסננות לפי פלטפורמה (web, mobile).<br>2. <strong>DATE(event_time):</strong> ניתוחים רבים מבוססים על טווחי תאריכים.\n\nשילוב זה יארגן את הנתונים הפיזיים בצורה יעילה ויפחית דרמטית את כמות המידע שנסרק בשאילתות נפוצות, עם חיסכון מוערך של <strong>40%-25%</strong> בעלויות העיבוד.';
+      } else {
+        ans = 'זיהיתי הזדמנות לאופטימיזציה בטבלת <code>users_profiles</code>. הוספת פילטר על עמודת <code>country_code</code> בעת הרצת שאילתות יכולה להפחית את כמות הנתונים הנסרקים בלמעלה מ-85% עבור שאילתות ממוקדות גאוגרפית. האם תרצה שאציג דוגמת קוד?';
       }
+      this.messages.push({ id: ++this.msgId, who: 'bot', text: ans });
+    },
+    scrollToBottom() {
+      this.$nextTick(() => {
+        const area = document.getElementById('chatArea');
+        if (area) {
+            area.scrollTo({ top: area.scrollHeight, behavior: 'smooth' });
+        }
+      });
     }
   }
-  document.getElementById('year').textContent = new Date().getFullYear();
-  </script>
+}
+</script>
+
 </body>
 </html>
