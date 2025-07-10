@@ -1,510 +1,375 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AIDA - Your Autonomous Data Architect</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BI Magics – Beyond Self-Service BI</title>
+  <meta name="description" content="This isn't just self-service BI. This is a conversation with your data, powered by AI Wizards, orchestrated by you." />
+  <meta name="theme-color" content="#0d1117" />
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js" defer></script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/"
+      }
+    }
+  </script>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
+    .gradient-bg { background: radial-gradient(circle at 25% 25%, #4e51ff 0%, #6b00ff 25%, #0d1117 85%); }
+    
+    /* ✨ NEW: 3D Tilt Effect for Wizard Cards */
+    .wizard-card { transform-style: preserve-3d; transition: transform 0.1s ease; }
+    
+    /* ✨ NEW: Glassmorphism Header with Animated Border */
+    @keyframes scroll-gradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    .header-border {
+        border-image: linear-gradient(90deg, #6b00ff, #4e51ff, transparent, transparent) 1;
+        background: linear-gradient(90deg, #6b00ff, #4e51ff, #8a2be2, #4e51ff) fixed;
+        background-size: 200% 200%;
+        animation: scroll-gradient 5s ease infinite;
+    }
 
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #020617; /* Slate 950 */
-            color: #d1d5db; /* Gray 300 */
-            overflow-x: hidden;
-        }
-
-        /* --- Animations & Effects --- */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .fade-in-section { opacity: 0; animation: fadeIn 0.8s ease-out forwards; }
-        
-        @keyframes pulse-glow {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.6); }
-            50% { transform: scale(1.03); box-shadow: 0 0 30px 10px rgba(79, 70, 229, 0); }
-        }
-        .cta-button { animation: pulse-glow 3s infinite ease-out; }
-
-        @keyframes background-grid {
-             0% { background-position: 0 0; }
-             100% { background-position: 40px 40px; }
-        }
-        .hero-bg {
-            background-image:
-                linear-gradient(to right, #020617 1px, transparent 1px),
-                linear-gradient(to bottom, #020617 1px, transparent 1px),
-                radial-gradient(circle at center, rgba(30, 41, 59, 0.3), #020617 60%);
-            background-size: 40px 40px;
-            animation: background-grid 4s linear infinite;
-        }
-
-        /* --- Analysis Progress --- */
-        .analysis-module {
-            transition: all 0.5s ease-out;
-            opacity: 0.5;
-        }
-        .analysis-module.active {
-            opacity: 1;
-            transform: scale(1.05);
-            background-color: #1e293b; /* Slate 800 */
-        }
-        .analysis-module.done {
-            opacity: 0.7;
-            transform: scale(1);
-            border-color: #16a34a; /* Green 600 */
-        }
-        .analysis-module.done .status-icon {
-            color: #22c55e; /* Green 500 */
-        }
-
-        /* --- Command Center Dashboard --- */
-        .lineage-node { transition: all 0.2s ease-in-out; cursor: pointer; }
-        .lineage-node:hover, .lineage-node.highlighted {
-            transform: scale(1.1);
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.7);
-            border-color: #3b82f6; /* Blue 500 */
-            z-index: 10;
-        }
-        .lineage-path {
-            transition: all 0.3s ease-in-out;
-            stroke-dasharray: 5;
-            animation: dash 2s linear infinite;
-        }
-        .lineage-node.highlighted ~ svg .lineage-path, .lineage-node:hover ~ svg .lineage-path { animation: none; }
-        @keyframes dash { to { stroke-dashoffset: -100; } }
-
-        .asset-item:hover, .asset-item.active { background-color: #1f2937; }
-        .pii-tag { background-color: #be123c; color: #fecdd3; }
-    </style>
+    /* ✨ NEW: Styles for the interactive command center */
+    .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .4s; border-radius: 28px; }
+    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #8b5cf6; }
+    input:checked + .slider:before { transform: translateX(22px); }
+  </style>
 </head>
-<body class="antialiased">
+<body class="text-gray-200 bg-[#0d1117] selection:bg-violet-600/60 selection:text-white">
 
-    <header class="relative min-h-screen flex items-center justify-center text-center overflow-hidden hero-bg">
-        <div class="relative z-10 p-8 max-w-4xl mx-auto">
-            <h1 class="text-5xl md:text-7xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white to-blue-400 mb-6">Meet AIDA: Your Autonomous Data Architect</h1>
-            <p class="text-lg md:text-xl text-gray-400 max-w-3xl mx-auto mb-10">
-                Instantly map, analyze, and optimize your entire data estate. AIDA provides column-level lineage, cost-performance analysis, and automated governance, turning data chaos into a strategic asset.
-            </p>
-            <button id="start-demo-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 px-8 rounded-lg text-lg transition-transform duration-300 hover:scale-105 cta-button">
-                Launch the Command Center
-            </button>
+  <header class="sticky top-0 z-50 backdrop-blur-xl bg-[#0d1117]/60 border-b border-white/10 header-border">
+    <div class="mx-auto flex max-w-7xl items-center justify-between py-4 px-6 lg:px-8">
+      <a href="#" class="text-2xl font-extrabold tracking-wide text-white flex items-center gap-2"><span class="hidden sm:inline">🪄</span> BI Magics</a>
+      <nav class="hidden md:flex gap-10 text-sm font-semibold">
+        <a href="#wizards" class="hover:text-violet-400 transition">Wizards</a>
+        <a href="#how" class="hover:text-violet-400 transition">The Magic</a>
+        <a href="#data-team" class="hover:text-violet-400 transition">Command Center</a>
+        <a href="#trust" class="hover:text-violet-400 transition">Trust</a>
+      </nav>
+      <a href="#cta" class="hidden md:inline-block rounded-2xl bg-violet-600 px-6 py-2 text-sm font-bold text-white shadow-md ring-1 ring-inset ring-violet-500 hover:bg-violet-700 transition-transform hover:scale-105">Start Free Trial</a>
+      <button id="menuToggle" class="md:hidden text-gray-100" aria-label="Toggle menu"><i data-feather="menu" class="w-7 h-7"></i></button>
+    </div>
+    <div id="mobileMenu" class="hidden md:hidden flex-col gap-6 pb-6 px-6 text-center text-sm font-semibold bg-[#0d1117]/90 border-t border-white/5">
+        <a href="#wizards" class="hover:text-violet-400 transition">Wizards</a>
+        <a href="#how" class="hover:text-violet-400 transition">The Magic</a>
+        <a href="#data-team" class="hover:text-violet-400 transition">Command Center</a>
+        <a href="#trust" class="hover:text-violet-400 transition">Trust</a>
+        <a href="#cta" class="rounded-2xl bg-violet-600 px-6 py-2 text-white shadow-md ring-1 ring-inset ring-violet-500 hover:bg-violet-700 transition">Start Free Trial</a>
+    </div>
+  </header>
+
+  <section class="relative h-screen flex items-center justify-center text-center overflow-hidden">
+    <canvas id="hero-canvas" class="absolute inset-0 z-0"></canvas>
+    <div class="max-w-4xl space-y-8 relative z-10 px-6">
+      <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black leading-tight text-shadow-lg animate-fade-in-down">
+        Your Data is Talking. <span class="text-violet-400">Listen.</span>
+      </h1>
+      <p class="text-lg sm:text-2xl text-gray-300 max-w-3xl mx-auto animate-fade-in-up">
+        BI Magics gives every team an AI Data Wizard to have a real-time conversation with your BigQuery data. Ask anything, get instant answers. You are the conductor.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-6 justify-center animate-fade-in-up-delay">
+        <a href="#cta" class="rounded-2xl bg-violet-600 px-10 py-4 text-lg font-bold text-white shadow-lg ring-1 ring-inset ring-violet-500 hover:bg-violet-700 transition-transform hover:scale-105">Unleash Your Wizards</a>
+        <a href="#how" class="rounded-2xl bg-white/10 px-10 py-4 text-lg font-bold text-white hover:bg-white/20 transition-transform hover:scale-105">See The Magic</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="wizards" class="relative mx-auto max-w-7xl px-6 py-28 lg:py-36">
+  <div class="text-center mb-16">
+    <h2 class="text-4xl sm:text-5xl font-extrabold mb-6">A Specialized Wizard for Every Quest</h2>
+    <p class="mx-auto max-w-2xl text-gray-300">Your Data Team equips and governs a council of AI Wizards, each fluent in the language and logic of a core business unit.</p>
+  </div>
+  <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="wizard-card group border border-white/10 bg-white/5 rounded-3xl p-8 shadow-2xl hover:shadow-violet-500/20 overflow-hidden">
+        <div class="flex items-center gap-4">
+            <div class="h-14 w-14 rounded-full bg-violet-600 flex items-center justify-center shadow-lg ring-2 ring-violet-400"><span class="text-3xl">🤝</span></div>
+            <h3 class="text-2xl font-bold">Customer Success</h3>
         </div>
-    </header>
+        <p class="mt-4 text-gray-300 text-sm">Proactively reduces churn by analyzing ticket sentiment, usage patterns, and health scores in real-time.</p>
+    </div>
+    <div class="wizard-card group border border-white/10 bg-white/5 rounded-3xl p-8 shadow-2xl hover:shadow-emerald-500/20 overflow-hidden">
+        <div class="flex items-center gap-4">
+            <div class="h-14 w-14 rounded-full bg-emerald-600 flex items-center justify-center shadow-lg ring-2 ring-emerald-400"><span class="text-3xl">💰</span></div>
+            <h3 class="text-2xl font-bold">Sales</h3>
+        </div>
+        <p class="mt-4 text-gray-300 text-sm">Illuminates pipeline health, delivers AI-driven forecasts, and pinpoints at-risk deals before they slip.</p>
+    </div>
+    <div class="wizard-card group border border-white/10 bg-white/5 rounded-3xl p-8 shadow-2xl hover:shadow-orange-500/20 overflow-hidden">
+        <div class="flex items-center gap-4">
+            <div class="h-14 w-14 rounded-full bg-orange-600 flex items-center justify-center shadow-lg ring-2 ring-orange-400"><span class="text-3xl">⚙️</span></div>
+            <h3 class="text-2xl font-bold">Operations</h3>
+        </div>
+        <p class="mt-4 text-gray-300 text-sm">Monitors supply chain velocity, identifies logistical bottlenecks, and predicts inventory needs automatically.</p>
+    </div>
+    <div class="wizard-card group border border-white/10 bg-white/5 rounded-3xl p-8 shadow-2xl hover:shadow-yellow-500/20 overflow-hidden">
+        <div class="flex items-center gap-4">
+            <div class="h-14 w-14 rounded-full bg-yellow-500 flex items-center justify-center shadow-lg ring-2 ring-yellow-300"><span class="text-3xl">📊</span></div>
+            <h3 class="text-2xl font-bold">Finance</h3>
+        </div>
+        <p class="mt-4 text-gray-300 text-sm">Empowers finance with real-time margin analysis, budget vs. actuals tracking, and intelligent cash flow projections.</p>
+    </div>
+    <div class="wizard-card group border border-white/10 bg-white/5 rounded-3xl p-8 shadow-2xl hover:shadow-cyan-500/20 overflow-hidden">
+        <div class="flex items-center gap-4">
+            <div class="h-14 w-14 rounded-full bg-cyan-500 flex items-center justify-center shadow-lg ring-2 ring-cyan-300"><span class="text-3xl">🧩</span></div>
+            <h3 class="text-2xl font-bold">Product</h3>
+        </div>
+        <p class="mt-4 text-gray-300 text-sm">Analyzes feature adoption funnels, user journey paths, and cohort behavior to guide the product roadmap.</p>
+    </div>
+    <div class="wizard-card group border border-white/10 bg-white/5 rounded-3xl p-8 shadow-2xl hover:shadow-pink-500/20 overflow-hidden">
+        <div class="flex items-center gap-4">
+            <div class="h-14 w-14 rounded-full bg-pink-600 flex items-center justify-center shadow-lg ring-2 ring-pink-400"><span class="text-3xl">🧪</span></div>
+            <h3 class="text-2xl font-bold">R&D</h3>
+        </div>
+        <p class="mt-4 text-gray-300 text-sm">Provides instant visibility into deployment frequency, CI/CD pipeline health, and critical performance metrics.</p>
+    </div>
+  </div>
+</section>
 
-    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        
-        <section class="my-24">
-            <div class="text-center mb-16 max-w-3xl mx-auto">
-                <h2 class="text-4xl font-bold mb-4">From Data Swamp to Data Intelligence</h2>
-                <p class="text-lg text-gray-400">AIDA goes beyond simple discovery to provide a deep, semantic understanding of your data's lifecycle, quality, and business value.</p>
+<section id="how" class="bg-black py-32 lg:py-40">
+  <div class="max-w-4xl mx-auto px-6 text-center">
+    <h2 class="text-4xl sm:text-5xl font-extrabold mb-20">The Magic Behind the Curtain</h2>
+  </div>
+  <div class="space-y-48">
+      <div class="h-screen flex items-center justify-center sticky top-0" data-step="1">
+          <div class="text-center max-w-lg">
+              <span class="text-violet-400 font-semibold">Step 1</span>
+              <h3 class="text-4xl font-bold my-4">Connect BigQuery in 90 Seconds</h3>
+              <p class="text-gray-300">A secure, read-only OAuth connection is all it takes. Your data is never moved or copied. It stays in your VPC, always.</p>
+          </div>
+      </div>
+      <div class="h-screen flex items-center justify-center sticky top-0" data-step="2">
+          <div class="text-center max-w-lg">
+              <span class="text-violet-400 font-semibold">Step 2</span>
+              <h3 class="text-4xl font-bold my-4">AI-Powered Schema Mapping</h3>
+              <p class="text-gray-300">Our agents scan your tables, columns, and metadata to build a semantic understanding of your business logic, suggesting governance rules automatically.</p>
+          </div>
+      </div>
+      <div class="h-screen flex items-center justify-center sticky top-0" data-step="3">
+          <div class="text-center max-w-lg">
+              <span class="text-violet-400 font-semibold">Step 3</span>
+              <h3 class="text-4xl font-bold my-4">Converse in Plain English</h3>
+              <p class="text-gray-300">Your teams ask questions naturally. "Show me Q3 pipeline growth by region." The Wizard translates it into optimized, secure BigQuery SQL.</p>
+          </div>
+      </div>
+      <div class="h-screen flex items-center justify-center sticky top-0" data-step="4">
+          <div class="text-center max-w-lg">
+              <span class="text-violet-400 font-semibold">Step 4</span>
+              <h3 class="text-4xl font-bold my-4">Receive Instant Visual Answers</h3>
+              <p class="text-gray-300">Answers are delivered as interactive charts and dashboards. Pin them, share them via Slack, or embed them anywhere.</p>
+          </div>
+      </div>
+  </div>
+</section>
+
+<section id="data-team" class="relative py-32 lg:py-40 bg-[#111522]">
+  <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
+    <div>
+      <h2 class="text-4xl sm:text-5xl font-extrabold mb-8">The <span class="text-violet-400">Data Team</span> Command Center</h2>
+      <p class="text-gray-300 text-lg mb-8">Full control, zero bottlenecks. Orchestrate your BI ecosystem with an intuitive, powerful interface designed for governance and scale.</p>
+       <ul class="space-y-5 text-gray-300 leading-relaxed">
+         <li class="flex items-start gap-3"><i data-feather="shield" class="w-5 h-5 text-violet-400 mt-1"></i> <strong>Granular Governance:</strong> Define role-based and row-level security. Approve data access with a single click.</li>
+         <li class="flex items-start gap-3"><i data-feather="activity" class="w-5 h-5 text-violet-400 mt-1"></i> <strong>Cost & Performance Monitoring:</strong> Set query cost guardrails, monitor performance, and get alerts before you hit budget limits.</li>
+         <li class="flex items-start gap-3"><i data-feather="sliders" class="w-5 h-5 text-violet-400 mt-1"></i> <strong>Wizard Configuration:</strong> Manage your catalog of wizards. Enable or disable them, tweak their core prompts, and set usage limits per role.</li>
+      </ul>
+    </div>
+    <div class="rounded-3xl border border-violet-600/40 bg-[#0d1117] p-8 shadow-2xl">
+        <h4 class="font-bold text-lg mb-6">Live Wizard Configuration</h4>
+        <div class="space-y-6">
+            <div class="flex items-center justify-between bg-white/5 p-4 rounded-lg">
+                <div>
+                    <h5 class="font-semibold text-white">💰 Sales Wizard</h5>
+                    <p class="text-sm text-gray-400">Access: 14 AEs & BDRs</p>
+                </div>
+                <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
             </div>
-            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div class="bg-slate-900 p-6 rounded-xl border border-slate-800 hover:border-indigo-500 transition-colors duration-300">
-                    <i data-feather="git-merge" class="w-10 h-10 text-indigo-400 mb-4"></i>
-                    <h3 class="text-xl font-bold mb-2">Column-Level Lineage</h3>
-                    <p class="text-gray-400">Visualize the complete journey of every column, from raw ingestion through complex transformations to final BI reports.</p>
+            <div class="flex items-center justify-between bg-white/5 p-4 rounded-lg">
+                <div>
+                    <h5 class="font-semibold text-white">🧩 Product Wizard</h5>
+                    <p class="text-sm text-gray-400">Access: Product Team</p>
                 </div>
-                <div class="bg-slate-900 p-6 rounded-xl border border-slate-800 hover:border-indigo-500 transition-colors duration-300">
-                    <i data-feather="dollar-sign" class="w-10 h-10 text-indigo-400 mb-4"></i>
-                    <h3 class="text-xl font-bold mb-2">Cost & Performance AI</h3>
-                    <p class="text-gray-400">Analyze query costs and execution times. AIDA pinpoints inefficiencies and suggests optimizations that save money and time.</p>
-                </div>
-                <div class="bg-slate-900 p-6 rounded-xl border border-slate-800 hover:border-indigo-500 transition-colors duration-300">
-                    <i data-feather="shield" class="w-10 h-10 text-indigo-400 mb-4"></i>
-                    <h3 class="text-xl font-bold mb-2">Automated Governance</h3>
-                    <p class="text-gray-400">Automatically detect and tag PII, assess data quality, and generate documentation to ensure compliance and trustworthiness.</p>
-                </div>
-                <div class="bg-slate-900 p-6 rounded-xl border border-slate-800 hover:border-indigo-500 transition-colors duration-300">
-                    <i data-feather="zap" class="w-10 h-10 text-indigo-400 mb-4"></i>
-                    <h3 class="text-xl font-bold mb-2">Impact & Root Cause Analysis</h3>
-                    <p class="text-gray-400">Confidently make changes by simulating their downstream impact, or instantly trace data errors back to their source.</p>
-                </div>
+                <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
             </div>
-        </section>
-
-        <section id="demo-section" class="my-24 bg-slate-900 rounded-2xl p-4 sm:p-8 md:p-12 border border-slate-800 shadow-2xl">
-            
-            <div id="demo-step-1">
-                 <div class="text-center mb-8">
-                    <h2 class="text-4xl font-bold mb-3">AIDA Is Analyzing the 'ACME Corp' Data Warehouse...</h2>
-                    <p class="text-lg text-gray-400">Watch as AIDA's cognitive modules activate to build a complete intelligence graph of the data estate.</p>
+            <div class="opacity-50 flex items-center justify-between bg-white/5 p-4 rounded-lg">
+                <div>
+                    <h5 class="font-semibold text-white">🧪 R&D Wizard</h5>
+                    <p class="text-sm text-gray-400">Access: Disabled</p>
                 </div>
-                <div class="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
-                    </div>
+                <label class="switch"><input type="checkbox"><span class="slider"></span></label>
             </div>
-
-            <div id="demo-step-2" class="hidden">
-                <div class="text-center mb-8">
-                    <h2 class="text-4xl font-bold mb-3">Data Command Center</h2>
-                    <p class="text-lg text-gray-400">Analysis complete. Click any asset to explore its lineage and AI-generated insights.</p>
-                </div>
-                
-                <div class="flex flex-wrap justify-center gap-2 mb-6" id="view-toggles">
-                    <button data-view="default" class="view-toggle-btn active bg-indigo-600 text-white px-4 py-2 text-sm rounded-full font-semibold flex items-center gap-2"><i data-feather="layout"></i>Default View</button>
-                    <button data-view="impact" class="view-toggle-btn bg-slate-700 hover:bg-slate-600 text-gray-300 px-4 py-2 text-sm rounded-full font-semibold flex items-center gap-2"><i data-feather="activity"></i>Impact Analysis</button>
-                    <button data-view="root_cause" class="view-toggle-btn bg-slate-700 hover:bg-slate-600 text-gray-300 px-4 py-2 text-sm rounded-full font-semibold flex items-center gap-2"><i data-feather="alert-triangle"></i>Root Cause Analysis</button>
-                    <button data-view="compliance" class="view-toggle-btn bg-slate-700 hover:bg-slate-600 text-gray-300 px-4 py-2 text-sm rounded-full font-semibold flex items-center gap-2"><i data-feather="shield"></i>Compliance View</button>
-                </div>
-
-                <div class="grid lg:grid-cols-12 gap-4 bg-slate-950 p-4 rounded-xl border border-slate-800 min-h-[700px]">
-                    <div class="lg:col-span-3 bg-slate-800/50 p-4 rounded-lg">
-                        <h3 class="font-bold mb-4 text-lg">Data Asset Catalog</h3>
-                        <input type="text" id="asset-search" placeholder="Search assets..." class="w-full bg-slate-700 px-3 py-2 rounded-md mb-4 text-sm">
-                        <div id="data-catalog" class="space-y-1 pr-2 overflow-y-auto h-[600px]"></div>
-                    </div>
-                    <div class="lg:col-span-6 relative bg-dots rounded-lg" id="lineage-container">
-                        </div>
-                    <div class="lg:col-span-3 bg-slate-800/50 p-4 rounded-lg overflow-y-auto h-[700px]">
-                        <div id="context-panel">
-                             <div class="text-center text-gray-500 mt-16">
-                                <i data-feather="mouse-pointer" class="w-12 h-12 mx-auto mb-4"></i>
-                                <h3 class="font-bold text-lg">Select an Asset</h3>
-                                <p class="text-sm">Click any item in the catalog or the graph to see its details here.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                 <div class="text-center mt-12">
-                    <button id="restart-demo-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg transition-colors">
-                        Restart Analysis
-                    </button>
-                </div>
+            <div class="pt-4">
+                <label for="cost-limit" class="block text-sm font-medium text-gray-300 mb-2">Monthly Query Cost Limit: $<span id="cost-value">500</span></label>
+                <input id="cost-limit" type="range" min="50" max="2000" value="500" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-violet-500">
             </div>
-        </section>
+        </div>
+    </div>
+  </div>
+</section>
 
-    </main>
+<section id="trust" class="py-32 lg:py-40 bg-white/5">
+     <div class="max-w-6xl mx-auto px-6 text-center space-y-16">
+       <h2 class="text-4xl sm:text-5xl font-extrabold">Built for <span class="text-violet-400">Trust & Scale</span></h2>
+       <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 text-left">
+         <div class="space-y-4"><h3 class="font-bold text-lg flex items-center gap-2"><i data-feather="lock" class="w-5 h-5 text-violet-400"></i> Data Isolation</h3><p class="text-sm text-gray-300">Queries run inside your GCP project—data never leaves your VPC.</p></div>
+         <div class="space-y-4"><h3 class="font-bold text-lg flex items-center gap-2"><i data-feather="alert-circle" class="w-5 h-5 text-violet-400"></i> Compliance</h3><p class="text-sm text-gray-300">SOC 2 (Type II) in progress, GDPR & Israel Privacy Law ready.</p></div>
+         <div class="space-y-4"><h3 class="font-bold text-lg flex items-center gap-2"><i data-feather="server" class="w-5 h-5 text-violet-400"></i> 99.99% Uptime</h3><p class="text-sm text-gray-300">Global Cloud Run deployment with multi‑region failover.</p></div>
+         <div class="space-y-4"><h3 class="font-bold text-lg flex items-center gap-2"><i data-feather="zap" class="w-5 h-5 text-violet-400"></i> Performant</h3><p class="text-sm text-gray-300">Query caching, smart sampling, cost caps & auto‑throttling.</p></div>
+       </div>
+     </div>
+   </section>
 
-    <footer class="text-center p-8 border-t border-slate-800">
-        <p>&copy; 2025 AIDA Technologies. All rights reserved.</p>
-    </footer>
+ <section id="cta" class="gradient-bg py-36 px-6 text-center">
+     <div class="max-w-3xl mx-auto space-y-6">
+       <h2 class="text-4xl sm:text-5xl font-extrabold leading-tight">Ready to Converse With Your Data?</h2>
+       <p class="text-lg text-gray-300">Sign up in under 60 seconds. Connect BigQuery. Unleash your wizards.</p>
+       <a href="https://app.bimagics.com/signup" class="inline-block rounded-2xl bg-white px-12 py-5 text-lg font-bold text-violet-700 shadow-lg hover:bg-gray-200 transition-transform hover:scale-105">Start Your Free Trial →</a>
+     </div>
+   </section>
 
-    <script>
-        // --- Initial Setup ---
-        feather.replace();
-        const qs = (selector) => document.querySelector(selector);
-        const qsa = (selector) => document.querySelectorAll(selector);
+ <footer class="border-t border-white/10 bg-[#0d1117] py-14 px-6 text-sm text-gray-400">
+     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+       <p>© 2025 BI Magics. All rights reserved.</p>
+       <div class="flex gap-6">
+         <a href="mailto:hello@bimagics.com" class="hover:text-white">hello@bimagics.com</a>
+         <a href="https://twitter.com/bimagics" class="hover:text-white">Twitter</a>
+         <a href="https://github.com/bimagics" class="hover:text-white">GitHub</a>
+       </div>
+     </div>
+   </footer>
 
-        // --- Mock Data ---
-        const DEMO_DATA = {
-            assets: {
-                'src_postgres_users': { id: 'src_postgres_users', name: 'src_postgres.users', type: 'Table', pos: { x: 5, y: 20 }, quality: 98, pii: ['email', 'full_name', 'address'] },
-                'src_stripe_payments': { id: 'src_stripe_payments', name: 'src_stripe.payments', type: 'Table', pos: { x: 5, y: 70 }, quality: 99, pii: ['email'] },
-                'dbt_trf_users': { id: 'dbt_trf_users', name: 'dbt_trf_users.sql', type: 'Script', pos: { x: 35, y: 45 }, cost: 12.50 },
-                'dim_customers': { id: 'dim_customers', name: 'dim_customers', type: 'Table', pos: { x: 65, y: 45 }, quality: 92, pii: ['email', 'customer_name'] },
-                'bi_sales_dashboard': { id: 'bi_sales_dashboard', name: 'Sales Overview', type: 'Dashboard', pos: { x: 90, y: 45 }, status: 'Broken' },
-            },
-            lineage: [
-                { from: 'src_postgres_users', to: 'dbt_trf_users', column: 'email' },
-                { from: 'src_stripe_payments', to: 'dbt_trf_users', column: 'amount' },
-                { from: 'dbt_trf_users', to: 'dim_customers', column: 'customer_name' },
-                { from: 'dim_customers', to: 'bi_sales_dashboard', column: 'revenue' },
-            ],
-            context: {
-                'dim_customers': {
-                    description: "AI-Generated: This is the master customer dimension table, consolidating user data from Postgres and payment information. It serves as the single source of truth for all customer-related analytics.",
-                    columns: [
-                        { name: 'customer_id', type: 'string', desc: 'Unique identifier for a customer.' },
-                        { name: 'email', type: 'string', desc: 'Customer email address.', pii: true },
-                        { name: 'customer_name', type: 'string', desc: 'Full name of the customer.', pii: true},
-                        { name: 'first_order_date', type: 'date', desc: 'Date of the first order.' },
-                        { name: 'lifetime_value', type: 'numeric', desc: 'Total revenue from the customer.' },
-                    ]
-                }
-            }
-        };
+  <script type="module">
+    // Import Three.js
+    import * as THREE from 'three';
 
-        // --- DOM Elements ---
-        const startDemoBtn = qs('#start-demo-btn');
-        const demoSection = qs('#demo-section');
-        const step1 = qs('#demo-step-1');
-        const step2 = qs('#demo-step-2');
-        
-        // --- Event Listeners ---
-        startDemoBtn.addEventListener('click', () => {
-            demoSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            setTimeout(runAnalysisAnimation, 500);
+    // This is where all the magic happens!
+    document.addEventListener('DOMContentLoaded', () => {
+      feather.replace();
+
+      // Mobile Menu
+      const menuToggle = document.getElementById('menuToggle');
+      const mobileMenu = document.getElementById('mobileMenu');
+      menuToggle.addEventListener('click', () => { mobileMenu.classList.toggle('hidden') });
+
+      // --- ✨ HERO 3D DATA NEBULA ---
+      // This is a simplified version. A real implementation would be more complex.
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('hero-canvas'), alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      
+      const particlesCount = 5000;
+      const positions = new Float32Array(particlesCount * 3);
+      for(let i = 0; i < particlesCount * 3; i++) {
+          positions[i] = (Math.random() - 0.5) * 10;
+      }
+      const particlesGeometry = new THREE.BufferGeometry();
+      particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const particlesMaterial = new THREE.PointsMaterial({ size: 0.02, color: 0x8b5cf6 });
+      const particleSystem = new THREE.Points(particlesGeometry, particlesMaterial);
+      scene.add(particleSystem);
+      camera.position.z = 5;
+
+      let mouseX = 0, mouseY = 0;
+      document.addEventListener('mousemove', (event) => {
+          mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+          mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+      });
+
+      function animate() {
+          requestAnimationFrame(animate);
+          particleSystem.rotation.y += 0.0005;
+          camera.position.x += (mouseX * 2 - camera.position.x) * 0.02;
+          camera.position.y += (mouseY * 2 - camera.position.y) * 0.02;
+          camera.lookAt(scene.position);
+          renderer.render(scene, camera);
+      }
+      animate();
+
+
+      // --- ✨ WIZARD CARD 3D TILT ---
+      const cards = document.querySelectorAll('.wizard-card');
+      cards.forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left - rect.width / 2;
+          const y = e.clientY - rect.top - rect.height / 2;
+          const rotateX = -y / 20;
+          const rotateY = x / 20;
+          card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
         });
-        
-        qs('#restart-demo-btn').addEventListener('click', () => {
-             step2.classList.add('hidden');
-             step1.classList.remove('hidden');
-             runAnalysisAnimation();
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
         });
-        
-        // --- Analysis Animation Logic ---
-        function runAnalysisAnimation() {
-            const modulesContainer = qs('#demo-step-1 .grid');
-            modulesContainer.innerHTML = ''; // Clear previous
-            
-            const modules = [
-                { name: "Schema Discovery", icon: "database" },
-                { name: "Lineage Tracer", icon: "git-merge" },
-                { name: "Cost Simulator", icon: "dollar-sign" },
-                { name: "PII Scanner", icon: "shield" }
-            ];
+      });
 
-            modules.forEach(module => {
-                const el = document.createElement('div');
-                el.id = `module-${module.icon}`;
-                el.className = 'analysis-module bg-slate-800 p-4 rounded-lg text-center border-2 border-slate-700';
-                el.innerHTML = `
-                    <i data-feather="${module.icon}" class="w-10 h-10 mx-auto mb-3 text-gray-400"></i>
-                    <p class="font-semibold">${module.name}</p>
-                    <div class="status-icon mt-2 h-6"><div class="spinner w-5 h-5 mx-auto hidden"></div></div>
-                `;
-                modulesContainer.appendChild(el);
-            });
-            feather.replace();
+      // --- ✨ GSAP ANIMATIONS ---
+      gsap.registerPlugin(ScrollTrigger);
+      
+      // Wizard card entrance animation
+      gsap.from(".wizard-card", {
+        scrollTrigger: {
+          trigger: "#wizards",
+          start: "top 80%",
+        },
+        y: 50,
+        opacity: 0,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: "power3.out"
+      });
 
-            let currentModule = 0;
-            const interval = setInterval(() => {
-                if (currentModule >= modules.length) {
-                    clearInterval(interval);
-                    setTimeout(() => {
-                        step1.classList.add('hidden');
-                        step2.classList.remove('hidden');
-                        step2.classList.add('fade-in-section');
-                        renderCommandCenter();
-                    }, 500);
-                    return;
-                }
+      // "How It Works" Scrollytelling
+      const steps = gsap.utils.toArray("#how [data-step]");
+      steps.forEach((step, i) => {
+          ScrollTrigger.create({
+              trigger: step,
+              start: "top center",
+              end: "bottom center",
+              onEnter: () => step.classList.add('is-active'),
+              onLeaveBack: () => step.classList.remove('is-active'),
+              markers: false // set to true for debugging
+          });
 
-                const module = modules[currentModule];
-                const moduleEl = qs(`#module-${module.icon}`);
-                
-                moduleEl.classList.add('active');
-                moduleEl.querySelector('.spinner').classList.remove('hidden');
-
-                setTimeout(() => {
-                    moduleEl.classList.remove('active');
-                    moduleEl.classList.add('done');
-                    moduleEl.querySelector('.spinner').classList.add('hidden');
-                    const statusIconContainer = moduleEl.querySelector('.status-icon');
-                    statusIconContainer.innerHTML = `<i data-feather="check-circle" class="w-6 h-6 mx-auto"></i>`;
-                    feather.replace({ "stroke-width": 2.5 });
-                }, 1200);
-
-                currentModule++;
-            }, 1300);
-        }
-        
-        // --- Command Center Logic ---
-        let currentView = 'default';
-
-        function renderCommandCenter() {
-            renderCatalog();
-            renderLineageGraph();
-            setupEventListeners();
-        }
-
-        function renderCatalog() {
-            const catalogContainer = qs('#data-catalog');
-            catalogContainer.innerHTML = '';
-            const iconMap = { Table: 'table', Script: 'file-text', Dashboard: 'bar-chart-2' };
-
-            Object.values(DEMO_DATA.assets).forEach(asset => {
-                const el = document.createElement('div');
-                el.className = 'asset-item p-2 rounded-md cursor-pointer flex items-center gap-3 text-sm transition-colors';
-                el.dataset.id = asset.id;
-                el.innerHTML = `
-                    <i data-feather="${iconMap[asset.type]}" class="w-4 h-4 text-gray-400"></i>
-                    <span>${asset.name}</span>
-                `;
-                catalogContainer.appendChild(el);
-            });
-            feather.replace();
-        }
-        
-        function renderLineageGraph() {
-           const container = qs('#lineage-container');
-           container.innerHTML = '';
-           const iconMap = { Table: 'table', Script: 'file-text', Dashboard: 'bar-chart-2' };
-           const colorMap = { Table: 'bg-blue-900 border-blue-500', Script: 'bg-purple-900 border-purple-500', Dashboard: 'bg-green-900 border-green-500' };
-           
-           Object.values(DEMO_DATA.assets).forEach(asset => {
-               const node = document.createElement('div');
-               node.id = `node-${asset.id}`;
-               node.dataset.id = asset.id;
-               node.className = `lineage-node absolute p-2 rounded-lg border-2 shadow-lg flex items-center gap-2 ${colorMap[asset.type]}`;
-               node.style.left = `${asset.pos.x}%`;
-               node.style.top = `${asset.pos.y}%`;
-               if (asset.status === 'Broken') {
-                   node.classList.add('border-red-500', 'bg-red-900');
-               }
-               node.innerHTML = `
-                   <i data-feather="${iconMap[asset.type]}" class="w-5 h-5"></i>
-                   <span class="font-semibold text-sm">${asset.name}</span>
-               `;
-               container.appendChild(node);
-           });
-           
-            const svgNS = "http://www.w3.org/2000/svg";
-            const svg = document.createElementNS(svgNS, "svg");
-            svg.setAttribute('class', 'absolute top-0 left-0 w-full h-full');
-            svg.setAttribute('style', 'pointer-events: none;');
-
-            DEMO_DATA.lineage.forEach(rel => {
-                const fromNode = qs(`#node-${rel.from}`);
-                const toNode = qs(`#node-${rel.to}`);
-                
-                const path = document.createElementNS(svgNS, 'path');
-                const x1 = fromNode.offsetLeft + fromNode.offsetWidth;
-                const y1 = fromNode.offsetTop + fromNode.offsetHeight / 2;
-                const x2 = toNode.offsetLeft;
-                const y2 = toNode.offsetTop + toNode.offsetHeight / 2;
-                const pathData = `M ${x1} ${y1} C ${x1 + 50} ${y1}, ${x2 - 50} ${y2}, ${x2} ${y2}`;
-                
-                path.setAttribute('d', pathData);
-                path.setAttribute('class', 'lineage-path');
-                path.setAttribute('fill', 'none');
-                path.setAttribute('stroke', '#4b5563'); /* Gray 600 */
-                path.setAttribute('stroke-width', '2');
-                svg.appendChild(path);
-            });
-            container.appendChild(svg);
-           
-           feather.replace();
-        }
-
-        function updateContextPanel(assetId) {
-            const asset = DEMO_DATA.assets[assetId];
-            const context = DEMO_DATA.context[assetId] || {};
-            const panel = qs('#context-panel');
-            
-            let piiHtml = asset.pii ? asset.pii.map(p => `<span class="pii-tag text-xs font-bold px-2 py-1 rounded-full">${p}</span>`).join(' ') : 'None detected';
-            let qualityHtml = asset.quality ? `<div class="w-full bg-slate-700 rounded-full h-2.5"><div class="bg-green-500 h-2.5 rounded-full" style="width: ${asset.quality}%"></div></div>` : '';
-            let costHtml = asset.cost ? `<p class="text-2xl font-bold text-yellow-400">$${asset.cost.toFixed(2)} <span class="text-sm text-gray-400">/ query</span></p>` : '';
-
-            let detailsHtml = '';
-            if(context.columns) {
-                detailsHtml = `
-                    <h4 class="font-bold mt-4 mb-2">Column Details</h4>
-                    <div class="space-y-2 text-sm">
-                        ${context.columns.map(c => `
-                            <div class="p-2 bg-slate-700/50 rounded-md">
-                                <div class="flex justify-between items-center">
-                                    <span class="font-mono font-semibold">${c.name}</span>
-                                    ${c.pii ? '<span class="pii-tag text-xs font-bold px-1.5 py-0.5 rounded-full">PII</span>' : ''}
-                                </div>
-                                <p class="text-gray-400">${c.desc}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
+          gsap.fromTo(step, 
+            { opacity: 0.2, scale: 0.8 }, 
+            {
+              opacity: 1,
+              scale: 1,
+              ease: "power2.inOut",
+              scrollTrigger: {
+                  trigger: step,
+                  start: "top 80%",
+                  end: "bottom bottom",
+                  scrub: 1
+              }
             }
+          );
+      });
 
-            panel.innerHTML = `
-                <h3 class="font-bold text-xl mb-2">${asset.name}</h3>
-                <p class="text-sm text-gray-400 mb-4">${context.description || `An asset of type '${asset.type}'.`}</p>
-                <div class="space-y-4">
-                    ${asset.quality ? `<div><h4 class="font-semibold text-sm mb-1">Data Quality Score: ${asset.quality}%</h4>${qualityHtml}</div>` : ''}
-                    ${asset.pii ? `<div><h4 class="font-semibold text-sm mb-1">PII Detected</h4><div class="flex flex-wrap gap-1">${piiHtml}</div></div>` : ''}
-                    ${asset.cost ? `<div><h4 class="font-semibold text-sm mb-1">Estimated Cost</h4>${costHtml}</div>` : ''}
-                </div>
-                ${detailsHtml}
-            `;
-        }
-        
-        function setupEventListeners() {
-            // Asset selection
-            qsa('.asset-item, .lineage-node').forEach(el => {
-                el.addEventListener('click', (e) => {
-                    const assetId = e.currentTarget.dataset.id;
-                    if (currentView === 'default') {
-                        qsa('.asset-item.active, .lineage-node.highlighted').forEach(a => a.classList.remove('active', 'highlighted'));
-                        qs(`.asset-item[data-id="${assetId}"]`).classList.add('active');
-                        qs(`#node-${assetId}`).classList.add('highlighted');
-                        updateContextPanel(assetId);
-                    } else if (currentView === 'impact') {
-                         handleImpactAnalysis(assetId);
-                    }
-                });
-            });
+      // --- ✨ INTERACTIVE COMMAND CENTER ---
+      const costSlider = document.getElementById('cost-limit');
+      const costValue = document.getElementById('cost-value');
+      costSlider.addEventListener('input', (e) => {
+        costValue.textContent = e.target.value;
+      });
 
-            // View toggles
-            qsa('.view-toggle-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    currentView = e.currentTarget.dataset.view;
-                    qsa('.view-toggle-btn').forEach(b => b.classList.remove('active', 'bg-indigo-600', 'text-white'));
-                    qsa('.view-toggle-btn').forEach(b => b.classList.add('bg-slate-700', 'text-gray-300'));
-                    e.currentTarget.classList.add('active', 'bg-indigo-600', 'text-white');
-                    e.currentTarget.classList.remove('bg-slate-700', 'text-gray-300');
-                    applyViewMode();
-                });
-            });
-        }
-        
-        function applyViewMode() {
-            // Reset all highlights and styles first
-            qsa('.lineage-node, .lineage-path').forEach(el => el.classList.remove('opacity-20', 'highlighted'));
-            qsa('.lineage-path').forEach(p => p.setAttribute('stroke', '#4b5563'));
-
-            if (currentView === 'root_cause') {
-                handleRootCauseAnalysis();
-            } else if (currentView === 'compliance') {
-                handleComplianceView();
-            }
-        }
-        
-        function handleImpactAnalysis(startAssetId) {
-             // Reset highlights
-            qsa('.lineage-node, .lineage-path').forEach(el => el.classList.remove('highlighted'));
-            qsa('.lineage-node').forEach(el => el.classList.add('opacity-20'));
-
-            let assetsToHighlight = new Set([startAssetId]);
-            let queue = [startAssetId];
-
-            while (queue.length > 0) {
-                const currentId = queue.shift();
-                DEMO_DATA.lineage.forEach(rel => {
-                    if (rel.from === currentId && !assetsToHighlight.has(rel.to)) {
-                        assetsToHighlight.add(rel.to);
-                        queue.push(rel.to);
-                    }
-                });
-            }
-            
-            assetsToHighlight.forEach(id => {
-                 qs(`#node-${id}`).classList.remove('opacity-20');
-                 qs(`#node-${id}`).classList.add('highlighted');
-            });
-        }
-        
-        function handleRootCauseAnalysis() {
-            qsa('.lineage-node').forEach(el => el.classList.add('opacity-20'));
-            
-            let assetsToHighlight = new Set(['bi_sales_dashboard']);
-            let queue = ['bi_sales_dashboard'];
-            
-             while (queue.length > 0) {
-                const currentId = queue.shift();
-                DEMO_DATA.lineage.forEach(rel => {
-                    if (rel.to === currentId && !assetsToHighlight.has(rel.from)) {
-                        assetsToHighlight.add(rel.from);
-                        queue.push(rel.from);
-                    }
-                });
-            }
-            
-             assetsToHighlight.forEach(id => {
-                 qs(`#node-${id}`).classList.remove('opacity-20');
-                 qs(`#node-${id}`).classList.add('highlighted');
-            });
-        }
-        
-        function handleComplianceView() {
-            qsa('.lineage-node').forEach(el => el.classList.add('opacity-20'));
-            Object.values(DEMO_DATA.assets).forEach(asset => {
-                if(asset.pii && asset.pii.length > 0) {
-                    qs(`#node-${asset.id}`).classList.remove('opacity-20');
-                    qs(`#node-${asset.id}`).classList.add('highlighted');
-                }
-            });
-        }
-    </script>
+    });
+  </script>
 </body>
 </html>
