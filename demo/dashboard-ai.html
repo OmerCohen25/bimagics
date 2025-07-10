@@ -1,24 +1,31 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Dashboard Generator - Live Demo</title>
+    <title>Stellar AI | Dashboard Generator</title>
+    
+    <!-- JS Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.2/vanilla-tilt.min.js"></script>
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+
     <style>
         :root {
-            --bg-color: #111827;
-            --card-color: #1F2937;
-            --primary-color: #38BDF8;
-            --secondary-color: #818CF8;
+            --bg-color: #000005;
+            --primary-glow: #00bfff;
+            --secondary-glow: #ff00ff;
             --text-color: #E5E7EB;
-            --text-muted-color: #9CA3AF;
-            --success-color: #34D399;
-            --border-color: rgba(255, 255, 255, 0.1);
-            --font-family: 'Assistant', sans-serif;
+            --text-muted: #9CA3AF;
+            --glass-bg: rgba(15, 23, 42, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --font-family: 'Exo 2', sans-serif;
         }
 
         * {
@@ -31,86 +38,107 @@
             font-family: var(--font-family);
             background-color: var(--bg-color);
             color: var(--text-color);
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            padding: 2rem;
-            overflow-x: hidden;
+            height: 100vh;
+        }
+        
+        #three-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            outline: none;
+            z-index: -1;
         }
 
         .container {
             width: 100%;
-            max-width: 1400px;
-            margin: auto;
+            height: 100%;
+            max-width: 1600px;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         /* --- Screens --- */
         .screen {
-            display: none;
+            position: absolute;
+            display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             text-align: center;
             width: 100%;
+            max-width: 1200px;
+            height: 100%;
+            visibility: hidden;
+            opacity: 0;
+            transform: translateY(30px);
         }
 
         .screen.active {
-            display: flex;
-            animation: fadeIn 0.8s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            visibility: visible;
         }
 
         /* --- Welcome Screen --- */
         #welcome-screen h1 {
-            font-size: 3.5rem;
+            font-size: 5rem;
             font-weight: 700;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px var(--primary-glow), 0 0 30px var(--primary-glow);
             margin-bottom: 1rem;
         }
 
         #welcome-screen p {
-            font-size: 1.25rem;
-            color: var(--text-muted-color);
-            max-width: 600px;
-            margin-bottom: 2.5rem;
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            max-width: 650px;
+            margin-bottom: 3rem;
+            line-height: 1.6;
         }
 
         /* --- Question Screen --- */
+        .glass-panel {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 3rem;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+        }
+
         #question-screen h2 {
-            font-size: 2.5rem;
-            margin-bottom: 2rem;
+            font-size: 3rem;
+            margin-bottom: 3rem;
+            text-shadow: 0 0 10px var(--secondary-glow);
         }
         .questions-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
             width: 100%;
-            max-width: 1000px;
-            margin-bottom: 2.5rem;
+            max-width: 900px;
+            margin-bottom: 3rem;
         }
         .question-card {
-            background: var(--card-color);
-            border: 1px solid var(--border-color);
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--glass-border);
             border-radius: 12px;
             padding: 1.5rem;
-            text-align: right;
+            text-align: left;
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            transform-style: preserve-3d;
         }
         .question-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--primary-color);
-            box-shadow: 0 10px 25px rgba(56, 189, 248, 0.1);
+            border-color: var(--primary-glow);
+            box-shadow: 0 0 20px rgba(0, 191, 255, 0.3);
         }
-        .question-card input {
-            display: none;
-        }
+        .question-card input { display: none; }
         .question-card label {
             font-size: 1.1rem;
             cursor: pointer;
@@ -121,8 +149,8 @@
         .custom-checkbox {
             width: 24px;
             height: 24px;
-            border: 2px solid var(--text-muted-color);
-            border-radius: 6px;
+            border: 2px solid var(--text-muted);
+            border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -130,15 +158,16 @@
             flex-shrink: 0;
         }
         .custom-checkbox .checkmark {
-            width: 14px;
-            height: 14px;
-            background-color: var(--primary-color);
-            border-radius: 3px;
+            width: 12px;
+            height: 12px;
+            background-color: var(--primary-glow);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--primary-glow);
             transform: scale(0);
             transition: transform 0.2s ease;
         }
         .question-card input:checked + label .custom-checkbox {
-            border-color: var(--primary-color);
+            border-color: var(--primary-glow);
         }
         .question-card input:checked + label .custom-checkbox .checkmark {
             transform: scale(1);
@@ -146,31 +175,41 @@
 
         /* --- Loading Screen --- */
         #loading-screen .loader {
-            width: 80px;
-            height: 80px;
-            border: 5px solid var(--border-color);
-            border-top-color: var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 2rem;
+            width: 100px;
+            height: 100px;
+            position: relative;
         }
+        .loader-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            animation: spin 2s linear infinite;
+        }
+        .loader-ring:nth-child(1) { border-top-color: var(--primary-glow); }
+        .loader-ring:nth-child(2) { border-bottom-color: var(--secondary-glow); animation-delay: -1s; }
         #loading-screen p {
+            margin-top: 3rem;
             font-size: 1.2rem;
-            color: var(--text-muted-color);
-            animation: pulse 1.5s infinite ease-in-out;
+            color: var(--text-muted);
+            letter-spacing: 1px;
         }
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        @keyframes pulse {
-            0%, 100% { opacity: 0.7; }
-            50% { opacity: 1; }
-        }
 
         /* --- Results Screen --- */
         #results-screen {
-            width: 100%;
+            height: calc(100% - 4rem);
+            overflow-y: auto;
+            padding: 0 2rem;
         }
+        /* Custom scrollbar for results */
+        #results-screen::-webkit-scrollbar { width: 8px; }
+        #results-screen::-webkit-scrollbar-track { background: transparent; }
+        #results-screen::-webkit-scrollbar-thumb { background-color: var(--primary-glow); border-radius: 10px; }
+
         .results-header {
             width: 100%;
             display: flex;
@@ -180,160 +219,250 @@
             flex-wrap: wrap;
             gap: 1rem;
         }
-        .results-header h2 {
-            font-size: 2.5rem;
-            text-align: right;
-        }
+        .results-header h2 { font-size: 3rem; }
         #dashboard-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
             width: 100%;
             margin-bottom: 3rem;
         }
         .chart-card {
-            background: var(--card-color);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1rem;
-            min-height: 400px;
-        }
-        .plotly-chart {
-            width: 100%;
-            height: 100%;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            min-height: 420px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
         
         #code-viewer-container {
-            background: #0d1117;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
+            background: rgba(0,0,0,0.7);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
             padding: 1.5rem;
             width: 100%;
             text-align: left;
+            margin-bottom: 2rem;
         }
-        #code-viewer-container h3 {
-            font-size: 1.5rem;
+        #code-viewer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 1rem;
             padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--glass-border);
         }
+        #code-viewer-header h3 { font-size: 1.5rem; }
         #code-block {
             white-space: pre-wrap;
-            font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+            word-wrap: break-word;
+            font-family: 'Fira Code', 'Menlo', monospace;
             font-size: 0.9rem;
-            line-height: 1.6;
+            line-height: 1.7;
             color: #c9d1d9;
             max-height: 500px;
             overflow-y: auto;
         }
+
         /* --- General Button --- */
         .btn {
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            color: var(--bg-color);
-            font-weight: 700;
-            font-size: 1.1rem;
-            padding: 0.8rem 2rem;
-            border: none;
+            background: transparent;
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 1.2rem;
+            padding: 1rem 2.5rem;
+            border: 2px solid var(--primary-glow);
             border-radius: 50px;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.3s ease;
             text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 10px var(--primary-glow), inset 0 0 10px var(--primary-glow);
         }
         .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(129, 140, 248, 0.25);
+            color: #fff;
+            box-shadow: 0 0 25px var(--primary-glow), inset 0 0 25px var(--primary-glow);
+            transform: scale(1.05);
+        }
+        .copy-btn {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--text-muted);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .copy-btn:hover {
+            background: var(--primary-glow);
+            color: var(--bg-color);
+            border-color: var(--primary-glow);
         }
         
         /* Responsive */
-        @media (max-width: 768px) {
-            body { padding: 1rem; }
-            #welcome-screen h1 { font-size: 2.5rem; }
-            #welcome-screen p { font-size: 1rem; }
-            #question-screen h2, #results-screen h2 { font-size: 2rem; }
+        @media (max-width: 900px) {
             .questions-grid { grid-template-columns: 1fr; }
+            #welcome-screen h1 { font-size: 3rem; }
+            #question-screen h2, .results-header h2 { font-size: 2.2rem; }
+        }
+        @media (max-width: 600px) {
+            body { padding: 1rem; }
+            .glass-panel { padding: 2rem; }
             #dashboard-container { grid-template-columns: 1fr; }
-            .results-header { justify-content: center; text-align: center; }
         }
     </style>
 </head>
 <body>
-
+    <canvas id="three-canvas"></canvas>
     <div class="container">
         <!-- Screen 1: Welcome -->
         <section id="welcome-screen" class="screen active">
-            <h1>הפוך טקסט לדשבורד חכם</h1>
-            <p>חווה את העתיד של ניתוח נתונים. בחר את התובנות שמעניינות אותך, והבינה המלאכותית שלנו תבנה עבורך דשבורד ויזואלי ואינטראקטיבי תוך שניות.</p>
-            <button class="btn" onclick="showScreen('question-screen')">התחל עכשיו</button>
+            <h1>Stellar AI</h1>
+            <p>Experience the future of data analysis. Transform simple questions into stunning, interactive dashboards powered by AI. Your insights are written in the stars.</p>
+            <button class="btn" onclick="showScreen('question-screen')">Begin Analysis</button>
         </section>
 
         <!-- Screen 2: Questions -->
         <section id="question-screen" class="screen">
-            <h2>מה תרצה לראות בדשבורד שלך?</h2>
-            <div class="questions-grid">
-                <div class="question-card" onclick="toggleCheckbox('q1')">
-                    <input type="checkbox" id="q1" data-chart="salesTrend">
-                    <label for="q1">
-                        <span class="custom-checkbox"><span class="checkmark"></span></span>
-                        מגמת מכירות חודשית בשנה האחרונה
-                    </label>
+            <div class="glass-panel">
+                <h2>What cosmic insights shall we uncover?</h2>
+                <div class="questions-grid">
+                    <div class="question-card" onclick="toggleCheckbox('q1')">
+                        <input type="checkbox" id="q1" data-chart="salesTrend">
+                        <label for="q1">
+                            <span class="custom-checkbox"><span class="checkmark"></span></span>
+                            Reveal the annual sales trajectory
+                        </label>
+                    </div>
+                    <div class="question-card" onclick="toggleCheckbox('q2')">
+                        <input type="checkbox" id="q2" data-chart="userDemographics">
+                        <label for="q2">
+                            <span class="custom-checkbox"><span class="checkmark"></span></span>
+                            Map the galactic user distribution
+                        </label>
+                    </div>
+                    <div class="question-card" onclick="toggleCheckbox('q3')">
+                        <input type="checkbox" id="q3" data-chart="productPerformance">
+                        <label for="q3">
+                            <span class="custom-checkbox"><span class="checkmark"></span></span>
+                            Analyze the constellation of top products
+                        </label>
+                    </div>
+                    <div class="question-card" onclick="toggleCheckbox('q4')">
+                        <input type="checkbox" id="q4" data-chart="trafficSource">
+                        <label for="q4">
+                            <span class="custom-checkbox"><span class="checkmark"></span></span>
+                            Chart the incoming traffic streams
+                        </label>
+                    </div>
                 </div>
-                <div class="question-card" onclick="toggleCheckbox('q2')">
-                    <input type="checkbox" id="q2" data-chart="userDemographics">
-                    <label for="q2">
-                        <span class="custom-checkbox"><span class="checkmark"></span></span>
-                        התפלגות דמוגרפית של משתמשים לפי מדינה
-                    </label>
-                </div>
-                <div class="question-card" onclick="toggleCheckbox('q3')">
-                    <input type="checkbox" id="q3" data-chart="productPerformance">
-                    <label for="q3">
-                        <span class="custom-checkbox"><span class="checkmark"></span></span>
-                        ניתוח ביצועים של 5 המוצרים המובילים
-                    </label>
-                </div>
-                <div class="question-card" onclick="toggleCheckbox('q4')">
-                    <input type="checkbox" id="q4" data-chart="trafficSource">
-                    <label for="q4">
-                        <span class="custom-checkbox"><span class="checkmark"></span></span>
-                        פירוט מקורות תנועה לאתר (אורגני, ישיר, הפניות)
-                    </label>
-                </div>
+                <button class="btn" onclick="generateDashboard()">Synthesize Dashboard</button>
             </div>
-            <button class="btn" onclick="generateDashboard()">צור את הדשבורד שלי</button>
         </section>
 
         <!-- Screen 3: Loading -->
         <section id="loading-screen" class="screen">
-            <div class="loader"></div>
-            <p>הבינה המלאכותית שלנו עובדת... מנתחת בקשה, מייצרת מודלים ובונה ויזואליזציות...</p>
+            <div class="loader">
+                <div class="loader-ring"></div>
+                <div class="loader-ring"></div>
+            </div>
+            <p>Consulting the data streams...</p>
         </section>
 
         <!-- Screen 4: Results -->
         <section id="results-screen" class="screen">
             <div class="results-header">
-                <h2>הדשבורד שלך מוכן!</h2>
-                <button class="btn" onclick="showScreen('question-screen')">התחל מחדש</button>
+                <h2>Your Dashboard Has Manifested</h2>
+                <button class="btn" onclick="showScreen('question-screen')">Start a New Analysis</button>
             </div>
             <div id="dashboard-container"></div>
             <div id="code-viewer-container">
-                <h3>הקוד שה-AI יצר מאחורי הקלעים:</h3>
+                <div id="code-viewer-header">
+                    <h3>AI-Generated Python Code</h3>
+                    <button class="copy-btn" onclick="copyCode()">Copy Code</button>
+                </div>
                 <pre id="code-block"></pre>
             </div>
         </section>
     </div>
 
 <script>
-// --- Navigation Logic ---
+// --- 3D Background Setup ---
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas'), alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+// Torus Knot
+const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+const material = new THREE.MeshStandardMaterial({ 
+    color: 0x60A5FA, 
+    metalness: 0.8,
+    roughness: 0.2,
+    wireframe: true,
+    emissive: 0x38BDF8,
+    emissiveIntensity: 0.1
+});
+const torusKnot = new THREE.Mesh(geometry, material);
+scene.add(torusKnot);
+
+// Lights
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+scene.add(ambientLight);
+const pointLight = new THREE.PointLight(0xffffff, 1);
+pointLight.position.set(25, 50, 25);
+scene.add(pointLight);
+
+camera.position.z = 30;
+
+// Starfield
+const starGeometry = new THREE.BufferGeometry();
+const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1 });
+const starVertices = [];
+for (let i = 0; i < 10000; i++) {
+    const x = (Math.random() - 0.5) * 2000;
+    const y = (Math.random() - 0.5) * 2000;
+    const z = (Math.random() - 0.5) * 2000;
+    starVertices.push(x, y, z);
+}
+starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+const stars = new THREE.Points(starGeometry, starMaterial);
+scene.add(stars);
+
+function animate() {
+    requestAnimationFrame(animate);
+    torusKnot.rotation.x += 0.001;
+    torusKnot.rotation.y += 0.0005;
+    stars.rotation.y += 0.0001;
+    renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// --- UI & Navigation Logic ---
+gsap.defaults({ ease: "power2.inOut", duration: 0.8 });
+
 function showScreen(screenId) {
-    document.querySelectorAll('.screen').forEach(screen => {
-        screen.classList.remove('active');
-    });
-    document.getElementById(screenId).classList.add('active');
+    const currentScreen = document.querySelector('.screen.active');
+    const nextScreen = document.getElementById(screenId);
     
-    // Reset results when starting over
+    gsap.timeline()
+        .to(currentScreen, { opacity: 0, y: -30, onComplete: () => currentScreen.classList.remove('active') })
+        .call(() => nextScreen.classList.add('active'))
+        .fromTo(nextScreen, { opacity: 0, y: 30 }, { opacity: 1, y: 0 });
+
     if (screenId === 'question-screen') {
         document.getElementById('dashboard-container').innerHTML = '';
         document.getElementById('code-block').innerHTML = '';
+        gsap.from(".question-card", { opacity: 0, y: 30, stagger: 0.1, delay: 0.5 });
     }
 }
 
@@ -342,15 +471,20 @@ function toggleCheckbox(id) {
     checkbox.checked = !checkbox.checked;
 }
 
+// Init Vanilla Tilt for cards
+VanillaTilt.init(document.querySelectorAll(".question-card"), {
+    max: 15,
+    speed: 400,
+    glare: true,
+    "max-glare": 0.2
+});
+
 // --- Dashboard Generation Logic ---
 function generateDashboard() {
-    const selectedCharts = [];
-    document.querySelectorAll('.questions-grid input[type="checkbox"]:checked').forEach(cb => {
-        selectedCharts.push(cb.dataset.chart);
-    });
+    const selectedCharts = Array.from(document.querySelectorAll('.questions-grid input:checked')).map(cb => cb.dataset.chart);
 
     if (selectedCharts.length === 0) {
-        alert("אנא בחר לפחות תובנה אחת להצגה.");
+        alert("Please select at least one insight to analyze.");
         return;
     }
 
@@ -358,12 +492,9 @@ function generateDashboard() {
 
     setTimeout(() => {
         const dashboardContainer = document.getElementById('dashboard-container');
-        const codeBlock = document.getElementById('code-block');
+        dashboardContainer.innerHTML = '';
         
-        dashboardContainer.innerHTML = ''; // Clear previous charts
-        codeBlock.innerHTML = ''; // Clear previous code
-
-        let fullCode = `import pandas as pd\nimport plotly.express as px\n\n# AI Generated Script\n# ---------------------\n\n`;
+        let fullCode = `import pandas as pd\nimport plotly.express as px\n\n# Stellar AI - Generated Python Script\n# -------------------------------------\n\n`;
 
         selectedCharts.forEach(chartType => {
             const chartId = `chart-${chartType}`;
@@ -377,151 +508,121 @@ function generateDashboard() {
             fullCode += code + '\n\n';
         });
 
-        codeBlock.textContent = fullCode;
+        document.getElementById('code-block').textContent = fullCode;
         showScreen('results-screen');
-    }, 2500); // Simulate AI thinking time
+        gsap.from(".chart-card, #code-viewer-container", { opacity: 0, y: 30, stagger: 0.15, delay: 0.2 });
+
+    }, 3000); // Simulate AI thinking time
 }
 
 // --- Chart and Code Generators ---
 const chartGenerators = {
     salesTrend: () => {
         const plotFunction = (elementId) => {
-            const months = ['ינו', 'פבר', 'מרץ', 'אפר', 'מאי', 'יוני', 'יולי', 'אוג', 'ספט', 'אוק', 'נוב', 'דצמ'];
-            const sales = Array.from({length: 12}, () => Math.floor(Math.random() * (80000 - 30000 + 1)) + 30000);
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const sales = Array.from({length: 12}, (_, i) => 35000 + i * 2000 + Math.random() * 10000);
             const trace = {
-                x: months,
-                y: sales,
-                type: 'scatter',
-                mode: 'lines+markers',
-                marker: { color: 'rgba(56, 189, 248, 1)', size: 8 },
-                line: { color: 'rgba(56, 189, 248, 0.7)', width: 3 }
+                x: months, y: sales, type: 'scatter', mode: 'lines+markers',
+                marker: { color: 'var(--primary-glow)', size: 8, line: { width: 2, color: '#000' } },
+                line: { color: 'var(--primary-glow)', width: 3 }
             };
-            Plotly.newPlot(elementId, [trace], getPlotlyLayout('מגמת מכירות חודשית'), {responsive: true});
+            Plotly.newPlot(elementId, [trace], getPlotlyLayout('Annual Sales Trajectory'), {responsive: true, displaylogo: false});
         };
         const code = `
 # 1. Sales Trend Analysis
-sales_data = {
-    'Month': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    'Sales': [45000, 48000, 55000, 52000, 61000, 65000, 72000, 68000, 75000, 78000, 82000, 90000]
-}
+sales_data = {'Month': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], 'Sales': [36853, 39961, 44123, 47854, 50123, 54879, 58123, 61456, 64987, 68123, 72456, 75987]}
 sales_df = pd.DataFrame(sales_data)
-fig_sales = px.line(sales_df, x='Month', y='Sales', title='Monthly Sales Trend', markers=True)
+fig_sales = px.line(sales_df, x='Month', y='Sales', title='Annual Sales Trajectory', markers=True)
 fig_sales.show()`;
         return { plotFunction, code };
     },
-
     userDemographics: () => {
         const plotFunction = (elementId) => {
             const data = [{
-                values: [45, 25, 15, 10, 5],
-                labels: ['ארה"ב', 'ישראל', 'גרמניה', 'בריטניה', 'קנדה'],
-                type: 'pie',
-                hole: .4,
-                marker: {
-                    colors: ['#38BDF8', '#818CF8', '#A78BFA', '#F472B6', '#FB923C']
-                }
+                values: [45, 25, 15, 10, 5], labels: ['USA', 'Europe', 'Asia', 'LatAm', 'Other'],
+                type: 'pie', hole: .5,
+                marker: { colors: ['#00bfff', '#8A2BE2', '#ff00ff', '#32CD32', '#FFD700'] }
             }];
-            Plotly.newPlot(elementId, data, getPlotlyLayout('התפלגות משתמשים לפי מדינה'), {responsive: true});
+            Plotly.newPlot(elementId, data, getPlotlyLayout('Galactic User Distribution'), {responsive: true, displaylogo: false});
         };
         const code = `
 # 2. User Demographics
-demographics_data = {
-    'Country': ['USA', 'Israel', 'Germany', 'UK', 'Canada'],
-    'Users': [4500, 2500, 1500, 1000, 500]
-}
+demographics_data = {'Region': ['USA', 'Europe', 'Asia', 'LatAm', 'Other'], 'Users': [4500, 2500, 1500, 1000, 500]}
 demographics_df = pd.DataFrame(demographics_data)
-fig_demographics = px.pie(demographics_df, values='Users', names='Country', title='User Distribution by Country', hole=0.4)
+fig_demographics = px.pie(demographics_df, values='Users', names='Region', title='Galactic User Distribution', hole=0.5)
 fig_demographics.show()`;
         return { plotFunction, code };
     },
-
     productPerformance: () => {
         const plotFunction = (elementId) => {
-            const products = ['מוצר אלפא', 'מוצר בטא', 'מוצר גמא', 'מוצר דלתא', 'מוצר אפסילון'];
-            const revenue = Array.from({length: 5}, () => Math.floor(Math.random() * (20000 - 5000 + 1)) + 5000).sort((a,b) => b-a);
+            const products = ['Pulsar Pen', 'Nebula Notebook', 'Galaxy Glass', 'Comet Cable', 'Astro Adapter'];
+            const revenue = [22000, 18500, 15000, 11500, 8000];
             const trace = {
-                x: products,
-                y: revenue,
-                type: 'bar',
-                marker: {
-                    color: revenue,
-                    colorscale: 'Viridis'
-                }
+                x: products, y: revenue, type: 'bar',
+                marker: { color: revenue, colorscale: 'Plasma', showscale: true }
             };
-            Plotly.newPlot(elementId, [trace], getPlotlyLayout('ביצועי 5 המוצרים המובילים'), {responsive: true});
+            Plotly.newPlot(elementId, [trace], getPlotlyLayout('Top Product Constellation'), {responsive: true, displaylogo: false});
         };
         const code = `
 # 3. Top 5 Product Performance
-product_data = {
-    'Product': ['Product A', 'Product B', 'Product C', 'Product D', 'Product E'],
-    'Revenue': [18500, 15200, 12300, 10800, 9500]
-}
+product_data = {'Product': ['Pulsar Pen', 'Nebula Notebook', 'Galaxy Glass', 'Comet Cable', 'Astro Adapter'], 'Revenue': [22000, 18500, 15000, 11500, 8000]}
 product_df = pd.DataFrame(product_data)
-fig_products = px.bar(product_df, x='Product', y='Revenue', title='Top 5 Performing Products', color='Revenue')
+fig_products = px.bar(product_df, x='Product', y='Revenue', title='Top Product Constellation', color='Revenue', color_continuous_scale='Plasma')
 fig_products.show()`;
         return { plotFunction, code };
     },
-
     trafficSource: () => {
         const plotFunction = (elementId) => {
             const data = [{
-                values: [55, 30, 15],
-                labels: ['חיפוש אורגני', 'תנועה ישירה', 'הפניות'],
-                type: 'pie',
-                marker: {
-                    colors: ['#34D399', '#60A5FA', '#FBBF24']
-                }
+                values: [60, 25, 15], labels: ['Organic Search', 'Direct', 'Referral'],
+                type: 'pie', hole: 0.5,
+                marker: { colors: ['#ff00ff', '#00bfff', '#8A2BE2'] }
             }];
-            Plotly.newPlot(elementId, data, getPlotlyLayout('מקורות תנועה לאתר'), {responsive: true});
+            Plotly.newPlot(elementId, data, getPlotlyLayout('Incoming Traffic Streams'), {responsive: true, displaylogo: false});
         };
         const code = `
 # 4. Website Traffic Sources
-traffic_data = {
-    'Source': ['Organic Search', 'Direct', 'Referral'],
-    'Sessions': [5500, 3000, 1500]
-}
+traffic_data = {'Source': ['Organic Search', 'Direct', 'Referral'], 'Sessions': [6000, 2500, 1500]}
 traffic_df = pd.DataFrame(traffic_data)
-fig_traffic = px.pie(traffic_df, values='Sessions', names='Source', title='Website Traffic Sources')
+fig_traffic = px.pie(traffic_df, values='Sessions', names='Source', title='Incoming Traffic Streams', hole=0.5)
 fig_traffic.show()`;
         return { plotFunction, code };
     }
 };
 
-// --- Plotly Helper ---
+// --- Plotly & Code Helpers ---
 function getPlotlyLayout(title) {
     return {
-        title: {
-            text: title,
-            font: {
-                color: 'var(--text-color)',
-                size: 18,
-                family: 'var(--font-family)'
-            }
-        },
+        title: { text: title, font: { color: 'var(--text-color)', size: 20, family: 'var(--font-family)' } },
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
-        font: {
-            color: 'var(--text-muted-color)',
-            family: 'var(--font-family)'
-        },
-        xaxis: {
-            gridcolor: 'rgba(255, 255, 255, 0.1)',
-            zerolinecolor: 'rgba(255, 255, 255, 0.2)'
-        },
-        yaxis: {
-            gridcolor: 'rgba(255, 255, 255, 0.1)',
-            zerolinecolor: 'rgba(255, 255, 255, 0.2)'
-        },
-        legend: {
-            orientation: 'h',
-            y: -0.2
-        },
-        margin: { l: 50, r: 20, b: 50, t: 50, pad: 4 }
+        font: { color: 'var(--text-muted)', family: 'var(--font-family)' },
+        xaxis: { gridcolor: 'var(--glass-border)', zerolinecolor: 'var(--glass-border)', color: 'var(--text-muted)' },
+        yaxis: { gridcolor: 'var(--glass-border)', zerolinecolor: 'var(--glass-border)', color: 'var(--text-muted)' },
+        legend: { orientation: 'h', y: -0.2, font: { color: 'var(--text-muted)' } },
+        margin: { l: 60, r: 30, b: 60, t: 60 },
+        colorway: ['#00bfff', '#ff00ff', '#8A2BE2', '#32CD32', '#FFD700']
     };
 }
 
-</script>
+function copyCode() {
+    const code = document.getElementById('code-block').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = originalText; }, 2000);
+    }, (err) => {
+        console.error('Could not copy text: ', err);
+    });
+}
 
+// --- Initial Animation ---
+gsap.from("#welcome-screen h1", { duration: 1, y: 50, opacity: 0, ease: "power3.out", delay: 0.5 });
+gsap.from("#welcome-screen p", { duration: 1, y: 50, opacity: 0, ease: "power3.out", delay: 0.8 });
+gsap.from("#welcome-screen .btn", { duration: 1, y: 50, opacity: 0, ease: "power3.out", delay: 1.1 });
+
+</script>
 </body>
 </html>
 
