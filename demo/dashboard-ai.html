@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stellar AI | Dashboard Generator</title>
+    <title>Stellar AI | מחולל דשבורדים</title>
     
     <!-- JS Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -14,7 +14,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700&family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
@@ -25,7 +25,7 @@
             --text-muted: #9CA3AF;
             --glass-bg: rgba(15, 23, 42, 0.6);
             --glass-border: rgba(255, 255, 255, 0.1);
-            --font-family: 'Exo 2', sans-serif;
+            --font-family: 'Assistant', 'Exo 2', sans-serif;
         }
 
         * {
@@ -50,7 +50,7 @@
             top: 0;
             left: 0;
             outline: none;
-            z-index: -1;
+            z-index: -1; /* This is crucial for the background */
         }
 
         .container {
@@ -61,6 +61,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            position: relative; /* This is the FIX */
+            z-index: 1; /* This ensures container is above the canvas */
         }
 
         /* --- Screens --- */
@@ -85,6 +87,7 @@
 
         /* --- Welcome Screen --- */
         #welcome-screen h1 {
+            font-family: 'Exo 2', sans-serif;
             font-size: 5rem;
             font-weight: 700;
             letter-spacing: 2px;
@@ -97,7 +100,7 @@
             color: var(--text-muted);
             max-width: 650px;
             margin-bottom: 3rem;
-            line-height: 1.6;
+            line-height: 1.7;
         }
 
         /* --- Question Screen --- */
@@ -129,7 +132,7 @@
             border: 1px solid var(--glass-border);
             border-radius: 12px;
             padding: 1.5rem;
-            text-align: left;
+            text-align: right; /* RTL FIX */
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
             transform-style: preserve-3d;
@@ -140,7 +143,8 @@
         }
         .question-card input { display: none; }
         .question-card label {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
+            font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -205,7 +209,6 @@
             overflow-y: auto;
             padding: 0 2rem;
         }
-        /* Custom scrollbar for results */
         #results-screen::-webkit-scrollbar { width: 8px; }
         #results-screen::-webkit-scrollbar-track { background: transparent; }
         #results-screen::-webkit-scrollbar-thumb { background-color: var(--primary-glow); border-radius: 10px; }
@@ -243,7 +246,7 @@
             border-radius: 16px;
             padding: 1.5rem;
             width: 100%;
-            text-align: left;
+            text-align: left; /* Code should be LTR */
             margin-bottom: 2rem;
         }
         #code-viewer-header {
@@ -270,7 +273,7 @@
         .btn {
             background: transparent;
             color: var(--text-color);
-            font-weight: 600;
+            font-weight: 700;
             font-size: 1.2rem;
             padding: 1rem 2.5rem;
             border: 2px solid var(--primary-glow);
@@ -321,45 +324,45 @@
         <!-- Screen 1: Welcome -->
         <section id="welcome-screen" class="screen active">
             <h1>Stellar AI</h1>
-            <p>Experience the future of data analysis. Transform simple questions into stunning, interactive dashboards powered by AI. Your insights are written in the stars.</p>
-            <button class="btn" onclick="showScreen('question-screen')">Begin Analysis</button>
+            <p>חוו את עתיד ניתוח הנתונים. הפכו שאלות פשוטות לדשבורדים מרהיבים ואינטראקטיביים המופעלים על ידי בינה מלאכותית. התובנות שלכם כתובות בכוכבים.</p>
+            <button class="btn" onclick="showScreen('question-screen')">התחילו בניתוח</button>
         </section>
 
         <!-- Screen 2: Questions -->
         <section id="question-screen" class="screen">
             <div class="glass-panel">
-                <h2>What cosmic insights shall we uncover?</h2>
+                <h2>אילו תובנות קוסמיות נחשוף?</h2>
                 <div class="questions-grid">
                     <div class="question-card" onclick="toggleCheckbox('q1')">
                         <input type="checkbox" id="q1" data-chart="salesTrend">
                         <label for="q1">
                             <span class="custom-checkbox"><span class="checkmark"></span></span>
-                            Reveal the annual sales trajectory
+                            חשוף את מסלול המכירות השנתי
                         </label>
                     </div>
                     <div class="question-card" onclick="toggleCheckbox('q2')">
                         <input type="checkbox" id="q2" data-chart="userDemographics">
                         <label for="q2">
                             <span class="custom-checkbox"><span class="checkmark"></span></span>
-                            Map the galactic user distribution
+                            מפה את התפלגות המשתמשים הגלקטית
                         </label>
                     </div>
                     <div class="question-card" onclick="toggleCheckbox('q3')">
                         <input type="checkbox" id="q3" data-chart="productPerformance">
                         <label for="q3">
                             <span class="custom-checkbox"><span class="checkmark"></span></span>
-                            Analyze the constellation of top products
+                            נתח את קבוצת הכוכבים של המוצרים המובילים
                         </label>
                     </div>
                     <div class="question-card" onclick="toggleCheckbox('q4')">
                         <input type="checkbox" id="q4" data-chart="trafficSource">
                         <label for="q4">
                             <span class="custom-checkbox"><span class="checkmark"></span></span>
-                            Chart the incoming traffic streams
+                            שרטט את זרמי התנועה הנכנסים
                         </label>
                     </div>
                 </div>
-                <button class="btn" onclick="generateDashboard()">Synthesize Dashboard</button>
+                <button class="btn" onclick="generateDashboard()">סנתז דשבורד</button>
             </div>
         </section>
 
@@ -369,20 +372,20 @@
                 <div class="loader-ring"></div>
                 <div class="loader-ring"></div>
             </div>
-            <p>Consulting the data streams...</p>
+            <p>מתייעץ עם זרמי הנתונים...</p>
         </section>
 
         <!-- Screen 4: Results -->
         <section id="results-screen" class="screen">
             <div class="results-header">
-                <h2>Your Dashboard Has Manifested</h2>
-                <button class="btn" onclick="showScreen('question-screen')">Start a New Analysis</button>
+                <h2>הדשבורד שלך התממש</h2>
+                <button class="btn" onclick="showScreen('question-screen')">התחל ניתוח חדש</button>
             </div>
             <div id="dashboard-container"></div>
             <div id="code-viewer-container">
                 <div id="code-viewer-header">
-                    <h3>AI-Generated Python Code</h3>
-                    <button class="copy-btn" onclick="copyCode()">Copy Code</button>
+                    <h3>קוד Python שנוצר על ידי AI</h3>
+                    <button class="copy-btn" onclick="copyCode()">העתק קוד</button>
                 </div>
                 <pre id="code-block"></pre>
             </div>
@@ -484,7 +487,7 @@ function generateDashboard() {
     const selectedCharts = Array.from(document.querySelectorAll('.questions-grid input:checked')).map(cb => cb.dataset.chart);
 
     if (selectedCharts.length === 0) {
-        alert("Please select at least one insight to analyze.");
+        alert("אנא בחר לפחות תובנה אחת לניתוח.");
         return;
     }
 
@@ -519,14 +522,14 @@ function generateDashboard() {
 const chartGenerators = {
     salesTrend: () => {
         const plotFunction = (elementId) => {
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const months = ['ינו', 'פבר', 'מרץ', 'אפר', 'מאי', 'יוני', 'יולי', 'אוג', 'ספט', 'אוק', 'נוב', 'דצמ'];
             const sales = Array.from({length: 12}, (_, i) => 35000 + i * 2000 + Math.random() * 10000);
             const trace = {
                 x: months, y: sales, type: 'scatter', mode: 'lines+markers',
                 marker: { color: 'var(--primary-glow)', size: 8, line: { width: 2, color: '#000' } },
                 line: { color: 'var(--primary-glow)', width: 3 }
             };
-            Plotly.newPlot(elementId, [trace], getPlotlyLayout('Annual Sales Trajectory'), {responsive: true, displaylogo: false});
+            Plotly.newPlot(elementId, [trace], getPlotlyLayout('מסלול מכירות שנתי'), {responsive: true, displaylogo: false});
         };
         const code = `
 # 1. Sales Trend Analysis
@@ -539,11 +542,11 @@ fig_sales.show()`;
     userDemographics: () => {
         const plotFunction = (elementId) => {
             const data = [{
-                values: [45, 25, 15, 10, 5], labels: ['USA', 'Europe', 'Asia', 'LatAm', 'Other'],
+                values: [45, 25, 15, 10, 5], labels: ['ארה"ב', 'אירופה', 'אסיה', 'אמריקה הלטינית', 'אחר'],
                 type: 'pie', hole: .5,
                 marker: { colors: ['#00bfff', '#8A2BE2', '#ff00ff', '#32CD32', '#FFD700'] }
             }];
-            Plotly.newPlot(elementId, data, getPlotlyLayout('Galactic User Distribution'), {responsive: true, displaylogo: false});
+            Plotly.newPlot(elementId, data, getPlotlyLayout('התפלגות משתמשים גלקטית'), {responsive: true, displaylogo: false});
         };
         const code = `
 # 2. User Demographics
@@ -555,13 +558,13 @@ fig_demographics.show()`;
     },
     productPerformance: () => {
         const plotFunction = (elementId) => {
-            const products = ['Pulsar Pen', 'Nebula Notebook', 'Galaxy Glass', 'Comet Cable', 'Astro Adapter'];
+            const products = ['עט פולסאר', 'מחברת ערפילית', 'זכוכית גלקסיה', 'כבל שביט', 'מתאם אסטרו'];
             const revenue = [22000, 18500, 15000, 11500, 8000];
             const trace = {
                 x: products, y: revenue, type: 'bar',
                 marker: { color: revenue, colorscale: 'Plasma', showscale: true }
             };
-            Plotly.newPlot(elementId, [trace], getPlotlyLayout('Top Product Constellation'), {responsive: true, displaylogo: false});
+            Plotly.newPlot(elementId, [trace], getPlotlyLayout('קבוצת המוצרים המובילים'), {responsive: true, displaylogo: false});
         };
         const code = `
 # 3. Top 5 Product Performance
@@ -574,11 +577,11 @@ fig_products.show()`;
     trafficSource: () => {
         const plotFunction = (elementId) => {
             const data = [{
-                values: [60, 25, 15], labels: ['Organic Search', 'Direct', 'Referral'],
+                values: [60, 25, 15], labels: ['חיפוש אורגני', 'ישיר', 'הפניות'],
                 type: 'pie', hole: 0.5,
                 marker: { colors: ['#ff00ff', '#00bfff', '#8A2BE2'] }
             }];
-            Plotly.newPlot(elementId, data, getPlotlyLayout('Incoming Traffic Streams'), {responsive: true, displaylogo: false});
+            Plotly.newPlot(elementId, data, getPlotlyLayout('זרמי תנועה נכנסים'), {responsive: true, displaylogo: false});
         };
         const code = `
 # 4. Website Traffic Sources
@@ -600,7 +603,7 @@ function getPlotlyLayout(title) {
         xaxis: { gridcolor: 'var(--glass-border)', zerolinecolor: 'var(--glass-border)', color: 'var(--text-muted)' },
         yaxis: { gridcolor: 'var(--glass-border)', zerolinecolor: 'var(--glass-border)', color: 'var(--text-muted)' },
         legend: { orientation: 'h', y: -0.2, font: { color: 'var(--text-muted)' } },
-        margin: { l: 60, r: 30, b: 60, t: 60 },
+        margin: { l: 30, r: 60, b: 60, t: 60 }, // RTL margin fix
         colorway: ['#00bfff', '#ff00ff', '#8A2BE2', '#32CD32', '#FFD700']
     };
 }
@@ -610,7 +613,7 @@ function copyCode() {
     navigator.clipboard.writeText(code).then(() => {
         const btn = document.querySelector('.copy-btn');
         const originalText = btn.textContent;
-        btn.textContent = 'Copied!';
+        btn.textContent = 'הועתק!';
         setTimeout(() => { btn.textContent = originalText; }, 2000);
     }, (err) => {
         console.error('Could not copy text: ', err);
