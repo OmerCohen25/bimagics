@@ -3,67 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Data Tapestry | Turn Your Warehouse Into a Teammate</title>
+    <title>DDT | The Intelligent Layer for Google BigQuery</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Roboto+Mono:wght@400&display=swap" rel="stylesheet">
     <style>
         :root {
-            --color-bg: #000000;
-            --color-primary: #00F9B8;
-            --color-secondary: #7E7FFF;
-            --color-text: #EAEAEA;
-            --color-text-muted: #888888;
-            --color-surface: #111111;
-            --color-border: #222222;
-            --glow-primary: 0 0 15px 5px rgba(0, 249, 184, 0.3);
-            --glow-secondary: 0 0 15px 5px rgba(126, 127, 255, 0.3);
+            --color-bg: #0d1117;
+            --color-surface: #161b22;
+            --color-primary: #58a6ff;
+            --color-secondary: #1f6feb;
+            --color-accent: #3fb950;
+            --color-text: #c9d1d9;
+            --color-text-muted: #8b949e;
+            --color-border: #30363d;
+            --glow-primary: 0 0 20px 0px rgba(88, 166, 255, 0.5);
         }
-
-        /* --- Basic Setup --- */
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
         body {
             background-color: var(--color-bg);
             color: var(--color-text);
             font-family: 'Inter', sans-serif;
-            margin: 0;
+            line-height: 1.6;
             overflow-x: hidden;
         }
-
-        /* --- Layout & Typography --- */
         .container {
             width: 90%;
-            max-width: 1100px;
+            max-width: 1000px;
             margin: 0 auto;
-            padding: 120px 0;
+            padding: 100px 0;
             text-align: center;
         }
-        section {
-            border-bottom: 1px solid var(--color-border);
-        }
-        h1, h2, h3 { font-weight: 900; letter-spacing: -0.02em; }
-        h1 { font-size: 4.5rem; color: #fff; margin-bottom: 2rem; line-height: 1.1; }
+        section { border-bottom: 1px solid var(--color-border); }
+        h1, h2, h3 { font-weight: 900; letter-spacing: -0.02em; color: #fff; }
+        h1 { font-size: clamp(2.5rem, 6vw, 4rem); margin-bottom: 1.5rem; line-height: 1.1; }
         h1 span.highlight { color: var(--color-primary); }
-        h2 { font-size: 3rem; color: #fff; margin-bottom: 1.5rem; }
-        p { font-size: 1.25rem; line-height: 1.6; color: var(--color-text-muted); max-width: 750px; margin: 0 auto 2rem auto; }
+        h2 { font-size: clamp(2rem, 5vw, 2.75rem); margin-bottom: 1rem; }
+        p { font-size: clamp(1rem, 2.5vw, 1.15rem); color: var(--color-text-muted); max-width: 650px; margin: 0 auto 2rem auto; }
+        
         .button {
             display: inline-block;
             background-color: var(--color-primary);
-            color: #000;
-            padding: 1rem 2.5rem;
-            border-radius: 50px;
+            color: var(--color-bg);
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
             text-decoration: none;
             font-weight: 700;
-            font-size: 1.1rem;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: var(--glow-primary);
+            font-size: 1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px 0 rgba(0, 118, 255, 0.39);
         }
-        .button:hover { transform: scale(1.05); box-shadow: 0 0 25px 8px rgba(0, 249, 184, 0.4); }
+        .button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px 0 rgba(0, 118, 255, 0.5); }
 
-        /* --- Hero Section --- */
         #hero {
-            height: 100vh;
+            min-height: 90vh;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -71,246 +65,145 @@
             padding: 0;
             overflow: hidden;
         }
-        #hero-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-        }
+        #hero-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.5; }
         .hero-content { position: relative; z-index: 1; }
-        
-        /* --- Problem Section --- */
-        .problem-grid {
-            display: flex;
-            justify-content: space-around;
-            gap: 2rem;
-            margin-top: 4rem;
-        }
-        .problem-card {
-            background: var(--color-surface);
-            padding: 2rem;
-            border: 1px solid var(--color-border);
-            border-radius: 16px;
-            width: 30%;
-        }
-        .problem-card .icon { font-size: 3rem; margin-bottom: 1rem; }
-        .problem-card h3 { font-size: 1.5rem; color: #fff; margin-bottom: 0.5rem; font-weight: 700; }
 
-        /* --- Interactive Demo Section --- */
-        #demo { min-height: 100vh; }
         .demo-window {
-            background: linear-gradient(145deg, #111, #000);
+            background: var(--color-surface);
             border: 1px solid var(--color-border);
-            border-radius: 16px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
             text-align: left;
-            padding: 1.5rem;
             font-family: 'Roboto Mono', monospace;
-            margin-top: 4rem;
-            position: relative;
-            overflow: hidden;
-        }
-        .window-header {
+            margin-top: 3rem;
             display: flex;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
+            flex-direction: column;
+            min-height: 400px;
         }
-        .window-dot { width: 12px; height: 12px; border-radius: 50%; }
-        .window-dot.red { background: #ff5f56; }
-        .window-dot.yellow { background: #ffbd2e; }
-        .window-dot.green { background: #27c93f; }
+        .window-header { display: flex; gap: 0.5rem; padding: 1rem; border-bottom: 1px solid var(--color-border); }
+        .window-dot { width: 12px; height: 12px; border-radius: 50%; background: #444; }
+        .window-content { padding: 1.5rem; flex-grow: 1; }
         
-        .demo-step {
-            display: none; /* Hidden by default */
-            padding: 1rem;
-            border-left: 3px solid var(--color-border);
-            margin-bottom: 2rem;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .demo-step { display: none; }
+        #step1, #step2, #step3 { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; height: 100%;}
+        .demo-step h3 { font-size: 1.5rem; margin-bottom: 1rem; }
+        .demo-step p { font-size: 1rem; max-width: 400px; margin-bottom: 1.5rem; }
 
-        .demo-step h3 { font-size: 1.2rem; color: var(--color-secondary); font-weight: 700; margin-bottom: 1rem; }
-        .demo-step p, .demo-step code { font-size: 1rem; }
-        
-        code.typing-effect {
-            white-space: pre-wrap;
-            display: block;
-            color: var(--color-text);
-        }
-        code .sql-keyword { color: var(--color-secondary); }
-        code .sql-function { color: var(--color-primary); }
-        code .sql-string { color: #F59E0B; }
-        
         .demo-button {
-            background: var(--color-secondary);
+            background: var(--color-accent);
             color: #fff;
             padding: 0.75rem 1.5rem;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            font-family: 'Inter', sans-serif;
             font-weight: 700;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
         }
-        .demo-button:hover { filter: brightness(1.2); }
-        .demo-button:disabled { background: var(--color-border); cursor: not-allowed; }
+        .demo-button:hover { filter: brightness(1.1); }
+        .demo-button:disabled { background: var(--color-border); color: var(--color-text-muted); cursor: not-allowed; }
 
-        /* --- Features Section --- */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 2rem;
-            text-align: left;
-            margin-top: 4rem;
-        }
-        .feature-card {
-            background: linear-gradient(to bottom right, var(--color-surface), #1a1a1a);
-            padding: 2rem;
-            border: 1px solid var(--color-border);
-            border-radius: 16px;
-        }
-        .feature-card h3 { display: flex; align-items: center; gap: 1rem; font-size: 1.5rem; color: #fff; margin-bottom: 1rem; }
-        .feature-card .icon { color: var(--color-primary); }
+        #scan-visualizer { width: 100%; background: #0d1117; border-radius: 8px; padding: 1rem; height: 250px; overflow-y: auto; text-align: left; font-size: 0.9rem; }
+        .scan-line { margin-bottom: 0.25rem; animation: slideIn 0.3s ease-out; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .scan-line .emoji { display: inline-block; width: 20px; }
+        .scan-line .dataset { color: var(--color-primary); }
+        .scan-line .table { color: var(--color-text); }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
 
-        /* --- Footer --- */
-        footer {
-            text-align: center;
-            padding: 4rem 0;
-            border: none;
+        #analysis-visualizer { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; height: 300px; }
+        .analysis-pane { background: #0d1117; border-radius: 8px; padding: 1rem; overflow-y: auto; }
+        .analysis-pane h4 { color: var(--color-text-muted); margin-bottom: 1rem; font-weight: 400; border-bottom: 1px dashed var(--color-border); padding-bottom: 0.5rem;}
+        pre { white-space: pre-wrap; word-wrap: break-word; font-size: 0.85rem; }
+        .sql-keyword { color: var(--color-primary); }
+        .sql-string { color: #d29922; }
+
+        #result-visualizer { text-align: left; }
+        #result-visualizer p { text-align: left; margin: 0 0 1rem 0; }
+        #result-sql { border: 1px solid var(--color-border); background: #010409; padding: 1rem; border-radius: 8px; font-size: 0.9rem;}
+
+        footer { border: none; }
+
+        /* --- Mobile Responsiveness --- */
+        @media (max-width: 768px) {
+            .container { padding: 60px 0; }
+            .demo-window { min-height: 450px; }
+            #analysis-visualizer { grid-template-columns: 1fr; height: 400px; }
+            .button { padding: 0.7rem 1.5rem; }
         }
-        footer p { margin-bottom: 1rem; }
     </style>
 </head>
 <body>
 
     <header id="hero">
         <canvas id="hero-canvas"></canvas>
-        <div class="hero-content">
-            <h1>Your Data Warehouse Is About to Start <span class="highlight">Talking.</span></h1>
-            <p>Stop searching for data. Stop deciphering cryptic queries.
-            The Dynamic Data Tapestry turns your chaotic warehouse into an intelligent teammate you can converse with.</p>
-            <a href="#demo" class="button">Witness the Transformation</a>
+        <div class="hero-content container">
+            <h1>Stop Guessing. Start Knowing.<br>Instant Intelligence for your <span class="highlight">BigQuery</span> Warehouse.</h1>
+            <p>DDT is the intelligent layer that maps your entire BigQuery ecosystem, understands its logic, and lets you converse with it in plain English. Turn chaos into clarity.</p>
+            <a href="#demo" class="button">See The Live Demo</a>
         </div>
     </header>
 
     <main>
-        <section id="problem">
-            <div class="container">
-                <h2>The Silent Struggle of Every Data Team.</h2>
-                <p>You have petabytes of data, but getting clear answers feels like a monumental task. Sound familiar?</p>
-                <div class="problem-grid">
-                    <div class="problem-card">
-                        <div class="icon">❓</div>
-                        <h3>The "What Does This Mean?" Problem</h3>
-                        <p>Hours lost deciphering columns like `tr_fin_v2_final` and untangling decade-old business logic.</p>
-                    </div>
-                    <div class="problem-card">
-                        <div class="icon">🔍</div>
-                        <h3>The Endless Search</h3>
-                        <p>Hunting through hundreds of tables and views to find the one true source of data for your analysis.</p>
-                    </div>
-                    <div class="problem-card">
-                        <div class="icon">💔</div>
-                        <h3>The Trust Deficit</h3>
-                        <p>Lack of confidence in data leads to duplicated efforts, conflicting reports, and flawed decisions.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <section id="demo">
             <div class="container">
-                <h2>From Chaos to Conversation, in 3 Steps.</h2>
-                <p>This isn't just another catalog. This is a living, breathing system that learns your data, understands its logic, and speaks your language. Watch it work.</p>
+                <h2>From Raw Tables to Ready Answers.</h2>
+                <p>Witness how DDT transforms your disconnected BigQuery assets into a cohesive, intelligent whole in three live-simulated steps.</p>
                 
                 <div class="demo-window">
                     <div class="window-header">
-                        <div class="window-dot red"></div>
-                        <div class="window-dot yellow"></div>
-                        <div class="window-dot green"></div>
+                        <div class="window-dot"></div><div class="window-dot"></div><div class="window-dot"></div>
                     </div>
-                    
-                    <div id="demo-content">
-                        <div class="demo-step" id="step1" style="display: block;">
-                            <h3>Step 1: Connect & Map The Chaos</h3>
-                            <p>DDT connects to your warehouse and autonomously traces every table, column, and dependency. No manual input needed.</p>
-                            <code class="typing-effect">> DDT.connect('acme-corp-data-warehouse')</code>
-                            <br><br>
-                            <button class="demo-button" id="demo-btn-1" onclick="runStep1()">Initiate Discovery Scan</button>
+                    <div class="window-content">
+                        
+                        <div class="demo-step" id="step1" style="display: flex;">
+                            <div>
+                                <h3>Step 1: The Discovery Scan</h3>
+                                <p>First, DDT connects to BigQuery and instantly maps every dataset, table, and view. It sees everything.</p>
+                                <button class="demo-button" id="demo-btn-1" onclick="runStep1()">▶️ Initiate Warehouse Scan</button>
+                            </div>
                         </div>
 
                         <div class="demo-step" id="step2">
-                            <h3>Step 2: Understand & Enrich with AI</h3>
-                            <p>It ingests your SQL transformation code and uses an LLM to decipher business logic, calculate lineage, and enrich the catalog with human-readable context.</p>
-                            <code class="typing-effect">> DDT.analyze('dbt_models/marts/finance/')</code>
-                             <br><br>
-                            <button class="demo-button" id="demo-btn-2" onclick="runStep2()">Enrich with Business Logic</button>
+                            <h3>Step 2: Analysis & Enrichment</h3>
+                            <div id="scan-visualizer"></div>
+                            <p style="margin-top: 1.5rem;">Scan complete. Now, DDT analyzes the underlying SQL code to extract business logic and build a map of relationships (lineage).</p>
+                            <button class="demo-button" id="demo-btn-2" onclick="runStep2()">🧠 Analyze & Enrich Assets</button>
                         </div>
-
+                        
                         <div class="demo-step" id="step3">
-                            <h3>Step 3: Converse & Create</h3>
-                            <p>The magic moment. Ask a complex business question in plain English. DDT consults its intelligent catalog and generates perfect, production-ready SQL.</p>
-                            <p><strong>Your Question:</strong></p>
-                            <code>"What were the top 3 product categories by revenue from new customers in Germany last quarter?"</code>
-                            <br><br>
-                            <button class="demo-button" id="demo-btn-3" onclick="runStep3()">Ask DDT & Generate SQL</button>
+                             <h3>Step 3: The Conversation</h3>
+                            <div id="analysis-visualizer">
+                                <div class="analysis-pane">
+                                    <h4>SOURCE CODE: fct_orders.sql</h4>
+                                    <pre id="analysis-sql"></pre>
+                                </div>
+                                <div class="analysis-pane">
+                                    <h4>DDT AI ANALYSIS:</h4>
+                                    <pre id="analysis-result"></pre>
+                                </div>
+                            </div>
+                            <p style="margin-top: 1.5rem;">Analysis complete. Your catalog is now intelligent. Ask a complex question and get perfect, production-ready BigQuery SQL in seconds.</p>
+                             <button class="demo-button" id="demo-btn-3" onclick="runStep3()">💬 Ask a Business Question</button>
                         </div>
                         
                         <div class="demo-step" id="result">
-                           <h3>DDT's Response:</h3>
-                           <p id="result-explanation"></p>
-                           <br>
-                           <code id="result-sql" class="typing-effect"></code>
+                            <div id="result-visualizer">
+                                <p><strong>Your Question:</strong> "Show me the weekly revenue from our top 5 product categories for users who signed up this year."</p>
+                                <p><strong>DDT's Response:</strong> "Understood. I'll join the certified `orders` and `users` tables, filter for users who registered in 2025, and aggregate revenue by week for the top categories. Here is the optimal BigQuery query:"</p>
+                                <div id="result-sql">
+                                    <pre></pre>
+                                </div>
+                            </div>
                         </div>
 
                     </div>
                 </div>
             </div>
         </section>
-        
-        <section id="features">
-            <div class="container">
-                <h2>A New Class of Data Intelligence.</h2>
-                <p>The Dynamic Data Tapestry isn't just a tool; it's a foundational layer for a truly data-driven culture.</p>
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <h3>
-                            <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                            Automated Deep Documentation
-                        </h3>
-                        <p>Goes beyond column names. DDT extracts complex business rules and multi-level lineage directly from your transformation code, creating documentation that's always in sync.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h3>
-                            <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                            Governance That Builds Trust
-                        </h3>
-                        <p>With automated PII detection, certification workflows, and clear data ownership, you can finally build a culture of confidence around your data assets.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h3>
-                             <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                            Natural Language Querying
-                        </h3>
-                        <p>Empower everyone, from junior analysts to executives, to get answers from data. Lower the barrier to entry and accelerate the speed of insight across your organization.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h3>
-                           <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 21.25a8.25 8.25 0 1 0-5.4-2.65L2.75 21l3.3-1.6c.4.15.8.25 1.2.3Z"/><path d="M14 17.75a8.25 8.25 0 1 0-5.4-2.65L6.75 19l3.3-1.6c.4.15.8.25 1.2.3Z"/><path d="M12 3v1M3 12h1M5.6 5.6l.7.7M5.6 18.4l.7-.7"/></svg>
-                            Intelligent Co-pilot for Developers
-                        </h3>
-                        <p>DDT acts as a smart assistant for data engineers. It helps debug complex models, understand the impact of changes, and onboard new team members in record time.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <footer id="contact">
-            <h2>Ready to Start a Conversation with Your Data?</h2>
-            <p>The future of data interaction is here. Stop managing data, and start collaborating with it.</p>
-            <a href="#" class="button">Explore the GitHub Repo</a>
+
+        <footer id="contact" class="container">
+            <h2>Ready to Activate Your Data Warehouse?</h2>
+            <p>Transform your BigQuery instance from a passive data repository into an active, intelligent partner for your entire team.</p>
+            <a href="#" class="button">Explore on GitHub</a>
         </footer>
     </main>
 
@@ -319,164 +212,72 @@
 const canvas = document.getElementById('hero-canvas');
 const ctx = canvas.getContext('2d');
 let particles = [];
-let connections = [];
-let target = null;
-
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 class Particle {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.size = Math.random() * 2 + 1;
-        this.vx = (Math.random() - 0.5) * 0.5;
-        this.vy = (Math.random() - 0.5) * 0.5;
-        this.baseX = x;
-        this.baseY = y;
-        this.density = (Math.random() * 30) + 1;
-        this.isNode = false;
+    constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 1.5 + 1;
+        this.vx = (Math.random() - 0.5) * 0.3;
+        this.vy = (Math.random() - 0.5) * 0.3;
     }
     update() {
-        if (target) {
-            let dx = target.x - this.x;
-            let dy = target.y - this.y;
-            this.x += dx * 0.03;
-            this.y += dy * 0.03;
-        } else {
-            this.x += this.vx;
-            this.y += this.vy;
-            if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
-            if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
-        }
+        this.x += this.vx; this.y += this.vy;
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
     }
     draw() {
-        ctx.fillStyle = this.isNode ? 'rgba(0, 249, 184, 1)' : 'rgba(255, 255, 255, 0.5)';
+        ctx.fillStyle = 'rgba(88, 166, 255, 0.5)';
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.closePath();
         ctx.fill();
     }
 }
-
 function initCanvas() {
     particles = [];
-    for (let i = 0; i < 200; i++) {
-        particles.push(new Particle(Math.random() * canvas.width, Math.random() * canvas.height));
-    }
+    let particleCount = (canvas.width * canvas.height) / 20000;
+    for (let i = 0; i < particleCount; i++) { particles.push(new Particle()); }
 }
-
-function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let i = 0; i < particles.length; i++) {
-        particles[i].update();
-        particles[i].draw();
-    }
-    for (const conn of connections) {
-        ctx.beginPath();
-        ctx.moveTo(conn.p1.x, conn.p1.y);
-        ctx.lineTo(conn.p2.x, conn.p2.y);
-        ctx.strokeStyle = 'rgba(0, 249, 184, 0.2)';
-        ctx.lineWidth = 0.5;
-        ctx.stroke();
-    }
-    requestAnimationFrame(animate);
-}
-
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-initCanvas();
-animate();
-
-// --- Scroll-based interaction for hero animation ---
-const heroSection = document.getElementById('hero');
-let isStructured = false;
-
-window.addEventListener('scroll', () => {
-    const scrollPosition = window.scrollY;
-    if (scrollPosition > heroSection.offsetHeight / 3 && !isStructured) {
-        structureParticles();
-        isStructured = true;
-    } else if (scrollPosition <= heroSection.offsetHeight / 3 && isStructured) {
-        destructureParticles();
-        isStructured = false;
-    }
-});
-
-function structureParticles() {
-    connections = [];
-    const nodeCount = 15;
-    const structureRadius = Math.min(canvas.width, canvas.height) * 0.25;
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-
-    for (let i = 0; i < particles.length; i++) {
-        if (i < nodeCount) {
-            const angle = (i / nodeCount) * Math.PI * 2;
-            particles[i].targetX = centerX + Math.cos(angle) * structureRadius * (0.5 + Math.random() * 0.5);
-            particles[i].targetY = centerY + Math.sin(angle) * structureRadius * (0.5 + Math.random() * 0.5);
-            particles[i].isNode = true;
-            particles[i].size = 4;
-        } else {
-            const randomNode = particles[Math.floor(Math.random() * nodeCount)];
-            particles[i].targetX = randomNode.targetX + (Math.random() - 0.5) * 100;
-            particles[i].targetY = randomNode.targetY + (Math.random() - 0.5) * 100;
-            particles[i].isNode = false;
-             particles[i].size = 2;
-        }
-    }
-    
-    // Create connections
-    for(let i=0; i < nodeCount; i++) {
-        for(let j=i+1; j < nodeCount; j++) {
-            if (Math.random() > 0.6) {
-                connections.push({p1: particles[i], p2: particles[j]});
+function connectParticles() {
+    let opacityValue = 1;
+    for (let a of particles) {
+        for (let b of particles) {
+            let distance = Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
+            if (distance < 120) {
+                opacityValue = 1 - (distance / 120);
+                ctx.strokeStyle = `rgba(88, 166, 255, ${opacityValue})`;
+                ctx.lineWidth = 0.5;
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(b.x, b.y);
+                ctx.stroke();
             }
         }
     }
-    
-    particles.forEach(p => {
-        const move = () => {
-            let dx = p.targetX - p.x;
-            let dy = p.targetY - p.y;
-            if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) return;
-            p.x += dx * 0.05;
-            p.y += dy * 0.05;
-            requestAnimationFrame(move);
-        };
-        move();
-    });
 }
-
-function destructureParticles() {
-    connections = [];
-    particles.forEach(p => {
-        p.isNode = false;
-        p.size = Math.random() * 2 + 1;
-        p.vx = (Math.random() - 0.5) * 0.5;
-        p.vy = (Math.random() - 0.5) * 0.5;
-    });
-    
-    particles.forEach(p => {
-        const move = () => {
-            p.x += p.vx;
-            p.y += p.vy;
-            if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-            if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-        };
-        // No need for raf here, the main loop handles it
-    });
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let p of particles) { p.update(); p.draw(); }
+    connectParticles();
+    requestAnimationFrame(animate);
 }
+window.addEventListener('resize', () => { resizeCanvas(); initCanvas(); });
+resizeCanvas(); initCanvas(); animate();
 
 // --- Interactive Demo Logic ---
-const demoSteps = document.querySelectorAll('.demo-step');
-const demoButtons = document.querySelectorAll('.demo-button');
-
-function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-
-async function typeEffect(element, text, speed = 50) {
+const demoSteps = {
+    step1: document.getElementById('step1'),
+    step2: document.getElementById('step2'),
+    step3: document.getElementById('step3'),
+    result: document.getElementById('result')
+};
+const demoButtons = {
+    btn1: document.getElementById('demo-btn-1'),
+    btn2: document.getElementById('demo-btn-2'),
+    btn3: document.getElementById('demo-btn-3')
+};
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+async function typeEffect(element, text, speed = 10) {
     element.innerHTML = "";
     for (let i = 0; i < text.length; i++) {
         element.innerHTML += text.charAt(i);
@@ -485,80 +286,108 @@ async function typeEffect(element, text, speed = 50) {
 }
 
 async function runStep1() {
-    const btn = document.getElementById('demo-btn-1');
-    btn.disabled = true;
-    btn.textContent = 'Scanning...';
-    await sleep(2000);
-    document.getElementById('step1').style.display = 'none';
-    document.getElementById('step2').style.display = 'block';
+    demoButtons.btn1.disabled = true;
+    demoButtons.btn1.textContent = 'Scanning...';
+    demoSteps.step1.style.display = 'none';
+    demoSteps.step2.style.display = 'flex';
+    
+    const scanVisualizer = document.getElementById('scan-visualizer');
+    scanVisualizer.innerHTML = '';
+    const mockAssets = [
+        { type: 'dataset', name: 'marketing_analytics' },
+        { type: 'table', name: 'fct_campaign_performance' },
+        { type: 'table', name: 'dim_ad_spend' },
+        { type: 'dataset', name: 'finance' },
+        { type: 'table', name: 'fct_orders' },
+        { type: 'table', name: 'fct_revenue_daily' },
+        { type: 'dataset', name: 'product_data' },
+        { type: 'table', name: 'dim_products' },
+        { type: 'table', name: 'dim_users' },
+        { type: 'view', name: 'vw_top_selling_products' }
+    ];
+
+    for (const asset of mockAssets) {
+        let line = document.createElement('div');
+        line.className = 'scan-line';
+        if (asset.type === 'dataset') {
+            line.innerHTML = `<span class="emoji">🗂️</span> Discovering Dataset: <span class="dataset">${asset.name}</span>`;
+        } else {
+            line.innerHTML = `<span class="emoji">📄</span> Mapping Asset: <span class="table">${asset.name}</span>`;
+        }
+        scanVisualizer.appendChild(line);
+        scanVisualizer.scrollTop = scanVisualizer.scrollHeight;
+        await sleep(250);
+    }
 }
 
 async function runStep2() {
-    const btn = document.getElementById('demo-btn-2');
-    btn.disabled = true;
-    btn.textContent = 'Analyzing...';
-    await sleep(2500);
-    document.getElementById('step2').style.display = 'none';
-    document.getElementById('step3').style.display = 'block';
+    demoButtons.btn2.disabled = true;
+    demoButtons.btn2.textContent = 'Analyzing...';
+    await sleep(500);
+    demoSteps.step2.style.display = 'none';
+    demoSteps.step3.style.display = 'flex';
+
+    const sqlPane = document.getElementById('analysis-sql');
+    const resultPane = document.getElementById('analysis-result');
+    
+    sqlPane.textContent = `
+-- models/finance/fct_orders.sql
+SELECT
+  o.order_id,
+  o.customer_id,
+  p.product_category,
+  o.order_timestamp,
+  (p.price * o.quantity) AS revenue
+FROM \`raw.orders\` o
+JOIN \`raw.products\` p 
+  ON o.product_id = p.product_id
+WHERE o.status != 'cancelled'
+    `;
+    
+    const analysisText = `
+- SOURCE: \`raw.orders\`
+- SOURCE: \`raw.products\`
+- LINEAGE: column 'revenue' is derived from 'price' * 'quantity'.
+- BUSINESS RULE: Excludes orders with 'cancelled' status.
+- PII DETECTED: 'customer_id' flagged as sensitive.
+    `;
+    await typeEffect(resultPane, 'Analyzing SQL...\n\nDone.\n\n--- EXTRACTED METADATA ---\n' + analysisText, 20);
 }
 
 async function runStep3() {
-    const btn = document.getElementById('demo-btn-3');
-    btn.disabled = true;
-    btn.textContent = 'Consulting AI...';
-    await sleep(3000);
-    document.getElementById('step3').style.display = 'none';
-    document.getElementById('result').style.display = 'block';
+    demoButtons.btn3.disabled = true;
+    demoButtons.btn3.textContent = 'Generating Query...';
+    await sleep(500);
+    demoSteps.step3.style.display = 'none';
+    demoSteps.result.style.display = 'block';
 
-    const explanationEl = document.getElementById('result-explanation');
-    const sqlEl = document.getElementById('result-sql');
-
-    const explanationText = "Of course. To find this, I'll join the certified 'sales' and 'customers' tables, filter for customers whose first order was last quarter, isolate sales from Germany, and then group by product category. Here is the optimal query for your warehouse:";
-    
-    const sqlText = `<span class="sql-keyword">WITH</span> new_customers <span class="sql-keyword">AS</span> (
-  <span class="sql-keyword">SELECT</span> customer_id
-  <span class="sql-keyword">FROM</span> \`acme-corp.marketing_marts.dim_customers\`
-  <span class="sql-keyword">WHERE</span> <span class="sql-function">DATE_TRUNC</span>(first_order_date, QUARTER) = <span class="sql-function">DATE_TRUNC</span>(<span class="sql-function">CURRENT_DATE</span>(), QUARTER) - <span class="sql-keyword">INTERVAL</span> 1 QUARTER
+    const sqlResultEl = document.querySelector('#result-sql pre');
+    const sqlText =
+`-- Generated by DDT AI
+<span class="sql-keyword">WITH</span> user_signups <span class="sql-keyword">AS</span> (
+  <span class="sql-keyword">SELECT</span> user_id <span class="sql-keyword">FROM</span> \`product_data.dim_users\`
+  <span class="sql-keyword">WHERE</span> EXTRACT(YEAR <span class="sql-keyword">FROM</span> signup_date) = 2025
 ),
-
-sales_data <span class="sql-keyword">AS</span> (
-  <span class="sql-keyword">SELECT</span>
-    s.product_category,
-    s.sale_amount_usd
-  <span class="sql-keyword">FROM</span> \`acme-corp.finance_marts.fct_sales\` s
-  <span class="sql-keyword">JOIN</span> new_customers nc <span class="sql-keyword">ON</span> s.customer_id = nc.customer_id
-  <span class="sql-keyword">WHERE</span> s.customer_country = <span class="sql-string">'DE'</span>
+top_categories <span class="sql-keyword">AS</span> (
+  <span class="sql-keyword">SELECT</span> product_category <span class="sql-keyword">FROM</span> \`finance.fct_orders\` <span class="sql-keyword">GROUP BY</span> 1 <span class="sql-keyword">ORDER BY</span> SUM(revenue) <span class="sql-keyword">DESC LIMIT</span> 5
 )
-
 <span class="sql-keyword">SELECT</span>
+  DATE_TRUNC(order_timestamp, WEEK) <span class="sql-keyword">AS</span> sales_week,
   product_category,
-  <span class="sql-function">SUM</span>(sale_amount_usd) <span class="sql-keyword">AS</span> total_revenue
-<span class="sql-keyword">FROM</span> sales_data
-<span class="sql-keyword">GROUP BY</span> 1
-<span class="sql-keyword">ORDER BY</span> 2 <span class="sql-keyword">DESC</span>
-<span class="sql-keyword">LIMIT</span> 3;`;
+  SUM(revenue) <span class="sql-keyword">AS</span> weekly_revenue
+<span class="sql-keyword">FROM</span> \`finance.fct_orders\`
+<span class="sql-keyword">WHERE</span> customer_id <span class="sql-keyword">IN</span> (<span class="sql-keyword">SELECT</span> user_id <span class="sql-keyword">FROM</span> user_signups)
+  <span class="sql-keyword">AND</span> product_category <span class="sql-keyword">IN</span> (<span class="sql-keyword">SELECT</span> product_category <span class="sql-keyword">FROM</span> top_categories)
+<span class="sql-keyword">GROUP BY</span> 1, 2
+<span class="sql-keyword">ORDER BY</span> 1, 3 <span class="sql-keyword">DESC</span>;`;
     
-    await typeEffect(explanationEl, explanationText, 30);
-    sqlEl.innerHTML = sqlText; // Show SQL immediately for impact
+    // Using innerHTML to render styled spans
+    sqlResultEl.innerHTML = '';
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = sqlText;
+    await typeEffect(sqlResultEl, tempDiv.textContent, 5);
+    sqlResultEl.innerHTML = sqlText;
 }
-
-// --- Reveal on Scroll ---
-const sections = document.querySelectorAll('section');
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = 1;
-            entry.target.style.transform = 'translateY(0)';
-        }
-    });
-}, { threshold: 0.1 });
-
-sections.forEach(section => {
-    section.style.opacity = 0;
-    section.style.transform = 'translateY(50px)';
-    section.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
-    observer.observe(section);
-});
 </script>
 
 </body>
