@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Data Tapestry (DDT) - הדגמה חיה</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #111827;
+            --surface-color: #1F2937;
+            --primary-color: #38BDF8;
+            --text-color: #E5E7EB;
+            --text-secondary-color: #9CA3AF;
+            --border-color: #374151;
+            --success-color: #34D399;
+            --warning-color: #FBBF24;
+            --error-color: #F87171;
+            --info-color: #60A5FA;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        header {
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 10px;
+        }
+        
+        header h1 .highlight {
+            color: var(--primary-color);
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: var(--text-secondary-color);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        #config-form .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--text-secondary-color);
+        }
+
+        input, textarea {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text-color);
+            font-family: 'Heebo', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: 'Fira Code', 'Courier New', monospace;
+        }
+
+        #submit-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: var(--bg-color);
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #submit-btn:hover {
+            background-color: #60A5FA;
+        }
+        
+        #submit-btn:disabled {
+            background-color: var(--border-color);
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-top-color: var(--bg-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #process-view, #results-view {
+            display: none;
+        }
+
+        #logs-container {
+            background-color: #000;
+            border-radius: 8px;
+            padding: 20px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .log-line {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 8px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .log-line .icon { font-weight: bold; }
+        .log-line .icon.success { color: var(--success-color); }
+        .log-line .icon.info { color: var(--info-color); }
+        .log-line .icon.warning { color: var(--warning-color); }
+        
+        .result-section { margin-bottom: 30px; }
+        .result-section h3 {
+            font-size: 1.5rem;
+            color: white;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        #table-description { font-style: italic; color: var(--text-secondary-color); }
+        
+        .columns-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .columns-table th, .columns-table td {
+            padding: 12px 15px;
+            text-align: right;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .columns-table th {
+            font-weight: 500;
+            color: var(--text-secondary-color);
+            font-size: 0.9rem;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .badge-pii { background-color: var(--error-color); color: white; }
+        .badge-internal { background-color: var(--warning-color); color: #111827; }
+        .badge-verified { background-color: var(--success-color); color: #111827; }
+        .badge-generated { background-color: var(--info-color); color: #111827; }
+        
+        .lineage-box {
+            background-color: var(--bg-color);
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .lineage-box h4 {
+            color: var(--text-secondary-color);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+        
+        pre {
+            background-color: #000;
+            padding: 15px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #d1d5db;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            #config-form .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>מארג נתונים דינמי <span class="highlight">(DDT)</span></h1>
+            <p>הדגמה חיה של מתודולוגיית תיעוד אוטומטית וחכמה לדאטה וורהאוס. הזן את פרטי הטבלה, צפה בתהליך קורה בזמן אמת, וקבל תיעוד מקיף ומרהיב.</p>
+        </header>
+
+        <div id="config-view" class="card">
+            <form id="config-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="project-id">GCP Project ID</label>
+                        <input type="text" id="project-id" value="my-gcp-project-123" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dataset-id">BigQuery Dataset ID</label>
+                        <input type="text" id="dataset-id" value="marketing_marts" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="table-id">BigQuery Table ID</label>
+                        <input type="text" id="table-id" value="fct_user_sessions" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="api-key">Gemini API Key</label>
+                        <input type="password" id="api-key" value="ABcd123_thisIsASimulation" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="sql-code">קוד SQL (dbt Model) - אופציונלי לסבב 3</label>
+                        <textarea id="sql-code" placeholder="הדבק כאן את קוד ה-SQL שיוצר את הטבלה..."></textarea>
+                    </div>
+                </div>
+                <button type="submit" id="submit-btn">
+                    <span id="btn-text">התחל בתהליך התיעוד</span>
+                    <div id="btn-spinner" class="spinner" style="display: none;"></div>
+                </button>
+            </form>
+        </div>
+
+        <div id="process-view" class="card">
+            <h2>יומן תהליך התיעוד</h2>
+            <div id="logs-container"></div>
+        </div>
+        
+        <div id="results-view" class="card">
+            <div class="result-section">
+                <h3><span id="result-table-name"></span> - סיכום ותיאור</h3>
+                <p id="table-description"></p>
+            </div>
+
+            <div class="result-section">
+                <h3>🛡️ סיווג אבטחה</h3>
+                <div id="security-tags"></div>
+            </div>
+
+            <div class="result-section">
+                <h3>📊 תיעוד עמודות</h3>
+                <table class="columns-table">
+                    <thead>
+                        <tr>
+                            <th>שם העמודה</th>
+                            <th>סוג</th>
+                            <th>תיאור</th>
+                            <th>סטטוס</th>
+                        </tr>
+                    </thead>
+                    <tbody id="columns-tbody"></tbody>
+                </table>
+            </div>
+            
+            <div id="lineage-section" class="result-section" style="display:none;">
+                <h3>🔗 מקורות ולוגיקה עסקית (מניתוח קוד)</h3>
+                 <div class="lineage-box">
+                    <h4>טבלאות מקור:</h4>
+                    <p id="source-tables"></p>
+                    <h4 style="margin-top: 20px;">לוגיקה עסקית:</h4>
+                    <p id="business-logic"></p>
+                    <h4 style="margin-top: 20px;">חישוב עמודות מרכזיות:</h4>
+                    <pre id="column-lineage"></pre>
+                 </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const configForm = document.getElementById('config-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const btnText = document.getElementById('btn-text');
+        const btnSpinner = document.getElementById('btn-spinner');
+        
+        const configView = document.getElementById('config-view');
+        const processView = document.getElementById('process-view');
+        const resultsView = document.getElementById('results-view');
+        const logsContainer = document.getElementById('logs-container');
+
+        // --- Event Listener ---
+        configForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // UI State update
+            submitBtn.disabled = true;
+            btnText.textContent = 'בתהליך...';
+            btnSpinner.style.display = 'block';
+            configView.style.display = 'none';
+            resultsView.style.display = 'none';
+            processView.style.display = 'block';
+            logsContainer.innerHTML = '';
+            
+            // --- SIMULATION START ---
+            await runDocumentationSimulation();
+            
+            // UI state update
+            submitBtn.disabled = false;
+            btnText.textContent = 'התחל מחדש';
+            btnSpinner.style.display = 'none';
+            configView.style.display = 'block';
+        });
+
+        // --- Simulation Logic ---
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function logMessage(text, status) {
+            const icons = {
+                info: 'ℹ️',
+                success: '✅',
+                warning: '🛡️',
+                process: '⚙️'
+            };
+            const icon = icons[status] || '➡️';
+            const colorClass = status || '';
+
+            const line = document.createElement('div');
+            line.className = `log-line`;
+            line.innerHTML = `<span class="icon ${colorClass}">${icon}</span> <span class="text">${text}</span>`;
+            logsContainer.appendChild(line);
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
+
+        async function runDocumentationSimulation() {
+            const projectId = document.getElementById('project-id').value;
+            const datasetId = document.getElementById('dataset-id').value;
+            const tableId = document.getElementById('table-id').value;
+            const sqlCode = document.getElementById('sql-code').value;
+
+            // Mock schema based on a plausible table name
+            const mockSchema = [
+                { name: 'session_id', type: 'STRING' },
+                { name: 'user_id', type: 'INTEGER' },
+                { name: 'user_email', type: 'STRING' },
+                { name: 'session_start_ts', type: 'TIMESTAMP' },
+                { name: 'duration_seconds', type: 'INTEGER' },
+                { name: 'country_code', type: 'STRING' },
+                { name: 'revenue_generated_usd', type: 'FLOAT64' },
+            ];
+
+            // Round 0: Security
+            logMessage('מתחיל תהליך תיעוד...', 'info');
+            await sleep(1000);
+            logMessage('סבב 0: סריקת אבטחה וזיהוי PII...', 'warning');
+            await sleep(1500);
+            const securityResult = {
+                "user_email": "Strictly_Confidential_PII",
+                "user_id": "Internal"
+            };
+            logMessage('סריקת האבטחה הושלמה.', 'success');
+            
+            // Round 1: Discovery
+            await sleep(1000);
+            logMessage('סבב 1: גילוי ראשוני ויצירת טיוטה מהסכמה...', 'process');
+            await sleep(2000);
+            const discoveryResult = {
+                table_description: "טבלה זו מכילה ככל הנראה מידע על סשנים של משתמשים בפלטפורמה, כולל פרטי זמן, משך, ונתונים נוספים.",
+                columns: {
+                    'session_id': { description: 'מזהה ייחודי של הסשן.', confidence: 5, status: 'Generated' },
+                    'user_id': { description: 'מזהה המשתמש.', confidence: 4, status: 'Generated' },
+                    'user_email': { description: 'כתובת האימייל של המשתמש.', confidence: 5, status: 'Generated' },
+                    'session_start_ts': { description: 'זמן התחלת הסשן.', confidence: 4, status: 'Generated' },
+                    'duration_seconds': { description: 'משך הסשן בשניות.', confidence: 5, status: 'Generated' },
+                    'country_code': { description: 'קוד המדינה.', confidence: 3, status: 'Generated' },
+                    'revenue_generated_usd': { description: 'הכנסה בדולרים.', confidence: 3, status: 'Generated' }
+                }
+            };
+            logMessage('טיוטה ראשונית נוצרה.', 'success');
+            
+            // Round 2: Profiling
+            await sleep(1000);
+            logMessage('סבב 2: העמקה באמצעות פרופיילינג של הדאטה...', 'process');
+            await sleep(2500);
+            discoveryResult.columns.revenue_generated_usd.description = "הכנסה שנוצרה במהלך הסשן בדולרים. **אימות נתונים:** נמצאו ערכים חיוביים בלבד, 12% מהרשומות עם ערך NULL.";
+            discoveryResult.columns.revenue_generated_usd.status = "Data Verified";
+             discoveryResult.columns.country_code.description = "קוד המדינה בן 2 תווים (ISO 3166-1 alpha-2) ממנו התבצע הסשן. **אימות נתונים:** ערכים נפוצים: US, DE, IL.";
+            discoveryResult.columns.country_code.status = "Data Verified";
+            logMessage('העשרת התיעוד עם תובנות מהדאטה הושלמה.', 'success');
+
+            // Round 3: Code Analysis
+            let lineageResult = null;
+            if (sqlCode.trim() !== "") {
+                 await sleep(1000);
+                 logMessage('סבב 3: ניתוח קוד SQL לאיתור מקורות ולוגיקה עסקית...', 'process');
+                 await sleep(3000);
+                 lineageResult = {
+                     source_tables: ["stg_app_events", "dim_users"],
+                     business_logic: "איגוד נתוני אירועים מהאפליקציה עם נתוני משתמשים דמוגרפיים כדי ליצור טבלת עובדות מסוכמת לכל סשן. מסנן החוצה סשנים קצרים מ-5 שניות.",
+                     column_lineage: {
+                         session_id: "נוצר על ידי שרשור user_id ו-session_start_ts.",
+                         revenue_generated_usd: "סכום של כל אירועי 'purchase' שהתרחשו במהלך הסשן."
+                     }
+                 };
+                 logMessage('ניתוח קוד המקור הושלם בהצלחה.', 'success');
+            } else {
+                 await sleep(500);
+                 logMessage('סבב 3: מדלג על ניתוח קוד (לא סופק קוד SQL).', 'info');
+            }
+            
+            await sleep(1500);
+            logMessage('תהליך התיעוד הסתיים! מציג את התוצאות...', 'success');
+            
+            // Render final results
+            renderResults({
+                tableFullName: `${projectId}.${datasetId}.${tableId}`,
+                schema: mockSchema,
+                security: securityResult,
+                documentation: discoveryResult,
+                lineage: lineageResult
+            });
+            processView.style.display = 'none';
+            resultsView.style.display = 'block';
+        }
+        
+        // --- UI Rendering ---
+        function renderResults(data) {
+            document.getElementById('result-table-name').textContent = data.tableFullName;
+            document.getElementById('table-description').textContent = data.documentation.table_description;
+            
+            // Security Tags
+            const securityContainer = document.getElementById('security-tags');
+            securityContainer.innerHTML = '';
+            for (const [col, tag] of Object.entries(data.security)) {
+                const badgeClass = tag === 'Strictly_Confidential_PII' ? 'badge-pii' : 'badge-internal';
+                securityContainer.innerHTML += `<span><strong>${col}:</strong> <span class="badge ${badgeClass}">${tag}</span></span> &nbsp; &nbsp;`;
+            }
+
+            // Columns Table
+            const columnsTbody = document.getElementById('columns-tbody');
+            columnsTbody.innerHTML = '';
+            for (const colSchema of data.schema) {
+                const colName = colSchema.name;
+                const colDoc = data.documentation.columns[colName];
+                const status = colDoc ? colDoc.status : 'Generated';
+                const badgeClass = status === 'Data Verified' ? 'badge-verified' : 'badge-generated';
+
+                const row = `
+                    <tr>
+                        <td><strong>${colName}</strong></td>
+                        <td>${colSchema.type}</td>
+                        <td>${colDoc ? colDoc.description : 'N/A'}</td>
+                        <td><span class="badge ${badgeClass}">${status}</span></td>
+                    </tr>
+                `;
+                columnsTbody.innerHTML += row;
+            }
+            
+            // Lineage
+            const lineageSection = document.getElementById('lineage-section');
+            if (data.lineage) {
+                lineageSection.style.display = 'block';
+                document.getElementById('source-tables').textContent = data.lineage.source_tables.join(', ');
+                document.getElementById('business-logic').textContent = data.lineage.business_logic;
+                document.getElementById('column-lineage').textContent = JSON.stringify(data.lineage.column_lineage, null, 2);
+            } else {
+                lineageSection.style.display = 'none';
+            }
+        }
+    </script>
+
+</body>
+</html>
