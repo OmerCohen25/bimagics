@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live AI Developer Demo</title>
+    <style>
+        /* --- Basic Setup & Fonts --- */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f2f5;
+            overflow: hidden;
+        }
+
+        /* --- Main Layout --- */
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .chat-panel {
+            width: 40%;
+            height: 100%;
+            background-color: #ffffff;
+            border-right: 1px solid #d1d1d1;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0px 10px rgba(0,0,0,0.05);
+        }
+
+        .output-panel {
+            width: 60%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* --- Panel Headers --- */
+        .panel-header {
+            padding: 16px;
+            background-color: #075E54;
+            color: white;
+            font-size: 18px;
+            font-weight: 500;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        
+        /* --- Chat Window Styling --- */
+        .chat-window {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #E5DDD5;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAARMAAAARCAYAAABIz3DMAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOwgAADsIBFShKgAAAAHhJREFUOE9jZGBgYJjAwMDAgAYh//+hYf5gYOD/A/F/PhjAPDAwGACYwYABAwYMGDBgwIABAwYMGDBgwIABAwYMGDBgwIABAwYMGDBgwIABAwYMGDBgwIABAwYMGDBgwIABAwYMGDBgYOD/HwzS3QyMGBgYGL4A4h8WJgZGBgYGBkYtbACq8xZ5p07k1wAAAABJRU5ErkJggg==');
+        }
+
+        .chat-message {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            max-width: 85%;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .message-bubble {
+            padding: 10px 15px;
+            border-radius: 18px;
+            color: #111b21;
+            line-height: 1.4;
+        }
+        
+        .agent-name {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            padding: 0 5px;
+        }
+        
+        .message-bubble p {
+            margin: 0;
+        }
+
+        /* --- Agent Specific Styles --- */
+        .visionary { align-items: flex-start; }
+        .visionary .message-bubble { background-color: #dcf8c6; border-top-left-radius: 0; }
+        .visionary .agent-name { color: #25D366; }
+
+        .architect { align-items: flex-start; }
+        .architect .message-bubble { background-color: #ffffff; border-top-left-radius: 0; }
+        .architect .agent-name { color: #34B7F1; }
+        
+        .coder { align-items: flex-start; }
+        .coder .message-bubble { background-color: #FCEFF7; border-top-left-radius: 0; }
+        .coder .agent-name { color: #9C27B0; }
+        
+        .player { align-items: flex-start; }
+        .player .message-bubble { background-color: #FFF3C4; border-top-left-radius: 0; }
+        .player .agent-name { color: #FFC107; }
+
+        /* --- Output Iframe Styling --- */
+        .output-iframe {
+            flex-grow: 1;
+            border: none;
+            background-color: white;
+            transition: opacity 0.5s ease-in-out;
+        }
+        
+        /* --- Animations --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="chat-panel">
+            <div class="panel-header">🤖 AI Development Team</div>
+            <div class="chat-window" id="chat-window">
+                </div>
+        </div>
+
+        <div class="output-panel">
+            <div class="panel-header">🚀 Live Product</div>
+            <iframe class="output-iframe" id="output-iframe" title="Live Output"></iframe>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const chatWindow = document.getElementById('chat-window');
+        const outputIframe = document.getElementById('output-iframe');
+
+        // --- State Management ---
+        const projectState = {
+            code: "",
+            history: [],
+        };
+        
+        // --- Utility Functions ---
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        function addMessageToChat(agent, message) {
+            const agentMap = {
+                visionary: { name: '💡 Visionary', class: 'visionary' },
+                architect: { name: '📐 Architect', class: 'architect' },
+                coder: { name: '💻 Coder', class: 'coder' },
+                player: { name: '🕹️ Player Bot', class: 'player' }
+            };
+
+            const agentInfo = agentMap[agent];
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = `chat-message ${agentInfo.class}`;
+            
+            messageElement.innerHTML = `
+                <div class="agent-name">${agentInfo.name}</div>
+                <div class="message-bubble">
+                    <p>${message}</p>
+                </div>
+            `;
+            
+            chatWindow.appendChild(messageElement);
+            chatWindow.scrollTop = chatWindow.scrollHeight; // Auto-scroll
+        }
+        
+        function updateIframe(newCode) {
+            outputIframe.srcdoc = newCode;
+        }
+
+        // --- Mock AI Agents ---
+        // In a real system, these would make API calls to Gemini.
+        // Here, they return pre-defined responses to simulate the process.
+        
+        async function visionaryAgent(history) {
+            await sleep(1500); // Simulate thinking
+            if (history.length === 0) {
+                return "Let's start with a bold, welcoming landing page. Just a title and a short, inspiring subtitle.";
+            }
+            if (history.length === 1) {
+                return "Good start. Now, let's add a call-to-action button below the text. Make it stand out.";
+            }
+            if (history.length === 2) {
+                return "The button is there, but it doesn't do anything. Let's make it show an alert message when clicked.";
+            }
+            return "Project looks good. Let's add a footer with some copyright information to make it look complete.";
+        }
+        
+        async function architectAgent(goal) {
+            await sleep(1000); // Simulate planning
+            if (goal.includes("title and a short, inspiring subtitle")) {
+                return `Create a basic HTML structure. Use an \`<h1>\` for the main title and a \`<p>\` for the subtitle. Center everything and give it a nice, clean font.`;
+            }
+            if (goal.includes("call-to-action button")) {
+                return `Add a \`<button>\` element below the subtitle. Style it with a strong background color, white text, and rounded corners to make it pop.`;
+            }
+            if (goal.includes("alert message")) {
+                return `Add an inline \`onclick\` JavaScript event to the button that triggers \`alert('Welcome to the future!');\`.`;
+            }
+            if (goal.includes("footer with some copyright")) {
+                return `Add a \`<footer>\` element at the bottom of the page. Place a paragraph inside with the text '© 2025 AI Systems Inc.' and style it to be subtle.`;
+            }
+        }
+        
+        async function coderAgent(task, currentCode) {
+            await sleep(2000); // Simulate coding
+            let newCode = "";
+            if (task.includes("title and a short, inspiring subtitle")) {
+                newCode = `
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <style>
+                            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+                            body { font-family: 'Poppins', sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; background: linear-gradient(135deg, #667eea, #764ba2); color: white; text-align: center; }
+                            h1 { font-size: 3.5rem; margin-bottom: 0.5rem; }
+                            p { font-size: 1.2rem; max-width: 600px; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>The Future is Now</h1>
+                        <p>Discover how autonomous AI agents are building the web of tomorrow, live before your eyes.</p>
+                    </body>
+                    </html>
+                `;
+            }
+            if (task.includes("call-to-action button")) {
+                 newCode = currentCode.replace(
+                    '</body>', 
+                    `   <button style="background-color: #ff4757; color: white; border: none; padding: 15px 30px; font-size: 1rem; border-radius: 50px; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">Learn More</button>
+                    </body>`
+                );
+            }
+            if (task.includes("alert message")) {
+                newCode = currentCode.replace(
+                    '<button',
+                    `<button onclick="alert('Welcome to the future! AI is building this for you.');"`
+                );
+            }
+            if (task.includes("footer with some copyright")) {
+                 newCode = currentCode.replace(
+                    '</body>', 
+                    `   <footer style="position: absolute; bottom: 20px; font-size: 0.9rem; opacity: 0.7;">
+                            <p>© 2025 AI Systems Inc.</p>
+                        </footer>
+                    </body>`
+                );
+            }
+            projectState.code = newCode;
+            return "Code generated and updated successfully.";
+        }
+        
+        async function playerAgent() {
+            await sleep(1500); // Simulate testing
+            // In a real system, this would analyze the output. Here it's a fixed comment.
+            return "Okay, I see the changes. The layout is clean and the new element is present. No errors detected. Ready for the next step.";
+        }
+        
+        // --- Main Evolution Loop ---
+        async function runEvolutionLoop() {
+            const maxIterations = 4;
+            
+            for (let i = 0; i < maxIterations; i++) {
+                // 1. Visionary sets the goal
+                const goal = await visionaryAgent(projectState.history);
+                addMessageToChat('visionary', goal);
+
+                // 2. Architect makes a plan
+                const task = await architectAgent(goal);
+                addMessageToChat('architect', task);
+                
+                // 3. Coder writes the code
+                const codeResult = await coderAgent(task, projectState.code);
+                addMessageToChat('coder', codeResult);
+                
+                // 4. Update the live product view
+                updateIframe(projectState.code);
+                
+                // 5. Player Bot gives feedback
+                const feedback = await playerAgent();
+                addMessageToChat('player', feedback);
+                
+                // 6. Update history for the next loop
+                projectState.history.push({ goal, feedback });
+                await sleep(1000); // Pause before next iteration
+            }
+            
+            await sleep(1500);
+            addMessageToChat('visionary', "Great work team! This version looks complete for our initial demo.");
+        }
+        
+        // --- Start the process when the page loads ---
+        window.onload = runEvolutionLoop;
+
+    </script>
+
+</body>
+</html>
