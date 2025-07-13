@@ -3,159 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Genesis Demo</title>
+    <title>Autonomous AI Game Dev</title>
     <style>
-        /* --- Basic Setup & Fonts --- */
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
-        
         :root {
-            --background-color: #0a0a1a;
-            --chat-background: #121224;
-            --chat-bubble-user: #4a4a8a;
-            --text-color: #e0e0ff;
-            --header-bg: #1a1a3a;
+            --background-color: #0c0c1e;
+            --chat-background: #111128;
+            --header-bg: #1a1a4a;
+            --text-color: #e8e8ff;
         }
+
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Orbitron:wght@500;900&display=swap');
 
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100vh;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Fira Code', monospace;
             background-color: var(--background-color);
             color: var(--text-color);
             overflow: hidden;
         }
 
-        /* --- Main Layout --- */
-        .container {
-            display: flex;
-            width: 100%;
-            height: 100%;
-        }
-
-        .chat-panel {
-            width: 45%;
-            height: 100%;
-            background-color: var(--chat-background);
-            border-right: 1px solid #333;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 5px 0px 15px rgba(0,0,0,0.3);
-        }
-
-        .output-panel {
-            width: 55%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        /* --- Panel Headers --- */
-        .panel-header {
-            padding: 18px 22px;
-            background-color: var(--header-bg);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 18px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            flex-shrink: 0;
-            border-bottom: 1px solid #333;
-            text-shadow: 0 0 5px #a0a0ff;
-        }
-        
-        /* --- Chat Window Styling --- */
-        .chat-window {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 20px;
-        }
-
-        .chat-message {
-            margin-bottom: 18px;
-            display: flex;
-            flex-direction: column;
-            max-width: 85%;
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        .message-bubble {
-            padding: 12px 18px;
-            border-radius: 20px;
-            line-height: 1.5;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        
-        .agent-name {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 13px;
-            font-weight: 700;
-            margin-bottom: 5px;
-            padding: 0 5px;
-        }
-        
+        .container { display: flex; width: 100%; height: 100%; }
+        .chat-panel { width: 50%; height: 100%; background-color: var(--chat-background); border-right: 1px solid #333; display: flex; flex-direction: column; box-shadow: 7px 0px 25px rgba(0,0,0,0.4); }
+        .output-panel { width: 50%; height: 100%; display: flex; flex-direction: column; }
+        .panel-header { padding: 18px 22px; background-color: var(--header-bg); font-family: 'Orbitron', sans-serif; font-size: 18px; text-transform: uppercase; flex-shrink: 0; border-bottom: 1px solid #333; text-shadow: 0 0 8px #a0a0ff; }
+        .chat-window { flex-grow: 1; overflow-y: auto; padding: 20px; }
+        .chat-message { margin-bottom: 18px; display: flex; flex-direction: column; max-width: 90%; animation: fadeIn 0.6s ease-out; }
+        .message-bubble { padding: 12px 18px; border-radius: 18px; line-height: 1.6; box-shadow: 0 4px 8px rgba(0,0,0,0.3); white-space: pre-wrap; font-size: 0.9rem; }
+        .agent-name { font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 500; margin-bottom: 6px; padding: 0 5px; }
         .message-bubble p { margin: 0; }
-
-        /* --- Agent Specific Styles --- */
-        .user { align-self: flex-end; }
-        .user .message-bubble { background: linear-gradient(135deg, #5f72be, #9666a3); border-top-right-radius: 0; }
-        .user .agent-name { text-align: right; color: #d0d0ff; }
         
-        .visionary { align-items: flex-start; }
-        .visionary .message-bubble { background: linear-gradient(135deg, #00A8A8, #007A7A); border-top-left-radius: 0; }
+        .user { align-self: flex-start; }
+        .user .message-bubble { background: linear-gradient(135deg, #6f6fbf, #8f6fbf); border-top-left-radius: 0; }
+        .user .agent-name { color: #e0e0ff; }
+        
+        .visionary, .architect, .coder, .player { align-items: flex-start; }
+        .visionary .message-bubble { background: linear-gradient(135deg, #00A8A9, #00887A); border-top-left-radius: 0; }
         .visionary .agent-name { color: #00E0E0; }
+        .architect .message-bubble { background: linear-gradient(135deg, #D44D5C, #A43D4C); border-top-left-radius: 0; }
+        .architect .agent-name { color: #FFD1D1; }
+        .coder .message-bubble { background: linear-gradient(135deg, #B86B00, #885B00); border-top-left-radius: 0; }
+        .coder .agent-name { color: #FFD799; }
+        .player .message-bubble { background: linear-gradient(135deg, #4C3D8A, #3C2D7A); border-top-left-radius: 0; }
+        .player .agent-name { color: #C8BFFF; }
 
-        .architect { align-items: flex-start; }
-        .architect .message-bubble { background: linear-gradient(135deg, #A85A00, #7A4200); border-top-left-radius: 0; }
-        .architect .agent-name { color: #FFAA00; }
+        .output-iframe { flex-grow: 1; border: none; background-color: #000; transition: opacity 1s ease-in-out; }
         
-        .coder { align-items: flex-start; }
-        .coder .message-bubble { background: linear-gradient(135deg, #A8005A, #7A0042); border-top-left-radius: 0; }
-        .coder .agent-name { color: #FF0088; }
-        
-        .player { align-items: flex-start; }
-        .player .message-bubble { background: linear-gradient(135deg, #00A85A, #007A42); border-top-left-radius: 0; }
-        .player .agent-name { color: #00FF88; }
-
-        /* --- Output Iframe Styling --- */
-        .output-iframe {
-            flex-grow: 1;
-            border: none;
-            background-color: #000;
-            transition: opacity 1s ease-in-out;
-        }
-        
-        /* --- Animations --- */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="chat-panel">
-            <div class="panel-header">GENESIS CORE</div>
-            <div class="chat-window" id="chat-window">
-                </div>
+            <div class="panel-header">A.I. DEV-LOOP</div>
+            <div class="chat-window" id="chat-window"></div>
         </div>
 
         <div class="output-panel">
-            <div class="panel-header">LIVE CANVAS</div>
+            <div class="panel-header">[LIVE PRODUCT]</div>
             <iframe class="output-iframe" id="output-iframe" title="Live Output"></iframe>
         </div>
     </div>
 
     <script>
-        // --- DOM Elements ---
         const chatWindow = document.getElementById('chat-window');
         const outputIframe = document.getElementById('output-iframe');
 
-        // --- State Management ---
-        const projectState = { code: "", history: [], };
-        
-        // --- Utility Functions ---
+        let projectState = {
+            code: "",
+            features: [], // e.g., ['player', 'movement', 'target', 'score', 'enemy']
+        };
+
         const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
         
         function addMessageToChat(agent, message) {
@@ -164,7 +85,7 @@
                 visionary: { name: '💡 Visionary', class: 'visionary' },
                 architect: { name: '⚡ Architect', class: 'architect' },
                 coder: { name: '👾 Coder', class: 'coder' },
-                player: { name: '🕹️ Player Bot', class: 'player' }
+                player: { name: '🕹️ QA Bot', class: 'player' }
             };
             const agentInfo = agentMap[agent];
             const messageElement = document.createElement('div');
@@ -178,172 +99,151 @@
         }
         
         const updateIframe = newCode => outputIframe.srcdoc = newCode;
-
-        // --- MOCK AI AGENTS (WITH ENHANCED DIALOGUE & CODE EVOLUTION) ---
         
-        async function visionaryAgent(history) {
+        // --- AUTONOMOUS AI AGENTS ---
+        
+        async function visionaryAgent(features) {
             await sleep(2000);
-            const stage = history.length;
-            if (stage === 1) return "The void is receptive. Let's cast a blueprint—a wireframe of what's to come. Give it form, a skeleton of light and logic. No colors, just pure structure.";
-            if (stage === 2) return "Structure is confirmed. Now, breathe life into it! We need a cosmic gradient, typography that speaks of the future, and a central point of focus. Animate the entrance. Make it an event.";
-            if (stage === 3) return "This is powerful. The final step is to achieve full interactivity and polish. The central element must react to the user. Add subtle micro-interactions, particle effects in the background. Make the canvas feel alive.";
-            return ""; // Initial prompt from user starts the process
+            if (!features.includes('player')) return "The canvas is empty. A void. It needs a protagonist. Let's create a player entity.";
+            if (!features.includes('movement')) return "The player is static, a prisoner in the canvas. We must grant it the gift of motion. Let's implement keyboard controls.";
+            if (!features.includes('target')) return "Movement without purpose is just wandering. The player needs a goal. Let's spawn a collectible 'Energy Orb'.";
+            if (!features.includes('score')) return "Action without consequence is meaningless. We need to track progress. Let's add a scoring system that updates when the orb is collected.";
+            if (!features.includes('enemy')) return "There's no challenge. A hero is defined by the obstacles they overcome. Let's introduce a moving 'Void Hazard' for the player to avoid.";
+            return "The initial simulation is complete. We can now consider adding more complex features like levels, power-ups, or more enemy types.";
         }
         
         async function architectAgent(goal) {
             await sleep(1500);
-            if (goal.includes("void")) return "Bootstrap protocol initiated. Creating a base HTML file with a black background and a single, glowing text element at its core. Minimalist, pure potential.";
-            if (goal.includes("blueprint")) return "Acknowledged. Mapping DOM structure with flexbox grid. All visual elements will be rendered as dashed-border placeholders. Defining regions for header, hero, and call-to-action.";
-            if (goal.includes("breathe life")) return "Engaging render engine. Applying a celestial background gradient. Importing 'Orbitron' and 'Poppins' fonts. Will structure the hero section and CTA button with full styling and entry animations via CSS keyframes.";
-            if (goal.includes("interactivity")) return "Implementing JavaScript event listeners for interactivity. The hero element will have a 3D hover effect. Will integrate a lightweight particle animation library for the background canvas to create a dynamic, living environment.";
+            if (goal.includes('player entity')) return "Plan: Create a basic HTML structure with a game container. The player will be a `div` with `id='player'`, styled and positioned absolutely.";
+            if (goal.includes('keyboard controls')) return "Plan: Add a JavaScript block. We'll listen for `keydown` events (arrow keys) and update the player's `style.left` and `style.top` properties accordingly.";
+            if (goal.includes('Energy Orb')) return "Plan: Add another `div` with `id='target'`. Upon collection, its position will be randomized within the game container.";
+            if (goal.includes('scoring system')) return "Plan: Add a `div` with `id='score'`. We'll need a collision detection function. When a collision occurs, increment a score variable and update the score `div`'s `innerText`.";
+            if (goal.includes('Void Hazard')) return "Plan: Add an 'enemy' `div`. We'll use CSS animations or a `setInterval` in JavaScript to create an automatic, predictable patrol path.";
         }
         
-        async function coderAgent(task) {
+        async function coderAgent(plan, currentCode) {
             await sleep(2500);
             let newCode = "";
+            let newFeature = "";
+
+            const baseHtml = (body, script) => `
+                <!DOCTYPE html>
+                <html><head><style>
+                    body { margin: 0; background: #0c0c1e; overflow: hidden; }
+                    #game-container { position: relative; width: 100vw; height: 100vh; }
+                    #player { position: absolute; top: 50%; left: 50%; width: 25px; height: 25px; background: cyan; box-shadow: 0 0 10px cyan; }
+                    #target { position: absolute; top: 20%; left: 20%; width: 20px; height: 20px; background: magenta; border-radius: 50%; box-shadow: 0 0 10px magenta; }
+                    #score { position: absolute; top: 10px; left: 10px; color: white; font-size: 24px; font-family: 'Fira Code', monospace; }
+                    #enemy { position: absolute; top: 80%; left: 10%; width: 30px; height: 30px; background: red; box-shadow: 0 0 10px red; animation: patrol 4s linear infinite alternate; }
+                    @keyframes patrol { from { transform: translateX(0); } to { transform: translateX(calc(80vw - 30px)); } }
+                </style></head><body>
+                    ${body}
+                    <script>${script}<\/script>
+                </body></html>`;
             
-            // STAGE 1: The Void
-            if (task.includes("void")) {
-                newCode = `
-                    <style>
-                        @keyframes glow { 0%, 100% { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #0ff; } 50% { text-shadow: 0 0 20px #fff, 0 0 30px #0ff, 0 0 40px #0ff; } }
-                        body { background: #000; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Orbitron', sans-serif; font-size: 2rem; }
-                        .genesis { animation: glow 4s ease-in-out infinite; }
-                    </style>
-                    <div class="genesis">INITIALIZING...</div>
+            if (plan.includes('player entity')) {
+                newFeature = 'player';
+                newCode = baseHtml(`<div id="game-container"><div id="player"></div></div>`, ``);
+            } 
+            else if (plan.includes('keyboard controls')) {
+                newFeature = 'movement';
+                const script = `
+                    const player = document.getElementById('player');
+                    let x = player.offsetLeft; let y = player.offsetTop;
+                    const speed = 15;
+                    window.addEventListener('keydown', (e) => {
+                        if (e.key === 'ArrowUp') y -= speed;
+                        if (e.key === 'ArrowDown') y += speed;
+                        if (e.key === 'ArrowLeft') x -= speed;
+                        if (e.key === 'ArrowRight') x += speed;
+                        player.style.left = x + 'px';
+                        player.style.top = y + 'px';
+                    });
                 `;
+                newCode = baseHtml(`<div id="game-container"><div id="player"></div></div>`, script);
             }
-            // STAGE 2: The Blueprint
-            else if (task.includes("blueprint")) {
-                newCode = `
-                    <style>
-                        body { background: #111; display: flex; flex-direction: column; justify-content: space-between; align-items: center; height: 100vh; font-family: 'Poppins', sans-serif; padding: 2rem; box-sizing: border-box; }
-                        .placeholder { border: 2px dashed #555; color: #777; display: flex; justify-content: center; align-items: center; width: 100%; }
-                        .header { height: 10%; margin-bottom: 2rem; }
-                        .hero { height: 50%; margin-bottom: 2rem; flex-direction: column; }
-                        .cta { height: 15%; }
-                        .hero-title { font-size: 2rem; } .hero-subtitle { font-size: 1rem; margin-top: 1rem; }
-                    </style>
-                    <div class="placeholder header">[ Header: Logo + Navigation ]</div>
-                    <div class="placeholder hero">
-                        <div class="hero-title">[ Hero Title ]</div>
-                        <div class="hero-subtitle">[ Subtitle and description text ]</div>
-                    </div>
-                    <div class="placeholder cta">[ Call to Action Button ]</div>
-                `;
+            else if (plan.includes('Energy Orb')) {
+                newFeature = 'target';
+                const body = `<div id="game-container"><div id="player"></div><div id="target"></div></div>`;
+                const script = projectState.code.match(/<script>([\s\S]*?)<\/script>/)[1];
+                newCode = baseHtml(body, script);
             }
-            // STAGE 3: The Creative Explosion
-            else if (task.includes("breathe life")) {
-                newCode = `
-                    <style>
-                        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@300;600&display=swap');
-                        @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-                        body { background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e); background-size: 400% 400%; animation: gradient 15s ease infinite; display: flex; justify-content: center; align-items: center; height: 100vh; color: #fff; text-align: center; }
-                        @keyframes gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-                        .content { animation: fadeIn 1.5s ease-out; }
-                        h1 { font-family: 'Orbitron', sans-serif; font-size: 4.5rem; text-shadow: 0 0 15px rgba(255,255,255,0.5); margin: 0; }
-                        p { font-family: 'Poppins', sans-serif; font-size: 1.2rem; max-width: 600px; opacity: 0.8; margin: 1rem 0 2rem 0; }
-                        .cta-button { font-family: 'Orbitron', sans-serif; background: linear-gradient(90deg, #da22ff, #9733ee); border: none; color: #fff; padding: 18px 36px; border-radius: 50px; font-size: 1.1rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 20px rgba(218, 34, 255, 0.5); }
-                    </style>
-                    <div class="content">
-                        <h1>GENESIS</h1>
-                        <p>Witness the birth of a digital entity. Crafted by autonomous agents from the void of pure code.</p>
-                        <button class="cta-button">Engage</button>
-                    </div>
+            else if (plan.includes('scoring system')) {
+                newFeature = 'score';
+                const body = `<div id="game-container"><div id="score">Score: 0</div><div id="player"></div><div id="target"></div></div>`;
+                let script = projectState.code.match(/<script>([\s\S]*?)<\/script>/)[1];
+                script += `
+                    const target = document.getElementById('target');
+                    const scoreDisplay = document.getElementById('score');
+                    let score = 0;
+                    function checkCollision() {
+                        const pRect = player.getBoundingClientRect();
+                        const tRect = target.getBoundingClientRect();
+                        if (pRect.left < tRect.right && pRect.right > tRect.left && pRect.top < tRect.bottom && pRect.bottom > tRect.top) {
+                            score++;
+                            scoreDisplay.innerText = 'Score: ' + score;
+                            target.style.left = Math.random() * 90 + 'vw';
+                            target.style.top = Math.random() * 90 + 'vh';
+                        }
+                        requestAnimationFrame(checkCollision);
+                    }
+                    checkCollision();
                 `;
+                newCode = baseHtml(body, script);
             }
-            // STAGE 4: Polish & Interactivity
-            else if (task.includes("interactivity")) {
-                newCode = `
-                    <style>
-                        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@300;600&display=swap');
-                        @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-                        body { margin: 0; }
-                        #particles-js { position: absolute; width: 100%; height: 100%; background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e); background-size: 400% 400%; animation: gradient 15s ease infinite; z-index: -1; }
-                        @keyframes gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-                        .container { display: flex; justify-content: center; align-items: center; height: 100vh; color: #fff; text-align: center; }
-                        .content { animation: fadeIn 1.5s ease-out; perspective: 1000px; }
-                        .card { background: rgba(0,0,0,0.2); padding: 3rem; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); transition: transform 0.4s ease; }
-                        h1 { font-family: 'Orbitron', sans-serif; font-size: 4.5rem; text-shadow: 0 0 15px rgba(255,255,255,0.5); margin: 0; }
-                        p { font-family: 'Poppins', sans-serif; font-size: 1.2rem; max-width: 600px; opacity: 0.8; margin: 1rem 0 2rem 0; }
-                        .cta-button { font-family: 'Orbitron', sans-serif; background: linear-gradient(90deg, #da22ff, #9733ee); border: none; color: #fff; padding: 18px 36px; border-radius: 50px; font-size: 1.1rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 20px rgba(218, 34, 255, 0.5); }
-                        .cta-button:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 0 35px rgba(218, 34, 255, 0.8); }
-                    </style>
-                    <div class="container">
-                        <div id="particles-js"></div>
-                        <div class="content">
-                            <div class="card" id="interactive-card">
-                                <h1>GENESIS</h1>
-                                <p>Witness the birth of a digital entity. Crafted by autonomous agents from the void of pure code.</p>
-                                <button class="cta-button" onclick="alert('Connection to the core established.')">Engage</button>
-                            </div>
-                        </div>
-                    </div>
-                    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"><\/script>
-                    <script>
-                        particlesJS("particles-js", {"particles":{"number":{"value":80,"density":{"enable":true,"value_area":800}},"color":{"value":"#ffffff"},"shape":{"type":"circle"},"opacity":{"value":0.5,"random":true},"size":{"value":3,"random":true},"line_linked":{"enable":true,"distance":150,"color":"#ffffff","opacity":0.4,"width":1},"move":{"enable":true,"speed":2,"direction":"none","out_mode":"out"}},"interactivity":{"detect_on":"canvas","events":{"onhover":{"enable":true,"mode":"repulse"}}}});
-                        const card = document.getElementById('interactive-card');
-                        card.addEventListener('mousemove', (e) => {
-                            const rect = card.getBoundingClientRect();
-                            const x = e.clientX - rect.left;
-                            const y = e.clientY - rect.top;
-                            const rotateX = - (y - rect.height / 2) / 20;
-                            const rotateY = (x - rect.width / 2) / 20;
-                            card.style.transform = \`rotateX(\${rotateX}deg) rotateY(\${rotateY}deg)\`;
-                        });
-                        card.addEventListener('mouseleave', () => { card.style.transform = ''; });
-                    <\/script>
-                `;
+            else if (plan.includes('Void Hazard')) {
+                newFeature = 'enemy';
+                const body = `<div id="game-container"><div id="score">Score: 0</div><div id="player"></div><div id="target"></div><div id="enemy"></div></div>`;
+                const script = projectState.code.match(/<script>([\s\S]*?)<\/script>/)[1];
+                newCode = baseHtml(body, script);
             }
 
             projectState.code = newCode;
-            return "Code injected into live canvas. Module executed successfully.";
+            projectState.features.push(newFeature);
+            return `Code implemented. Feature [${newFeature}] is now live.`;
         }
         
-        async function playerAgent(stage) {
-            await sleep(2000);
-            if (stage === 1) return "System state confirmed. The void is black, text element is glowing. Ready for structural overlay.";
-            if (stage === 2) return "Blueprint rendered. DOM structure is valid. All placeholder elements are in position. Awaiting creative infusion.";
-            if (stage === 3) return "Visuals confirmed. The color palette is vibrant, typography is crisp, and entry animation is smooth. The CTA button is visible and ready for interaction.";
-            if (stage === 4) return "Full system analysis complete. Particle background is active. Hover and click events are responsive. The experience is immersive. Mission successful.";
-            return "";
+        async function playerAgent(feature) {
+            await sleep(1500);
+            if (feature === 'player') return "QA check: Player entity rendered successfully on the canvas.";
+            if (feature === 'movement') return "QA check: Keyboard inputs are responsive. Player movement is functional. Boundaries are not yet defined.";
+            if (feature === 'target') return "QA check: Target orb is visible. No interaction logic implemented yet.";
+            if (feature === 'score') return "QA check: Collision detection is active. Score increments on collection. Target repositioning is functional.";
+            if (feature === 'enemy') return "QA check: Enemy entity is rendered and patrolling. No collision logic for the enemy yet, it's currently a cosmetic threat.";
+            return "QA check: System stable.";
         }
         
-        // --- Main Evolution Loop ---
-        async function runEvolutionLoop() {
-            const initialPrompt = "Forget everything you know. Build me something... new. Something that feels alive. Start from the digital void and show me genesis.";
-            addMessageToChat('user', initialPrompt);
-            await sleep(1000);
+        // --- AUTONOMOUS EVOLUTION LOOP ---
+        async function runAutonomousLoop() {
+            const initialPrompt = "Build a simple game.";
+            addMessageToChat('user', `Directive received: "${initialPrompt}"`);
             
-            let goal = "Begin project genesis. Tear a hole in the digital fabric, create a single point of light in the void.";
-            addMessageToChat('visionary', goal);
+            const maxIterations = 5;
+            for (let i = 0; i < maxIterations; i++) {
+                await sleep(1000);
+                addMessageToChat('visionary', `--- Iteration ${i + 1} Planning ---`);
 
-            for (let i = 1; i <= 4; i++) {
-                const task = await architectAgent(goal);
-                addMessageToChat('architect', task);
+                const goal = await visionaryAgent(projectState.features);
+                addMessageToChat('visionary', goal);
                 
-                const codeResult = await coderAgent(task);
+                const plan = await architectAgent(goal);
+                addMessageToChat('architect', plan);
+                
+                const codeResult = await coderAgent(plan, projectState.code);
                 addMessageToChat('coder', codeResult);
                 
+                // INSTANT VISUAL UPDATE
                 updateIframe(projectState.code);
                 
-                const feedback = await playerAgent(i);
+                const feedback = await playerAgent(projectState.features[projectState.features.length - 1]);
                 addMessageToChat('player', feedback);
-                
-                projectState.history.push({ goal, feedback });
-                
-                if (i < 4) {
-                    goal = await visionaryAgent(projectState.history);
-                    addMessageToChat('visionary', goal);
-                }
             }
             
-            await sleep(1500);
-            addMessageToChat('visionary', "Evolution complete. The entity is stable and alive.");
+            await sleep(2000);
+            addMessageToChat('visionary', "Phase 1 complete. The core gameplay loop is established. The system is ready for more complex directives.");
         }
         
-        window.onload = runEvolutionLoop;
+        window.onload = runAutonomousLoop;
     </script>
-
 </body>
 </html>
