@@ -227,6 +227,90 @@
             60% { transform: translate(-50%, -7px); }
         }
         
+        /* Chat UI styles */
+        .chat-container {
+            width: 100%;
+            max-width: 700px;
+            height: 60vh;
+            max-height: 500px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            margin-top: 2rem;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        .message-area {
+            flex-grow: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .message {
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 80%;
+            line-height: 1.5;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeIn 0.5s forwards;
+            font-size: 1rem;
+        }
+        .message.agent {
+            background-color: #172a46;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .message.user {
+            background-color: #004d7a;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .message.notification {
+            align-self: center;
+            background: none;
+            color: var(--secondary-glow);
+            font-size: 0.9rem;
+            font-style: italic;
+            text-align: center;
+            width: 100%;
+        }
+        .message.thinking {
+            align-self: flex-start;
+            font-style: italic;
+            color: var(--text-muted);
+            padding: 10px 0;
+        }
+        .chat-input-area {
+            display: flex;
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+        #chat-input {
+            flex-grow: 1;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+        }
+        #chat-input::placeholder { color: var(--text-muted); }
+        #send-btn {
+            background: none;
+            border: 1px solid var(--primary-glow);
+            color: var(--primary-glow);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        #send-btn:hover { background-color: var(--primary-glow); color: var(--bg-color); }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+
         #cta h1 {
             background: linear-gradient(45deg, var(--success-color), white);
             -webkit-background-clip: text;
@@ -315,6 +399,22 @@
                     </div>
                 </div>
             </div>
+            <div class="next-arrow" onclick="document.getElementById('chat').scrollIntoView();">▼</div>
+        </section>
+
+        <section id="chat" class="step">
+            <div class="content-wrapper">
+                <h2>Chat With Your Data.</h2>
+                <p>Go beyond dashboards. Ask questions in plain English and get instant answers and proactive alerts from your AI agent.</p>
+                <div class="chat-container">
+                    <div class="message-area" id="message-area">
+                        </div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chat-input" placeholder="Ask about your data..." disabled>
+                        <button id="send-btn">Send</button>
+                    </div>
+                </div>
+            </div>
             <div class="next-arrow" onclick="document.getElementById('cta').scrollIntoView();">▼</div>
         </section>
 
@@ -334,15 +434,12 @@
             const progressBar = document.getElementById('progress-bar');
             let animationsTriggered = new Set();
 
-            // Intersection Observer to detect active step
             const observer = new IntersectionObserver(entries => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         const targetId = entry.target.id;
-                        // Add active class to current step
                         entry.target.classList.add('active');
                         
-                        // Trigger animations only once
                         if (!animationsTriggered.has(targetId)) {
                              triggerAnimations(targetId);
                              animationsTriggered.add(targetId);
@@ -351,11 +448,10 @@
                          entry.target.classList.remove('active');
                     }
                 });
-            }, { threshold: 0.5 }); // 50% of the element is visible
+            }, { threshold: 0.5 }); 
 
             steps.forEach(step => observer.observe(step));
             
-            // Progress bar update on scroll
             window.addEventListener('scroll', () => {
                 const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
                 const scrollProgress = (window.scrollY / totalHeight) * 100;
@@ -363,25 +459,22 @@
             });
 
             // Simulate button actions
-            const connectBtn = document.getElementById('connect-btn');
-            connectBtn.addEventListener('click', () => {
-                connectBtn.textContent = 'Connecting...';
+            document.getElementById('connect-btn').addEventListener('click', function() {
+                this.textContent = 'Connecting...';
                 setTimeout(() => {
-                    connectBtn.textContent = '✓ Connected!';
-                    connectBtn.classList.add('success');
-                    connectBtn.disabled = true;
+                    this.textContent = '✓ Connected!';
+                    this.classList.add('success');
+                    this.disabled = true;
                 }, 1500);
             });
             
-            const recBtns = document.querySelectorAll('.rec-btn');
-            recBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                   const originalText = btn.textContent;
-                   btn.textContent = 'Applying...';
-                   btn.disabled = true;
+            document.querySelectorAll('.rec-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                   this.textContent = 'Applying...';
+                   this.disabled = true;
                    setTimeout(() => {
-                        btn.textContent = '✓ Fix Applied';
-                        btn.classList.add('success');
+                        this.textContent = '✓ Fix Applied';
+                        this.classList.add('success');
                    }, 2000);
                 });
             });
@@ -394,13 +487,16 @@
                         break;
                     case 'dashboard':
                         animateCounter(document.getElementById('savings-value'), 12870, 2000, '$');
-                        animateCounter(document.getElementById('queries-value'), 87, 2000, '');
-                        animateCounter(document.getElementById('tables-value'), 14, 2000, '');
+                        animateCounter(document.getElementById('queries-value'), 87, 2000);
+                        animateCounter(document.getElementById('tables-value'), 14, 2000);
+                        break;
+                    case 'chat':
+                        simulateChat();
                         break;
                 }
             }
             
-            function animateCounter(element, target, duration, prefix = '') {
+            function animateCounter(element, target, duration, prefix = '', suffix = '') {
                 let start = 0;
                 const stepTime = 20;
                 const steps = duration / stepTime;
@@ -413,13 +509,48 @@
                         start = target;
                     }
                     if (prefix === '$') {
-                       element.textContent = prefix + Math.floor(start).toLocaleString();
+                       element.textContent = prefix + Math.floor(start).toLocaleString() + suffix;
                     } else {
-                       element.textContent = Math.floor(start) + prefix;
+                       element.textContent = Math.floor(start) + suffix;
                     }
                 }, stepTime);
             }
 
+            function simulateChat() {
+                const messageArea = document.getElementById('message-area');
+                const chatInput = document.getElementById('chat-input');
+                
+                const addMessage = (text, type, delay) => {
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            const messageEl = document.createElement('div');
+                            messageEl.classList.add('message', type);
+                            messageEl.innerHTML = text;
+                            messageArea.appendChild(messageEl);
+                            messageArea.scrollTop = messageArea.scrollHeight;
+                            resolve(messageEl);
+                        }, delay);
+                    });
+                };
+
+                addMessage('⚡️ Proactive Alert: New high-cost query detected.', 'notification', 500)
+                    .then(() => addMessage('Hi there! I noticed a new query that is consuming a lot of resources. I have added a recommendation for it to the dashboard.', 'agent', 1500))
+                    .then(() => addMessage("Thanks! Also, what's our biggest table by storage?", 'user', 2000))
+                    .then(() => addMessage('Thinking...', 'agent thinking', 800))
+                    .then((thinkingEl) => {
+                        return new Promise(resolve => {
+                             setTimeout(() => {
+                                if (thinkingEl) thinkingEl.remove();
+                                resolve();
+                            }, 2000)
+                        });
+                    })
+                    .then(() => addMessage("Our largest table is <strong>production.customer_events_stream</strong> at <strong>12.4 TB</strong>. It's partitioned, which is great, but it's a candidate for reviewing its data retention policy.", 'agent', 0))
+                    .then(() => {
+                        chatInput.disabled = false;
+                        chatInput.placeholder = "Ask another question...";
+                    });
+            }
         });
     </script>
 </body>
