@@ -17,6 +17,7 @@
             --card-bg: rgba(10, 25, 47, 0.85);
             --border-color: rgba(0, 169, 255, 0.2);
             --success-color: #00FFAA;
+            --cost-color: #FFD700;
         }
 
         * {
@@ -72,7 +73,7 @@
         }
 
         .content-wrapper {
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
         }
 
@@ -96,7 +97,7 @@
         }
         
         h3 {
-             font-size: 1.5rem;
+             font-size: 1.25rem;
              color: var(--secondary-glow);
         }
 
@@ -181,11 +182,6 @@
             padding: 1.5rem;
             text-align: left;
             backdrop-filter: blur(10px);
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            border-color: var(--primary-glow);
         }
         .card-title {
             font-size: 1rem;
@@ -199,16 +195,89 @@
             color: white;
         }
         .card-value.green { color: var(--success-color); }
-        .rec-card .button {
-            margin-top: 1rem;
+        
+        .rec-card-v2 {
+            border: 1px solid transparent;
+            background: linear-gradient(var(--card-bg), var(--card-bg)) padding-box,
+                        linear-gradient(145deg, var(--border-color), transparent) border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .rec-card-v2:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .rec-header { display: flex; align-items: center; gap: 0.75rem; }
+        .rec-icon { font-size: 1.5rem; }
+        .rec-card-v2 .card-text { margin: 0; text-align: left; max-width: none; font-size: 1rem;}
+        .cost-benefit {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+        .metric { text-align: center; flex: 1; }
+        .metric-label { font-size: 0.8rem; color: var(--text-muted); }
+        .metric-value { font-size: 1.75rem; font-weight: 700; margin-top: 0.25rem; display: block; }
+        .metric.savings .metric-value { color: var(--success-color); }
+        .metric.cost .metric-value { color: var(--cost-color); }
+
+        .action-area { position: relative; margin-top: auto; }
+        .sql-command {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: rgba(0,0,0,0.3);
+            color: var(--secondary-glow);
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            text-align: left;
+            white-space: pre-wrap;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1rem;
+            opacity: 0;
+            height: 0;
+            transition: opacity 0.4s ease, height 0.4s ease, margin 0.4s ease;
+            overflow: hidden;
+        }
+
+        .rec-btn-v2 {
             width: 100%;
             padding: 12px;
-            text-align: center;
-        }
-        .rec-card .card-text {
-            color: var(--text-color);
             font-size: 1rem;
-            line-height: 1.5;
+            font-weight: 500;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            background: var(--primary-glow);
+            color: var(--bg-color);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .rec-btn-v2 .btn-text { transition: all 0.3s ease; }
+        .rec-btn-v2.executing {
+            background: linear-gradient(90deg, #172a46, #004d7a);
+            color: var(--secondary-glow);
+        }
+        .rec-btn-v2.executing .btn-text::after {
+            content: '...';
+            display: inline-block;
+            animation: dots 1.4s infinite;
+            position: absolute;
+            right: 30%;
+        }
+        .rec-btn-v2.success {
+            background: var(--success-color);
+            color: var(--bg-color);
+            cursor: default;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
         }
 
         .next-arrow {
@@ -316,7 +385,6 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-
     </style>
 </head>
 <body>
@@ -380,22 +448,80 @@
         <section id="recommendations" class="step">
             <div class="content-wrapper">
                 <h2>From Insight to Action.</h2>
-                <p>Don't just find problems—fix them. Apply optimizations directly from the dashboard, saving valuable engineering time.</p>
+                <p>The agent doesn't just find problems—it presents clear, cost-benefit solutions. Authorize the agent to apply the fix with a single click.</p>
                 <div class="card-grid">
-                    <div class="rec-card card">
-                        <h3>Partition Table</h3>
-                        <p class="card-text">Table `logs.events` is frequently filtered by date. Partitioning it could save <strong>~$450/month</strong>.</p>
-                        <button class="button rec-btn">Apply Fix</button>
+                    <div class="rec-card-v2 card">
+                        <div class="rec-header">
+                            <span class="rec-icon">⚡️</span>
+                            <h3>Partition Table</h3>
+                        </div>
+                        <p class="card-text">Our analysis shows that table `logs.events` is frequently filtered by date. Partitioning it will dramatically reduce scan sizes.</p>
+                        <div class="cost-benefit">
+                            <div class="metric savings">
+                                <span class="metric-label">Projected Monthly Savings</span>
+                                <span class="metric-value">~$450</span>
+                            </div>
+                            <div class="metric cost">
+                                <span class="metric-label">One-Time Action Cost</span>
+                                <span class="metric-value">~$5.20</span>
+                            </div>
+                        </div>
+                        <div class="action-area">
+                            <pre class="sql-command">ALTER TABLE `project.dataset.logs`
+ADD PARTITION BY DATE(_PARTITIONTIME);</pre>
+                            <button class="button rec-btn-v2">
+                                <span class="btn-text">Authorize Agent to Apply Fix</span>
+                            </button>
+                        </div>
                     </div>
-                     <div class="rec-card card">
-                        <h3>Create Materialized View</h3>
-                        <p class="card-text">A query for your main dashboard runs 100x/day. A Materialized View can cut its cost by <strong>98%</strong>.</p>
-                        <button class="button rec-btn">Apply Fix</button>
+                    <div class="rec-card-v2 card">
+                        <div class="rec-header">
+                            <span class="rec-icon">✨</span>
+                            <h3>Add Clustering</h3>
+                        </div>
+                        <p class="card-text">Queries on `users_activity` often filter by `country_code`. Clustering by this column will improve performance and lower costs.</p>
+                        <div class="cost-benefit">
+                            <div class="metric savings">
+                                <span class="metric-label">Projected Monthly Savings</span>
+                                <span class="metric-value">~$230</span>
+                            </div>
+                            <div class="metric cost">
+                                <span class="metric-label">One-Time Action Cost</span>
+                                <span class="metric-value">~$2.15</span>
+                            </div>
+                        </div>
+                        <div class="action-area">
+                            <pre class="sql-command">ALTER TABLE `project.dataset.users_activity`
+ADD CLUSTER BY (country_code);</pre>
+                             <button class="button rec-btn-v2">
+                                <span class="btn-text">Authorize Agent to Apply Fix</span>
+                            </button>
+                        </div>
                     </div>
-                     <div class="rec-card card">
-                        <h3>Archive Old Data</h3>
-                        <p class="card-text">Table `archive.user_snaps_2022` hasn't been accessed in 180 days. Archive it to long-term storage.</p>
-                        <button class="button rec-btn">Apply Fix</button>
+                    <div class="rec-card-v2 card">
+                        <div class="rec-header">
+                            <span class="rec-icon">📦</span>
+                            <h3>Create Materialized View</h3>
+                        </div>
+                        <p class="card-text">A query for your main dashboard runs 100x/day. A Materialized View can cut its processing cost by over 98%.</p>
+                        <div class="cost-benefit">
+                            <div class="metric savings">
+                                <span class="metric-label">Projected Monthly Savings</span>
+                                <span class="metric-value">~$810</span>
+                            </div>
+                            <div class="metric cost">
+                                <span class="metric-label">Negligible</span>
+                                <span class="metric-value">~$0</span>
+                            </div>
+                        </div>
+                        <div class="action-area">
+                            <pre class="sql-command">CREATE MATERIALIZED VIEW `....mv_dashboard`
+AS SELECT date, country, COUNT(*) AS users
+FROM `...users_activity` GROUP BY 1, 2;</pre>
+                             <button class="button rec-btn-v2">
+                                <span class="btn-text">Authorize Agent to Apply Fix</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -425,7 +551,6 @@
                 <a href="#" class="button success">Start Your Free Analysis Now</a>
             </div>
         </section>
-
     </main>
 
     <script>
@@ -468,22 +593,34 @@
                 }, 1500);
             });
             
-            document.querySelectorAll('.rec-btn').forEach(btn => {
+            document.querySelectorAll('.rec-btn-v2').forEach(btn => {
                 btn.addEventListener('click', function() {
-                   this.textContent = 'Applying...';
+                   if(this.classList.contains('success')) return;
+
+                   const actionArea = this.closest('.action-area');
+                   const sqlCommand = actionArea.querySelector('.sql-command');
+                   const btnText = this.querySelector('.btn-text');
+                   
+                   this.classList.add('executing');
+                   btnText.textContent = 'Agent is executing command';
                    this.disabled = true;
+
+                   sqlCommand.style.height = sqlCommand.scrollHeight + 'px';
+                   sqlCommand.style.opacity = 1;
+                   sqlCommand.style.marginBottom = "1rem";
+
                    setTimeout(() => {
-                        this.textContent = '✓ Fix Applied';
+                        this.classList.remove('executing');
                         this.classList.add('success');
-                   }, 2000);
+                        btnText.textContent = '✓ Action Complete';
+                   }, 3500);
                 });
             });
 
-            // Animation logic
             function triggerAnimations(stepId) {
                 switch(stepId) {
                     case 'scan':
-                        animateCounter(document.getElementById('scan-text'), 100, 3000, '%');
+                        animateCounter(document.getElementById('scan-text'), 100, 3000, '', '%');
                         break;
                     case 'dashboard':
                         animateCounter(document.getElementById('savings-value'), 12870, 2000, '$');
@@ -497,6 +634,7 @@
             }
             
             function animateCounter(element, target, duration, prefix = '', suffix = '') {
+                if(!element) return;
                 let start = 0;
                 const stepTime = 20;
                 const steps = duration / stepTime;
@@ -519,6 +657,7 @@
             function simulateChat() {
                 const messageArea = document.getElementById('message-area');
                 const chatInput = document.getElementById('chat-input');
+                if(!messageArea || !chatInput) return;
                 
                 const addMessage = (text, type, delay) => {
                     return new Promise(resolve => {
