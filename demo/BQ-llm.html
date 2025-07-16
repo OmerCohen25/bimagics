@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueryWise | Autonomous BigQuery Optimization</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050818;
+            --primary-glow: #00A9FF;
+            --secondary-glow: #89CFF3;
+            --text-color: #E0E0E0;
+            --text-muted: #8892b0;
+            --card-bg: rgba(10, 25, 47, 0.85);
+            --border-color: rgba(0, 169, 255, 0.2);
+            --success-color: #00FFAA;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            overscroll-behavior: none;
+        }
+        
+        #progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-glow), var(--success-color));
+            width: 0%;
+            z-index: 100;
+            transition: width 0.1s ease-out;
+        }
+
+        main {
+            position: relative;
+        }
+
+        .step {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 2rem;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.6s ease-out;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .content-wrapper {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1, h2, h3 {
+            font-weight: 700;
+            text-shadow: 0 0 15px rgba(0, 169, 255, 0.3);
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 900;
+            line-height: 1.1;
+            background: linear-gradient(45deg, var(--secondary-glow), white);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin-bottom: 1rem;
+        }
+        
+        h3 {
+             font-size: 1.5rem;
+             color: var(--secondary-glow);
+        }
+
+        p {
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 1rem auto;
+            line-height: 1.6;
+        }
+        
+        .button {
+            display: inline-block;
+            background-color: var(--primary-glow);
+            color: var(--bg-color);
+            padding: 14px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 0 20px rgba(0, 169, 255, 0.4);
+        }
+
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 30px rgba(0, 169, 255, 0.7);
+        }
+        
+        .button.success {
+            background-color: var(--success-color);
+            box-shadow: 0 0 20px rgba(0, 255, 170, 0.4);
+        }
+
+        /* Scanning animation */
+        .scanner {
+            width: 200px;
+            height: 200px;
+            position: relative;
+            margin: 2rem auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .scanner .scan-text {
+            font-size: 1.2rem;
+            font-weight: 500;
+            z-index: 2;
+        }
+        .scanner .ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid var(--primary-glow);
+            opacity: 0;
+            animation: pulse 2.5s infinite ease-out;
+        }
+        .scanner .ring:nth-child(2) { animation-delay: 0.5s; }
+        .scanner .ring:nth-child(3) { animation-delay: 1s; }
+        @keyframes pulse {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { opacity: 0.7; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        
+        /* Dashboard & Recs cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+            width: 100%;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: left;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-glow);
+        }
+        .card-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        .card-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+        }
+        .card-value.green { color: var(--success-color); }
+        .rec-card .button {
+            margin-top: 1rem;
+            width: 100%;
+            padding: 12px;
+            text-align: center;
+        }
+        .rec-card .card-text {
+            color: var(--text-color);
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .next-arrow {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            cursor: pointer;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translate(-50%, 0); }
+            40% { transform: translate(-50%, -15px); }
+            60% { transform: translate(-50%, -7px); }
+        }
+        
+        #cta h1 {
+            background: linear-gradient(45deg, var(--success-color), white);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="progress-bar"></div>
+
+    <main>
+        <section id="hero" class="step active">
+            <div class="content-wrapper">
+                <h1>Stop Wasting Money on BigQuery.</h1>
+                <p>Our autonomous AI agent continuously scans, analyzes, and optimizes your data warehouse, turning complex inefficiencies into simple, one-click actions.</p>
+                <a href="#connect" class="button">Start The Demo</a>
+            </div>
+            <div class="next-arrow" onclick="document.getElementById('connect').scrollIntoView();">▼</div>
+        </section>
+
+        <section id="connect" class="step">
+            <div class="content-wrapper">
+                <h2>Connect in 60 Seconds.</h2>
+                <p>Securely authorize QueryWise with one click. No code, no complex setup. We use read-only permissions to ensure your data's safety.</p>
+                <button id="connect-btn" class="button">🔗 Connect BigQuery</button>
+            </div>
+            <div class="next-arrow" onclick="document.getElementById('scan').scrollIntoView();">▼</div>
+        </section>
+        
+        <section id="scan" class="step">
+            <div class="content-wrapper">
+                <h2>AI Scan in Progress...</h2>
+                <p>Our agent is mapping your warehouse, analyzing query history from `INFORMATION_SCHEMA`, and identifying cost patterns. This happens in a continuous loop, 24/7.</p>
+                <div class="scanner">
+                    <div class="scan-text" id="scan-text">0%</div>
+                    <div class="ring"></div>
+                    <div class="ring"></div>
+                    <div class="ring"></div>
+                </div>
+            </div>
+             <div class="next-arrow" onclick="document.getElementById('dashboard').scrollIntoView();">▼</div>
+        </section>
+
+        <section id="dashboard" class="step">
+            <div class="content-wrapper">
+                <h2>Your Warehouse, a Clear Picture.</h2>
+                <p>We translate millions of log entries into actionable intelligence. Here’s what we found:</p>
+                <div class="card-grid">
+                    <div class="card">
+                        <div class="card-title">Projected Monthly Savings</div>
+                        <div class="card-value green" id="savings-value">$0</div>
+                    </div>
+                     <div class="card">
+                        <div class="card-title">Inefficient Queries</div>
+                        <div class="card-value" id="queries-value">0</div>
+                    </div>
+                     <div class="card">
+                        <div class="card-title">Unused "Zombie" Tables</div>
+                        <div class="card-value" id="tables-value">0</div>
+                    </div>
+                </div>
+            </div>
+             <div class="next-arrow" onclick="document.getElementById('recommendations').scrollIntoView();">▼</div>
+        </section>
+        
+        <section id="recommendations" class="step">
+            <div class="content-wrapper">
+                <h2>From Insight to Action.</h2>
+                <p>Don't just find problems—fix them. Apply optimizations directly from the dashboard, saving valuable engineering time.</p>
+                <div class="card-grid">
+                    <div class="rec-card card">
+                        <h3>Partition Table</h3>
+                        <p class="card-text">Table `logs.events` is frequently filtered by date. Partitioning it could save <strong>~$450/month</strong>.</p>
+                        <button class="button rec-btn">Apply Fix</button>
+                    </div>
+                     <div class="rec-card card">
+                        <h3>Create Materialized View</h3>
+                        <p class="card-text">A query for your main dashboard runs 100x/day. A Materialized View can cut its cost by <strong>98%</strong>.</p>
+                        <button class="button rec-btn">Apply Fix</button>
+                    </div>
+                     <div class="rec-card card">
+                        <h3>Archive Old Data</h3>
+                        <p class="card-text">Table `archive.user_snaps_2022` hasn't been accessed in 180 days. Archive it to long-term storage.</p>
+                        <button class="button rec-btn">Apply Fix</button>
+                    </div>
+                </div>
+            </div>
+            <div class="next-arrow" onclick="document.getElementById('cta').scrollIntoView();">▼</div>
+        </section>
+
+        <section id="cta" class="step">
+            <div class="content-wrapper">
+                <h1>Ready to Tame Your BigQuery?</h1>
+                <p>Stop guessing, start optimizing. Connect your warehouse and see your first real recommendations in minutes. This was just a demo—imagine the power with your own data.</p>
+                <a href="#" class="button success">Start Your Free Analysis Now</a>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const steps = document.querySelectorAll('.step');
+            const progressBar = document.getElementById('progress-bar');
+            let animationsTriggered = new Set();
+
+            // Intersection Observer to detect active step
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const targetId = entry.target.id;
+                        // Add active class to current step
+                        entry.target.classList.add('active');
+                        
+                        // Trigger animations only once
+                        if (!animationsTriggered.has(targetId)) {
+                             triggerAnimations(targetId);
+                             animationsTriggered.add(targetId);
+                        }
+                    } else {
+                         entry.target.classList.remove('active');
+                    }
+                });
+            }, { threshold: 0.5 }); // 50% of the element is visible
+
+            steps.forEach(step => observer.observe(step));
+            
+            // Progress bar update on scroll
+            window.addEventListener('scroll', () => {
+                const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const scrollProgress = (window.scrollY / totalHeight) * 100;
+                progressBar.style.width = scrollProgress + '%';
+            });
+
+            // Simulate button actions
+            const connectBtn = document.getElementById('connect-btn');
+            connectBtn.addEventListener('click', () => {
+                connectBtn.textContent = 'Connecting...';
+                setTimeout(() => {
+                    connectBtn.textContent = '✓ Connected!';
+                    connectBtn.classList.add('success');
+                    connectBtn.disabled = true;
+                }, 1500);
+            });
+            
+            const recBtns = document.querySelectorAll('.rec-btn');
+            recBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                   const originalText = btn.textContent;
+                   btn.textContent = 'Applying...';
+                   btn.disabled = true;
+                   setTimeout(() => {
+                        btn.textContent = '✓ Fix Applied';
+                        btn.classList.add('success');
+                   }, 2000);
+                });
+            });
+
+            // Animation logic
+            function triggerAnimations(stepId) {
+                switch(stepId) {
+                    case 'scan':
+                        animateCounter(document.getElementById('scan-text'), 100, 3000, '%');
+                        break;
+                    case 'dashboard':
+                        animateCounter(document.getElementById('savings-value'), 12870, 2000, '$');
+                        animateCounter(document.getElementById('queries-value'), 87, 2000, '');
+                        animateCounter(document.getElementById('tables-value'), 14, 2000, '');
+                        break;
+                }
+            }
+            
+            function animateCounter(element, target, duration, prefix = '') {
+                let start = 0;
+                const stepTime = 20;
+                const steps = duration / stepTime;
+                const increment = target / steps;
+                
+                const timer = setInterval(() => {
+                    start += increment;
+                    if (start >= target) {
+                        clearInterval(timer);
+                        start = target;
+                    }
+                    if (prefix === '$') {
+                       element.textContent = prefix + Math.floor(start).toLocaleString();
+                    } else {
+                       element.textContent = Math.floor(start) + prefix;
+                    }
+                }, stepTime);
+            }
+
+        });
+    </script>
+</body>
+</html>
