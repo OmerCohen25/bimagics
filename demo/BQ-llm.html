@@ -134,7 +134,6 @@
             box-shadow: 0 0 20px rgba(0, 255, 170, 0.4);
         }
 
-        /* Scanning animation */
         .scanner {
             width: 200px;
             height: 200px;
@@ -166,7 +165,6 @@
             100% { transform: scale(1.5); opacity: 0; }
         }
         
-        /* Dashboard & Recs cards */
         .card-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -237,11 +235,16 @@
             text-align: left;
             white-space: pre-wrap;
             border: 1px solid var(--border-color);
-            margin-bottom: 1rem;
+            margin-bottom: 0;
             opacity: 0;
-            height: 0;
-            transition: opacity 0.4s ease, height 0.4s ease, margin 0.4s ease;
+            max-height: 0;
+            transition: all 0.4s ease;
             overflow: hidden;
+        }
+        .sql-command.visible {
+            opacity: 1;
+            max-height: 200px;
+            margin-bottom: 1rem;
         }
 
         .rec-btn-v2 {
@@ -257,17 +260,13 @@
             transition: all 0.3s ease;
             position: relative;
         }
-        .rec-btn-v2 .btn-text { transition: all 0.3s ease; }
-        .rec-btn-v2.executing {
-            background: linear-gradient(90deg, #172a46, #004d7a);
-            color: var(--secondary-glow);
+        .rec-btn-v2 .btn-text::after {
+            content: '';
+            display: inline-block;
+            animation: dots 1.4s infinite;
         }
         .rec-btn-v2.executing .btn-text::after {
             content: '...';
-            display: inline-block;
-            animation: dots 1.4s infinite;
-            position: absolute;
-            right: 30%;
         }
         .rec-btn-v2.success {
             background: var(--success-color);
@@ -296,86 +295,32 @@
             60% { transform: translate(-50%, -7px); }
         }
         
-        /* Chat UI styles */
-        .chat-container {
-            width: 100%;
-            max-width: 700px;
-            height: 60vh;
-            max-height: 500px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            margin-top: 2rem;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
+        .chat-container, .message-area, .message, .chat-input-area {
+             /* Styles are correct, included in final script */
         }
-        .message-area {
-            flex-grow: 1;
-            padding: 1rem;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
+         .chat-container {
+            width: 100%; max-width: 700px; height: 60vh; max-height: 500px;
+            background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px;
+            display: flex; flex-direction: column; margin-top: 2rem; overflow: hidden; backdrop-filter: blur(10px);
         }
+        .message-area { flex-grow: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
         .message {
-            padding: 10px 15px;
-            border-radius: 18px;
-            max-width: 80%;
-            line-height: 1.5;
-            opacity: 0;
-            transform: translateY(10px);
-            animation: fadeIn 0.5s forwards;
-            font-size: 1rem;
+            padding: 10px 15px; border-radius: 18px; max-width: 80%; line-height: 1.5;
+            opacity: 0; transform: translateY(10px); animation: fadeIn 0.5s forwards; font-size: 1rem;
         }
-        .message.agent {
-            background-color: #172a46;
-            align-self: flex-start;
-            border-bottom-left-radius: 4px;
-        }
-        .message.user {
-            background-color: #004d7a;
-            align-self: flex-end;
-            border-bottom-right-radius: 4px;
-        }
+        .message.agent { background-color: #172a46; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .message.user { background-color: #004d7a; align-self: flex-end; border-bottom-right-radius: 4px; }
         .message.notification {
-            align-self: center;
-            background: none;
-            color: var(--secondary-glow);
-            font-size: 0.9rem;
-            font-style: italic;
-            text-align: center;
-            width: 100%;
+            align-self: center; background: none; color: var(--secondary-glow);
+            font-size: 0.9rem; font-style: italic; text-align: center; width: 100%;
         }
-        .message.thinking {
-            align-self: flex-start;
-            font-style: italic;
-            color: var(--text-muted);
-            padding: 10px 0;
-        }
-        .chat-input-area {
-            display: flex;
-            padding: 1rem;
-            border-top: 1px solid var(--border-color);
-        }
-        #chat-input {
-            flex-grow: 1;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1rem;
-            outline: none;
-        }
+        .message.thinking { align-self: flex-start; font-style: italic; color: var(--text-muted); padding: 10px 0; }
+        .chat-input-area { display: flex; padding: 1rem; border-top: 1px solid var(--border-color); }
+        #chat-input { flex-grow: 1; background: none; border: none; color: white; font-size: 1rem; outline: none; }
         #chat-input::placeholder { color: var(--text-muted); }
         #send-btn {
-            background: none;
-            border: 1px solid var(--primary-glow);
-            color: var(--primary-glow);
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.2s, color 0.2s;
+            background: none; border: 1px solid var(--primary-glow); color: var(--primary-glow);
+            padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: background-color 0.2s, color 0.2s;
         }
         #send-btn:hover { background-color: var(--primary-glow); color: var(--bg-color); }
         @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
@@ -515,7 +460,7 @@ ADD CLUSTER BY (country_code);</pre>
                             </div>
                         </div>
                         <div class="action-area">
-                            <pre class="sql-command">CREATE MATERIALIZED VIEW `....mv_dashboard`
+                            <pre class="sql-command">CREATE MATERIALIZED VIEW `...mv_dashboard`
 AS SELECT date, country, COUNT(*) AS users
 FROM `...users_activity` GROUP BY 1, 2;</pre>
                              <button class="button rec-btn-v2">
@@ -583,7 +528,6 @@ FROM `...users_activity` GROUP BY 1, 2;</pre>
                 progressBar.style.width = scrollProgress + '%';
             });
 
-            // Simulate button actions
             document.getElementById('connect-btn').addEventListener('click', function() {
                 this.textContent = 'Connecting...';
                 setTimeout(() => {
@@ -595,19 +539,19 @@ FROM `...users_activity` GROUP BY 1, 2;</pre>
             
             document.querySelectorAll('.rec-btn-v2').forEach(btn => {
                 btn.addEventListener('click', function() {
-                   if(this.classList.contains('success')) return;
+                   if (this.classList.contains('success') || this.classList.contains('executing')) {
+                       return;
+                   }
 
                    const actionArea = this.closest('.action-area');
                    const sqlCommand = actionArea.querySelector('.sql-command');
                    const btnText = this.querySelector('.btn-text');
                    
                    this.classList.add('executing');
-                   btnText.textContent = 'Agent is executing command';
                    this.disabled = true;
-
-                   sqlCommand.style.height = sqlCommand.scrollHeight + 'px';
-                   sqlCommand.style.opacity = 1;
-                   sqlCommand.style.marginBottom = "1rem";
+                   btnText.textContent = 'Agent is executing command';
+                   
+                   sqlCommand.classList.add('visible');
 
                    setTimeout(() => {
                         this.classList.remove('executing');
