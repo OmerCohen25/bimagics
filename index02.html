@@ -50,6 +50,8 @@
         .gradient-text { background: linear-gradient(90deg, #A855F7, #22D3EE); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-fill-color: transparent; }
         
         /* Animations */
+        .fade-in-element { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
+        .fade-in-element.is-visible { opacity: 1; transform: translateY(0); }
         .fade-in-section { opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
         .fade-in-section.is-visible { opacity: 1; transform: translateY(0); }
         .timeline-line { transform: scaleX(0); transform-origin: left; transition: transform 0.8s ease-in-out; }
@@ -71,9 +73,16 @@
         .chat-bubble { max-width: 80%; }
         .chat-bubble-user { background-color: #4c1d95; }
         .chat-bubble-wizard { background-color: #1e293b; }
-        .wizard-chart-bar { transform-origin: bottom; transition: transform 0.5s ease-out; }
+        .wizard-chart-bar { transform-origin: bottom; transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55); box-shadow: 0 0 8px rgba(34, 211, 238, 0.3); }
         .try-now-btn { animation: soft-pulse 2s infinite ease-in-out; }
         @keyframes soft-pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(232, 121, 249, 0.4); } 70% { transform: scale(1.05); box-shadow: 0 0 10px 10px rgba(232, 121, 249, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(232, 121, 249, 0); } }
+        
+        /* Data Agent Demo Visuals */
+        .lineage-path { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: draw-line 1s ease-out forwards; }
+        @keyframes draw-line { to { stroke-dashoffset: 0; } }
+        .agent-chat-bubble-user { background: #1e40af; border-color: #3b82f6; }
+        .agent-chat-bubble-agent { background: #1e293b; border-color: #4f46e5; }
+        .code-block { background-color: #020617; }
     </style>
 </head>
 <body class="antialiased">
@@ -88,7 +97,7 @@
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-purple-400"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         <span class="text-2xl font-bold font-tilt-neon gradient-text">BI MAGICS</span>
                     </a>
-                     <nav class="hidden lg:flex items-center space-x-8">
+                    <nav class="hidden lg:flex items-center space-x-8">
                         <a href="#solutions" class="text-gray-300 hover:text-white transition-colors">Solutions</a>
                         <a href="#wizards" class="text-gray-300 hover:text-white transition-colors">Wizards Demo</a>
                         <a href="#data-agent" class="text-gray-300 hover:text-white transition-colors">Data Agent Demo</a>
@@ -178,7 +187,7 @@
                                             <p class="text-white" x-text="message.text"></p>
                                         </div>
                                         <div x-show="message.author === 'wizard'" class="flex items-end gap-2 chat-bubble">
-                                            <img :src="message.wizard.avatar" alt="Wizard Avatar" class="w-10 h-10 rounded-full flex-shrink-0">
+                                            <img :src="message.wizard.avatar" alt="Wizard Avatar" class="w-10 h-10 rounded-full flex-shrink-0 bg-gray-700">
                                             <div class="w-full chat-bubble-wizard rounded-lg p-3">
                                                 <p class="font-bold mb-1" x-text="message.wizard.name"></p>
                                                 <p class="text-white" x-text="message.text"></p>
@@ -198,10 +207,13 @@
                                     </div>
                                 </template>
                                 <div x-show="isTyping" class="flex justify-start" x-transition>
-                                    <div class="chat-bubble chat-bubble-wizard rounded-lg p-3 flex items-center gap-2">
-                                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0s;"></div>
-                                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.2s;"></div>
-                                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.4s;"></div>
+                                    <div class="flex items-end gap-2 chat-bubble">
+                                        <img src="https://placehold.co/40x40/4c1d95/FFFFFF?text=W" alt="Wizard Avatar" class="w-10 h-10 rounded-full flex-shrink-0">
+                                        <div class="chat-bubble-wizard rounded-lg p-3 flex items-center gap-2">
+                                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0s;"></div>
+                                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.2s;"></div>
+                                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.4s;"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -217,8 +229,8 @@
                         <p class="text-lg text-gray-300 mb-2"><strong>Who is this for?</strong> Data Engineers, Analysts, and BI teams who manage the data infrastructure.</p>
                         <p class="text-lg text-gray-300 max-w-3xl mx-auto">Stop firefighting and start innovating. The Data Agent works 24/7 in your data warehouse to map, monitor, and optimize, giving you a reliable and cost-effective data backend.</p>
                     </div>
-                    <div class="grid lg:grid-cols-12 gap-8 items-start">
-                        <div class="lg:col-span-3 space-y-4">
+                    <div class="flex flex-col lg:grid lg:grid-cols-12 gap-8 items-start">
+                        <div class="w-full lg:col-span-3 space-y-4">
                             <button @click="runScript('mapping')" :class="{'active': activeScript === 'mapping'}" class="data-agent-btn w-full text-left glass-effect p-4 rounded-lg border border-cyan-400/50 hover:bg-cyan-400/20">
                                 <div class="flex items-center gap-3"><i data-lucide="map" class="w-6 h-6 text-cyan-300"></i><span class="font-bold text-lg">Auto-Catalog & Lineage</span></div>
                                 <p class="text-sm text-gray-400 mt-1">See how the agent discovers and documents assets.</p>
@@ -232,15 +244,22 @@
                                 <p class="text-sm text-gray-400 mt-1">Chat with the agent to debug and understand data.</p>
                             </button>
                         </div>
-                        <div class="lg:col-span-9 w-full h-[500px] glass-effect rounded-2xl flex flex-col p-1 border-2 border-cyan-400/30">
+                        <div class="w-full lg:col-span-9 h-[550px] glass-effect rounded-2xl flex flex-col p-1 border-2 border-cyan-400/30">
                              <div class="flex-shrink-0 p-2 border-b border-cyan-800/50 flex items-center justify-between"><div class="flex items-center gap-2"><span class="w-3 h-3 bg-red-500 rounded-full"></span><span class="w-3 h-3 bg-yellow-500 rounded-full"></span><span class="w-3 h-3 bg-green-500 rounded-full"></span></div><div class="text-xs text-cyan-300 font-mono">Data Agent Console</div></div>
-                             <div class="flex-grow flex p-2 gap-2 overflow-hidden">
-                                 <div class="w-1/2 bg-black/20 rounded-lg p-4 overflow-y-auto" x-ref="visualPanel">
-                                    <div x-show="!activeScript" class="h-full flex items-center justify-center text-gray-500">Select a capability to begin...</div>
+                             <div class="flex-grow flex flex-col lg:flex-row p-2 gap-2 overflow-hidden h-full">
+                                 <div class="w-full lg:w-1/2 bg-black/20 rounded-lg p-4 overflow-y-auto" x-ref="visualPanel">
+                                    <div x-show="!scriptRunning && !logs.length" class="h-full flex flex-col items-center justify-center text-gray-500 text-center">
+                                        <i data-lucide="play-circle" class="w-16 h-16 mb-4"></i>
+                                        <p>Select a capability to see the magic happen.</p>
                                     </div>
-                                 <div class="w-1/2 bg-black/20 rounded-lg p-4 flex flex-col font-mono text-sm overflow-y-auto" x-ref="logContainer">
-                                    <template x-for="log in logs" :key="log.id"><p :class="log.color"><span class="text-gray-500" x-text="log.timestamp"></span><span x-text="log.level"></span><span x-html="log.message"></span></p></template>
+                                    <div x-show="scriptRunning && !logs.length" class="h-full flex flex-col items-center justify-center text-gray-400">
+                                        <div class="w-12 h-12 border-4 border-t-cyan-400 border-gray-600 rounded-full animate-spin"></div>
+                                        <p class="mt-4">Initializing script...</p>
+                                    </div>
                                  </div>
+                                <div class="w-full lg:w-1/2 bg-black/20 rounded-lg p-4 flex flex-col font-mono text-sm overflow-y-auto" x-ref="logContainer">
+                                    <template x-for="log in logs" :key="log.id"><p :class="log.color" class="flex gap-2"><span class="flex-shrink-0 text-gray-500" x-text="log.timestamp"></span><span class="flex-shrink-0" x-text="log.level"></span><span class="whitespace-pre-wrap" x-html="log.message"></span></p></template>
+                                </div>
                              </div>
                         </div>
                     </div>
@@ -310,7 +329,7 @@
                         <div class="max-w-xl">
                            <h2 class="text-3xl font-bold font-tilt-neon mb-4">Ready to Move 10x Faster?</h2>
                            <p class="text-lg text-gray-300 mb-4">
-                               Every great data journey starts with a single conversation. Tell us about your challenges, and we'll show you how BI MAGICS can help you achieve your goals.
+                                Every great data journey starts with a single conversation. Tell us about your challenges, and we'll show you how BI MAGICS can help you achieve your goals.
                            </p>
                         </div>
 
@@ -341,7 +360,7 @@
                              </template>
                              <template x-if="submitted">
                                  <div class="text-center py-10" x-transition>
-                                     <i data-lucide="check-circle-2" class="w-16 h-16 text-green-400 mx-auto mb-4"></i>
+                                      <i data-lucide="check-circle-2" class="w-16 h-16 text-green-400 mx-auto mb-4"></i>
                                      <h3 class="text-2xl font-bold mb-2">Thank You!</h3>
                                      <p class="text-gray-300">Your request has been sent. We'll be in touch shortly to schedule your demo.</p>
                                  </div>
@@ -387,7 +406,7 @@
             messages: [],
             isTyping: false,
             wizards: {
-                sales: { name: 'Sales Wizard', avatar: 'https://placehold.co/40x40/15803d/FFFFFF?text=S' },
+                sales: { name: 'Sales Wizard', avatar: 'https://placehold.co/40x40/5b21b6/FFFFFF?text=S' },
                 marketing: { name: 'Marketing Wizard', avatar: 'https://placehold.co/40x40/1d4ed8/FFFFFF?text=M' },
             },
             demoScenario: [
@@ -396,75 +415,153 @@
                 { author: 'user', text: "Interesting. Which marketing campaigns drove the most signups last month?" },
                 { author: 'wizard', wizard_key: 'marketing', text: "The 'Summer Promo' campaign was the top performer last month, followed by 'Webinar Series'.", showChart: false, chartData: [ { label: 'Summer Promo', value: 850, height: 95, value_display: '850', delay: 100 }, { label: 'Webinar', value: 620, height: 69, value_display: '620', delay: 200 }, { label: 'Social Ads', value: 450, height: 50, value_display: '450', delay: 300 } ] },
             ],
-            init() { this.run(); },
+            init() {
+                const observer = new IntersectionObserver((entries) => {
+                    if (entries[0].isIntersecting) {
+                        this.run();
+                        observer.unobserve(this.$el);
+                    }
+                }, { threshold: 0.5 });
+                observer.observe(this.$el);
+            },
             async run() {
                 this.messages = [];
                 for (let i = 0; i < this.demoScenario.length; i++) {
                     const messageData = this.demoScenario[i];
                     await new Promise(r => setTimeout(r, 500));
                     this.isTyping = messageData.author === 'wizard';
-                    await new Promise(r => setTimeout(r, messageData.author === 'user' ? 500 : 2000));
-                    this.isTyping = false;
+                    if (this.isTyping) await new Promise(r => setTimeout(r, 2000));
                     
+                    this.isTyping = false;
                     const newMessage = { id: Date.now(), ...messageData, wizard: this.wizards[messageData.wizard_key] };
                     this.messages.push(newMessage);
+                    await this.$nextTick();
                     
                     if (newMessage.author === 'wizard' && newMessage.chartData) {
                         await new Promise(r => setTimeout(r, 100)); // wait for dom update
                         const msgIndex = this.messages.findIndex(m => m.id === newMessage.id);
                         if(msgIndex !== -1) this.messages[msgIndex].showChart = true;
                     }
-
-                    this.$nextTick(() => this.$refs.chatWindow.scrollTop = this.$refs.chatWindow.scrollHeight);
+                    this.$refs.chatWindow.scrollTop = this.$refs.chatWindow.scrollHeight;
+                    if( i < this.demoScenario.length - 1 ) await new Promise(r => setTimeout(r, 2500));
                 }
             }
         }));
 
         Alpine.data('dataAgentDemo', () => ({
-            logs: [], status: 'IDLE', activeScript: '', scriptRunning: false,
-            clearPrevious() { this.logs = []; this.$refs.visualPanel.innerHTML = ''; this.scriptRunning = true; },
-            addLog(log, delay) { return new Promise(resolve => { setTimeout(() => { if (this.logs.length > 100) this.logs.shift(); this.logs.push({ id: Date.now(), timestamp: new Date().toLocaleTimeString(), level: ` ${log.level.padEnd(10)}`, message: ` ${log.message}`, color: log.color }); this.$nextTick(() => this.$refs.logContainer.scrollTop = this.$refs.logContainer.scrollHeight); resolve(); }, delay); }); },
-            addVisual(html, delay) { return new Promise(resolve => { setTimeout(() => { this.$refs.visualPanel.innerHTML += html; lucide.createIcons(); resolve(); }, delay); }); },
+            logs: [], status: 'IDLE', activeScript: null, scriptRunning: false,
+            clearPrevious() { 
+                this.logs = []; 
+                this.$refs.visualPanel.innerHTML = ''; 
+                this.scriptRunning = true; 
+            },
+            addLog(log, delay) { 
+                return new Promise(resolve => { setTimeout(() => { 
+                    if (this.logs.length > 50) this.logs.shift(); 
+                    this.logs.push({ id: Date.now(), timestamp: new Date().toLocaleTimeString(), level: `[${log.level.padEnd(8)}]`, message: log.message, color: log.color }); 
+                    this.$nextTick(() => this.$refs.logContainer.scrollTop = this.$refs.logContainer.scrollHeight); 
+                    resolve(); 
+                }, delay); }); 
+            },
+            addVisual(id, html, delay) {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        const el = document.createElement('div');
+                        el.id = `vis-${id}`;
+                        el.className = 'fade-in-element';
+                        el.innerHTML = html;
+                        this.$refs.visualPanel.appendChild(el);
+                        this.$nextTick(() => {
+                            // Trigger fade-in animation
+                            setTimeout(() => el.classList.add('is-visible'), 10);
+                            lucide.createIcons();
+                            this.$refs.visualPanel.scrollTop = this.$refs.visualPanel.scrollHeight;
+                            resolve();
+                        });
+                    }, delay);
+                });
+            },
+            updateVisual(id, newHtml) {
+                return new Promise(resolve => {
+                    const el = this.$refs.visualPanel.querySelector(`#vis-${id}`);
+                    if (el) {
+                        el.innerHTML = newHtml;
+                        lucide.createIcons();
+                    }
+                    resolve();
+                });
+            },
+            async animateCounter(id, finalValue, duration) {
+                const el = this.$refs.visualPanel.querySelector(`#${id}`);
+                let start = 0;
+                const increment = finalValue / (duration / 16);
+                const interval = setInterval(() => {
+                    start += increment;
+                    if (start >= finalValue) {
+                        el.innerText = `$${finalValue.toLocaleString()}`;
+                        clearInterval(interval);
+                    } else {
+                        el.innerText = `$${Math.ceil(start).toLocaleString()}`;
+                    }
+                }, 16);
+            },
             async runScript(scriptName) {
-                if (this.scriptRunning && this.activeScript === scriptName) return;
-                this.clearPrevious(); this.activeScript = scriptName; this.status = 'RUNNING';
+                if (this.scriptRunning) return;
+                this.activeScript = scriptName;
+                this.clearPrevious();
+                
                 if (scriptName === 'mapping') {
-                    await this.addLog({ level: '[INIT]', message: 'Starting warehouse catalog process...', color: 'text-cyan-400' }, 100);
-                    await this.addVisual('<h3 class="text-lg font-bold text-white mb-2">Live Data Catalog</h3>', 0);
-                    await this.addLog({ level: '[SCAN]', message: 'Scanning schema: `prod`...', color: 'text-gray-400' }, 500);
-                    await this.addVisual('<div id="db-prod" class="p-3 my-1 bg-gray-800/50 rounded transition-all"><div class="flex items-center gap-2 font-bold"><i data-lucide="database"></i>prod</div></div>', 500);
-                    await this.addLog({ level: '[CATALOG]', message: 'Found table: `fact_orders`', color: 'text-gray-400' }, 700);
-                    await this.addVisual('<div id="tbl-orders" class="p-3 ml-4 my-1 bg-gray-800/50 rounded transition-all"><div class="flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div></div>', 700);
-                    await this.addLog({ level: '[ANALYZE]', message: 'Analyzing columns for `fact_orders`...', color: 'text-gray-400' }, 800);
-                    await this.addVisual('<div class="text-xs text-gray-400 mt-1 ml-10" id="col-analysis">Detecting types: <span class="text-purple-400">order_id (INT)</span>, <span class="text-purple-400">amount (DECIMAL)</span>, <span class="text-yellow-400">customer_email (VARCHAR)</span>...</div>', 800);
-                    await this.addLog({ level: '[AI-DOC]', message: 'Generating business description for `fact_orders`...', color: 'text-purple-400' }, 1000);
-                    await this.addVisual('<div class="p-2 ml-10 my-1 bg-purple-900/50 border-l-2 border-purple-400 text-purple-300 text-xs"><strong>AI Description:</strong> "Contains core order information including amount, status, and customer keys. Central table for revenue reporting."</div>', 1000);
-                    await this.addLog({ level: '[PII-SCAN]', message: 'Scanning `fact_orders` for PII...', color: 'text-yellow-400' }, 500);
-                    await this.addLog({ level: '[OK]', message: 'PII found in `customer_email`. Tagging applied.', color: 'text-yellow-400' }, 1000);
-                    document.getElementById('tbl-orders').classList.add('bg-yellow-900/30', 'border', 'border-yellow-500');
+                    await this.addLog({ level: 'INIT', message: 'Starting warehouse catalog process...', color: 'text-cyan-400' }, 100);
+                    await this.addVisual('title', '<h3 class="text-lg font-bold text-white mb-4">Live Data Catalog & Lineage</h3>', 100);
+                    await this.addLog({ level: 'SCAN', message: 'Scanning schema: `prod`...', color: 'text-gray-400' }, 500);
+                    await this.addVisual('db', '<div class="flex items-center gap-2 p-2 bg-slate-800 rounded"><i data-lucide="database"></i><span>prod_db</span></div>', 500);
+                    await this.addLog({ level: 'CATALOG', message: 'Found table: `fact_orders`', color: 'text-gray-400' }, 700);
+                    await this.addVisual('table', '<div class="ml-6 my-2 p-2 border border-gray-600 rounded bg-slate-800 transition-all duration-300"><div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div><div id="columns" class="mt-2 pl-4 space-y-1 text-sm"></div></div>', 700);
+                    await this.addLog({ level: 'ANALYZE', message: 'Analyzing columns for `fact_orders`...', color: 'text-gray-400' }, 300);
+                    await this.updateVisual('table', '<div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div><div id="columns" class="mt-2 pl-4 space-y-1 text-sm"><p class="fade-in-element is-visible text-gray-400">order_id <span class="text-purple-400">(INT)</span></p></div>');
+                    await new Promise(r => setTimeout(r, 400));
+                    await this.updateVisual('table', '<div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div><div id="columns" class="mt-2 pl-4 space-y-1 text-sm"><p class="fade-in-element is-visible text-gray-400">order_id <span class="text-purple-400">(INT)</span></p><p class="fade-in-element is-visible text-gray-400">amount <span class="text-purple-400">(DECIMAL)</span></p></div>');
+                    await new Promise(r => setTimeout(r, 400));
+                    await this.updateVisual('table', '<div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div><div id="columns" class="mt-2 pl-4 space-y-1 text-sm"><p class="fade-in-element is-visible text-gray-400">order_id <span class="text-purple-400">(INT)</span></p><p class="fade-in-element is-visible text-gray-400">amount <span class="text-purple-400">(DECIMAL)</span></p><p class="fade-in-element is-visible text-gray-400">customer_email <span class="text-purple-400">(VARCHAR)</span></p></div>');
+                    await this.addLog({ level: 'AI-DOC', message: 'Generating business description...', color: 'text-purple-400' }, 800);
+                    await this.addVisual('ai-doc', '<div class="p-2 ml-6 my-2 bg-purple-900/50 border-l-2 border-purple-400 text-purple-300 text-xs flex items-start gap-2"><i data-lucide="sparkles" class="w-4 h-4 mt-0.5 flex-shrink-0"></i><div><strong>AI Description:</strong> Contains core order information including amount, status, and customer keys. Central table for revenue reporting.</div></div>', 800);
+                    await this.addLog({ level: 'PII-SCAN', message: 'Scanning `fact_orders` for PII...', color: 'text-yellow-400' }, 500);
+                    await this.addLog({ level: 'PII-FOUND', message: 'PII found in `customer_email`. Tagging applied.', color: 'text-yellow-400' }, 1000);
+                    this.$refs.visualPanel.querySelector('#vis-table > div').classList.add('bg-yellow-900/30', 'border-yellow-500');
+                    await this.addLog({ level: 'LINEAGE', message: 'Tracing downstream dependencies...', color: 'text-gray-400' }, 800);
+                    await this.addVisual('lineage', '<svg class="w-full h-24 my-2"><line x1="50%" y1="0" x2="50%" y2="100%" stroke="#475569" stroke-width="2" class="lineage-path"/></svg><div class="flex items-center gap-2 p-2 bg-slate-800 rounded border border-cyan-500"><i data-lucide="pie-chart"></i><span>rpt_monthly_revenue</span></div>', 800);
+                    await this.addLog({ level: 'DONE', message: 'Catalog & lineage mapping complete.', color: 'text-green-400' }, 500);
                 } else if (scriptName === 'optimization') {
-                    await this.addLog({ level: '[INIT]', message: 'Starting cost & performance analysis...', color: 'text-cyan-400' }, 100);
-                    await this.addVisual('<h3 class="text-lg font-bold text-white mb-2">Cost Optimization Report</h3>', 0);
-                    await this.addLog({ level: '[SCAN]', message: 'Analyzing query history (last 30 days)...', color: 'text-gray-400' }, 800);
-                    await this.addLog({ level: '[COST]', message: 'High-Cost Query Detected!', color: 'text-red-500' }, 1200);
-                    await this.addVisual('<div class="p-3 my-1 bg-red-900/30 border border-red-500 rounded"><h4 class="font-bold text-red-400">Costly Query: `q_xyz789`</h4><p><strong>Cost:</strong> $127.50</p><p><strong>Reason:</strong> Full table scan on `events_log` (3.2 TB processed)</p></div>', 1200);
-                    await this.addLog({ level: '[SCAN]', message: 'Scanning for unused assets...', color: 'text-gray-400' }, 1000);
-                    await this.addLog({ level: '[UNUSED]', message: 'Table `stg_temp_users_2022` not accessed in 180 days.', color: 'text-yellow-400' }, 800);
-                    await this.addVisual('<div class="p-3 my-1 bg-yellow-900/30 border border-yellow-500 rounded"><h4 class="font-bold text-yellow-400">Unused Table: `stg_temp_users_2022`</h4><p><strong>Storage:</strong> 15.7 GB</p><p><strong>Recommendation:</strong> Archive or Drop</p></div>', 800);
-                    await this.addLog({ level: '[SUGGEST]', message: 'Generating optimization plan...', color: 'text-green-400' }, 800);
-                    await this.addVisual('<div class="p-3 my-1 bg-green-900/30 border border-green-500 rounded"><h4 class="font-bold text-green-400">Total Savings Opportunity</h4><p><strong>Query Optimization:</strong> ~$500/mo</p><p><strong>Storage Reduction:</strong> ~$3/mo</p><p class="font-bold mt-2">Total Est. Savings: <span class="text-xl">$6,036 / year</span></p></div>', 800);
+                    await this.addLog({ level: 'INIT', message: 'Starting cost & performance analysis...', color: 'text-cyan-400' }, 100);
+                    await this.addVisual('title', '<h3 class="text-lg font-bold text-white mb-4">Cost Optimization Report</h3>', 100);
+                    await this.addLog({ level: 'SCAN', message: 'Analyzing query history (last 30 days)...', color: 'text-gray-400' }, 800);
+                    await this.addLog({ level: 'COST', message: 'High-Cost Query Detected!', color: 'text-red-500' }, 1200);
+                    await this.addVisual('cost-query', '<div class="p-3 my-1 bg-red-900/30 border border-red-500 rounded"><div class="flex items-start gap-2"><i data-lucide="alert-triangle" class="text-red-400 mt-1"></i><div><h4 class="font-bold text-red-400">Costly Query: `q_xyz789`</h4><p class="text-sm"><strong>Cost:</strong> $127.50</p><p class="text-sm"><strong>Reason:</strong> Full table scan on `events_log` (3.2 TB processed)</p></div></div></div>', 1200);
+                    await this.addLog({ level: 'AI-FIX', message: 'AI Recommendation: Add partitioning on `event_date`.', color: 'text-green-400' }, 1000);
+                    await this.addVisual('ai-fix', '<div class="p-3 my-1 bg-green-900/30 border border-green-500 rounded"><div class="flex items-start gap-2"><i data-lucide="lightbulb" class="text-green-400 mt-1"></i><div><h4 class="font-bold text-green-400">Optimization Suggestion</h4><p class="text-sm">Partition table `events_log` by `event_date` to reduce scan size.</p></div></div></div>', 1000);
+                    await this.addLog({ level: 'SCAN', message: 'Scanning for unused assets...', color: 'text-gray-400' }, 1000);
+                    await this.addLog({ level: 'UNUSED', message: 'Table `stg_temp_users_2022` not accessed in 180 days.', color: 'text-yellow-400' }, 800);
+                    await this.addVisual('unused-table', '<div class="p-3 my-1 bg-yellow-900/30 border border-yellow-500 rounded"><div class="flex items-start gap-2"><i data-lucide="trash-2" class="text-yellow-400 mt-1"></i><div><h4 class="font-bold text-yellow-400">Unused Table: `stg_temp_users_2022`</h4><p class="text-sm"><strong>Storage:</strong> 15.7 GB</p><p class="text-sm"><strong>Recommendation:</strong> Archive or Drop</p></div></div></div>', 800);
+                    await this.addLog({ level: 'SUMMARY', message: 'Generating optimization savings summary...', color: 'text-green-400' }, 800);
+                    await this.addVisual('summary', '<div class="p-4 my-2 bg-green-900/30 border-2 border-green-500 rounded text-center"><h4 class="font-bold text-green-300 uppercase tracking-wider">Total Estimated Annual Savings</h4><div id="savings-counter" class="text-4xl lg:text-5xl font-bold text-white my-2">$0</div><p class="text-sm text-green-400">from query optimization and storage reduction</p></div>', 800);
+                    await this.animateCounter('savings-counter', 6036, 1500);
+                    await this.addLog({ level: 'DONE', message: 'Analysis complete. Report generated.', color: 'text-green-400' }, 100);
                 } else if (scriptName === 'chat') {
-                    await this.addLog({ level: '[INIT]', message: 'Engineer Assist Chat activated.', color: 'text-cyan-400' }, 100);
-                    await this.addVisual('<h3 class="text-lg font-bold text-white mb-2">Agent Chat</h3>', 0);
-                    await this.addLog({ level: '[USER]', message: 'Why is the `rpt_revenue` query slow?', color: 'text-blue-400' }, 1000);
-                    await this.addVisual('<div class="p-2 my-1 bg-blue-800/50 rounded text-right">Why is the `rpt_revenue` query slow?</div>', 1000);
-                    await this.addLog({ level: '[CONTEXT]', message: 'User is asking about `rpt_revenue`. Fetching metadata & query history...', color: 'text-gray-500' }, 1500);
-                    await this.addLog({ level: '[CONTEXT]', message: 'Found lineage: `fact_orders` -> `rpt_revenue`. `fact_orders` has 1.2B rows.', color: 'text-gray-500' }, 1000);
-                    await this.addLog({ level: '[AGENT]', message: 'Analyzing query plan...', color: 'text-purple-400' }, 1000);
-                    await this.addLog({ level: '[AGENT]', message: 'The query performs a full table scan on `fact_orders` because there is no index on the `order_date` filter. Suggest adding an index to improve performance.', color: 'text-purple-400' }, 2000);
-                    await this.addVisual('<div class="p-2 my-1 bg-purple-900/50 rounded">The query performs a full table scan on `fact_orders` because there is no index on the `order_date` filter. Suggest adding an index to improve performance.</div>', 2000);
+                    await this.addLog({ level: 'INIT', message: 'Engineer Assist Chat activated.', color: 'text-cyan-400' }, 100);
+                    await this.addVisual('chat-container', '<div class="space-y-4"></div>', 100);
+                    await this.addLog({ level: 'USER', message: 'Why is the `rpt_revenue` daily query slow?', color: 'text-blue-400' }, 1000);
+                    this.updateVisual('chat-container', '<div class="space-y-4"><div class="flex justify-end"><div class="agent-chat-bubble-user p-3 rounded-lg max-w-xs">Why is the `rpt_revenue` daily query slow?</div></div></div>');
+                    await this.addLog({ level: 'CONTEXT', message: 'User is asking about `rpt_revenue`. Fetching metadata & query history...', color: 'text-gray-500' }, 1500);
+                    await this.addLog({ level: 'CONTEXT', message: 'Found lineage: `fact_orders` -> `rpt_revenue`. `fact_orders` has 1.2B rows.', color: 'text-gray-500' }, 1000);
+                    await this.addLog({ level: 'AGENT', message: 'Analyzing query plan... Found full table scan.', color: 'text-purple-400' }, 1500);
+                    this.updateVisual('chat-container', document.getElementById('vis-chat-container').innerHTML + '<div class="flex justify-start"><div class="agent-chat-bubble-agent p-3 rounded-lg max-w-md"><p>The query on `rpt_revenue` is slow because it performs a full table scan on its source, `fact_orders`, every time it runs. This is inefficient as the table grows.</p><p class="mt-2">I recommend adding a clustering key on `order_date` to improve performance.</p><div class="mt-2 p-2 rounded-md code-block text-xs"><pre><code>CREATE INDEX idx_orders_date \nON fact_orders (order_date);</code></pre></div></div></div>');
+                    await this.addLog({ level: 'USER', message: 'Thanks! Can you show me the full lineage for fact_orders?', color: 'text-blue-400' }, 3000);
+                    this.updateVisual('chat-container', document.getElementById('vis-chat-container').innerHTML + '<div class="flex justify-end"><div class="agent-chat-bubble-user p-3 rounded-lg max-w-xs">Thanks! Can you show me the full lineage for fact_orders?</div></div>');
+                    await this.addLog({ level: 'AGENT', message: 'Generating lineage graph...', color: 'text-purple-400' }, 1500);
+                    this.updateVisual('chat-container', document.getElementById('vis-chat-container').innerHTML + '<div class="flex justify-start"><div class="agent-chat-bubble-agent p-3 rounded-lg max-w-md"><p>Certainly. Here is the data lineage for `fact_orders`:</p><div class="mt-2 p-2 rounded bg-slate-900/50"><svg viewBox="0 0 400 100"><defs><marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#67e8f9"></path></marker></defs><path d="M 90 50 L 150 50" stroke="#67e8f9" stroke-width="2" marker-end="url(#arrow)" class="lineage-path" style="animation-delay: 0s;"></path><path d="M 250 50 L 310 50" stroke="#67e8f9" stroke-width="2" marker-end="url(#arrow)" class="lineage-path" style="animation-delay: 0.5s;"></path><g><rect x="10" y="35" width="80" height="30" rx="5" fill="#1e293b" stroke="#38bdf8"></rect><text x="50" y="55" font-size="12" fill="white" text-anchor="middle">API Source</text></g><g><rect x="150" y="35" width="100" height="30" rx="5" fill="#4c1d95" stroke="#a855f7"></rect><text x="200" y="55" font-size="12" fill="white" text-anchor="middle">fact_orders</text></g><g><rect x="310" y="35" width="80" height="30" rx="5" fill="#1e293b" stroke="#38bdf8"></rect><text x="350" y="55" font-size="12" fill="white" text-anchor="middle">BI Report</text></g></svg></div></div></div>');
                 }
-                this.status = 'OK'; this.scriptRunning = false;
+                this.status = 'OK'; 
+                this.scriptRunning = false;
             }
         }));
     });
