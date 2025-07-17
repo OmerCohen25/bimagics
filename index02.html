@@ -69,8 +69,13 @@
         .typewriter-cursor { display: inline-block; width: 3px; background-color: #A855F7; animation: blink 1s infinite; }
         @keyframes blink { 50% { opacity: 0; } }
 
-        /* Wizard Demo UI */
+        /* Wizard Chat Demo */
+        .chat-bubble { max-width: 80%; }
+        .chat-bubble-user { background-color: #4c1d95; }
+        .chat-bubble-wizard { background-color: #1e293b; }
         .wizard-chart-bar { transform-origin: bottom; transition: transform 0.5s ease-out; transform: scaleY(0); }
+        .try-now-btn { animation: soft-pulse 2s infinite ease-in-out; }
+        @keyframes soft-pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(232, 121, 249, 0.4); } 70% { transform: scale(1.05); box-shadow: 0 0 10px 10px rgba(232, 121, 249, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(232, 121, 249, 0); } }
     </style>
 </head>
 <body class="antialiased">
@@ -115,7 +120,7 @@
         <main class="pt-20">
             <section id="hero" class="py-20 md:py-28 text-center overflow-hidden">
                 <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10" x-data="typewriter">
-                    <h1 class="text-4xl md:text-6xl lg:text-7xl font-black font-tilt-neon leading-tight gradient-text">
+                    <h1 class="text-4xl md:text-6xl lg:text-7xl font-black font-tilt-neon leading-tight gradient-text h-24 md:h-36">
                         <span x-text="text"></span><span class="typewriter-cursor"></span>
                     </h1>
                     <p class="mt-6 max-w-3xl mx-auto text-lg md:text-xl text-gray-300">
@@ -162,34 +167,45 @@
                         <h2 class="text-4xl md:text-5xl font-black font-tilt-neon mb-4"><span class="neon-text-purple">Wizards:</span> An AI Analyst for Every Team</h2>
                         <p class="text-lg text-gray-300 mb-2"><strong>Who is this for?</strong> Marketing, Sales, Product, and Finance teams who need answers now.</p>
                         <p class="text-lg text-gray-300 mb-8">Stop the bottleneck. With Wizards, your teams can ask questions in natural language and get immediate, actionable insights. It's true self-service analytics, finally available to everyone.</p>
-                        <a href="https://wizbi.ai" target="_blank" rel="noopener noreferrer" class="bg-purple-500 text-white font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-105 hover:bg-purple-600 inline-flex items-center gap-2 text-lg">
-                            <i data-lucide="external-link" class="w-5 h-5"></i>
-                            Try the Full Live Demo
+                        <a href="https://wizbi.ai" target="_blank" rel="noopener noreferrer" class="try-now-btn bg-fuchsia-500 text-white font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-110 inline-flex items-center gap-2 text-lg">
+                            <i data-lucide="sparkles" class="w-6 h-6"></i>
+                            Try the Full System Now
                         </a>
                     </div>
-                    <div class="glass-effect rounded-2xl p-4 border border-purple-500/30" x-data="wizardDemo">
-                        <!-- Wizard Demo UI -->
-                        <div class="bg-gray-900 rounded-lg p-4 min-h-[450px] flex flex-col">
-                            <div class="flex-grow">
-                                <p class="font-mono text-sm text-gray-400 mb-4">> <span x-text="typedQuestion"></span><span class="inline-block w-2 h-4 bg-purple-400 ml-1" x-show="isTyping" x-transition></span></p>
-                                <div x-show="isLoading" class="flex items-center gap-2 text-gray-500" x-transition>
-                                    <i data-lucide="loader-2" class="animate-spin w-5 h-5"></i><span>The Wizard is casting a spell...</span>
-                                </div>
-                                <div x-show="showChart" class="w-full h-64" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-                                    <div class="h-full flex items-end justify-around gap-2 border-b border-l border-gray-700 p-2">
-                                        <template x-for="bar in chartData">
-                                            <div class="w-full flex flex-col items-center gap-1">
-                                                <div class="text-green-400 font-bold text-sm" x-text="`$` + (bar.value / 1000) + `k`"></div>
-                                                <div class="wizard-chart-bar w-full bg-gradient-to-t from-purple-500 to-cyan-400 rounded-t-md" :style="`height: ${bar.value / 2000}%; transform: scaleY(${showChart ? 1 : 0}); transition-delay: ${bar.delay}ms;`"></div>
-                                                <div class="text-xs text-gray-500" x-text="bar.label"></div>
+                    <div class="glass-effect rounded-2xl p-4 border border-purple-500/30" x-data="wizardChatDemo">
+                        <!-- Wizard Chat Demo UI -->
+                        <div class="bg-gray-900 rounded-lg p-4 h-[500px] flex flex-col">
+                            <div class="flex-grow overflow-y-auto space-y-4 pr-2" x-ref="chatWindow">
+                                <template x-for="message in messages" :key="message.id">
+                                    <div class="flex" :class="message.author === 'user' ? 'justify-end' : 'justify-start'">
+                                        <div class="chat-bubble rounded-lg p-3" :class="message.author === 'user' ? 'chat-bubble-user' : 'chat-bubble-wizard'">
+                                            <div x-show="message.author !== 'user'" class="flex items-center gap-2 mb-2">
+                                                <div class="w-8 h-8 rounded-full flex items-center justify-center" :class="message.wizard.bgColor"><i :data-lucide="message.wizard.icon" class="w-5 h-5 text-white"></i></div>
+                                                <span class="font-bold" x-text="message.wizard.name"></span>
                                             </div>
-                                        </template>
+                                            <p class="text-white" x-text="message.text"></p>
+                                            <div x-show="message.chartData" class="mt-3 bg-gray-800 p-2 rounded-lg">
+                                                <div class="h-48 w-full flex items-end justify-around gap-2 border-b border-l border-gray-600 p-2">
+                                                    <template x-for="bar in message.chartData">
+                                                        <div class="w-full flex flex-col items-center gap-1">
+                                                            <div class="text-green-400 font-bold text-xs" x-text="bar.value_display"></div>
+                                                            <div class="wizard-chart-bar w-full bg-gradient-to-t from-purple-500 to-cyan-400 rounded-t-md" :style="`height: ${bar.height}%; transform: scaleY(1); transition-delay: ${bar.delay}ms;`"></div>
+                                                            <div class="text-xs text-gray-500" x-text="bar.label"></div>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <div x-show="isTyping" class="flex justify-start" x-transition>
+                                    <div class="chat-bubble chat-bubble-wizard rounded-lg p-3 flex items-center gap-2">
+                                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0s;"></div>
+                                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.2s;"></div>
+                                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.4s;"></div>
                                     </div>
                                 </div>
                             </div>
-                            <button @click="runDemo" class="mt-4 w-full bg-gray-700 text-gray-300 font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50" :disabled="isTyping || isLoading">
-                                Re-run Demo
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -203,30 +219,36 @@
                         <p class="text-lg text-gray-300 mb-2"><strong>Who is this for?</strong> Data Engineers, Analysts, and BI teams who manage the data infrastructure.</p>
                         <p class="text-lg text-gray-300 max-w-3xl mx-auto">Stop firefighting and start innovating. The Data Agent works 24/7 in your data warehouse to map, monitor, and optimize, giving you a reliable and cost-effective data backend.</p>
                     </div>
-                    <div class="grid lg:grid-cols-3 gap-8 items-start">
+                    <div class="grid lg:grid-cols-12 gap-8 items-start">
                         <!-- Controls -->
-                        <div class="lg:col-span-1 space-y-4">
+                        <div class="lg:col-span-3 space-y-4">
                             <button @click="runScript('mapping')" :class="{'active': activeScript === 'mapping'}" class="data-agent-btn w-full text-left glass-effect p-4 rounded-lg border border-cyan-400/50 hover:bg-cyan-400/20">
                                 <div class="flex items-center gap-3"><i data-lucide="map" class="w-6 h-6 text-cyan-300"></i><span class="font-bold text-lg">Auto-Catalog & Lineage</span></div>
                                 <p class="text-sm text-gray-400 mt-1">See how the agent discovers and documents assets.</p>
-                            </button>
-                            <button @click="runScript('monitoring')" :class="{'active': activeScript === 'monitoring'}" class="data-agent-btn w-full text-left glass-effect p-4 rounded-lg border border-cyan-400/50 hover:bg-cyan-400/20">
-                                <div class="flex items-center gap-3"><i data-lucide="siren" class="w-6 h-6 text-cyan-300"></i><span class="font-bold text-lg">Live Monitoring & Alerts</span></div>
-                                <p class="text-sm text-gray-400 mt-1">Watch the agent monitor data health and freshness.</p>
                             </button>
                             <button @click="runScript('optimization')" :class="{'active': activeScript === 'optimization'}" class="data-agent-btn w-full text-left glass-effect p-4 rounded-lg border border-cyan-400/50 hover:bg-cyan-400/20">
                                 <div class="flex items-center gap-3"><i data-lucide="zap" class="w-6 h-6 text-cyan-300"></i><span class="font-bold text-lg">Cost & Performance Tuning</span></div>
                                 <p class="text-sm text-gray-400 mt-1">Find costly queries and unused tables.</p>
                             </button>
+                            <button @click="runScript('chat')" :class="{'active': activeScript === 'chat'}" class="data-agent-btn w-full text-left glass-effect p-4 rounded-lg border border-cyan-400/50 hover:bg-cyan-400/20">
+                                <div class="flex items-center gap-3"><i data-lucide="message-circle" class="w-6 h-6 text-cyan-300"></i><span class="font-bold text-lg">Engineer Chat Assist</span></div>
+                                <p class="text-sm text-gray-400 mt-1">Chat with the agent to debug and understand data.</p>
+                            </button>
                         </div>
-                        <!-- Log Window -->
-                        <div class="lg:col-span-2 w-full h-[450px] glass-effect rounded-2xl flex flex-col p-1 border-2 border-cyan-400/30">
-                             <div class="flex-shrink-0 p-2 border-b border-cyan-800/50 flex items-center justify-between"><div class="flex items-center gap-2"><span class="w-3 h-3 bg-red-500 rounded-full"></span><span class="w-3 h-3 bg-yellow-500 rounded-full"></span><span class="w-3 h-3 bg-green-500 rounded-full"></span></div><div class="text-xs text-cyan-300 font-mono">/var/log/bimagics_agent.log</div></div>
-                             <div class="flex-grow p-4 bg-black/20 overflow-y-auto font-mono text-sm" x-ref="logContainer">
-                                <template x-for="log in logs" :key="log.id"><p :class="log.color"><span class="text-gray-500" x-text="log.timestamp"></span><span x-text="log.level"></span><span x-html="log.message"></span></p></template>
-                                <div x-show="!scriptRunning" class="text-gray-500 flex items-center justify-center h-full">Select a capability to see it in action...</div>
+                        <!-- Demo Window -->
+                        <div class="lg:col-span-9 w-full h-[500px] glass-effect rounded-2xl flex flex-col p-1 border-2 border-cyan-400/30">
+                             <div class="flex-shrink-0 p-2 border-b border-cyan-800/50 flex items-center justify-between"><div class="flex items-center gap-2"><span class="w-3 h-3 bg-red-500 rounded-full"></span><span class="w-3 h-3 bg-yellow-500 rounded-full"></span><span class="w-3 h-3 bg-green-500 rounded-full"></span></div><div class="text-xs text-cyan-300 font-mono">Data Agent Console</div></div>
+                             <div class="flex-grow flex p-2 gap-2 overflow-hidden">
+                                 <!-- Visual Panel -->
+                                 <div class="w-1/2 bg-black/20 rounded-lg p-4 overflow-y-auto" x-ref="visualPanel">
+                                    <div x-show="!activeScript" class="h-full flex items-center justify-center text-gray-500">Select a capability to begin...</div>
+                                    <!-- Visuals will be injected here by Alpine.js -->
+                                 </div>
+                                 <!-- Log Panel -->
+                                 <div class="w-1/2 bg-black/20 rounded-lg p-4 flex flex-col font-mono text-sm overflow-y-auto" x-ref="logContainer">
+                                    <template x-for="log in logs" :key="log.id"><p :class="log.color"><span class="text-gray-500" x-text="log.timestamp"></span><span x-text="log.level"></span><span x-html="log.message"></span></p></template>
+                                 </div>
                              </div>
-                             <div class="flex-shrink-0 p-2 border-t border-cyan-800/50 text-xs text-gray-400 flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-green-400"></i><span>SYSTEM STATUS: <span class="text-green-400 font-bold" x-text="status"></span></span></div>
                         </div>
                     </div>
                  </div>
@@ -354,13 +376,11 @@
     document.addEventListener('alpine:init', () => {
         Alpine.data('typewriter', () => ({
             text: '',
-            words: ["Unleash Your Data's Magic", "Get Instant Answers", "Build with Confidence"],
+            words: ["Unlock Your Data's Magic", "From Chaos to Clarity", "Become Data-Driven, Instantly"],
             wordIndex: 0,
             charIndex: 0,
             isDeleting: false,
-            init() {
-                this.type();
-            },
+            init() { this.type(); },
             type() {
                 const currentWord = this.words[this.wordIndex];
                 if (this.isDeleting) {
@@ -370,203 +390,112 @@
                     this.text = currentWord.substring(0, this.charIndex + 1);
                     this.charIndex++;
                 }
-
-                let typeSpeed = 150;
+                let typeSpeed = 120;
                 if (this.isDeleting) typeSpeed /= 2;
-
                 if (!this.isDeleting && this.text === currentWord) {
-                    typeSpeed = 2000; // Pause at end of word
+                    typeSpeed = 2500;
                     this.isDeleting = true;
                 } else if (this.isDeleting && this.text === '') {
                     this.isDeleting = false;
                     this.wordIndex = (this.wordIndex + 1) % this.words.length;
                     typeSpeed = 500;
                 }
-
                 setTimeout(() => this.type(), typeSpeed);
             }
         }));
 
-        Alpine.data('wizardDemo', () => ({
+        Alpine.data('wizardChatDemo', () => ({
+            messages: [],
             isTyping: false,
-            isLoading: false,
-            showChart: false,
-            typedQuestion: '',
-            question: "Show me revenue by lead source for Q2",
-            chartData: [
-                { label: 'Organic', value: 182500, delay: 100 },
-                { label: 'Social', value: 121000, delay: 200 },
-                { label: 'Referral', value: 98000, delay: 300 },
-                { label: 'Direct', value: 75000, delay: 400 },
+            demoScenario: [
+                { author: 'user', text: "How did our Q2 revenue from new customers in the US compare to Q1?" },
+                { author: 'wizard', wizard: { name: 'Sales Wizard', icon: 'dollar-sign', bgColor: 'bg-green-500' }, text: "Checking that for you... Here's the comparison for new customer revenue in the US:", chartData: [ { label: 'Q1', value: 120000, height: 60, value_display: '$120k' }, { label: 'Q2', value: 185000, height: 92.5, value_display: '$185k' } ] },
+                { author: 'user', text: "Interesting. Which marketing campaigns drove the most signups last month?" },
+                { author: 'wizard', wizard: { name: 'Marketing Wizard', icon: 'megaphone', bgColor: 'bg-blue-500' }, text: "The 'Summer Promo' campaign was the top performer last month, followed by 'Webinar Series'.", chartData: [ { label: 'Summer Promo', value: 850, height: 95, value_display: '850' }, { label: 'Webinar', value: 620, height: 69, value_display: '620' }, { label: 'Social Ads', value: 450, height: 50, value_display: '450' } ] },
             ],
-            init() {
-                this.runDemo();
-            },
-            runDemo() {
-                this.reset();
-                this.isTyping = true;
-                let i = 0;
-                const typingInterval = setInterval(() => {
-                    this.typedQuestion = this.question.substring(0, i + 1);
-                    i++;
-                    if (i > this.question.length) {
-                        clearInterval(typingInterval);
-                        this.isTyping = false;
-                        this.isLoading = true;
-                        setTimeout(() => {
-                            this.isLoading = false;
-                            this.showChart = true;
-                        }, 1500);
-                    }
-                }, 50);
-            },
-            reset() {
-                this.isTyping = false;
-                this.isLoading = false;
-                this.showChart = false;
-                this.typedQuestion = '';
+            init() { this.run(); },
+            async run() {
+                this.messages = [];
+                for (const message of this.demoScenario) {
+                    await new Promise(r => setTimeout(r, 500));
+                    this.isTyping = true;
+                    await new Promise(r => setTimeout(r, 1500));
+                    this.isTyping = false;
+                    this.messages.push({ id: Date.now(), ...message });
+                    this.$nextTick(() => this.$refs.chatWindow.scrollTop = this.$refs.chatWindow.scrollHeight);
+                }
             }
         }));
 
         Alpine.data('dataAgentDemo', () => ({
-            logs: [],
-            status: 'IDLE',
-            activeScript: '',
-            scriptRunning: false,
-            intervalId: null,
-            clearPrevious() {
-                this.logs = [];
-                if (this.intervalId) clearInterval(this.intervalId);
-                this.scriptRunning = true;
-                this.intervalId = null;
-            },
-            addLog(log, delay) {
-                return new Promise(resolve => {
-                    setTimeout(() => {
-                        if (this.logs.length > 100) this.logs.shift();
-                        this.logs.push({ id: Date.now() + Math.random(), timestamp: new Date().toLocaleTimeString(), level: ` ${log.level.padEnd(10)}`, message: ` ${log.message}`, color: log.color });
-                        this.$nextTick(() => { this.$refs.logContainer.scrollTop = this.$refs.logContainer.scrollHeight; });
-                        resolve();
-                    }, delay);
-                });
-            },
+            logs: [], status: 'IDLE', activeScript: '', scriptRunning: false, intervalId: null,
+            clearPrevious() { this.logs = []; this.$refs.visualPanel.innerHTML = ''; if (this.intervalId) clearInterval(this.intervalId); this.scriptRunning = true; this.intervalId = null; },
+            addLog(log, delay) { return new Promise(resolve => { setTimeout(() => { if (this.logs.length > 100) this.logs.shift(); this.logs.push({ id: Date.now(), timestamp: new Date().toLocaleTimeString(), level: ` ${log.level.padEnd(10)}`, message: ` ${log.message}`, color: log.color }); this.$nextTick(() => this.$refs.logContainer.scrollTop = this.$refs.logContainer.scrollHeight); resolve(); }, delay); }); },
+            addVisual(html, delay) { return new Promise(resolve => { setTimeout(() => { this.$refs.visualPanel.innerHTML += html; resolve(); }, delay); }); },
             async runScript(scriptName) {
                 if (this.scriptRunning && this.activeScript === scriptName) return;
-                this.clearPrevious();
-                this.activeScript = scriptName;
-                const scripts = {
-                    mapping: [
-                        { level: '[INIT]', message: 'Starting warehouse catalog process...', color: 'text-cyan-400', delay: 100 },
-                        { level: '[SCAN]', message: 'Discovering schemas: `prod`, `staging`, `salesforce`...', color: 'text-gray-400', delay: 500 },
-                        { level: '[SCAN]', message: 'Found 152 tables, 2014 columns.', color: 'text-gray-400', delay: 500 },
-                        { level: '[CATALOG]', message: 'Documenting `prod.fact_orders`... <strong>(AUTO-DETECTED PII in `customer_email`)</strong>', color: 'text-yellow-400', delay: 800 },
-                        { level: '[CATALOG]', message: 'Documenting `prod.dim_users`...', color: 'text-gray-400', delay: 500 },
-                        { level: '[LINEAGE]', message: 'Mapping dependencies for `prod.rpt_monthly_revenue`...', color: 'text-gray-400', delay: 800 },
-                        { level: '[LINEAGE]', message: '`fact_orders` -> `stg_payments` -> `rpt_monthly_revenue`', color: 'text-purple-400', delay: 500 },
-                        { level: '[OK]', message: 'Catalog process complete. <strong>View Data Map.</strong>', color: 'text-green-400', delay: 1000 }
-                    ],
-                    monitoring: [ { level: '[INIT]', message: 'Live monitoring activated. Waiting for events...', color: 'text-cyan-400', delay: 100 }, ],
-                    optimization: [
-                        { level: '[INIT]', message: 'Starting cost & performance analysis...', color: 'text-cyan-400', delay: 100 },
-                        { level: '[SCAN]', message: 'Analyzing query history for past 30 days...', color: 'text-gray-400', delay: 800 },
-                        { level: '[COST]', message: '<strong>High-Cost Query Detected!</strong> ID: `q_xyz789`, Cost: $127.50, User: `analyst@bi.com`', color: 'text-red-500', delay: 1200 },
-                        { level: '[PERF]', message: 'Suggestion: Add partitioning key `created_at` to table `events_log`. Est. savings: $500/mo', color: 'text-yellow-400', delay: 800 },
-                        { level: '[SCAN]', message: 'Scanning for unused assets...', color: 'text-gray-400', delay: 1000 },
-                        { level: '[UNUSED]', message: 'Table `stg_temp_users_2022` has not been accessed in 180 days.', color: 'text-yellow-400', delay: 800 },
-                        { level: '[OK]', message: 'Optimization analysis complete.', color: 'text-green-400', delay: 500 }
-                    ]
-                };
-                this.status = 'RUNNING';
-                for (const log of scripts[scriptName]) { await this.addLog(log, log.delay); }
-                if (scriptName === 'monitoring') {
-                    this.status = 'LISTENING';
-                    const monitorEvents = [
-                        { level: '[HEALTH]', message: 'Data freshness check on `fact_orders`: OK (5m ago)', color: 'text-green-400'},
-                        { level: '[HEALTH]', message: 'Schema change detected on `stg_users`: new column `last_login_ip`', color: 'text-yellow-400'},
-                        { level: '[HEALTH]', message: 'dbt run `hourly_prod_run` completed successfully.', color: 'text-green-400'},
-                        { level: '[ALERT]', message: 'Source `salesforce_api` is delayed by 30 minutes.', color: 'text-red-500'},
-                    ];
-                    let i = 0;
-                    this.intervalId = setInterval(() => { this.addLog(monitorEvents[i % monitorEvents.length], 100); i++; }, 3000);
-                } else { this.status = 'OK'; this.scriptRunning = false; }
+                this.clearPrevious(); this.activeScript = scriptName; this.status = 'RUNNING';
+                if (scriptName === 'mapping') {
+                    await this.addLog({ level: '[INIT]', message: 'Starting warehouse catalog process...', color: 'text-cyan-400' }, 100);
+                    await this.addVisual('<h3 class="text-lg font-bold text-white mb-2">Data Catalog Map</h3>', 0);
+                    await this.addLog({ level: '[SCAN]', message: 'Discovering schemas...', color: 'text-gray-400' }, 500);
+                    await this.addVisual('<div class="p-2 my-1 bg-gray-800/50 rounded animate-pulse">Scanning...</div>', 500);
+                    this.$refs.visualPanel.querySelector('div').remove();
+                    await this.addVisual('<div class="p-2 my-1 bg-gray-800/50 rounded flex items-center gap-2"><i data-lucide="database" class="w-4 h-4 text-cyan-300"></i> prod</div>', 100);
+                    await this.addVisual('<div class="p-2 my-1 bg-gray-800/50 rounded flex items-center gap-2"><i data-lucide="database" class="w-4 h-4 text-cyan-300"></i> staging</div>', 100);
+                    await this.addLog({ level: '[CATALOG]', message: 'Documenting `prod.fact_orders`...', color: 'text-gray-400' }, 800);
+                    await this.addVisual('<div class="p-2 my-1 bg-yellow-800/30 rounded border border-yellow-500 flex items-center gap-2"><i data-lucide="table" class="w-4 h-4 text-yellow-300"></i> fact_orders (PII Detected)</div>', 800);
+                    await this.addLog({ level: '[LINEAGE]', message: 'Mapping dependencies...', color: 'text-gray-400' }, 800);
+                    await this.addVisual('<div class="p-2 my-1 bg-purple-800/30 rounded border border-purple-500 flex items-center gap-2"><i data-lucide="git-merge" class="w-4 h-4 text-purple-300"></i> Lineage: fact_orders -> rpt_revenue</div>', 800);
+                    await this.addLog({ level: '[OK]', message: 'Catalog process complete.', color: 'text-green-400' }, 500);
+                } else if (scriptName === 'optimization') {
+                    await this.addLog({ level: '[INIT]', message: 'Starting cost analysis...', color: 'text-cyan-400' }, 100);
+                    await this.addVisual('<h3 class="text-lg font-bold text-white mb-2">Cost Optimization Report</h3>', 0);
+                    await this.addLog({ level: '[SCAN]', message: 'Analyzing query history...', color: 'text-gray-400' }, 800);
+                    await this.addLog({ level: '[COST]', message: 'High-Cost Query Detected!', color: 'text-red-500' }, 1200);
+                    await this.addVisual('<div class="p-2 my-1 bg-red-800/30 rounded border border-red-500"><p><strong>ID:</strong> q_xyz789</p><p><strong>Cost:</strong> $127.50</p><p><strong>User:</strong> analyst@bi.com</p></div>', 1200);
+                    await this.addLog({ level: '[PERF]', message: 'Suggestion: Add partitioning key...', color: 'text-yellow-400' }, 800);
+                    await this.addVisual('<div class="p-2 my-1 bg-yellow-800/30 rounded border border-yellow-500"><p><strong>Suggestion:</strong> Add partition on `events_log.created_at`</p><p><strong>Est. Savings:</strong> $500/mo</p></div>', 800);
+                } else if (scriptName === 'chat') {
+                    await this.addLog({ level: '[INIT]', message: 'Engineer Assist Chat activated.', color: 'text-cyan-400' }, 100);
+                    await this.addVisual('<h3 class="text-lg font-bold text-white mb-2">Agent Chat</h3>', 0);
+                    await this.addLog({ level: '[USER]', message: 'Why is the `rpt_revenue` query slow?', color: 'text-blue-400' }, 1000);
+                    await this.addVisual('<div class="p-2 my-1 bg-blue-800/50 rounded text-right">Why is the `rpt_revenue` query slow?</div>', 1000);
+                    await this.addLog({ level: '[AGENT]', message: 'Analyzing query plan for `rpt_revenue`...', color: 'text-gray-400' }, 1500);
+                    await this.addLog({ level: '[AGENT]', message: 'The query performs a full table scan on `fact_orders`. Suggest adding an index on `order_date`.', color: 'text-purple-400' }, 2000);
+                    await this.addVisual('<div class="p-2 my-1 bg-purple-800/50 rounded">The query performs a full table scan on `fact_orders`. Suggest adding an index on `order_date`.</div>', 2000);
+                }
+                this.status = 'OK'; this.scriptRunning = false; lucide.createIcons();
             }
         }));
     });
     
     const App = {
         init() {
-            this.setupMobileMenu();
-            this.setupHeaderScroll();
-            this.setupIntersectionObserver();
-            this.initThreeJSBackground();
-            this.updateDynamicContent();
+            this.setupMobileMenu(); this.setupHeaderScroll(); this.setupIntersectionObserver(); this.initThreeJSBackground(); this.updateDynamicContent();
         },
-        updateDynamicContent() {
-            document.querySelectorAll('.year').forEach(el => el.textContent = new Date().getFullYear());
-            lucide.createIcons();
-        },
-        setupMobileMenu() {
-            const btn = document.getElementById('mobile-menu-button');
-            const menu = document.getElementById('mobile-menu');
-            btn.addEventListener('click', () => menu.classList.toggle('hidden'));
-            menu.querySelectorAll('a').forEach(link => link.addEventListener('click', () => menu.classList.add('hidden')));
-        },
-        setupHeaderScroll() {
-            const header = document.getElementById('header');
-            window.addEventListener('scroll', () => header.classList.toggle('header-scrolled', window.scrollY > 50), { passive: true });
-        },
+        updateDynamicContent() { document.querySelectorAll('.year').forEach(el => el.textContent = new Date().getFullYear()); lucide.createIcons(); },
+        setupMobileMenu() { const btn = document.getElementById('mobile-menu-button'); const menu = document.getElementById('mobile-menu'); btn.addEventListener('click', () => menu.classList.toggle('hidden')); menu.querySelectorAll('a').forEach(link => link.addEventListener('click', () => menu.classList.add('hidden'))); },
+        setupHeaderScroll() { const header = document.getElementById('header'); window.addEventListener('scroll', () => header.classList.toggle('header-scrolled', window.scrollY > 50), { passive: true }); },
         setupIntersectionObserver() {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('is-visible'); });
-            }, { threshold: 0.1 });
+            const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('is-visible'); }); }, { threshold: 0.1 });
             document.querySelectorAll('.fade-in-section').forEach(el => observer.observe(el));
-            const timelineObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const line = entry.target.querySelector('.timeline-line');
-                        const steps = entry.target.querySelectorAll('.timeline-step');
-                        if (line) line.style.transform = 'scaleX(1)';
-                        steps.forEach(step => step.style.opacity = '1');
-                        timelineObserver.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.5 });
-            const timelineEl = document.getElementById('timeline');
-            if (timelineEl) timelineObserver.observe(timelineEl);
+            const timelineObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { const line = entry.target.querySelector('.timeline-line'); const steps = entry.target.querySelectorAll('.timeline-step'); if (line) line.style.transform = 'scaleX(1)'; steps.forEach(step => step.style.opacity = '1'); timelineObserver.unobserve(entry.target); } }); }, { threshold: 0.5 });
+            const timelineEl = document.getElementById('timeline'); if (timelineEl) timelineObserver.observe(timelineEl);
         },
         initThreeJSBackground() {
             try {
-                const scene = new THREE.Scene();
-                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true });
-                renderer.setPixelRatio(window.devicePixelRatio);
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                camera.position.setZ(30);
-                const starGeometry = new THREE.BufferGeometry();
-                const starCount = 8000;
-                const positions = new Float32Array(starCount * 3);
+                const scene = new THREE.Scene(); const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true });
+                renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(window.innerWidth, window.innerHeight); camera.position.setZ(30);
+                const starGeometry = new THREE.BufferGeometry(); const starCount = 8000; const positions = new Float32Array(starCount * 3);
                 for (let i = 0; i < starCount * 3; i++) { positions[i] = (Math.random() - 0.5) * 200; }
-                starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-                const starMaterial = new THREE.PointsMaterial({ color: 0xaaaaaa, size: 0.15, transparent: true, blending: THREE.AdditiveBlending });
-                const stars = new THREE.Points(starGeometry, starMaterial);
-                scene.add(stars);
+                starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3)); const starMaterial = new THREE.PointsMaterial({ color: 0xaaaaaa, size: 0.15, transparent: true, blending: THREE.AdditiveBlending }); const stars = new THREE.Points(starGeometry, starMaterial); scene.add(stars);
                 let mouseX = 0, mouseY = 0;
                 document.addEventListener('mousemove', e => { mouseX = (e.clientX / window.innerWidth) * 2 - 1; mouseY = -(e.clientY / window.innerHeight) * 2 + 1; }, { passive: true });
                 window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
-                function animate() {
-                    requestAnimationFrame(animate);
-                    stars.rotation.y += 0.0001;
-                    stars.rotation.x += 0.0001;
-                    camera.position.x += (mouseX * 5 - camera.position.x) * 0.02;
-                    camera.position.y += (mouseY * 5 - camera.position.y) * 0.02;
-                    camera.lookAt(scene.position);
-                    renderer.render(scene, camera);
-                }
+                function animate() { requestAnimationFrame(animate); stars.rotation.y += 0.0001; stars.rotation.x += 0.0001; camera.position.x += (mouseX * 5 - camera.position.x) * 0.02; camera.position.y += (mouseY * 5 - camera.position.y) * 0.02; camera.lookAt(scene.position); renderer.render(scene, camera); }
                 animate();
-            } catch (e) {
-                console.error("Three.js failed to initialize:", e);
-                document.body.style.backgroundColor = '#0a0a1a';
-            }
+            } catch (e) { console.error("Three.js failed to initialize:", e); document.body.style.backgroundColor = '#0a0a1a'; }
         }
     };
 
