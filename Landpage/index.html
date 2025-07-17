@@ -13,7 +13,6 @@
     <meta property="og:url" content="https://www.bimagics.com/">
     <meta property="og:title" content="BI MAGICS | Your Complete Data-Driven Toolkit">
     <meta property="og:description" content="The AI-powered analytics platform for modern business teams. Ask questions, get answers, make decisions.">
-    <meta property="og:image" content="https://www.bimagics.com/og-image.png">
 
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
 
@@ -30,11 +29,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Tilt+Neon&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide-static@latest/dist/lucide.js"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-    <script src="wizbi-demo.js" defer></script>
-    <script src="data-agent-demo.js" defer></script>
 
     <style>
         /* General Styles */
@@ -151,22 +147,289 @@
             </section>
 
             <section id="solutions" class="py-20 fade-in-section">
-                </section>
+                <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center mb-16">
+                        <h2 class="text-3xl md:text-5xl font-black font-tilt-neon mb-4">What is Your Data Quest?</h2>
+                        <p class="text-lg text-gray-400 max-w-2xl mx-auto">Every data journey is unique. Choose the spell that matches your current challenge.</p>
+                    </div>
+                    <div class="grid md:grid-cols-3 gap-8 lg:gap-12">
+                        <a href="#wizards" class="spellbook-card glass-effect rounded-2xl p-8 text-center border-purple-500/50 border-2 block">
+                            <div class="flex items-center justify-center h-20 w-20 rounded-full bg-purple-900/50 mb-6 mx-auto">
+                                <i data-lucide="brain-circuit" class="w-10 h-10 text-purple-300"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold font-tilt-neon mb-3">AI Analysts for Teams</h3>
+                            <p class="text-gray-400">Give business teams a personal AI Analyst to get instant answers from data, no technical skills required.</p>
+                        </a>
+                        <a href="#data-agent" class="spellbook-card glass-effect rounded-2xl p-8 text-center border-cyan-400/50 border-2 block">
+                             <div class="flex items-center justify-center h-20 w-20 rounded-full bg-cyan-900/50 mb-6 mx-auto">
+                                <i data-lucide="shield-check" class="w-10 h-10 text-cyan-300"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold font-tilt-neon mb-3">Governance for Data Teams</h3>
+                            <p class="text-gray-400">Automatically map, document, monitor, and optimize your data warehouse, ensuring trust and efficiency.</p>
+                        </a>
+                        <a href="#e2e-projects" class="spellbook-card glass-effect rounded-2xl p-8 text-center border-gray-500/50 border-2 block">
+                             <div class="flex items-center justify-center h-20 w-20 rounded-full bg-gray-900/50 mb-6 mx-auto">
+                                <i data-lucide="cubes" class="w-10 h-10 text-gray-300"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold font-tilt-neon mb-3">BI from Scratch</h3>
+                            <p class="text-gray-400">For companies without a data infrastructure. We act as your expert partner to build your entire BI system.</p>
+                        </a>
+                    </div>
+                </div>
+            </section>
 
             <section id="wizards" class="py-24 bg-purple-900/10 fade-in-section">
-                </section>
+                <div class="container mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-16 items-center">
+                    <div>
+                        <h2 class="text-4xl md:text-5xl font-black font-tilt-neon mb-4"><span class="neon-text-purple">WizBI:</span> An AI Analyst for Every Team</h2>
+                        <p class="text-lg text-gray-300 mb-2"><strong>Who is this for?</strong> Marketing, Sales, Product, and Finance teams who need answers now.</p>
+                        <p class="text-lg text-gray-300 mb-8">Stop the bottleneck. With WizBI, your teams can ask questions in natural language and get immediate, actionable insights, including rich visualizations. It's true self-service analytics, finally available to everyone.</p>
+                        <a href="https://wizbi.ai" target="_blank" rel="noopener noreferrer" class="try-now-btn bg-fuchsia-500 text-white font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-110 inline-flex items-center gap-2 text-lg">
+                            <i data-lucide="sparkles"></i>
+                            Try the Full System Now
+                        </a>
+                    </div>
+                    <div class="glass-effect rounded-2xl p-4 border border-purple-500/30" x-data="wizbiChatDemo">
+                        <div class="bg-gray-900 rounded-lg p-4 h-[550px] flex flex-col">
+                            <div class="flex-grow overflow-y-auto space-y-4 pr-2" x-ref="chatWindow">
+                                <template x-for="message in messages" :key="message.id">
+                                    <div class="flex" :class="message.author === 'user' ? 'justify-end' : 'justify-start'">
+                                        <div x-show="message.author === 'user'" class="chat-bubble rounded-lg p-3 chat-bubble-user">
+                                            <p class="text-white" x-text="message.text"></p>
+                                        </div>
+                                        <div x-show="message.author === 'wizbi'" class="flex items-end gap-2 chat-bubble">
+                                            <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-white" :class="message.wizbi.bgColor"><span x-text="message.wizbi.initial"></span></div>
+                                            <div class="w-full chat-bubble-wizard rounded-lg p-3">
+                                                <p class="font-bold mb-1" x-text="message.wizbi.name"></p>
+                                                <p class="text-white" x-text="message.text"></p>
+                                                
+                                                <div x-show="message.summary" class="wizbi-summary" x-html="message.summary"></div>
+
+                                                <div x-show="message.chartData && message.showChart" x-transition class="mt-3 bg-gray-800 p-3 rounded-lg">
+                                                    <div x-show="message.chartType === 'bar'">
+                                                        <div class="h-48 w-full flex items-end justify-around gap-2 border-b border-l border-gray-600 p-2">
+                                                            <template x-for="bar in message.chartData">
+                                                                <div class="w-full h-full flex flex-col justify-end items-center gap-1">
+                                                                    <div class="text-green-400 font-bold text-xs" x-text="bar.value_display"></div>
+                                                                    <div class="wizbi-chart-bar w-full bg-gradient-to-t from-purple-500 to-cyan-400 rounded-t-md" :style="`height: ${bar.height}%; transform: scaleY(${message.showChart ? 1 : 0}); transition-delay: ${bar.delay}ms;`"></div>
+                                                                    <div class="text-xs text-gray-500" x-text="bar.label"></div>
+                                                                </div>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                    <div x-show="message.chartType === 'line'">
+                                                        <svg viewBox="0 0 300 150" class="w-full h-48">
+                                                            <path :d="message.linePath" fill="none" stroke="#22D3EE" stroke-width="2" class="animated-line-chart-path"></path>
+                                                            <template x-for="(point, index) in message.chartData">
+                                                                <g>
+                                                                    <circle :cx="point.x" :cy="point.y" r="3" fill="#fff"></circle>
+                                                                    <text :x="point.x" :y="145" fill="#9ca3af" font-size="10" text-anchor="middle" x-text="point.label"></text>
+                                                                </g>
+                                                            </template>
+                                                        </svg>
+                                                    </div>
+                                                    <div x-show="message.chartType === 'pie'" class="pie-chart-container">
+                                                         <div class="pie-chart" :class="{'visible': message.showChart}" :style="`background-image: ${message.pieGradient};`"></div>
+                                                         <div class="pie-legend space-y-2">
+                                                            <template x-for="slice in message.chartData">
+                                                                <div class="flex items-center gap-2">
+                                                                    <span class="w-3 h-3 rounded-sm" :style="{ backgroundColor: slice.color }"></span>
+                                                                    <span x-text="`${slice.label} (${slice.value}%)`"></span>
+                                                                </div>
+                                                            </template>
+                                                         </div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <div x-show="isTyping" class="flex justify-start" x-transition>
+                                    <div class="flex items-end gap-2 chat-bubble">
+                                        <div class="w-10 h-10 rounded-full flex-shrink-0 bg-purple-800 flex items-center justify-center font-bold text-white">W</div>
+                                        <div class="chat-bubble-wizard rounded-lg p-3 flex items-center gap-2">
+                                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0s;"></div>
+                                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.2s;"></div>
+                                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.4s;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
             
             <section id="data-agent" class="py-24 bg-cyan-900/10 fade-in-section">
-                </section>
+                 <div class="container mx-auto px-4 sm:px-6 lg:px-8" x-data="dataAgentDemo">
+                    <div class="text-center mb-16">
+                        <h2 class="text-4xl md:text-5xl font-black font-tilt-neon mb-4"><span class="neon-text-cyan">Data Agent:</span> Your Automated Data Guardian</h2>
+                        <p class="text-lg text-gray-300 mb-2"><strong>Who is this for?</strong> Data Engineers, Analysts, and BI teams who manage the data infrastructure.</p>
+                        <p class="text-lg text-gray-300 max-w-3xl mx-auto">Stop firefighting and start innovating. The Data Agent works 24/7 in your data warehouse to map, monitor, and optimize, giving you a reliable and cost-effective data backend.</p>
+                    </div>
+                    <div class="flex flex-col lg:grid lg:grid-cols-12 gap-8 items-start">
+                        <div class="w-full lg:col-span-3 space-y-4">
+                            <button @click="runScript('mapping')" :class="{'active': activeScript === 'mapping'}" class="data-agent-btn w-full text-left glass-effect p-4 rounded-lg border border-cyan-400/50 hover:bg-cyan-400/20">
+                                <div class="flex items-center gap-3"><i data-lucide="map"></i><span class="font-bold text-lg">Auto-Catalog & Lineage</span></div>
+                                <p class="text-sm text-gray-400 mt-1">See how the agent discovers and documents assets.</p>
+                            </button>
+                            <button @click="runScript('optimization')" :class="{'active': activeScript === 'optimization'}" class="data-agent-btn w-full text-left glass-effect p-4 rounded-lg border border-cyan-400/50 hover:bg-cyan-400/20">
+                                <div class="flex items-center gap-3"><i data-lucide="zap"></i><span class="font-bold text-lg">Cost & Performance Tuning</span></div>
+                                <p class="text-sm text-gray-400 mt-1">Find costly queries and unused tables.</p>
+                            </button>
+                            <button @click="runScript('chat')" :class="{'active': activeScript === 'chat'}" class="data-agent-btn w-full text-left glass-effect p-4 rounded-lg border border-cyan-400/50 hover:bg-cyan-400/20">
+                                <div class="flex items-center gap-3"><i data-lucide="message-circle"></i><span class="font-bold text-lg">Engineer Chat Assist</span></div>
+                                <p class="text-sm text-gray-400 mt-1">Chat with the agent to debug and understand data.</p>
+                            </button>
+                        </div>
+                        <div class="w-full lg:col-span-9 h-[550px] glass-effect rounded-2xl flex flex-col p-1 border-2 border-cyan-400/30">
+                             <div class="flex-shrink-0 p-2 border-b border-cyan-800/50 flex items-center justify-between"><div class="flex items-center gap-2"><span class="w-3 h-3 bg-red-500 rounded-full"></span><span class="w-3 h-3 bg-yellow-500 rounded-full"></span><span class="w-3 h-3 bg-green-500 rounded-full"></span></div><div class="text-xs text-cyan-300 font-mono">Data Agent Console</div></div>
+                             <div class="flex-grow flex flex-col lg:flex-row p-2 gap-2 overflow-hidden h-full">
+                                 <div class="w-full lg:w-1/2 bg-black/20 rounded-lg p-4 overflow-y-auto" x-ref="visualPanel">
+                                    <div x-show="!scriptRunning && !logs.length" class="h-full flex flex-col items-center justify-center text-gray-500 text-center">
+                                        <i data-lucide="play-circle" class="w-16 h-16 mb-4"></i>
+                                        <p>Select a capability to see the magic happen.</p>
+                                    </div>
+                                    <div x-show="scriptRunning && !logs.length" class="h-full flex flex-col items-center justify-center text-gray-400">
+                                        <div class="w-12 h-12 border-4 border-t-cyan-400 border-gray-600 rounded-full animate-spin"></div>
+                                        <p class="mt-4">Initializing script...</p>
+                                    </div>
+                               </div>
+                                <div class="w-full lg:w-1/2 bg-black/20 rounded-lg p-4 flex flex-col font-mono text-sm overflow-y-auto" x-ref="logContainer">
+                                    <template x-for="log in logs" :key="log.id"><p :class="log.color" class="flex gap-2"><span class="flex-shrink-0 text-gray-500" x-text="log.timestamp"></span><span class="flex-shrink-0" x-text="log.level"></span><span class="whitespace-pre-wrap" x-html="log.message"></span></p></template>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+                 </div>
+            </section>
             
             <section id="e2e-projects" class="py-24 bg-gray-900/20 fade-in-section">
-                </section>
+                 <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <h2 class="text-4xl md:text-5xl font-black font-tilt-neon mb-4">End-to-End BI Projects</h2>
+                     <p class="text-lg text-gray-300 mb-2"><strong>Who is this for?</strong> Startups and companies without an existing data infrastructure.</p>
+                    <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-300">
+                        Starting from scratch? We are your strategic data partners. We'll design and build your entire data ecosystem, from raw data pipelines to a culture of data-driven decision-making.
+                    </p>
+
+                    <div id="timeline" class="relative mt-16 max-w-5xl mx-auto">
+                        <div class="hidden md:block absolute top-8 left-0 right-0 h-1 bg-gray-700">
+                            <div class="timeline-line h-1 bg-gradient-to-r from-purple-500 to-cyan-400"></div>
+                        </div>
+                        <div class="relative grid md:grid-cols-4 gap-8 text-center">
+                            <div class="timeline-step flex flex-col items-center">
+                                <div class="w-16 h-16 rounded-full bg-gray-800 border-2 border-gray-600 flex items-center justify-center font-bold text-2xl text-gray-400 z-10">1</div>
+                                <h4 class="mt-4 font-bold text-lg">Discovery</h4>
+                                <p class="text-sm text-gray-400 mt-1">We map your business goals to data requirements.</p>
+                            </div>
+                            <div class="timeline-step flex flex-col items-center" style="transition-delay: 200ms;">
+                                <div class="w-16 h-16 rounded-full bg-gray-800 border-2 border-gray-600 flex items-center justify-center font-bold text-2xl text-gray-400 z-10">2</div>
+                                <h4 class="mt-4 font-bold text-lg">Foundation</h4>
+                                <p class="text-sm text-gray-400 mt-1">We build a scalable data warehouse and pipelines.</p>
+                            </div>
+                            <div class="timeline-step flex flex-col items-center" style="transition-delay: 400ms;">
+                                <div class="w-16 h-16 rounded-full bg-gray-800 border-2 border-gray-600 flex items-center justify-center font-bold text-2xl text-gray-400 z-10">3</div>
+                                <h4 class="mt-4 font-bold text-lg">Integration</h4>
+                                 <p class="text-sm text-gray-400 mt-1">We connect your tools and deploy our WizBI & Agent.</p>
+                            </div>
+                            <div class="timeline-step flex flex-col items-center" style="transition-delay: 600ms;">
+                                <div class="w-16 h-16 rounded-full bg-purple-500 border-2 border-purple-400 flex items-center justify-center font-bold text-2xl text-white z-10">4</div>
+                                <h4 class="mt-4 font-bold text-lg text-purple-400">Insights</h4>
+                                <p class="text-sm text-gray-400 mt-1">Your team starts making data-driven decisions.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-16">
+                        <a href="#contact" class="bg-gray-600 text-white font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-105 hover:bg-gray-700 inline-flex items-center gap-2 text-lg">
+                             <i data-lucide="phone"></i>
+                            Let's Build Your Data Future
+                        </a>
+                    </div>
+                </div>
+            </section>
 
             <section class="py-24 fade-in-section">
-                </section>
+                <div class="container mx-auto px-6 max-w-3xl text-center">
+                    <div class="mx-auto h-10 mb-6 grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all flex items-center justify-center font-tilt-neon text-3xl text-gray-400">Taranis</div>
+                    <blockquote class="text-xl md:text-2xl text-white leading-relaxed italic">
+                        “With BI Magics, anyone at Taranis can pull fresh numbers, investigate issues, or validate a hunch in seconds – no dashboards, no SQL, just a question.”
+                    </blockquote>
+                    <div class="mt-6">
+                        <p class="font-bold text-white">BI Lead, Taranis</p>
+                    </div>
+                </div>
+            </section>
             
             <section id="contact" class="py-24 bg-gray-900/20 fade-in-section">
-                </section>
+                <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="grid lg:grid-cols-2 gap-16 items-center">
+                        <div class="max-w-xl">
+                           <h2 class="text-3xl font-bold font-tilt-neon mb-4">Ready to Move 10x Faster?</h2>
+                           <p class="text-lg text-gray-300 mb-4">
+                                Every great data journey starts with a single conversation. Tell us about your challenges, and we'll show you how BI MAGICS can help you achieve your goals.
+                           </p>
+                        </div>
+
+                        <div class="glass-effect p-8 rounded-2xl" x-data="{
+                            formData: { name: '', email: '', message: '' },
+                            submitted: false,
+                            sendToWhatsApp() {
+                                if (!this.formData.name || !this.formData.email) {
+                                    alert('Please fill in your name and email.');
+                                    return;
+                                }
+                                const phone = '972506579403'; // <-- IMPORTANT: Replace with your phone number
+                                let text = `Hi, I'd like to schedule a demo from BI MAGICS.\n\n`;
+                                text += `Name: ${this.formData.name}\n`;
+                                text += `Email: ${this.formData.email}\n`;
+                                if (this.formData.message) {
+                                    text += `Message: ${this.formData.message}`;
+                                }
+                                const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+                                window.open(url, '_blank');
+                                this.submitted = true;
+                            }
+                        }">
+                             <template x-if="!submitted">
+                                <div x-transition>
+                                    <h3 class="text-2xl font-bold mb-6">Contact Us via WhatsApp</h3>
+                                    <form @submit.prevent="sendToWhatsApp()">
+                                        <div class="space-y-4">
+                                            <div class="relative">
+                                                <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"></i>
+                                                <input type="text" name="name" x-model="formData.name" required class="w-full bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Full Name">
+                                            </div>
+                                            <div class="relative">
+                                                <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"></i>
+                                                <input type="email" name="email" x-model="formData.email" required class="w-full bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Work Email">
+                                            </div>
+                                            <div class="relative">
+                                                 <i data-lucide="message-square" class="absolute left-3 top-4 w-5 h-5 text-gray-500"></i>
+                                                <textarea name="message" rows="3" x-model="formData.message" class="w-full bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Tell us about your data challenges..."></textarea>
+                                            </div>
+                                            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                                    <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943s-.182-.133-.38-.232"/>
+                                                </svg>
+                                                Send via WhatsApp
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                             </template>
+                             <template x-if="submitted">
+                                 <div class="text-center py-10" x-transition>
+                                    <i data-lucide="check-circle-2" class="w-16 h-16 text-green-400 mx-auto mb-4"></i>
+                                   <h3 class="text-2xl font-bold mb-2">Thank You!</h3>
+                                   <p class="text-gray-300">Your message is on its way. We'll be in touch shortly.</p>
+                                </div>
+                             </template>
+                        </div>
+                    </div>
+                 </div>
+            </section>
         </main>
 
         <footer class="bg-gray-900/50">
@@ -200,7 +463,231 @@
             }
         }));
 
-        // The demo components (wizbiChatDemo, dataAgentDemo) have been moved to external files.
+        Alpine.data('wizbiChatDemo', () => ({
+            messages: [],
+            isTyping: false,
+            hasStarted: false,
+            wizbis: {
+                sales: { name: 'Sales Wizard', initial: 'S', bgColor: 'bg-violet-700' },
+                marketing: { name: 'Marketing Wizard', initial: 'M', bgColor: 'bg-blue-700' },
+                finance: { name: 'Finance Wizard', initial: 'F', bgColor: 'bg-teal-700' },
+            },
+            demoScenario: [
+                { id: 1, author: 'user', text: "How did our Q2 revenue from new customers in the US compare to Q1?" },
+                { id: 2, author: 'wizbi', wizbi_key: 'sales', text: "Here's the quarterly comparison:", summary: "📈 We saw a <strong>strong 54% increase</strong> in Q2! <br>Q1: $120k | Q2: $185k", chartType: 'bar', chartData: [ { label: 'Q1', value: 120000, height: 60, value_display: '$120k', delay: 100 }, { label: 'Q2', value: 185000, height: 92.5, value_display: '$185k', delay: 200 } ] },
+                { id: 3, author: 'user', text: "Show me the trend of user signups over the last 7 days." },
+                { id: 4, author: 'wizbi', wizbi_key: 'marketing', text: "Here is the user signup trend for the past week:", summary: "🚀 Signups are trending up, with a <strong>peak of 90 today!</strong>", chartType: 'line', chartData: [ {label: 'D-6', value: 25}, {label: 'D-5', value: 30}, {label: 'D-4', value: 45}, {label: 'D-3', value: 40}, {label: 'D-2', value: 60}, {label: 'D-1', value: 75}, {label: 'Today', value: 90} ] },
+                { id: 5, author: 'user', text: "Great! Now what's the revenue breakdown by region for this quarter?" },
+                { id: 6, author: 'wizbi', wizbi_key: 'finance', text: "Here is the revenue breakdown by region:", summary: "🌎 North America continues to be our <strong>dominant market</strong> at 45%.", chartType: 'pie', chartData: [ {label: 'NA', value: 45, color: '#8b5cf6'}, {label: 'EMEA', value: 35, color: '#22d3ee'}, {label: 'APAC', value: 15, color: '#34d399'}, {label: 'LATAM', value: 5, color: '#f87171'} ] },
+            ],
+            
+            init() {
+                const observer = new IntersectionObserver((entries) => {
+                    if (entries[0].isIntersecting && !this.hasStarted) {
+                        this.hasStarted = true;
+                        this.run();
+                    }
+                }, { threshold: 0.5 });
+                observer.observe(this.$el);
+            },
+            
+            prepareChartData(message) {
+                if (message.chartType === 'line') {
+                    const data = message.chartData;
+                    const maxVal = Math.max(...data.map(p => p.value));
+                    const width = 300, height = 130, padding = 10;
+                    const points = data.map((point, i) => {
+                        const x = (width / (data.length - 1)) * i;
+                        const y = height - (point.value / maxVal * (height - padding));
+                        return { ...point, x, y };
+                    });
+                    message.linePath = points.reduce((path, p, i) => path + (i === 0 ? 'M' : 'L') + `${p.x} ${p.y} `, '');
+                    message.chartData = points;
+                } else if (message.chartType === 'pie') {
+                    let cumulativePercent = 0;
+                    const gradientParts = message.chartData.map(slice => {
+                        const start = cumulativePercent;
+                        const end = cumulativePercent + slice.value;
+                        cumulativePercent = end;
+                        return `${slice.color} ${start}% ${end}%`;
+                    });
+                    message.pieGradient = `conic-gradient(${gradientParts.join(', ')})`;
+                }
+                return message;
+            },
+            
+            async run() {
+                this.messages = [];
+                await new Promise(r => setTimeout(r, 500));
+
+                for (let i = 0; i < this.demoScenario.length; i++) {
+                    let messageData = { ...this.demoScenario[i] };
+
+                    if (messageData.author === 'user') {
+                        this.messages.push(messageData);
+                        this.$nextTick(() => { this.$refs.chatWindow.scrollTop = this.$refs.chatWindow.scrollHeight; });
+                        await new Promise(r => setTimeout(r, 1500));
+                    } 
+                    else if (messageData.author === 'wizbi') {
+                        this.isTyping = true;
+                        await new Promise(r => setTimeout(r, 1500));
+                        this.isTyping = false;
+                        
+                        let wizbiMessage = { ...messageData, wizbi: this.wizbis[messageData.wizbi_key], showChart: false };
+                        if (wizbiMessage.chartData) {
+                           wizbiMessage = this.prepareChartData(wizbiMessage);
+                        }
+                        
+                        this.messages.push(wizbiMessage);
+                        await this.$nextTick();
+                        
+                        if (wizbiMessage.chartData) {
+                            await new Promise(r => setTimeout(r, 100));
+                            const msgIndex = this.messages.findIndex(m => m.id === wizbiMessage.id);
+                            if(msgIndex !== -1) this.messages[msgIndex].showChart = true;
+                        }
+
+                        this.$nextTick(() => { this.$refs.chatWindow.scrollTop = this.$refs.chatWindow.scrollHeight; });
+                        await new Promise(r => setTimeout(r, 3500));
+                    }
+                }
+
+                // Wait and loop
+                await new Promise(r => setTimeout(r, 5000));
+                this.run();
+            }
+        }));
+
+        Alpine.data('dataAgentDemo', () => ({
+            logs: [], status: 'IDLE', activeScript: null, scriptRunning: false,
+            clearPrevious() { 
+                this.logs = []; 
+                if (this.$refs.visualPanel) this.$refs.visualPanel.innerHTML = ''; 
+                this.scriptRunning = true; 
+            },
+            renderIcons() {
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            },
+            addLog(log, delay) { 
+                return new Promise(resolve => { setTimeout(() => { 
+                    if (this.logs.length > 50) this.logs.shift(); 
+                    this.logs.push({ id: Date.now(), timestamp: new Date().toLocaleTimeString(), level: `[${log.level.padEnd(8)}]`, message: log.message, color: log.color }); 
+                    this.$nextTick(() => { if (this.$refs.logContainer) this.$refs.logContainer.scrollTop = this.$refs.logContainer.scrollHeight }); 
+                    resolve(); 
+                }, delay); }); 
+            },
+            addVisual(id, html, delay) {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        if (!this.$refs.visualPanel) { resolve(); return; }
+                        const el = document.createElement('div');
+                        el.id = `vis-${id}`;
+                        el.className = 'fade-in-element';
+                        el.innerHTML = html;
+                        this.$refs.visualPanel.appendChild(el);
+                        this.$nextTick(() => {
+                            setTimeout(() => {
+                                el.classList.add('is-visible');
+                                this.renderIcons();
+                            }, 10);
+                            this.$refs.visualPanel.scrollTop = this.$refs.visualPanel.scrollHeight;
+                            resolve();
+                        });
+                    }, delay);
+                });
+            },
+            updateVisual(id, newHtml) {
+                return new Promise(resolve => {
+                    if (!this.$refs.visualPanel) { resolve(); return; }
+                    const el = this.$refs.visualPanel.querySelector(`#vis-${id}`);
+                    if (el) {
+                        el.innerHTML = newHtml;
+                        this.renderIcons();
+                    }
+                    resolve();
+                });
+            },
+            async animateCounter(id, finalValue, duration) {
+                const el = this.$refs.visualPanel.querySelector(`#${id}`);
+                if (!el) return;
+                let start = 0;
+                const increment = finalValue / (duration / 16);
+                const interval = setInterval(() => {
+                    start += increment;
+                    if (start >= finalValue) {
+                        el.innerText = `$${finalValue.toLocaleString()}`;
+                        clearInterval(interval);
+                    } else {
+                        el.innerText = `$${Math.ceil(start).toLocaleString()}`;
+                    }
+                }, 16);
+            },
+            async runScript(scriptName) {
+                if (this.scriptRunning) return;
+                this.activeScript = scriptName;
+                this.clearPrevious();
+
+                try {
+                    if (scriptName === 'mapping') {
+                        await this.addLog({ level: 'INIT', message: 'Starting warehouse catalog process...', color: 'text-cyan-400' }, 100);
+                        await this.addVisual('title', '<h3 class="text-lg font-bold text-white mb-4">Live Data Catalog & Lineage</h3>', 100);
+                        await this.addLog({ level: 'SCAN', message: 'Scanning schema: `prod`...', color: 'text-gray-400' }, 500);
+                        await this.addVisual('db', '<div class="flex items-center gap-2 p-2 bg-slate-800 rounded"><i data-lucide="database"></i><span>prod_db</span></div>', 500);
+                        await this.addLog({ level: 'CATALOG', message: 'Found table: `fact_orders`', color: 'text-gray-400' }, 700);
+                        await this.addVisual('table', '<div class="ml-6 my-2 p-2 border border-gray-600 rounded bg-slate-800 transition-all duration-300"><div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div><div id="columns" class="mt-2 pl-4 space-y-1 text-sm"></div></div>', 700);
+                        await this.addLog({ level: 'ANALYZE', message: 'Analyzing columns for `fact_orders`...', color: 'text-gray-400' }, 300);
+                        await this.updateVisual('table', '<div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div><div id="columns" class="mt-2 pl-4 space-y-1 text-sm"><p class="fade-in-element is-visible text-gray-400">order_id <span class="text-purple-400">(INT)</span></p></div>');
+                        await new Promise(r => setTimeout(r, 400));
+                        await this.updateVisual('table', '<div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div><div id="columns" class="mt-2 pl-4 space-y-1 text-sm"><p class="fade-in-element is-visible text-gray-400">order_id <span class="text-purple-400">(INT)</span></p><p class="fade-in-element is-visible text-gray-400">amount <span class="text-purple-400">(DECIMAL)</span></p></div>');
+                        await new Promise(r => setTimeout(r, 400));
+                        await this.updateVisual('table', '<div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div><div id="columns" class="mt-2 pl-4 space-y-1 text-sm"><p class="fade-in-element is-visible text-gray-400">order_id <span class="text-purple-400">(INT)</span></p><p class="fade-in-element is-visible text-gray-400">amount <span class="text-purple-400">(DECIMAL)</span></p><p class="fade-in-element is-visible text-gray-400">customer_email <span class="text-purple-400">(VARCHAR)</span></p></div>');
+                        await this.addLog({ level: 'AI-DOC', message: 'Generating business description...', color: 'text-purple-400' }, 800);
+                        await this.addVisual('ai-doc', '<div class="p-2 ml-6 my-2 bg-purple-900/50 border-l-2 border-purple-400 text-purple-300 text-xs flex items-start gap-2"><i data-lucide="sparkles" class="w-4 h-4 mt-0.5 flex-shrink-0"></i><div><strong>AI Description:</strong> Contains core order information including amount, status, and customer keys. Central table for revenue reporting.</div></div>', 800);
+                        await this.addLog({ level: 'PII-SCAN', message: 'Scanning `fact_orders` for PII...', color: 'text-yellow-400' }, 500);
+                        await this.addLog({ level: 'PII-FOUND', message: 'PII found in `customer_email`. Tagging applied.', color: 'text-yellow-400' }, 1000);
+                        this.$refs.visualPanel.querySelector('#vis-table > div').classList.add('bg-yellow-900/30', 'border-yellow-500');
+                        await this.addLog({ level: 'LINEAGE', message: 'Tracing downstream dependencies...', color: 'text-gray-400' }, 800);
+                        await this.addVisual('lineage', '<svg class="w-full h-24 my-2"><line x1="50%" y1="0" x2="50%" y2="100%" stroke="#475569" stroke-width="2" class="lineage-path"/></svg><div class="flex items-center gap-2 p-2 bg-slate-800 rounded border border-cyan-500"><i data-lucide="pie-chart"></i><span>rpt_monthly_revenue</span></div>', 800);
+                        await this.addLog({ level: 'DONE', message: 'Catalog & lineage mapping complete.', color: 'text-green-400' }, 500);
+                    } else if (scriptName === 'optimization') {
+                        await this.addLog({ level: 'INIT', message: 'Starting cost & performance analysis...', color: 'text-cyan-400' }, 100);
+                        await this.addVisual('title', '<h3 class="text-lg font-bold text-white mb-4">Cost Optimization Report</h3>', 100);
+                        await this.addLog({ level: 'SCAN', message: 'Analyzing query history (last 30 days)...', color: 'text-gray-400' }, 800);
+                        await this.addLog({ level: 'COST', message: 'High-Cost Query Detected!', color: 'text-red-500' }, 1200);
+                        await this.addVisual('cost-query', '<div class="p-3 my-1 bg-red-900/30 border border-red-500 rounded"><div class="flex items-start gap-2"><i data-lucide="alert-triangle" class="text-red-400 mt-1"></i><div><h4 class="font-bold text-red-400">Costly Query: `q_xyz789`</h4><p class="text-sm"><strong>Cost:</strong> $127.50</p><p class="text-sm"><strong>Reason:</strong> Full table scan on `events_log` (3.2 TB processed)</p></div></div></div>', 1200);
+                        await this.addLog({ level: 'AI-FIX', message: 'AI Recommendation: Add partitioning on `event_date`.', color: 'text-green-400' }, 1000);
+                        await this.addVisual('ai-fix', '<div class="p-3 my-1 bg-green-900/30 border border-green-500 rounded"><div class="flex items-start gap-2"><i data-lucide="lightbulb" class="text-green-400 mt-1"></i><div><h4 class="font-bold text-green-400">Optimization Suggestion</h4><p class="text-sm">Partition table `events_log` by `event_date` to reduce scan size.</p></div></div></div>', 1000);
+                        await this.addLog({ level: 'SCAN', message: 'Scanning for unused assets...', color: 'text-gray-400' }, 1000);
+                        await this.addLog({ level: 'UNUSED', message: 'Table `stg_temp_users_2022` not accessed in 180 days.', color: 'text-yellow-400' }, 800);
+                        await this.addVisual('unused-table', '<div class="p-3 my-1 bg-yellow-900/30 border border-yellow-500 rounded"><div class="flex items-start gap-2"><i data-lucide="trash-2" class="text-yellow-400 mt-1"></i><div><h4 class="font-bold text-yellow-400">Unused Table: `stg_temp_users_2022`</h4><p class="text-sm"><strong>Storage:</strong> 15.7 GB</p><p class="text-sm"><strong>Recommendation:</strong> Archive or Drop</p></div></div></div>', 800);
+                        await this.addLog({ level: 'SUMMARY', message: 'Generating optimization savings summary...', color: 'text-green-400' }, 800);
+                        await this.addVisual('summary', '<div class="p-4 my-2 bg-green-900/30 border-2 border-green-500 rounded text-center"><h4 class="font-bold text-green-300 uppercase tracking-wider">Total Estimated Annual Savings</h4><div id="savings-counter" class="text-4xl lg:text-5xl font-bold text-white my-2">$0</div><p class="text-sm text-green-400">from query optimization and storage reduction</p></div>', 800);
+                        await this.animateCounter('savings-counter', 6036, 1500);
+                        await this.addLog({ level: 'DONE', message: 'Analysis complete. Report generated.', color: 'text-green-400' }, 100);
+                    } else if (scriptName === 'chat') {
+                        await this.addLog({ level: 'INIT', message: 'Engineer Assist Chat activated.', color: 'text-cyan-400' }, 100);
+                        await this.addVisual('chat-container', '<div class="space-y-4"></div>', 100);
+                        await this.addLog({ level: 'USER', message: 'Why is the `rpt_revenue` query slow?', color: 'text-blue-400' }, 1000);
+                        await this.updateVisual('chat-container', '<div class="space-y-4"><div class="flex justify-end"><div class="agent-chat-bubble-user p-3 rounded-lg max-w-xs">Why is the `rpt_revenue` query slow?</div></div></div>');
+                        await this.addLog({ level: 'CONTEXT', message: 'Fetching metadata & query history...', color: 'text-gray-500' }, 1500);
+                        await this.addLog({ level: 'CONTEXT', message: 'Found lineage: `fact_orders` -> `rpt_revenue`. `fact_orders` has 1.2B rows.', color: 'text-gray-500' }, 1000);
+                        await this.addLog({ level: 'AGENT', message: 'Analyzing query plan... Found full table scan.', color: 'text-purple-400' }, 1500);
+                        await this.updateVisual('chat-container', document.getElementById('vis-chat-container').innerHTML + '<div class="flex justify-start"><div class="agent-chat-bubble-agent p-3 rounded-lg max-w-md"><p class="text-left">The query performs a full table scan on `fact_orders` because there is no index on the `order_date` filter. I suggest adding an index to improve performance.</p><div class="mt-2 p-2 rounded-md code-block text-xs"><pre><code>CREATE INDEX idx_orders_date \nON fact_orders (order_date);</code></pre></div></div></div>');
+                        await this.addLog({ level: 'USER', message: 'Thanks! Can you show me the full lineage for fact_orders?', color: 'text-blue-400' }, 3000);
+                        await this.updateVisual('chat-container', document.getElementById('vis-chat-container').innerHTML + '<div class="flex justify-end"><div class="agent-chat-bubble-user p-3 rounded-lg max-w-xs">Thanks! Can you show me the full lineage for fact_orders?</div></div>');
+                        await this.addLog({ level: 'AGENT', message: 'Generating lineage graph...', color: 'text-purple-400' }, 1500);
+                        await this.updateVisual('chat-container', document.getElementById('vis-chat-container').innerHTML + '<div class="flex justify-start"><div class="agent-chat-bubble-agent p-3 rounded-lg max-w-md"><p class="text-left">Certainly. Here is the data lineage for `fact_orders`:</p><div class="mt-2 p-2 rounded bg-slate-900/50"><svg viewBox="0 0 400 100"><defs><marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#67e8f9"></path></marker></defs><path d="M 90 50 L 150 50" stroke="#67e8f9" stroke-width="2" marker-end="url(#arrow)" class="lineage-path" style="animation-delay: 0s;"></path><path d="M 250 50 L 310 50" stroke="#67e8f9" stroke-width="2" marker-end="url(#arrow)" class="lineage-path" style="animation-delay: 0.5s;"></path><g><rect x="10" y="35" width="80" height="30" rx="5" fill="#1e293b" stroke="#38bdf8"></rect><text x="50" y="55" font-size="12" fill="white" text-anchor="middle">API Source</text></g><g><rect x="150" y="35" width="100" height="30" rx="5" fill="#4c1d95" stroke="#a855f7"></rect><text x="200" y="55" font-size="12" fill="white" text-anchor="middle">fact_orders</text></g><g><rect x="310" y="35" width="80" height="30" rx="5" fill="#1e293b" stroke="#38bdf8"></rect><text x="350" y="55" font-size="12" fill="white" text-anchor="middle">BI Report</text></g></svg></div></div></div>');
+                    }
+                } catch(e) {
+                    console.error("Data Agent demo failed:", e);
+                    this.addLog({level: "ERROR", message: "Demo script failed. Please try again.", color: "text-red-500"}, 100);
+                } finally {
+                    this.scriptRunning = false;
+                }
+            }
+        }));
     });
     
     const App = {
