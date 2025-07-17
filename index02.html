@@ -452,12 +452,12 @@
                 finance: { name: 'Finance WizBI', avatar: 'https://placehold.co/40x40/047857/FFFFFF?text=F' },
             },
             demoScenario: [
-                { author: 'user', text: "How did our Q2 revenue from new customers in the US compare to Q1?" },
-                { author: 'wizbi', wizbi_key: 'sales', text: "Here's the quarterly comparison:", summary: "📈 We saw a <strong>strong 54% increase</strong> in Q2! <br>Q1: $120k | Q2: $185k", chartType: 'bar', chartData: [ { label: 'Q1', value: 120000, height: 60, value_display: '$120k', delay: 100 }, { label: 'Q2', value: 185000, height: 92.5, value_display: '$185k', delay: 200 } ] },
-                { author: 'user', text: "Show me the trend of user signups over the last 7 days." },
-                { author: 'wizbi', wizbi_key: 'marketing', text: "Here is the user signup trend for the past week:", summary: "🚀 Signups are trending up, with a <strong>peak of 90 today!</strong>", chartType: 'line', chartData: [ {label: 'D-6', value: 25}, {label: 'D-5', value: 30}, {label: 'D-4', value: 45}, {label: 'D-3', value: 40}, {label: 'D-2', value: 60}, {label: 'D-1', value: 75}, {label: 'Today', value: 90} ] },
-                { author: 'user', text: "Great! Now what's the revenue breakdown by region for this quarter?" },
-                { author: 'wizbi', wizbi_key: 'finance', text: "Here is the revenue breakdown by region:", summary: "🌎 North America continues to be our <strong>dominant market</strong> at 45%.", chartType: 'pie', chartData: [ {label: 'NA', value: 45, color: '#8b5cf6'}, {label: 'EMEA', value: 35, color: '#22d3ee'}, {label: 'APAC', value: 15, color: '#34d399'}, {label: 'LATAM', value: 5, color: '#f87171'} ] },
+                { id: 1, author: 'user', text: "How did our Q2 revenue from new customers in the US compare to Q1?" },
+                { id: 2, author: 'wizbi', wizbi_key: 'sales', text: "Here's the quarterly comparison:", summary: "📈 We saw a <strong>strong 54% increase</strong> in Q2! <br>Q1: $120k | Q2: $185k", chartType: 'bar', chartData: [ { label: 'Q1', value: 120000, height: 60, value_display: '$120k', delay: 100 }, { label: 'Q2', value: 185000, height: 92.5, value_display: '$185k', delay: 200 } ] },
+                { id: 3, author: 'user', text: "Show me the trend of user signups over the last 7 days." },
+                { id: 4, author: 'wizbi', wizbi_key: 'marketing', text: "Here is the user signup trend for the past week:", summary: "🚀 Signups are trending up, with a <strong>peak of 90 today!</strong>", chartType: 'line', chartData: [ {label: 'D-6', value: 25}, {label: 'D-5', value: 30}, {label: 'D-4', value: 45}, {label: 'D-3', value: 40}, {label: 'D-2', value: 60}, {label: 'D-1', value: 75}, {label: 'Today', value: 90} ] },
+                { id: 5, author: 'user', text: "Great! Now what's the revenue breakdown by region for this quarter?" },
+                { id: 6, author: 'wizbi', wizbi_key: 'finance', text: "Here is the revenue breakdown by region:", summary: "🌎 North America continues to be our <strong>dominant market</strong> at 45%.", chartType: 'pie', chartData: [ {label: 'NA', value: 45, color: '#8b5cf6'}, {label: 'EMEA', value: 35, color: '#22d3ee'}, {label: 'APAC', value: 15, color: '#34d399'}, {label: 'LATAM', value: 5, color: '#f87171'} ] },
             ],
             
             init() {
@@ -501,34 +501,32 @@
 
                 for (let i = 0; i < this.demoScenario.length; i++) {
                     let messageData = { ...this.demoScenario[i] };
-                    // This separates user and wizbi messages for the loop
-                    const userMessage = { author: 'user', text: messageData.text, id: Date.now() + '-user' };
-                    const wizbiMessageData = messageData;
 
-                    this.messages.push(userMessage);
-                    this.$nextTick(() => this.$refs.chatWindow.scrollTop = this.$refs.chatWindow.scrollHeight);
-                    await new Promise(r => setTimeout(r, 1000));
-                    
-                    this.isTyping = true;
-                    await new Promise(r => setTimeout(r, 1500));
-                    this.isTyping = false;
-                    
-                    let wizbiMessage = { id: Date.now(), author: 'wizbi', ...wizbiMessageData, wizbi: this.wizbis[wizbiMessageData.wizbi_key], showChart: false };
-                    if (wizbiMessage.chartData) {
-                       wizbiMessage = this.prepareChartData(wizbiMessage);
-                    }
-                    
-                    this.messages.push(wizbiMessage);
-                    await this.$nextTick();
-                    
-                    if (wizbiMessage.chartData) {
-                        await new Promise(r => setTimeout(r, 100));
-                        const msgIndex = this.messages.findIndex(m => m.id === wizbiMessage.id);
-                        if(msgIndex !== -1) this.messages[msgIndex].showChart = true;
-                    }
+                    if (messageData.author === 'user') {
+                        this.messages.push(messageData);
+                        this.$nextTick(() => { this.$refs.chatWindow.scrollTop = this.$refs.chatWindow.scrollHeight; });
+                        await new Promise(r => setTimeout(r, 1500));
+                    } 
+                    else if (messageData.author === 'wizbi') {
+                        this.isTyping = true;
+                        await new Promise(r => setTimeout(r, 1500));
+                        this.isTyping = false;
+                        
+                        let wizbiMessage = { ...messageData, wizbi: this.wizbis[messageData.wizbi_key], showChart: false };
+                        if (wizbiMessage.chartData) {
+                           wizbiMessage = this.prepareChartData(wizbiMessage);
+                        }
+                        
+                        this.messages.push(wizbiMessage);
+                        await this.$nextTick();
+                        
+                        if (wizbiMessage.chartData) {
+                            await new Promise(r => setTimeout(r, 100));
+                            const msgIndex = this.messages.findIndex(m => m.id === wizbiMessage.id);
+                            if(msgIndex !== -1) this.messages[msgIndex].showChart = true;
+                        }
 
-                    this.$refs.chatWindow.scrollTop = this.$refs.chatWindow.scrollHeight;
-                    if( i < this.demoScenario.length - 1 ) {
+                        this.$nextTick(() => { this.$refs.chatWindow.scrollTop = this.$refs.chatWindow.scrollHeight; });
                         await new Promise(r => setTimeout(r, 3500));
                     }
                 }
