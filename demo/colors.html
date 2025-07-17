@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Dark Theme Selector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* This style block enhances Tailwind with custom styles, fonts, and animations */
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background 0.5s ease-in-out;
+        }
+
+        /* --- Define all background theme styles --- */
+        .bg-theme-original { background-color: #111827; }
+        .bg-theme-slate-deep { background-color: #0f172a; }
+        .bg-theme-midnight-gradient { background-image: linear-gradient(135deg, #020422 0%, #0f172a 100%); }
+        .bg-theme-purple-haze { background-image: linear-gradient(135deg, #1e1b4b 0%, #172554 100%); }
+        .bg-theme-aurora { background-image: radial-gradient(ellipse at top, #0b2a4a, #0f172a 70%); }
+        .bg-theme-fine-mesh {
+            background-color: #0f172a;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+            background-size: 2.5em 2.5em;
+        }
+        .bg-theme-cosmic-fusion { background-image: linear-gradient(160deg, #000000 0%, #434343 100%); }
+        .bg-theme-emerald-nebula { background-image: linear-gradient(to top, #30cfd0 0%, #330867 100%); }
+        .bg-theme-carbon-fiber {
+            background-color: #1a1a1a;
+            background-image: linear-gradient(45deg, rgba(0, 0, 0, 1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 1)), 
+                              linear-gradient(-45deg, rgba(0, 0, 0, 1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 1));
+            background-size: 8px 8px;
+        }
+        .bg-theme-brushed-metal { background-image: linear-gradient(0deg, #616161 0%, #9bc5c3 100%); }
+        .bg-theme-geometric-maze {
+            background-color: #1d232c;
+            background-image: linear-gradient(30deg, #262f3b 12%, transparent 12.5%, transparent 87%, #262f3b 87.5%, #262f3b),
+                              linear-gradient(150deg, #262f3b 12%, transparent 12.5%, transparent 87%, #262f3b 87.5%, #262f3b),
+                              linear-gradient(30deg, #262f3b 12%, transparent 12.5%, transparent 87%, #262f3b 87.5%, #262f3b),
+                              linear-gradient(150deg, #262f3b 12%, transparent 12.5%, transparent 87%, #262f3b 87.5%, #262f3b),
+                              linear-gradient(60deg, #222934 25%, transparent 25.5%, transparent 75%, #222934 75%, #222934), 
+                              linear-gradient(60deg, #222934 25%, transparent 25.5%, transparent 75%, #222934 75%, #222934);
+            background-size: 40px 70px;
+            background-position: 0 0, 0 0, 20px 35px, 20px 35px, 0 0, 20px 35px;
+        }
+        .bg-theme-subtle-dots {
+            background-color: #0a0a0a;
+            background-image: radial-gradient(circle, #222 1px, rgba(0,0,0,0) 1px);
+            background-size: 20px 20px;
+        }
+
+        /* Glassmorphism effect for the chat window */
+        .glass-effect {
+            background: rgba(30, 41, 59, 0.65);
+            backdrop-filter: blur(16px) saturate(150%);
+            -webkit-backdrop-filter: blur(16px) saturate(150%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Custom scrollbar for a polished look */
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.25);
+            border-radius: 20px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.4); }
+        
+        /* Animation for swatch hover */
+        .swatch { transition: transform 0.2s ease-out, box-shadow 0.2s ease-out; }
+        .swatch:hover {
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        #code-output { white-space: pre-wrap; }
+    </style>
+</head>
+<body id="main-body" class="bg-theme-original text-gray-200 flex items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
+
+    <div class="w-full max-w-screen-xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Left Column: Preview & Code -->
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Chat Window -->
+            <main class="w-full h-[65vh] max-h-[650px] glass-effect rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+                <header class="p-4 border-b border-white/10 bg-black/20 flex-shrink-0">
+                    <h1 class="text-lg font-bold text-white text-center">Bimagics Brain</h1>
+                </header>
+                <div class="flex-1 p-6 overflow-y-auto custom-scrollbar space-y-4">
+                    <div class="flex justify-start"><div class="bg-slate-700 rounded-2xl rounded-bl-lg p-3 max-w-[75%]"><p>Hello! Select a theme from the panel to see how the UI looks.</p></div></div>
+                    <div class="flex justify-end"><div class="bg-indigo-600 text-white rounded-2xl rounded-br-lg p-3 max-w-[75%]"><p>I want to test the "frosted glass" effect we discussed.</p></div></div>
+                    <div class="flex justify-start"><div class="bg-slate-700 rounded-2xl rounded-bl-lg p-3 max-w-[75%]"><p>Exactly. This chat window uses that effect. Notice how it blurs the background while maintaining readability.</p></div></div>
+                    <div class="flex justify-end"><div class="bg-indigo-600 text-white rounded-2xl rounded-br-lg p-3 max-w-[75%]"><p>This looks amazing!</p></div></div>
+                </div>
+                <footer class="p-4 border-t border-white/10 bg-black/10 flex-shrink-0">
+                    <div class="relative"><input type="text" placeholder="Type a message..." class="w-full bg-slate-800/80 border border-slate-600 rounded-xl py-3 px-4 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"><button class="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-400 hover:text-indigo-300"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></button></div>
+                </footer>
+            </main>
+
+            <!-- Code Implementation Panel -->
+            <div class="bg-slate-900/70 border border-white/10 rounded-2xl p-6">
+                <h3 class="text-lg font-bold text-white mb-1">Code to Implement</h3>
+                <p class="text-sm text-gray-400 mb-4">Paste this code into your <code class="text-xs bg-gray-700 px-1 py-0.5 rounded">globals.css</code> file, replacing the old body background rule.</p>
+                <div class="relative bg-gray-900 rounded-lg p-4">
+                    <pre><code id="code-output" class="text-sm text-gray-300">.dark body, .dark-theme body {
+    background-color: #111827;
+}</code></pre>
+                    <button id="copy-button" class="absolute top-3 right-3 bg-slate-700 hover:bg-slate-600 text-gray-300 text-xs font-semibold py-1 px-3 rounded-md transition-colors">Copy CSS</button>
+                    <div id="copy-feedback" class="absolute top-3 right-3 bg-green-500 text-white text-xs font-semibold py-1 px-3 rounded-md transition-opacity opacity-0">Copied!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Theme Selector Panel -->
+        <aside class="w-full lg:col-span-1 h-[90vh] max-h-[850px]">
+            <div class="bg-slate-800/50 border border-white/10 rounded-2xl p-5 h-full flex flex-col">
+                <h2 class="text-xl font-bold text-white mb-4 text-center flex-shrink-0">Select a Theme</h2>
+                <div class="overflow-y-auto custom-scrollbar pr-2 -mr-2 flex-grow">
+                    <div class="space-y-5">
+                        <!-- Solid & Subtle -->
+                        <div>
+                            <h3 class="font-semibold text-gray-400 text-sm mb-2">Solid & Subtle</h3>
+                            <div class="space-y-3">
+                                <div class="swatch" data-name="Original" data-css-class="bg-theme-original" data-css-code=".dark body, .dark-theme body {\n    background-color: #111827;\n}"></div>
+                                <div class="swatch" data-name="Deep Slate" data-css-class="bg-theme-slate-deep" data-css-code=".dark body, .dark-theme body {\n    background-color: #0f172a;\n}"></div>
+                                <div class="swatch" data-name="Cosmic Fusion" data-css-class="bg-theme-cosmic-fusion" data-css-code=".dark body, .dark-theme body {\n    background-image: linear-gradient(160deg, #000000 0%, #434343 100%);\n}"></div>
+                            </div>
+                        </div>
+                        <!-- Gradients -->
+                        <div>
+                            <h3 class="font-semibold text-gray-400 text-sm mb-2">Gradients</h3>
+                            <div class="space-y-3">
+                                <div class="swatch" data-name="Midnight Gradient" data-css-class="bg-theme-midnight-gradient" data-css-code=".dark body, .dark-theme body {\n    background-image: linear-gradient(135deg, #020422 0%, #0f172a 100%);\n}"></div>
+                                <div class="swatch" data-name="Purple Haze" data-css-class="bg-theme-purple-haze" data-css-code=".dark body, .dark-theme body {\n    background-image: linear-gradient(135deg, #1e1b4b 0%, #172554 100%);\n}"></div>
+                                <div class="swatch" data-name="Emerald Nebula" data-css-class="bg-theme-emerald-nebula" data-css-code=".dark body, .dark-theme body {\n    background-image: linear-gradient(to top, #30cfd0 0%, #330867 100%);\n}"></div>
+                                <div class="swatch" data-name="Brushed Metal" data-css-class="bg-theme-brushed-metal" data-css-code=".dark body, .dark-theme body {\n    background-image: linear-gradient(0deg, #616161 0%, #9bc5c3 100%);\n}"></div>
+                                <div class="swatch" data-name="Aurora" data-css-class="bg-theme-aurora" data-css-code=".dark body, .dark-theme body {\n    background-image: radial-gradient(ellipse at top, #0b2a4a, #0f172a 70%);\n}"></div>
+                            </div>
+                        </div>
+                        <!-- Patterns & Abstract -->
+                        <div>
+                            <h3 class="font-semibold text-gray-400 text-sm mb-2">Patterns & Abstract</h3>
+                            <div class="space-y-3">
+                                <div class="swatch" data-name="Fine Mesh" data-css-class="bg-theme-fine-mesh" data-css-code=".dark body, .dark-theme body {\n    background-color: #0f172a;\n    background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);\n    background-size: 2.5em 2.5em;\n}"></div>
+                                <div class="swatch" data-name="Carbon Fiber" data-css-class="bg-theme-carbon-fiber" data-css-code=".dark body, .dark-theme body {\n    background-color: #1a1a1a;\n    background-image: linear-gradient(45deg, rgba(0, 0, 0, 1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 1)), linear-gradient(-45deg, rgba(0, 0, 0, 1) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, 1) 75%, rgba(0, 0, 0, 1));\n    background-size: 8px 8px;\n}"></div>
+                                <div class="swatch" data-name="Geometric Maze" data-css-class="bg-theme-geometric-maze" data-css-code=".dark body, .dark-theme body {\n    background-color: #1d232c;\n    background-image: linear-gradient(30deg, #262f3b 12%, transparent 12.5%, transparent 87%, #262f3b 87.5%, #262f3b), linear-gradient(150deg, #262f3b 12%, transparent 12.5%, transparent 87%, #262f3b 87.5%, #262f3b), linear-gradient(30deg, #262f3b 12%, transparent 12.5%, transparent 87%, #262f3b 87.5%, #262f3b), linear-gradient(150deg, #262f3b 12%, transparent 12.5%, transparent 87%, #262f3b 87.5%, #262f3b), linear-gradient(60deg, #222934 25%, transparent 25.5%, transparent 75%, #222934 75%, #222934), linear-gradient(60deg, #222934 25%, transparent 25.5%, transparent 75%, #222934 75%, #222934);\n    background-size: 40px 70px;\n    background-position: 0 0, 0 0, 20px 35px, 20px 35px, 0 0, 20px 35px;\n}"></div>
+                                <div class="swatch" data-name="Subtle Dots" data-css-class="bg-theme-subtle-dots" data-css-code=".dark body, .dark-theme body {\n    background-color: #0a0a0a;\n    background-image: radial-gradient(circle, #222 1px, rgba(0,0,0,0) 1px);\n    background-size: 20px 20px;\n}"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const swatches = document.querySelectorAll('.swatch');
+            const mainBody = document.getElementById('main-body');
+            const codeOutput = document.getElementById('code-output');
+            const copyButton = document.getElementById('copy-button');
+            const copyFeedback = document.getElementById('copy-feedback');
+            
+            // Dynamically create swatch content and apply initial classes
+            swatches.forEach(swatch => {
+                swatch.classList.add('cursor-pointer', 'h-16', 'rounded-lg', 'flex', 'items-center', 'justify-center', 'font-semibold', 'text-white', 'text-shadow-lg');
+                swatch.classList.add(swatch.dataset.cssClass);
+                swatch.textContent = swatch.dataset.name;
+            });
+
+            // Set the first swatch as active by default
+            const firstSwatch = swatches[0];
+            firstSwatch.classList.add('ring-2', 'ring-indigo-400', 'ring-offset-4', 'ring-offset-slate-900/50');
+            
+            const backgroundClasses = Array.from(swatches).map(s => s.dataset.cssClass);
+
+            swatches.forEach(swatch => {
+                swatch.addEventListener('click', () => {
+                    // Update active state
+                    swatches.forEach(s => s.classList.remove('ring-2', 'ring-indigo-400', 'ring-offset-4', 'ring-offset-slate-900/50'));
+                    swatch.classList.add('ring-2', 'ring-indigo-400', 'ring-offset-4', 'ring-offset-slate-900/50');
+
+                    // Update body background
+                    const newBgClass = swatch.dataset.cssClass;
+                    mainBody.className = mainBody.className.split(' ').filter(c => !backgroundClasses.includes(c)).join(' ');
+                    mainBody.classList.add(newBgClass);
+
+                    // Update code output
+                    codeOutput.textContent = swatch.dataset.cssCode.trim();
+                });
+            });
+
+            // Copy button functionality
+            copyButton.addEventListener('click', () => {
+                const textToCopy = codeOutput.textContent;
+                
+                // Use the Clipboard API with a fallback for older browsers/iframes
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(textToCopy).then(() => showCopyFeedback());
+                } else {
+                    // Fallback method using a temporary textarea
+                    const textArea = document.createElement('textarea');
+                    textArea.value = textToCopy;
+                    textArea.style.position = 'absolute';
+                    textArea.style.left = '-9999px';
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        showCopyFeedback();
+                    } catch (err) {
+                        console.error('Fallback copy failed', err);
+                    }
+                    document.body.removeChild(textArea);
+                }
+            });
+
+            function showCopyFeedback() {
+                copyFeedback.classList.remove('opacity-0');
+                setTimeout(() => {
+                    copyFeedback.classList.add('opacity-0');
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>
