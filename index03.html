@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BI MAGICS | Your Complete Data-Driven Toolkit</title>
+    
+    <meta name="description" content="BI MAGICS offers a suite of tools and services to make your organization data-driven. From AI Analysts for teams (WizBI) and automated data governance (Data Agent) to full BI projects.">
+    <meta name="keywords" content="AI Data Analyst, WizBI, Data Agent, Data Catalog, Data Warehouse Optimization, End-to-End BI, Data Analytics, Business Intelligence, Data Automation, Natural Language Query, Self-Service Analytics, Data Governance">
+    <meta name="theme-color" content="#0a0a1a">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.bimagics.com/">
+    <meta property="og:title" content="BI MAGICS | Your Complete Data-Driven Toolkit">
+    <meta property="og:description" content="The AI-powered analytics platform for modern business teams. Ask questions, get answers, make decisions.">
+    <meta property="og:image" content="https://www.bimagics.com/og-image.png">
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2EY1HGXGNT"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-2EY1HGXGNT');
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Tilt+Neon&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        /* General Styles */
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background-color: #0a0a1a; color: #E0E0E0; overflow-x: hidden; }
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        .content-wrapper { position: relative; z-index: 1; }
+        .font-tilt-neon { font-family: 'Tilt Neon', sans-serif; }
+        .glass-effect { background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .header-scrolled { background: rgba(10, 10, 26, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        .header-scrolled .h-20 { height: 4.5rem; }
+
+        /* Text & Gradients */
+        .neon-text-purple { text-shadow: 0 0 5px #A855F7, 0 0 10px #A855F7, 0 0 15px #c084fc; }
+        .neon-text-cyan { text-shadow: 0 0 5px #22D3EE, 0 0 10px #22D3EE, 0 0 15px #67e8f9; }
+        .gradient-text { background: linear-gradient(90deg, #A855F7, #22D3EE); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-fill-color: transparent; }
+        
+        /* Animations */
+        .fade-in-element { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
+        .fade-in-element.is-visible { opacity: 1; transform: translateY(0); }
+        .fade-in-section { opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+        .fade-in-section.is-visible { opacity: 1; transform: translateY(0); }
+        .timeline-line { transform: scaleX(0); transform-origin: left; transition: transform 0.8s ease-in-out; }
+        .timeline-step { opacity: 0; transition: opacity 0.5s ease-out; }
+        .pulse { animation: pulse-animation 2s infinite; }
+        @keyframes pulse-animation { 0% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(168, 85, 247, 0); } 100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); } }
+
+        /* Specific Component Styles */
+        .spellbook-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .spellbook-card:hover { transform: translateY(-10px) scale(1.03); box-shadow: 0 0 30px rgba(168, 85, 247, 0.3), 0 0 20px rgba(34, 211, 238, 0.3); }
+        .data-agent-btn { transition: all 0.2s ease-in-out; }
+        .data-agent-btn.active { background-color: #22D3EE; color: #0a0a1a; box-shadow: 0 0 15px #22D3EE; }
+
+        /* Typing animation */
+        .typewriter-cursor { display: inline-block; width: 3px; background-color: #A855F7; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* WizBI Chat Demo */
+        .chat-bubble { max-width: 85%; }
+        .chat-bubble-user { background-color: #4c1d95; }
+        .chat-bubble-wizard { background-color: #1e293b; }
+        .wizbi-summary { background-color: rgba(139, 92, 246, 0.1); padding: 0.75rem; border-radius: 0.5rem; margin-top: 0.75rem; border-left: 3px solid #a78bfa; }
+        .wizbi-chart-bar { transform-origin: bottom; transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55); box-shadow: 0 0 8px rgba(34, 211, 238, 0.3); }
+        .animated-line-chart-path { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: draw-line 1.5s ease-out forwards; }
+        .pie-chart-container { display: flex; align-items: center; gap: 1rem; }
+        .pie-chart { width: 120px; height: 120px; border-radius: 50%; background-image: conic-gradient(from 0deg); transition: transform 0.5s; transform: scale(0); }
+        .pie-chart.visible { transform: scale(1); }
+        .pie-legend { font-size: 0.75rem; color: #9ca3af; }
+        .try-now-btn { animation: soft-pulse 2s infinite ease-in-out; }
+        @keyframes soft-pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(232, 121, 249, 0.4); } 70% { transform: scale(1.05); box-shadow: 0 0 10px 10px rgba(232, 121, 249, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(232, 121, 249, 0); } }
+        
+        /* Data Agent Demo Visuals */
+        .lineage-path { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: draw-line 1s ease-out forwards; }
+        @keyframes draw-line { to { stroke-dashoffset: 0; } }
+        .agent-chat-bubble-user { background: #1e40af; border-color: #3b82f6; }
+        .agent-chat-bubble-agent { background: #1e293b; border-color: #4f46e5; }
+        .code-block { background-color: #020617; }
+    </style>
+</head>
+<body class="antialiased" x-data="pageManager">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="content-wrapper">
+        <header id="header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-20 transition-all duration-300">
+                    <a href="#" @click.prevent="showSection('solutions')" class="flex items-center space-x-2">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-purple-400"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span class="text-2xl font-bold font-tilt-neon gradient-text">BI MAGICS</span>
+                    </a>
+                    <nav class="hidden lg:flex items-center space-x-8">
+                        <a href="#" @click.prevent="showSection('solutions')" class="text-gray-300 hover:text-white transition-colors">Solutions</a>
+                        <a href="#" @click.prevent="showSection('wizbi')" class="text-gray-300 hover:text-white transition-colors">WizBI Demo</a>
+                        <a href="#" @click.prevent="showSection('data-agent')" class="text-gray-300 hover:text-white transition-colors">Data Agent Demo</a>
+                        <a href="#" @click.prevent="showSection(activeSection === 'solutions' ? 'wizbi' : activeSection)" class="text-gray-300 hover:text-white transition-colors">Contact</a>
+                    </nav>
+                    <div class="flex items-center gap-4">
+                        <div class="hidden lg:block">
+                            <a href="#" @click.prevent="showSection(activeSection === 'solutions' ? 'wizbi' : activeSection)" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105">Let's Talk</a>
+                        </div>
+                        <div class="lg:hidden">
+                            <button id="mobile-menu-button" aria-label="Open mobile menu" class="text-white focus:outline-none"><i data-lucide="menu"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="mobile-menu" class="hidden lg:hidden glass-effect">
+                <nav class="px-4 pt-2 pb-4 space-y-1 sm:px-6">
+                    <a href="#" @click.prevent="showSection('solutions')" class="block text-gray-300 hover:text-white py-2 rounded-md">Solutions</a>
+                    <a href="#" @click.prevent="showSection('wizbi')" class="block text-gray-300 hover:text-white py-2 rounded-md">WizBI Demo</a>
+                    <a href="#" @click.prevent="showSection('data-agent')" class="block text-gray-300 hover:text-white py-2 rounded-md">Data Agent Demo</a>
+                    <a href="#" @click.prevent="showSection(activeSection === 'solutions' ? 'wizbi' : activeSection)" class="block text-gray-300 hover:text-white py-2 rounded-md">Contact</a>
+                    <a href="#" @click.prevent="showSection(activeSection === 'solutions' ? 'wizbi' : activeSection)" class="block bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 text-center mt-4">Let's Talk</a>
+                </nav>
+            </div>
+        </header>
+
+        <main class="pt-20" x-ref="mainContent">
+            <!-- Initial Selection View -->
+            <div x-show="activeSection === 'solutions'" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0 transform -translate-y-10" x-transition:enter-end="opacity-100 transform translate-y-0" x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+                <section id="hero" class="py-20 md:py-28 text-center overflow-hidden">
+                    <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10" x-data="typewriter">
+                        <h1 class="text-4xl md:text-6xl lg:text-7xl font-black font-tilt-neon leading-tight gradient-text h-24 md:h-36">
+                            <span x-text="text"></span><span class="typewriter-cursor"></span>
+                        </h1>
+                        <p class="mt-6 max-w-3xl mx-auto text-lg md:text-xl text-gray-300">
+                            Stop the data chaos. BI MAGICS provides a complete suite of tools and services to transform your organization into a data-driven powerhouse, from team-level insights to enterprise-grade governance.
+                        </p>
+                    </div>
+                </section>
+
+                <section id="solutions" class="py-20">
+                    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="text-center mb-16">
+                            <h2 class="text-3xl md:text-5xl font-black font-tilt-neon mb-4">What is Your Data Quest?</h2>
+                            <p class="text-lg text-gray-400 max-w-2xl mx-auto">Every data journey is unique. Choose the spell that matches your current challenge.</p>
+                        </div>
+                        <div class="grid md:grid-cols-3 gap-8 lg:gap-12">
+                            <button @click="showSection('wizbi')" class="spellbook-card glass-effect rounded-2xl p-8 text-center border-purple-500/50 border-2 block">
+                                <div class="flex items-center justify-center h-20 w-20 rounded-full bg-purple-900/50 mb-6 mx-auto">
+                                    <i data-lucide="sparkles" class="w-10 h-10 text-purple-300"></i>
+                                </div>
+                                <h3 class="text-2xl font-bold font-tilt-neon mb-3">AI Analysts for Teams</h3>
+                                <p class="text-gray-400">Give business teams a personal AI Analyst to get instant answers from data, no technical skills required.</p>
+                            </button>
+                            <button @click="showSection('data-agent')" class="spellbook-card glass-effect rounded-2xl p-8 text-center border-cyan-400/50 border-2 block">
+                                 <div class="flex items-center justify-center h-20 w-20 rounded-full bg-cyan-900/50 mb-6 mx-auto">
+                                    <i data-lucide="shield-check" class="w-10 h-10 text-cyan-300"></i>
+                                </div>
+                                <h3 class="text-2xl font-bold font-tilt-neon mb-3">Governance for Data Teams</h3>
+                                <p class="text-gray-400">Automatically map, document, monitor, and optimize your data warehouse, ensuring trust and efficiency.</p>
+                            </button>
+                            <button @click="showSection('e2e')" class="spellbook-card glass-effect rounded-2xl p-8 text-center border-gray-500/50 border-2 block">
+                                 <div class="flex items-center justify-center h-20 w-20 rounded-full bg-gray-900/50 mb-6 mx-auto">
+                                    <i data-lucide="layout-dashboard" class="w-10 h-10 text-gray-300"></i>
+                                </div>
+                                <h3 class="text-2xl font-bold font-tilt-neon mb-3">BI from Scratch</h3>
+                                <p class="text-gray-400">For companies without a data infrastructure. We act as your expert partner to build your entire BI system.</p>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- WizBI Product View -->
+            <div x-show="activeSection === 'wizbi'" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="min-h-screen">
+                <section id="wizards" class="py-24 bg-purple-900/10">
+                    <div class="container mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-16 items-center">
+                        <div>
+                            <h2 class="text-4xl md:text-5xl font-black font-tilt-neon mb-4"><span class="neon-text-purple">WizBI:</span> An AI Analyst for Every Team</h2>
+                            <p class="text-lg text-gray-300 mb-2"><strong>Who is this for?</strong> Marketing, Sales, Product, and Finance teams who need answers now.</p>
+                            <p class="text-lg text-gray-300 mb-8">Stop the bottleneck. With WizBI, your teams can ask questions in natural language and get immediate, actionable insights, including rich visualizations. It's true self-service analytics, finally available to everyone.</p>
+                            <a href="https://wizbi.ai" target="_blank" rel="noopener noreferrer" class="try-now-btn bg-fuchsia-500 text-white font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-110 inline-flex items-center gap-2 text-lg">
+                                <i data-lucide="sparkles"></i>
+                                Try the Full System Now
+                            </a>
+                        </div>
+                        <div class="glass-effect rounded-2xl p-4 border border-purple-500/30" x-data="wizbiChatDemo">
+                            <div class="bg-gray-900 rounded-lg p-4 h-[550px] flex flex-col">
+                                <div class="flex-grow overflow-y-auto space-y-4 pr-2" x-ref="chatWindow">
+                                    <template x-for="message in messages" :key="message.id">
+                                        <div class="flex" :class="message.author === 'user' ? 'justify-end' : 'justify-start'">
+                                            <div x-show="message.author === 'user'" class="chat-bubble rounded-lg p-3 chat-bubble-user">
+                                                <p class="text-white" x-text="message.text"></p>
+                                            </div>
+                                            <div x-show="message.author === 'wizbi'" class="flex items-end gap-2 chat-bubble">
+                                                <img :src="message.wizbi.avatar" alt="WizBI Avatar" class="w-10 h-10 rounded-full flex-shrink-0 bg-gray-700">
+                                                <div class="w-full chat-bubble-wizard rounded-lg p-3">
+                                                    <p class="font-bold mb-1" x-text="message.wizbi.name"></p>
+                                                    <p class="text-white" x-text="message.text"></p>
+                                                    
+                                                    <div x-show="message.summary" class="wizbi-summary" x-html="message.summary"></div>
+
+                                                    <div x-show="message.chartData && message.showChart" x-transition class="mt-3 bg-gray-800 p-3 rounded-lg">
+                                                        <!-- Bar Chart -->
+                                                        <div x-show="message.chartType === 'bar'">
+                                                            <div class="h-48 w-full flex items-end justify-around gap-2 border-b border-l border-gray-600 p-2">
+                                                                <template x-for="bar in message.chartData">
+                                                                    <div class="w-full h-full flex flex-col justify-end items-center gap-1">
+                                                                        <div class="text-green-400 font-bold text-xs" x-text="bar.value_display"></div>
+                                                                        <div class="wizbi-chart-bar w-full bg-gradient-to-t from-purple-500 to-cyan-400 rounded-t-md" :style="`height: ${bar.height}%; transform: scaleY(${message.showChart ? 1 : 0}); transition-delay: ${bar.delay}ms;`"></div>
+                                                                        <div class="text-xs text-gray-500" x-text="bar.label"></div>
+                                                                    </div>
+                                                                </template>
+                                                            </div>
+                                                        </div>
+                                                        <!-- Line Chart -->
+                                                        <div x-show="message.chartType === 'line'">
+                                                            <svg viewBox="0 0 300 150" class="w-full h-48">
+                                                                <path :d="message.linePath" fill="none" stroke="#22D3EE" stroke-width="2" class="animated-line-chart-path"></path>
+                                                                <template x-for="(point, index) in message.chartData">
+                                                                    <g>
+                                                                        <circle :cx="point.x" :cy="point.y" r="3" fill="#fff"></circle>
+                                                                        <text :x="point.x" :y="145" fill="#9ca3af" font-size="10" text-anchor="middle" x-text="point.label"></text>
+                                                                    </g>
+                                                                </template>
+                                                            </svg>
+                                                        </div>
+                                                        <!-- Pie Chart -->
+                                                        <div x-show="message.chartType === 'pie'" class="pie-chart-container">
+                                                             <div class="pie-chart" :class="{'visible': message.showChart}" :style="`background-image: ${message.pieGradient};`"></div>
+                                                             <div class="pie-legend space-y-2">
+                                                                <template x-for="slice in message.chartData">
+                                                                    <div class="flex items-center gap-2">
+                                                                        <span class="w-3 h-3 rounded-sm" :style="{ backgroundColor: slice.color }"></span>
+                                                                        <span x-text="`${slice.label} (${slice.value}%)`"></span>
+                                                                    </div>
+                                                                </template>
+                                                             </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <div x-show="isTyping" class="flex justify-start" x-transition>
+                                        <div class="flex items-end gap-2 chat-bubble">
+                                            <img src="https://placehold.co/40x40/4c1d95/FFFFFF?text=W" alt="WizBI Avatar" class="w-10 h-10 rounded-full flex-shrink-0">
+                                            <div class="chat-bubble-wizard rounded-lg p-3 flex items-center gap-2">
+                                                <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0s;"></div>
+                                                <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.2s;"></div>
+                                                <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.4s;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section class="py-24">
+                    <div class="container mx-auto px-6 max-w-3xl text-center">
+                        <img src="https://placehold.co/150x40/transparent/a0aec0?text=Taranis" alt="Taranis logo" class="mx-auto h-10 mb-6 grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all" />
+                        <blockquote class="text-xl md:text-2xl text-white leading-relaxed italic">
+                            “With BI Magics, anyone at Taranis can pull fresh numbers, investigate issues, or validate a hunch in seconds – no dashboards, no SQL, just a question.”
+                        </blockquote>
+                        <div class="mt-6">
+                            <p class="font-bold text-white">BI Lead, Taranis</p>
+                        </div>
+                    </div>
+                </section>
+                <section id="contact-wizbi" class="py-24 bg-gray-900/20">
+                    <!-- Contact Form Section -->
+                    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="grid lg:grid-cols-2 gap-16 items-center">
+                            <div class="max-w-xl">
+                               <h2 class="text-3xl font-bold font-tilt-neon mb-4">Ready to Move 10x Faster?</h2>
+                               <p class="text-lg text-gray-300 mb-4">
+                                   Tell us about your challenges, and we'll show you how WizBI can help you achieve your goals.
+                               </p>
+                            </div>
+                            <!-- Reusable Contact Form -->
+                            <div class="glass-effect p-8 rounded-2xl" x-data="contactForm">
+                                <h3 class="text-2xl font-bold mb-6">Schedule a Demo</h3>
+                                <form @submit.prevent>
+                                    <div class="space-y-4">
+                                        <div class="relative">
+                                            <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"></i>
+                                            <input type="text" x-model="name" required class="w-full bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Full Name">
+                                        </div>
+                                        <div class="relative">
+                                            <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"></i>
+                                            <input type="email" x-model="email" required class="w-full bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Work Email">
+                                        </div>
+                                        <div class="relative">
+                                           <i data-lucide="message-square" class="absolute left-3 top-4 w-5 h-5 text-gray-500"></i>
+                                           <textarea x-model="message" rows="3" class="w-full bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Tell us about your data challenges..."></textarea>
+                                        </div>
+                                        
+                                        <div x-show="error" x-text="error" class="text-red-400 bg-red-900/50 border border-red-500 p-3 rounded-lg my-4" x-transition></div>
+
+                                        <div class="flex flex-col sm:flex-row gap-4">
+                                            <button @click="sendWhatsApp()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 inline-flex items-center justify-center gap-2">
+                                                <i data-lucide="send"></i> Send via WhatsApp
+                                            </button>
+                                            <button @click="sendEmail()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 inline-flex items-center justify-center gap-2">
+                                                <i data-lucide="mail"></i> Send via Email
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                     </div>
+                </section>
+                <!-- Navigation to other products -->
+                <section class="py-16 text-center">
+                    <h3 class="text-2xl font-bold font-tilt-neon mb-6">Explore Other Solutions</h3>
+                    <div class="flex justify-center gap-4">
+                        <button @click="showSection('data-agent')" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 px-6 rounded-lg transition-all">Explore Data Agent</button>
+                        <button @click="showSection('e2e')" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-all">Explore BI from Scratch</button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Data Agent Product View -->
+            <div x-show="activeSection === 'data-agent'" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="min-h-screen">
+                 <section id="data-agent" class="py-24 bg-cyan-900/10">
+                    <div class="container mx-auto px-4 sm:px-6 lg:px-8" x-data="dataAgentDemo">
+                        <div class="text-center mb-16">
+                            <h2 class="text-4xl md:text-5xl font-black font-tilt-neon mb-4"><span class="neon-text-cyan">Data Agent:</span> Your Automated Data Guardian</h2>
+                            <p class="text-lg text-gray-300 mb-2"><strong>Who is this for?</strong> Data Engineers, Analysts, and BI teams who manage the data infrastructure.</p>
+                            <p class="text-lg text-gray-300 max-w-3xl mx-auto">Stop firefighting and start innovating. The Data Agent works 24/7 in your data warehouse to map, monitor, and optimize, giving you a reliable and cost-effective data backend.</p>
+                        </div>
+                        <div class="flex flex-col lg:grid lg:grid-cols-12 gap-8 items-start">
+                            <div class="w-full lg:col-span-3 space-y-4">
+                                <button @click="runScript('mapping')" :class="{'active': activeScript === 'mapping'}" class="data-agent-btn w-full text-left glass-effect p-4 rounded-lg border border-cyan-400/50 hover:bg-cyan-400/20">
+                                    <div class="flex items-center gap-3"><i data-lucide="map"></i><span class="font-bold text-lg">Auto-Catalog & Lineage</span></div>
+                                    <p class="text-sm text-gray-400 mt-1">See how the agent discovers and documents assets.</p>
+                                </button>
+                                <button @click="runScript('optimization')" :class="{'active': activeScript === 'optimization'}" class="data-agent-btn w-full text-left glass-effect p-4 rounded-lg border border-cyan-400/50 hover:bg-cyan-400/20">
+                                    <div class="flex items-center gap-3"><i data-lucide="zap"></i><span class="font-bold text-lg">Cost & Performance Tuning</span></div>
+                                    <p class="text-sm text-gray-400 mt-1">Find costly queries and unused tables.</p>
+                                </button>
+                                <button @click="runScript('chat')" :class="{'active': activeScript === 'chat'}" class="data-agent-btn w-full text-left glass-effect p-4 rounded-lg border border-cyan-400/50 hover:bg-cyan-400/20">
+                                    <div class="flex items-center gap-3"><i data-lucide="message-circle"></i><span class="font-bold text-lg">Engineer Chat Assist</span></div>
+                                    <p class="text-sm text-gray-400 mt-1">Chat with the agent to debug and understand data.</p>
+                                </button>
+                            </div>
+                            <div class="w-full lg:col-span-9 h-[550px] glass-effect rounded-2xl flex flex-col p-1 border-2 border-cyan-400/30">
+                                 <div class="flex-shrink-0 p-2 border-b border-cyan-800/50 flex items-center justify-between"><div class="flex items-center gap-2"><span class="w-3 h-3 bg-red-500 rounded-full"></span><span class="w-3 h-3 bg-yellow-500 rounded-full"></span><span class="w-3 h-3 bg-green-500 rounded-full"></span></div><div class="text-xs text-cyan-300 font-mono">Data Agent Console</div></div>
+                                 <div class="flex-grow flex flex-col lg:flex-row p-2 gap-2 overflow-hidden h-full">
+                                     <div class="w-full lg:w-1/2 bg-black/20 rounded-lg p-4 overflow-y-auto" x-ref="visualPanel">
+                                        <div x-show="!scriptRunning && !logs.length" class="h-full flex flex-col items-center justify-center text-gray-500 text-center">
+                                            <i data-lucide="play-circle" class="w-16 h-16 mb-4"></i>
+                                            <p>Select a capability to see the magic happen.</p>
+                                        </div>
+                                        <div x-show="scriptRunning && !logs.length" class="h-full flex flex-col items-center justify-center text-gray-400">
+                                            <div class="w-12 h-12 border-4 border-t-cyan-400 border-gray-600 rounded-full animate-spin"></div>
+                                            <p class="mt-4">Initializing script...</p>
+                                        </div>
+                                     </div>
+                                     <div class="w-full lg:w-1/2 bg-black/20 rounded-lg p-4 flex flex-col font-mono text-sm overflow-y-auto" x-ref="logContainer">
+                                         <template x-for="log in logs" :key="log.id"><p :class="log.color" class="flex gap-2"><span class="flex-shrink-0 text-gray-500" x-text="log.timestamp"></span><span class="flex-shrink-0" x-text="log.level"></span><span class="whitespace-pre-wrap" x-html="log.message"></span></p></template>
+                                     </div>
+                                 </div>
+                            </div>
+                        </div>
+                     </div>
+                </section>
+                <section class="py-24">
+                    <div class="container mx-auto px-6 max-w-3xl text-center">
+                        <img src="https://placehold.co/150x40/transparent/a0aec0?text=Taranis" alt="Taranis logo" class="mx-auto h-10 mb-6 grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all" />
+                        <blockquote class="text-xl md:text-2xl text-white leading-relaxed italic">
+                            “With BI Magics, anyone at Taranis can pull fresh numbers, investigate issues, or validate a hunch in seconds – no dashboards, no SQL, just a question.”
+                        </blockquote>
+                        <div class="mt-6">
+                            <p class="font-bold text-white">BI Lead, Taranis</p>
+                        </div>
+                    </div>
+                </section>
+                <section id="contact-agent" class="py-24 bg-gray-900/20">
+                    <!-- Contact Form Section -->
+                    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="grid lg:grid-cols-2 gap-16 items-center">
+                            <div class="max-w-xl">
+                               <h2 class="text-3xl font-bold font-tilt-neon mb-4">Ready to Build a Rock-Solid Data Foundation?</h2>
+                               <p class="text-lg text-gray-300 mb-4">
+                                   Let's discuss how the Data Agent can bring trust, speed, and efficiency to your data operations.
+                               </p>
+                            </div>
+                            <!-- Reusable Contact Form -->
+                            <div class="glass-effect p-8 rounded-2xl" x-data="contactForm">
+                                <h3 class="text-2xl font-bold mb-6">Schedule a Demo</h3>
+                                <form @submit.prevent>
+                                    <div class="space-y-4">
+                                        <div class="relative">
+                                            <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"></i>
+                                            <input type="text" x-model="name" required class="w-full bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Full Name">
+                                        </div>
+                                        <div class="relative">
+                                            <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"></i>
+                                            <input type="email" x-model="email" required class="w-full bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Work Email">
+                                        </div>
+                                        <div class="relative">
+                                           <i data-lucide="message-square" class="absolute left-3 top-4 w-5 h-5 text-gray-500"></i>
+                                           <textarea x-model="message" rows="3" class="w-full bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Tell us about your data challenges..."></textarea>
+                                        </div>
+                                        
+                                        <div x-show="error" x-text="error" class="text-red-400 bg-red-900/50 border border-red-500 p-3 rounded-lg my-4" x-transition></div>
+
+                                        <div class="flex flex-col sm:flex-row gap-4">
+                                            <button @click="sendWhatsApp()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 inline-flex items-center justify-center gap-2">
+                                                <i data-lucide="send"></i> Send via WhatsApp
+                                            </button>
+                                            <button @click="sendEmail()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 inline-flex items-center justify-center gap-2">
+                                                <i data-lucide="mail"></i> Send via Email
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                     </div>
+                </section>
+                <!-- Navigation to other products -->
+                <section class="py-16 text-center">
+                    <h3 class="text-2xl font-bold font-tilt-neon mb-6">Explore Other Solutions</h3>
+                    <div class="flex justify-center gap-4">
+                        <button @click="showSection('wizbi')" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-all">Explore WizBI</button>
+                        <button @click="showSection('e2e')" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition-all">Explore BI from Scratch</button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- E2E Projects View -->
+            <div x-show="activeSection === 'e2e'" x-transition:enter="transition ease-out duration-500" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="min-h-screen">
+                <section id="e2e-projects" class="py-24 bg-gray-900/20">
+                     <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                        <h2 class="text-4xl md:text-5xl font-black font-tilt-neon mb-4">End-to-End BI Projects</h2>
+                         <p class="text-lg text-gray-300 mb-2"><strong>Who is this for?</strong> Startups and companies without an existing data infrastructure.</p>
+                        <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-300">
+                            Starting from scratch? We are your strategic data partners. We'll design and build your entire data ecosystem, from raw data pipelines to a culture of data-driven decision-making.
+                        </p>
+
+                        <div id="timeline" class="relative mt-16 max-w-5xl mx-auto">
+                            <div class="hidden md:block absolute top-8 left-0 right-0 h-1 bg-gray-700">
+                                <div class="timeline-line h-1 bg-gradient-to-r from-purple-500 to-cyan-400"></div>
+                            </div>
+                            <div class="relative grid md:grid-cols-4 gap-8 text-center">
+                                <div class="timeline-step flex flex-col items-center">
+                                    <div class="w-16 h-16 rounded-full bg-gray-800 border-2 border-gray-600 flex items-center justify-center font-bold text-2xl text-gray-400 z-10">1</div>
+                                    <h4 class="mt-4 font-bold text-lg">Discovery</h4>
+                                    <p class="text-sm text-gray-400 mt-1">We map your business goals to data requirements.</p>
+                                </div>
+                                <div class="timeline-step flex flex-col items-center" style="transition-delay: 200ms;">
+                                    <div class="w-16 h-16 rounded-full bg-gray-800 border-2 border-gray-600 flex items-center justify-center font-bold text-2xl text-gray-400 z-10">2</div>
+                                    <h4 class="mt-4 font-bold text-lg">Foundation</h4>
+                                    <p class="text-sm text-gray-400 mt-1">We build a scalable data warehouse and pipelines.</p>
+                                </div>
+                                <div class="timeline-step flex flex-col items-center" style="transition-delay: 400ms;">
+                                    <div class="w-16 h-16 rounded-full bg-gray-800 border-2 border-gray-600 flex items-center justify-center font-bold text-2xl text-gray-400 z-10">3</div>
+                                    <h4 class="mt-4 font-bold text-lg">Integration</h4>
+                                     <p class="text-sm text-gray-400 mt-1">We connect your tools and deploy our WizBI & Agent.</p>
+                                </div>
+                                <div class="timeline-step flex flex-col items-center" style="transition-delay: 600ms;">
+                                    <div class="w-16 h-16 rounded-full bg-purple-500 border-2 border-purple-400 flex items-center justify-center font-bold text-2xl text-white z-10">4</div>
+                                    <h4 class="mt-4 font-bold text-lg text-purple-400">Insights</h4>
+                                    <p class="text-sm text-gray-400 mt-1">Your team starts making data-driven decisions.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section id="contact-e2e" class="py-24 bg-gray-900/20">
+                    <!-- Contact Form Section -->
+                    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="grid lg:grid-cols-2 gap-16 items-center">
+                            <div class="max-w-xl">
+                               <h2 class="text-3xl font-bold font-tilt-neon mb-4">Let's Build Your Data Future, Together.</h2>
+                               <p class="text-lg text-gray-300 mb-4">
+                                   Ready to build a data-driven culture from the ground up? Let's talk about your vision.
+                               </p>
+                            </div>
+                            <!-- Reusable Contact Form -->
+                            <div class="glass-effect p-8 rounded-2xl" x-data="contactForm">
+                                <h3 class="text-2xl font-bold mb-6">Schedule a Consultation</h3>
+                                <form @submit.prevent>
+                                    <div class="space-y-4">
+                                        <div class="relative">
+                                            <i data-lucide="user" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"></i>
+                                            <input type="text" x-model="name" required class="w-full bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Full Name">
+                                        </div>
+                                        <div class="relative">
+                                            <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"></i>
+                                            <input type="email" x-model="email" required class="w-full bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Work Email">
+                                        </div>
+                                        <div class="relative">
+                                           <i data-lucide="message-square" class="absolute left-3 top-4 w-5 h-5 text-gray-500"></i>
+                                           <textarea x-model="message" rows="3" class="w-full bg-gray-800 border border-gray-600 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Tell us about your company's goals..."></textarea>
+                                        </div>
+                                        
+                                        <div x-show="error" x-text="error" class="text-red-400 bg-red-900/50 border border-red-500 p-3 rounded-lg my-4" x-transition></div>
+
+                                        <div class="flex flex-col sm:flex-row gap-4">
+                                            <button @click="sendWhatsApp()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 inline-flex items-center justify-center gap-2">
+                                                <i data-lucide="send"></i> Send via WhatsApp
+                                            </button>
+                                            <button @click="sendEmail()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 inline-flex items-center justify-center gap-2">
+                                                <i data-lucide="mail"></i> Send via Email
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                     </div>
+                </section>
+                <!-- Navigation to other products -->
+                <section class="py-16 text-center">
+                    <h3 class="text-2xl font-bold font-tilt-neon mb-6">Explore Other Solutions</h3>
+                    <div class="flex justify-center gap-4">
+                        <button @click="showSection('wizbi')" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-all">Explore WizBI</button>
+                        <button @click="showSection('data-agent')" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 px-6 rounded-lg transition-all">Explore Data Agent</button>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <footer class="bg-gray-900/50">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="text-center text-gray-500">
+                    <p>&copy; <span class="year"></span> BI MAGICS. All Spells Reserved.</p>
+                     <p class="text-xs mt-2">Crafted with magic in Tel Aviv</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+    document.addEventListener('alpine:init', () => {
+        // Main component to manage which section/page is visible
+        Alpine.data('pageManager', () => ({
+            activeSection: 'solutions',
+            init() {
+                // If URL has a hash, try to navigate to it
+                const hash = window.location.hash.replace('#', '');
+                if (['wizbi', 'data-agent', 'e2e'].includes(hash)) {
+                    this.activeSection = hash;
+                }
+            },
+            showSection(section) {
+                this.activeSection = section;
+                // Scroll to the top of the main content area after the view changes
+                this.$nextTick(() => {
+                    this.$refs.mainContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            }
+        }));
+
+        // Component for the contact form logic
+        Alpine.data('contactForm', () => ({
+            name: '',
+            email: '',
+            message: '',
+            error: '',
+            sendEmail() {
+                if (!this.name || !this.email) {
+                    this.error = 'Please fill in your name and email before sending.';
+                    return;
+                }
+                this.error = '';
+                const mailBody = encodeURIComponent(`Name: ${this.name}\nEmail: ${this.email}\n\nMessage:\n${this.message}`);
+                window.location.href = `mailto:omer.cohen@bimagics.com?subject=BI MAGICS Inquiry&body=${mailBody}`;
+            },
+            sendWhatsApp() {
+                if (!this.name || !this.message) {
+                    this.error = 'Please fill in your name and a message to send via WhatsApp.';
+                    return;
+                }
+                this.error = '';
+                const whatsappText = encodeURIComponent(`Hi, I'm ${this.name}. I'd like to discuss: ${this.message}`);
+                window.open(`https://wa.me/972506579403?text=${whatsappText}`, '_blank');
+            }
+        }));
+
+        // --- All other Alpine components from the original file ---
+        Alpine.data('typewriter', () => ({
+            text: '',
+            words: ["Unlock Your Data's Magic", "From Chaos to Clarity", "Become Data-Driven, Instantly"],
+            wordIndex: 0,
+            charIndex: 0,
+            isDeleting: false,
+            init() { this.type(); },
+            type() {
+                const currentWord = this.words[this.wordIndex];
+                if (this.isDeleting) { this.text = currentWord.substring(0, this.charIndex - 1); this.charIndex--; } 
+                else { this.text = currentWord.substring(0, this.charIndex + 1); this.charIndex++; }
+                let typeSpeed = 120;
+                if (this.isDeleting) typeSpeed /= 2;
+                if (!this.isDeleting && this.text === currentWord) { typeSpeed = 2500; this.isDeleting = true; } 
+                else if (this.isDeleting && this.text === '') { this.isDeleting = false; this.wordIndex = (this.wordIndex + 1) % this.words.length; typeSpeed = 500; }
+                setTimeout(() => this.type(), typeSpeed);
+            }
+        }));
+
+        Alpine.data('wizbiChatDemo', () => ({
+            messages: [], isTyping: false, hasStarted: false,
+            wizbis: {
+                sales: { name: 'Sales Wizard', avatar: 'https://placehold.co/40x40/5b21b6/FFFFFF?text=S' },
+                marketing: { name: 'Marketing Wizard', avatar: 'https://placehold.co/40x40/1d4ed8/FFFFFF?text=M' },
+                finance: { name: 'Finance Wizard', avatar: 'https://placehold.co/40x40/047857/FFFFFF?text=F' },
+            },
+            demoScenario: [
+                { id: 1, author: 'user', text: "How did our Q2 revenue from new customers in the US compare to Q1?" },
+                { id: 2, author: 'wizbi', wizbi_key: 'sales', text: "Here's the quarterly comparison:", summary: "📈 We saw a <strong>strong 54% increase</strong> in Q2! <br>Q1: $120k | Q2: $185k", chartType: 'bar', chartData: [ { label: 'Q1', value: 120000, height: 60, value_display: '$120k', delay: 100 }, { label: 'Q2', value: 185000, height: 92.5, value_display: '$185k', delay: 200 } ] },
+                { id: 3, author: 'user', text: "Show me the trend of user signups over the last 7 days." },
+                { id: 4, author: 'wizbi', wizbi_key: 'marketing', text: "Here is the user signup trend for the past week:", summary: "🚀 Signups are trending up, with a <strong>peak of 90 today!</strong>", chartType: 'line', chartData: [ {label: 'D-6', value: 25}, {label: 'D-5', value: 30}, {label: 'D-4', value: 45}, {label: 'D-3', value: 40}, {label: 'D-2', value: 60}, {label: 'D-1', value: 75}, {label: 'Today', value: 90} ] },
+                { id: 5, author: 'user', text: "Great! Now what's the revenue breakdown by region for this quarter?" },
+                { id: 6, author: 'wizbi', wizbi_key: 'finance', text: "Here is the revenue breakdown by region:", summary: "🌎 North America continues to be our <strong>dominant market</strong> at 45%.", chartType: 'pie', chartData: [ {label: 'NA', value: 45, color: '#8b5cf6'}, {label: 'EMEA', value: 35, color: '#22d3ee'}, {label: 'APAC', value: 15, color: '#34d399'}, {label: 'LATAM', value: 5, color: '#f87171'} ] },
+            ],
+            init() {
+                const observer = new IntersectionObserver((entries) => {
+                    if (entries[0].isIntersecting && !this.hasStarted) {
+                        this.hasStarted = true; this.run();
+                    }
+                }, { threshold: 0.5 });
+                observer.observe(this.$el);
+            },
+            prepareChartData(message) {
+                if (message.chartType === 'line') {
+                    const data = message.chartData; const maxVal = Math.max(...data.map(p => p.value)); const width = 300, height = 130, padding = 10;
+                    const points = data.map((point, i) => ({ ...point, x: (width / (data.length - 1)) * i, y: height - (point.value / maxVal * (height - padding)) }));
+                    message.linePath = points.reduce((path, p, i) => path + (i === 0 ? 'M' : 'L') + `${p.x} ${p.y} `, ''); message.chartData = points;
+                } else if (message.chartType === 'pie') {
+                    let cumulativePercent = 0;
+                    const gradientParts = message.chartData.map(slice => {
+                        const start = cumulativePercent; const end = cumulativePercent + slice.value; cumulativePercent = end;
+                        return `${slice.color} ${start}% ${end}%`;
+                    });
+                    message.pieGradient = `conic-gradient(${gradientParts.join(', ')})`;
+                }
+                return message;
+            },
+            async run() {
+                this.messages = []; await new Promise(r => setTimeout(r, 500));
+                for (let i = 0; i < this.demoScenario.length; i++) {
+                    let messageData = { ...this.demoScenario[i] };
+                    if (messageData.author === 'user') {
+                        this.messages.push(messageData); this.$nextTick(() => { this.$refs.chatWindow.scrollTop = this.$refs.chatWindow.scrollHeight; });
+                        await new Promise(r => setTimeout(r, 1500));
+                    } else if (messageData.author === 'wizbi') {
+                        this.isTyping = true; await new Promise(r => setTimeout(r, 1500)); this.isTyping = false;
+                        let wizbiMessage = { ...messageData, wizbi: this.wizbis[messageData.wizbi_key], showChart: false };
+                        if (wizbiMessage.chartData) { wizbiMessage = this.prepareChartData(wizbiMessage); }
+                        this.messages.push(wizbiMessage); await this.$nextTick();
+                        if (wizbiMessage.chartData) {
+                            await new Promise(r => setTimeout(r, 100));
+                            const msgIndex = this.messages.findIndex(m => m.id === wizbiMessage.id);
+                            if(msgIndex !== -1) this.messages[msgIndex].showChart = true;
+                        }
+                        this.$nextTick(() => { this.$refs.chatWindow.scrollTop = this.$refs.chatWindow.scrollHeight; });
+                        await new Promise(r => setTimeout(r, 3500));
+                    }
+                }
+                await new Promise(r => setTimeout(r, 5000)); this.run();
+            }
+        }));
+
+        Alpine.data('dataAgentDemo', () => ({
+            logs: [], status: 'IDLE', activeScript: null, scriptRunning: false,
+            clearPrevious() { this.logs = []; if (this.$refs.visualPanel) this.$refs.visualPanel.innerHTML = ''; this.scriptRunning = true; },
+            renderIcons() { if (typeof lucide !== 'undefined') { lucide.createIcons(); } },
+            addLog(log, delay) { return new Promise(resolve => { setTimeout(() => { if (this.logs.length > 50) this.logs.shift(); this.logs.push({ id: Date.now(), timestamp: new Date().toLocaleTimeString(), level: `[${log.level.padEnd(8)}]`, message: log.message, color: log.color }); this.$nextTick(() => { if (this.$refs.logContainer) this.$refs.logContainer.scrollTop = this.$refs.logContainer.scrollHeight }); resolve(); }, delay); }); },
+            addVisual(id, html, delay) { return new Promise(resolve => { setTimeout(() => { if (!this.$refs.visualPanel) { resolve(); return; } const el = document.createElement('div'); el.id = `vis-${id}`; el.className = 'fade-in-element'; el.innerHTML = html; this.$refs.visualPanel.appendChild(el); this.$nextTick(() => { setTimeout(() => { el.classList.add('is-visible'); this.renderIcons(); }, 10); this.$refs.visualPanel.scrollTop = this.$refs.visualPanel.scrollHeight; resolve(); }); }, delay); }); },
+            updateVisual(id, newHtml) { return new Promise(resolve => { if (!this.$refs.visualPanel) { resolve(); return; } const el = this.$refs.visualPanel.querySelector(`#vis-${id}`); if (el) { el.innerHTML = newHtml; this.renderIcons(); } resolve(); }); },
+            async animateCounter(id, finalValue, duration) { const el = this.$refs.visualPanel.querySelector(`#${id}`); if (!el) return; let start = 0; const increment = finalValue / (duration / 16); const interval = setInterval(() => { start += increment; if (start >= finalValue) { el.innerText = `$${finalValue.toLocaleString()}`; clearInterval(interval); } else { el.innerText = `$${Math.ceil(start).toLocaleString()}`; } }, 16); },
+            async runScript(scriptName) {
+                if (this.scriptRunning) return; this.activeScript = scriptName; this.clearPrevious();
+                try {
+                    if (scriptName === 'mapping') {
+                        await this.addLog({ level: 'INIT', message: 'Starting warehouse catalog process...', color: 'text-cyan-400' }, 100);
+                        await this.addVisual('title', '<h3 class="text-lg font-bold text-white mb-4">Live Data Catalog & Lineage</h3>', 100);
+                        await this.addLog({ level: 'SCAN', message: 'Scanning schema: `prod`...', color: 'text-gray-400' }, 500);
+                        await this.addVisual('db', '<div class="flex items-center gap-2 p-2 bg-slate-800 rounded"><i data-lucide="database"></i><span>prod_db</span></div>', 500);
+                        await this.addLog({ level: 'CATALOG', message: 'Found table: `fact_orders`', color: 'text-gray-400' }, 700);
+                        await this.addVisual('table', '<div class="ml-6 my-2 p-2 border border-gray-600 rounded bg-slate-800 transition-all duration-300"><div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div><div id="columns" class="mt-2 pl-4 space-y-1 text-sm"></div></div>', 700);
+                        await this.addLog({ level: 'ANALYZE', message: 'Analyzing columns for `fact_orders`...', color: 'text-gray-400' }, 300);
+                        await this.updateVisual('table', '<div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div><div id="columns" class="mt-2 pl-4 space-y-1 text-sm"><p class="fade-in-element is-visible text-gray-400">order_id <span class="text-purple-400">(INT)</span></p></div>');
+                        await new Promise(r => setTimeout(r, 400));
+                        await this.updateVisual('table', '<div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div><div id="columns" class="mt-2 pl-4 space-y-1 text-sm"><p class="fade-in-element is-visible text-gray-400">order_id <span class="text-purple-400">(INT)</span></p><p class="fade-in-element is-visible text-gray-400">amount <span class="text-purple-400">(DECIMAL)</span></p></div>');
+                        await new Promise(r => setTimeout(r, 400));
+                        await this.updateVisual('table', '<div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div><div id="columns" class="mt-2 pl-4 space-y-1 text-sm"><p class="fade-in-element is-visible text-gray-400">order_id <span class="text-purple-400">(INT)</span></p><p class="fade-in-element is-visible text-gray-400">amount <span class="text-purple-400">(DECIMAL)</span></p><p class="fade-in-element is-visible text-gray-400">customer_email <span class="text-purple-400">(VARCHAR)</span></p></div>');
+                        await this.addLog({ level: 'AI-DOC', message: 'Generating business description...', color: 'text-purple-400' }, 800);
+                        await this.addVisual('ai-doc', '<div class="p-2 ml-6 my-2 bg-purple-900/50 border-l-2 border-purple-400 text-purple-300 text-xs flex items-start gap-2"><i data-lucide="sparkles" class="w-4 h-4 mt-0.5 flex-shrink-0"></i><div><strong>AI Description:</strong> Contains core order information including amount, status, and customer keys. Central table for revenue reporting.</div></div>', 800);
+                        await this.addLog({ level: 'PII-SCAN', message: 'Scanning `fact_orders` for PII...', color: 'text-yellow-400' }, 500);
+                        await this.addLog({ level: 'PII-FOUND', message: 'PII found in `customer_email`. Tagging applied.', color: 'text-yellow-400' }, 1000);
+                        this.$refs.visualPanel.querySelector('#vis-table > div').classList.add('bg-yellow-900/30', 'border-yellow-500');
+                        await this.addLog({ level: 'LINEAGE', message: 'Tracing downstream dependencies...', color: 'text-gray-400' }, 800);
+                        await this.addVisual('lineage', '<svg class="w-full h-24 my-2"><line x1="50%" y1="0" x2="50%" y2="100%" stroke="#475569" stroke-width="2" class="lineage-path"/></svg><div class="flex items-center gap-2 p-2 bg-slate-800 rounded border border-cyan-500"><i data-lucide="pie-chart"></i><span>rpt_monthly_revenue</span></div>', 800);
+                        await this.addLog({ level: 'DONE', message: 'Catalog & lineage mapping complete.', color: 'text-green-400' }, 500);
+                    } else if (scriptName === 'optimization') {
+                        await this.addLog({ level: 'INIT', message: 'Starting cost & performance analysis...', color: 'text-cyan-400' }, 100);
+                        await this.addVisual('title', '<h3 class="text-lg font-bold text-white mb-4">Cost Optimization Report</h3>', 100);
+                        await this.addLog({ level: 'SCAN', message: 'Analyzing query history (last 30 days)...', color: 'text-gray-400' }, 800);
+                        await this.addLog({ level: 'COST', message: 'High-Cost Query Detected!', color: 'text-red-500' }, 1200);
+                        await this.addVisual('cost-query', '<div class="p-3 my-1 bg-red-900/30 border border-red-500 rounded"><div class="flex items-start gap-2"><i data-lucide="alert-triangle" class="text-red-400 mt-1"></i><div><h4 class="font-bold text-red-400">Costly Query: `q_xyz789`</h4><p class="text-sm"><strong>Cost:</strong> $127.50</p><p class="text-sm"><strong>Reason:</strong> Full table scan on `events_log` (3.2 TB processed)</p></div></div></div>', 1200);
+                        await this.addLog({ level: 'AI-FIX', message: 'AI Recommendation: Add partitioning on `event_date`.', color: 'text-green-400' }, 1000);
+                        await this.addVisual('ai-fix', '<div class="p-3 my-1 bg-green-900/30 border border-green-500 rounded"><div class="flex items-start gap-2"><i data-lucide="lightbulb" class="text-green-400 mt-1"></i><div><h4 class="font-bold text-green-400">Optimization Suggestion</h4><p class="text-sm">Partition table `events_log` by `event_date` to reduce scan size.</p></div></div></div>', 1000);
+                        await this.addLog({ level: 'SCAN', message: 'Scanning for unused assets...', color: 'text-gray-400' }, 1000);
+                        await this.addLog({ level: 'UNUSED', message: 'Table `stg_temp_users_2022` not accessed in 180 days.', color: 'text-yellow-400' }, 800);
+                        await this.addVisual('unused-table', '<div class="p-3 my-1 bg-yellow-900/30 border border-yellow-500 rounded"><div class="flex items-start gap-2"><i data-lucide="trash-2" class="text-yellow-400 mt-1"></i><div><h4 class="font-bold text-yellow-400">Unused Table: `stg_temp_users_2022`</h4><p class="text-sm"><strong>Storage:</strong> 15.7 GB</p><p class="text-sm"><strong>Recommendation:</strong> Archive or Drop</p></div></div></div>', 800);
+                        await this.addLog({ level: 'SUMMARY', message: 'Generating optimization savings summary...', color: 'text-green-400' }, 800);
+                        await this.addVisual('summary', '<div class="p-4 my-2 bg-green-900/30 border-2 border-green-500 rounded text-center"><h4 class="font-bold text-green-300 uppercase tracking-wider">Total Estimated Annual Savings</h4><div id="savings-counter" class="text-4xl lg:text-5xl font-bold text-white my-2">$0</div><p class="text-sm text-green-400">from query optimization and storage reduction</p></div>', 800);
+                        await this.animateCounter('savings-counter', 6036, 1500);
+                        await this.addLog({ level: 'DONE', message: 'Analysis complete. Report generated.', color: 'text-green-400' }, 100);
+                    } else if (scriptName === 'chat') {
+                        await this.addLog({ level: 'INIT', message: 'Engineer Assist Chat activated.', color: 'text-cyan-400' }, 100);
+                        await this.addVisual('chat-container', '<div class="space-y-4"></div>', 100);
+                        await this.addLog({ level: 'USER', message: 'Why is the `rpt_revenue` query slow?', color: 'text-blue-400' }, 1000);
+                        await this.updateVisual('chat-container', '<div class="space-y-4"><div class="flex justify-end"><div class="agent-chat-bubble-user p-3 rounded-lg max-w-xs">Why is the `rpt_revenue` query slow?</div></div></div>');
+                        await this.addLog({ level: 'CONTEXT', message: 'Fetching metadata & query history...', color: 'text-gray-500' }, 1500);
+                        await this.addLog({ level: 'CONTEXT', message: 'Found lineage: `fact_orders` -> `rpt_revenue`. `fact_orders` has 1.2B rows.', color: 'text-gray-500' }, 1000);
+                        await this.addLog({ level: 'AGENT', message: 'Analyzing query plan... Found full table scan.', color: 'text-purple-400' }, 1500);
+                        await this.updateVisual('chat-container', document.getElementById('vis-chat-container').innerHTML + '<div class="flex justify-start"><div class="agent-chat-bubble-agent p-3 rounded-lg max-w-md"><p>The query performs a full table scan on `fact_orders` because there is no index on the `order_date` filter. I suggest adding an index to improve performance.</p><div class="mt-2 p-2 rounded-md code-block text-xs"><pre><code>CREATE INDEX idx_orders_date \nON fact_orders (order_date);</code></pre></div></div></div>');
+                        await this.addLog({ level: 'USER', message: 'Thanks! Can you show me the full lineage for fact_orders?', color: 'text-blue-400' }, 3000);
+                        await this.updateVisual('chat-container', document.getElementById('vis-chat-container').innerHTML + '<div class="flex justify-end"><div class="agent-chat-bubble-user p-3 rounded-lg max-w-xs">Thanks! Can you show me the full lineage for fact_orders?</div></div>');
+                        await this.addLog({ level: 'AGENT', message: 'Generating lineage graph...', color: 'text-purple-400' }, 1500);
+                        await this.updateVisual('chat-container', document.getElementById('vis-chat-container').innerHTML + '<div class="flex justify-start"><div class="agent-chat-bubble-agent p-3 rounded-lg max-w-md"><p>Certainly. Here is the data lineage for `fact_orders`:</p><div class="mt-2 p-2 rounded bg-slate-900/50"><svg viewBox="0 0 400 100"><defs><marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#67e8f9"></path></marker></defs><path d="M 90 50 L 150 50" stroke="#67e8f9" stroke-width="2" marker-end="url(#arrow)" class="lineage-path" style="animation-delay: 0s;"></path><path d="M 250 50 L 310 50" stroke="#67e8f9" stroke-width="2" marker-end="url(#arrow)" class="lineage-path" style="animation-delay: 0.5s;"></path><g><rect x="10" y="35" width="80" height="30" rx="5" fill="#1e293b" stroke="#38bdf8"></rect><text x="50" y="55" font-size="12" fill="white" text-anchor="middle">API Source</text></g><g><rect x="150" y="35" width="100" height="30" rx="5" fill="#4c1d95" stroke="#a855f7"></rect><text x="200" y="55" font-size="12" fill="white" text-anchor="middle">fact_orders</text></g><g><rect x="310" y="35" width="80" height="30" rx="5" fill="#1e293b" stroke="#38bdf8"></rect><text x="350" y="55" font-size="12" fill="white" text-anchor="middle">BI Report</text></g></svg></div></div></div>');
+                    }
+                } catch(e) {
+                    console.error("Data Agent demo failed:", e);
+                    this.addLog({level: "ERROR", message: "Demo script failed. Please try again.", color: "text-red-500"}, 100);
+                } finally {
+                    this.scriptRunning = false;
+                }
+            }
+        }));
+    });
+    
+    // General App Initialization
+    const App = {
+        init() {
+            this.setupMobileMenu(); this.setupHeaderScroll(); this.setupIntersectionObserver(); this.initThreeJSBackground(); this.updateDynamicContent();
+        },
+        updateDynamicContent() { 
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons(); 
+            }
+            document.querySelectorAll('.year').forEach(el => el.textContent = new Date().getFullYear()); 
+        },
+        setupMobileMenu() { const btn = document.getElementById('mobile-menu-button'); const menu = document.getElementById('mobile-menu'); const links = menu.querySelectorAll('a'); btn.addEventListener('click', () => menu.classList.toggle('hidden')); links.forEach(link => link.addEventListener('click', () => menu.classList.add('hidden'))); },
+        setupHeaderScroll() { const header = document.getElementById('header'); window.addEventListener('scroll', () => header.classList.toggle('header-scrolled', window.scrollY > 50), { passive: true }); },
+        setupIntersectionObserver() {
+            const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('is-visible'); }); }, { threshold: 0.1 });
+            document.querySelectorAll('.fade-in-section').forEach(el => observer.observe(el));
+            const timelineObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { const line = entry.target.querySelector('.timeline-line'); const steps = entry.target.querySelectorAll('.timeline-step'); if (line) line.style.transform = 'scaleX(1)'; steps.forEach(step => step.style.opacity = '1'); timelineObserver.unobserve(entry.target); } }); }, { threshold: 0.5 });
+            const timelineEl = document.getElementById('timeline'); if (timelineEl) timelineObserver.observe(timelineEl);
+        },
+        initThreeJSBackground() {
+            try {
+                const scene = new THREE.Scene(); const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true });
+                renderer.setPixelRatio(window.devicePixelRatio); renderer.setSize(window.innerWidth, window.innerHeight); camera.position.setZ(30);
+                const starGeometry = new THREE.BufferGeometry(); const starCount = 8000; const positions = new Float32Array(starCount * 3);
+                for (let i = 0; i < starCount * 3; i++) { positions[i] = (Math.random() - 0.5) * 200; }
+                starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3)); const starMaterial = new THREE.PointsMaterial({ color: 0xaaaaaa, size: 0.15, transparent: true, blending: THREE.AdditiveBlending }); const stars = new THREE.Points(starGeometry, starMaterial); scene.add(stars);
+                let mouseX = 0, mouseY = 0;
+                document.addEventListener('mousemove', e => { mouseX = (e.clientX / window.innerWidth) * 2 - 1; mouseY = -(e.clientY / window.innerHeight) * 2 + 1; }, { passive: true });
+                window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+                function animate() { requestAnimationFrame(animate); stars.rotation.y += 0.0001; stars.rotation.x += 0.0001; camera.position.x += (mouseX * 5 - camera.position.x) * 0.02; camera.position.y += (mouseY * 5 - camera.position.y) * 0.02; camera.lookAt(scene.position); renderer.render(scene, camera); }
+                animate();
+            } catch (e) { console.error("Three.js failed to initialize:", e); document.body.style.backgroundColor = '#0a0a1a'; }
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => App.init());
+    </script>
+</body>
+</html>
