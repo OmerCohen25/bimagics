@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How It Works | Automated Data Foundations by BI MAGICS</title>
+    
+    <meta name="description" content="Discover the magic behind WizBI. Our automated agent maps your data warehouse, creates a live data catalog, and uses AI to document everything, powering your AI Analyst.">
+    <meta name="keywords" content="How It Works, Data Agent, Automated Data Catalog, Data Lineage, Data Warehouse Mapping, AI Data Documentation, Metadata Analysis, BI Automation">
+    <meta name="theme-color" content="#0a0a1a">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.bimagics.com/how-it-works.html">
+    <meta property="og:title" content="How It Works | Automated Data Foundations by BI MAGICS">
+    <meta property="og:description" content="Learn how our agent connects to your data, builds a live catalog, and understands relationships to power the entire BI MAGICS experience.">
+    <meta property="og:image" content="https://www.bimagics.com/og-image.png">
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2EY1HGXGNT"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-2EY1HGXGNT');
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Tilt+Neon&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.js"></script>
+    <script src="https://unpkg.com/lucide-static@latest/dist/lucide.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        /* General Styles */
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background-color: #0a0a1a; color: #E0E0E0; overflow-x: hidden; }
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        .content-wrapper { position: relative; z-index: 1; }
+        .font-tilt-neon { font-family: 'Tilt Neon', sans-serif; }
+        .glass-effect { background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .header-scrolled { background: rgba(10, 10, 26, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        .header-scrolled .h-20 { height: 4.5rem; }
+
+        /* Text & Gradients */
+        .neon-text-cyan { text-shadow: 0 0 8px #22D3EE, 0 0 12px #22D3EE, 0 0 20px #67e8f9; }
+        .gradient-text { background: linear-gradient(90deg, #A855F7, #22D3EE); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-fill-color: transparent; }
+        
+        /* Animations */
+        .fade-in-section { opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+        .fade-in-section.is-visible { opacity: 1; transform: translateY(0); }
+        .fade-in-element { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
+        .fade-in-element.is-visible { opacity: 1; transform: translateY(0); }
+        @keyframes draw-line { to { stroke-dashoffset: 0; } }
+
+        /* Data Agent Console Demo */
+        .data-agent-btn { transition: all 0.2s ease-in-out; background-color: rgba(17, 24, 39, 0.6); border: 1px solid rgba(34, 211, 238, 0.3); }
+        .data-agent-btn.active { background-color: #22D3EE; color: #0a0a1a; box-shadow: 0 0 15px #22D3EE; }
+        .lineage-path { stroke-dasharray: 500; stroke-dashoffset: 500; animation: draw-line 1s ease-out forwards; }
+        
+        /* Process Flow */
+        .process-step { border-left: 2px solid #374151; }
+        .process-step-icon { background: #1f2937; border: 2px solid #4b5563; }
+        
+        /* FAQ Accordion */
+        .faq-item { transition: margin 0.3s ease; }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-in-out, padding 0.5s ease; padding: 0 1.5rem; }
+        .faq-item.open .faq-answer { max-height: 500px; padding: 0.5rem 1.5rem 1.5rem; }
+        .faq-item.open .faq-icon { transform: rotate(135deg); }
+        .faq-icon { transition: transform 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="content-wrapper">
+        <header id="header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-20 transition-all duration-300">
+                    <a href="index.html" class="flex items-center space-x-2">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-purple-400"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span class="text-2xl font-bold font-tilt-neon gradient-text">BI MAGICS</span>
+                    </a>
+                    <nav class="hidden lg:flex items-center space-x-8">
+                        <a href="index.html#solutions" class="text-gray-300 hover:text-white transition-colors">Solutions</a>
+                        <a href="wizards.html" class="text-gray-300 hover:text-white transition-colors">WizBI</a>
+                        <a href="how-it-works.html" class="text-white transition-colors neon-text-cyan font-bold">How It Works</a>
+                        <a href="full-service.html" class="text-gray-300 hover:text-white transition-colors">Full Service</a>
+                        <a href="index.html#contact" class="text-gray-300 hover:text-white transition-colors">Contact</a>
+                    </nav>
+                    <div class="flex items-center gap-4">
+                        <div class="hidden lg:block">
+                            <a href="index.html#contact" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105">Let's Talk</a>
+                        </div>
+                        <div class="lg:hidden">
+                            <button id="mobile-menu-button" aria-label="Open mobile menu" class="text-white focus:outline-none"><i data-lucide="menu"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="mobile-menu" class="hidden lg:hidden glass-effect">
+                 <nav class="px-4 pt-2 pb-4 space-y-1 sm:px-6">
+                    <a href="index.html#solutions" class="block text-gray-300 hover:text-white py-2 rounded-md">Solutions</a>
+                    <a href="wizards.html" class="block text-gray-300 hover:text-white py-2 rounded-md">WizBI</a>
+                    <a href="how-it-works.html" class="block text-white py-2 rounded-md font-bold">How It Works</a>
+                    <a href="full-service.html" class="block text-gray-300 hover:text-white py-2 rounded-md">Full Service</a>
+                    <a href="index.html#contact" class="block text-gray-300 hover:text-white py-2 rounded-md">Contact</a>
+                    <a href="index.html#contact" class="block bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 text-center mt-4">Let's Talk</a>
+                </nav>
+            </div>
+        </header>
+
+        <main class="pt-20">
+             <section id="how-it-works-hero" class="py-24 bg-cyan-900/10 fade-in-section is-visible">
+                <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center max-w-4xl mx-auto">
+                        <h2 class="text-4xl md:text-5xl font-black font-tilt-neon mb-4"><span class="neon-text-cyan">The Magic is in the Making</span></h2>
+                        <p class="text-lg md:text-xl text-gray-300 mb-8">
+                            The effortless WizBI experience is built on a powerful, automated foundation. Our intelligent **Agent** is the secret sauce, working 24/7 to connect, understand, and prepare your data, transforming your complex data warehouse into a query-ready knowledge base.
+                        </p>
+                    </div>
+
+                    <div class="max-w-3xl mx-auto mt-16 space-y-12">
+                        <div class="relative process-step pl-12 pb-12">
+                            <div class="absolute -left-5 top-1 w-10 h-10 rounded-full flex items-center justify-center process-step-icon">
+                                <i data-lucide="plug-zap" class="w-6 h-6 text-cyan-300"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold font-tilt-neon text-cyan-200 mb-2">1. Secure Connection</h3>
+                            <p class="text-gray-300">It starts with a simple, secure, read-only connection to your data warehouse (Snowflake, BigQuery, Redshift, etc.). Your data never leaves your environment. This takes minutes, not weeks.</p>
+                        </div>
+                        <div class="relative process-step pl-12 pb-12">
+                            <div class="absolute -left-5 top-1 w-10 h-10 rounded-full flex items-center justify-center process-step-icon">
+                                <i data-lucide="scan-line" class="w-6 h-6 text-cyan-300"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold font-tilt-neon text-cyan-200 mb-2">2. Automated Mapping & Cataloging</h3>
+                            <p class="text-gray-300">Our Agent automatically scans your warehouse schemas and metadata tables (e.g., `INFORMATION_SCHEMA`). It discovers every table, view, and column, creating a living, always-updated data catalog without any manual effort.</p>
+                        </div>
+                         <div class="relative process-step pl-12 pb-12">
+                            <div class="absolute -left-5 top-1 w-10 h-10 rounded-full flex items-center justify-center process-step-icon">
+                                <i data-lucide="brain-circuit" class="w-6 h-6 text-cyan-300"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold font-tilt-neon text-cyan-200 mb-2">3. AI-Powered Documentation</h3>
+                            <p class="text-gray-300">This is where the real magic begins. For each table, the Agent analyzes its structure and content to generate a clear, human-readable **executive summary**. It explains the table's business purpose, what its key columns mean, and how it's typically used.</p>
+                        </div>
+                        <div class="relative process-step pl-12">
+                             <div class="absolute -left-5 top-1 w-10 h-10 rounded-full flex items-center justify-center process-step-icon ring-2 ring-purple-400 bg-purple-900/50">
+                                <i data-lucide="wand-2" class="w-6 h-6 text-purple-300"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold font-tilt-neon text-purple-200 mb-2">4. Powering the Wizards</h3>
+                            <p class="text-gray-300">This rich, automated catalog and documentation is the "brain" behind WizBI. It's how each Wizard becomes a domain expert, ready to answer questions instantly and accurately. The Sales Wizard knows the sales tables, and the Marketing Wizard knows the campaign tables—all thanks to the automated foundation.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="agent-demo" class="py-24 fade-in-section is-visible">
+                 <div class="container mx-auto px-4 sm:px-6 lg:px-8" x-data="dataAgentDemo">
+                    <div class="text-center mb-16">
+                        <h2 class="text-3xl md:text-5xl font-black font-tilt-neon mb-4">See The Agent in Action</h2>
+                        <p class="text-lg text-gray-300 max-w-3xl mx-auto">Click the button to simulate how our Agent builds the data catalog in real-time. This is the automated process that powers everything.</p>
+                    </div>
+                    <div class="max-w-6xl mx-auto flex flex-col items-center gap-8">
+                        <div>
+                             <button @click="runScript()" class="data-agent-btn text-lg font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 hover:bg-cyan-400/20 active:scale-95 flex items-center gap-2" :class="{'active': scriptRunning}" :disabled="scriptRunning">
+                                <i data-lucide="play-circle" x-show="!scriptRunning"></i>
+                                <div x-show="scriptRunning" class="w-5 h-5 border-2 border-t-transparent border-black rounded-full animate-spin"></div>
+                                <span x-text="scriptRunning ? 'Building Foundation...' : 'Run Catalog & Discovery'"></span>
+                            </button>
+                        </div>
+                       
+                        <div class="w-full h-[550px] glass-effect rounded-2xl flex flex-col p-1 border-2 border-cyan-400/30">
+                             <div class="flex-shrink-0 p-2 border-b border-cyan-800/50 flex items-center justify-between"><div class="flex items-center gap-2"><span class="w-3 h-3 bg-red-500 rounded-full"></span><span class="w-3 h-3 bg-yellow-500 rounded-full"></span><span class="w-3 h-3 bg-green-500 rounded-full"></span></div><div class="text-xs text-cyan-300 font-mono">BI MAGICS Agent Console</div></div>
+                             <div class="flex-grow flex flex-col lg:flex-row p-2 gap-2 overflow-hidden h-full">
+                                 <div class="w-full lg:w-1/2 bg-black/20 rounded-lg p-4 overflow-y-auto" x-ref="visualPanel">
+                                    <div x-show="!scriptRunning && !logs.length" class="h-full flex flex-col items-center justify-center text-gray-500 text-center">
+                                        <i data-lucide="chevrons-up" class="w-16 h-16 mb-4"></i>
+                                        <p>Click "Run Catalog & Discovery" to begin.</p>
+                                    </div>
+                                 </div>
+                                <div class="w-full lg:w-1/2 bg-black/20 rounded-lg p-4 flex flex-col font-mono text-sm overflow-y-auto" x-ref="logContainer">
+                                    <template x-for="log in logs" :key="log.id"><p :class="log.color" class="flex gap-2"><span class="flex-shrink-0 text-gray-500" x-text="log.timestamp"></span><span class="flex-shrink-0" x-text="log.level"></span><span class="whitespace-pre-wrap" x-html="log.message"></span></p></template>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+                 </div>
+            </section>
+
+             <section id="faq-how" class="py-24 bg-gray-900/20 fade-in-section is-visible">
+                <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
+                    <div class="text-center mb-16">
+                        <h2 class="text-3xl md:text-5xl font-black font-tilt-neon mb-4">Technical & Security Questions</h2>
+                        <p class="text-lg text-gray-400 max-w-2xl mx-auto">Understanding the foundation of trust and technology.</p>
+                    </div>
+                    <div class="space-y-4" x-data="{ open: 1 }">
+                        <div class="glass-effect rounded-lg faq-item" :class="{'open': open === 1}">
+                            <button @click="open = (open === 1 ? null : 1)" class="w-full flex justify-between items-center text-left text-xl font-semibold p-6">
+                                <span>Do you store a copy of our data?</span>
+                                <i data-lucide="plus" class="faq-icon w-6 h-6 text-purple-400"></i>
+                            </button>
+                            <div class="faq-answer">
+                                <p class="text-gray-300 leading-relaxed">
+                                   **No, never.** We do not store a copy of your underlying business data. Our Agent primarily works with **metadata**—table names, column names, data types, and query logs—to build its catalog and understanding. When a user asks a question in WizBI, we generate a SQL query in real-time that runs directly against your data warehouse. The results are streamed back to the user, not stored on our servers.
+                                </p>
+                            </div>
+                        </div>
+                         <div class="glass-effect rounded-lg faq-item" :class="{'open': open === 2}">
+                            <button @click="open = (open === 2 ? null : 2)" class="w-full flex justify-between items-center text-left text-xl font-semibold p-6">
+                                <span>What data warehouses do you support?</span>
+                                <i data-lucide="plus" class="faq-icon w-6 h-6 text-purple-400"></i>
+                            </button>
+                            <div class="faq-answer">
+                                <p class="text-gray-300 leading-relaxed">
+                                   Our platform is built to be cloud-native and flexible. We support all major cloud data warehouses and lakehouses, including:
+                                   <br>• Snowflake
+                                   <br>• Google BigQuery
+                                   <br>• Amazon Redshift
+                                   <br>• Databricks
+                                   <br>• And more. If you use a different warehouse, please contact us—our list of native connectors is constantly growing.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="glass-effect rounded-lg faq-item" :class="{'open': open === 3}">
+                            <button @click="open = (open === 3 ? null : 3)" class="w-full flex justify-between items-center text-left text-xl font-semibold p-6">
+                                <span>What happens if our data schemas change?</span>
+                                <i data-lucide="plus" class="faq-icon w-6 h-6 text-purple-400"></i>
+                            </button>
+                            <div class="faq-answer">
+                                <p class="text-gray-300 leading-relaxed">
+                                   This is a key strength of our platform. The Agent is designed to create a **living data catalog**. It can run continuously or on a schedule you define (e.g., every night). When you add a new table, modify a column, or create a view, the Agent automatically detects the change, updates the catalog and documentation, and makes the new data assets immediately available to the WizBI analysts. Your data model stays in sync with reality, effortlessly.
+                                </p>
+                            </div>
+                        </div>
+                         <div class="glass-effect rounded-lg faq-item" :class="{'open': open === 4}">
+                            <button @click="open = (open === 4 ? null : 4)" class="w-full flex justify-between items-center text-left text-xl font-semibold p-6">
+                                <span>What permissions does the Agent need?</span>
+                                <i data-lucide="plus" class="faq-icon w-6 h-6 text-purple-400"></i>
+                            </button>
+                            <div class="faq-answer">
+                                <p class="text-gray-300 leading-relaxed">
+                                   We operate on the principle of least privilege. The Agent requires **read-only** access. Specifically, it needs read permissions for:
+                                   <br>1. Your warehouse's metadata tables (e.g., `INFORMATION_SCHEMA` or similar) to discover schemas.
+                                   <br>2. Your warehouse's query logs to understand data usage and build lineage.
+                                   <br>3. The specific data tables you want to make available to your teams for querying.
+                                   <br>We will never require write permissions, ensuring the integrity of your source data.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="bg-gray-900/50">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="text-center text-gray-500">
+                    <p>&copy; <span class="year"></span> BI MAGICS. All Spells Reserved.</p>
+                     <p class="text-xs mt-2">Crafted with magic in Tel Aviv</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('dataAgentDemo', () => ({
+            logs: [], scriptRunning: false,
+            clearPrevious() { 
+                this.logs = []; 
+                if (this.$refs.visualPanel) this.$refs.visualPanel.innerHTML = ''; 
+                this.scriptRunning = true; 
+            },
+            renderIcons() { if (typeof lucide !== 'undefined') lucide.createIcons(); },
+            addLog(log, delay) { 
+                return new Promise(resolve => { setTimeout(() => { 
+                    if (this.logs.length > 50) this.logs.shift(); 
+                    this.logs.push({ id: Date.now(), timestamp: new Date().toLocaleTimeString(), level: `[${log.level.padEnd(8)}]`, message: log.message, color: log.color }); 
+                    this.$nextTick(() => { if (this.$refs.logContainer) this.$refs.logContainer.scrollTop = this.$refs.logContainer.scrollHeight }); 
+                    resolve(); 
+                }, delay); }); 
+            },
+            addVisual(id, html, delay) {
+                return new Promise(resolve => { setTimeout(() => {
+                    if (!this.$refs.visualPanel) { resolve(); return; }
+                    const el = document.createElement('div');
+                    el.id = `vis-${id}`;
+                    el.className = 'fade-in-element';
+                    el.innerHTML = html;
+                    this.$refs.visualPanel.appendChild(el);
+                    this.$nextTick(() => {
+                        setTimeout(() => { el.classList.add('is-visible'); this.renderIcons(); }, 10);
+                        this.$refs.visualPanel.scrollTop = this.$refs.visualPanel.scrollHeight;
+                        resolve();
+                    });
+                }, delay); });
+            },
+            updateVisual(id, newHtml) {
+                return new Promise(resolve => {
+                    const el = this.$refs.visualPanel.querySelector(`#vis-${id}`);
+                    if (el) { el.innerHTML = newHtml; this.renderIcons(); }
+                    resolve();
+                });
+            },
+            async runScript() {
+                if (this.scriptRunning) return;
+                this.clearPrevious();
+                try {
+                    await this.addLog({ level: 'INIT', message: 'Connecting to `prod_data_warehouse`...', color: 'text-cyan-400' }, 200);
+                    await this.addVisual('connect', '<div class="flex items-center gap-3 p-3 bg-slate-800 rounded-lg border border-cyan-700"><i data-lucide="database" class="text-cyan-400"></i><span class="font-bold">prod_data_warehouse</span><span class="ml-auto text-xs font-mono text-green-400">CONNECTED</span></div>', 300);
+                    
+                    await this.addLog({ level: 'SCAN', message: 'Scanning schema: `analytics`...', color: 'text-gray-400' }, 800);
+                    await this.addLog({ level: 'DISCOVER', message: 'Found table: `dim_customers`', color: 'text-gray-400' }, 500);
+                    await this.addVisual('table1', '<div class="p-3 my-2 bg-slate-800 rounded-lg transition-all duration-300"><div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>dim_customers</div></div>', 500);
+
+                    await this.addLog({ level: 'DISCOVER', message: 'Found table: `fact_orders`', color: 'text-gray-400' }, 600);
+                    await this.addVisual('table2', '<div class="p-3 my-2 bg-slate-800 rounded-lg transition-all duration-300"><div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div></div>', 600);
+                    
+                    await this.addLog({ level: 'AI-DOC', message: 'Generating AI summary for `fact_orders`...', color: 'text-purple-400' }, 1200);
+                    await this.updateVisual('table2', '<div class="p-3 my-2 bg-slate-800 rounded-lg border border-purple-500"><div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div><div class="mt-3 pt-3 border-t border-purple-800 text-purple-300 text-xs flex items-start gap-2"><i data-lucide="brain-circuit" class="w-4 h-4 mt-0.5 flex-shrink-0"></i><div><strong>AI Summary:</strong> Contains transactional order data, including amounts, status, and keys linking to customers and products. Central table for revenue reporting.</div></div></div>');
+
+                    await this.addLog({ level: 'LINEAGE', message: 'Tracing data lineage...', color: 'text-gray-400' }, 1000);
+                    await this.addVisual('lineage', `<div class="p-4 my-2 bg-slate-800 rounded-lg text-center"><h4 class="font-bold text-sm mb-3">Data Lineage</h4><svg viewBox="0 0 400 60" class="w-full h-auto"><defs><marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#67e8f9"></path></marker></defs><g><rect x="10" y="15" width="100" height="30" rx="5" fill="#1e293b" stroke="#38bdf8"></rect><text x="60" y="35" font-size="10" fill="white" text-anchor="middle">dim_customers</text></g><g><rect x="150" y="15" width="100" height="30" rx="5" fill="#4c1d95" stroke="#a855f7"></rect><text x="200" y="35" font-size="10" fill="white" text-anchor="middle">fact_orders</text></g><g><rect x="290" y="15" width="100" height="30" rx="5" fill="#1e293b" stroke="#38bdf8"></rect><text x="340" y="35" font-size="10" fill="white" text-anchor="middle">sales_kpi_view</text></g><path d="M 110 30 L 150 30" stroke="#67e8f9" stroke-width="1.5" marker-end="url(#arrow)" class="lineage-path"></path><path d="M 250 30 L 290 30" stroke="#67e8f9" stroke-width="1.5" marker-end="url(#arrow)" class="lineage-path" style="animation-delay: 0.5s;"></path></svg></div>`, 500);
+                    
+                    await this.addLog({ level: 'READY', message: 'Foundation built. WizBI is now fully aware of the data model.', color: 'text-green-400' }, 800);
+
+                } catch(e) {
+                    console.error("Agent demo failed:", e);
+                    await this.addLog({level: "ERROR", message: "Demo script failed.", color: "text-red-500"}, 100);
+                } finally {
+                    this.scriptRunning = false;
+                }
+            }
+        }));
+    });
+    
+    const App = {
+        init() {
+            this.setupMobileMenu(); this.setupHeaderScroll(); this.initThreeJSBackground(); this.updateDynamicContent();
+            // Automatically run the demo script once the section is visible
+            const demoSection = document.getElementById('agent-demo');
+            if (demoSection) {
+                 const observer = new IntersectionObserver((entries, obs) => {
+                    if (entries[0].isIntersecting) {
+                        // Use Alpine to call the function
+                        const demoComponent = Alpine.find(demoSection.firstElementChild);
+                        if (demoComponent && !demoComponent.scriptRunning && demoComponent.logs.length === 0) {
+                             demoComponent.runScript();
+                        }
+                        obs.unobserve(demoSection); // Run only once
+                    }
+                }, { threshold: 0.6 });
+                observer.observe(demoSection);
+            }
+        },
+        updateDynamicContent() { 
+            if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+            document.querySelectorAll('.year').forEach(el => el.textContent = new Date().getFullYear()); 
+        },
+        setupMobileMenu() {
+            const btn = document.getElementById('mobile-menu-button'); const menu = document.getElementById('mobile-menu');
+            if(!btn || !menu) return;
+            btn.addEventListener('click', () => menu.classList.toggle('hidden'));
+            menu.querySelectorAll('a').forEach(link => link.addEventListener('click', () => menu.classList.add('hidden')));
+        },
+        setupHeaderScroll() { 
+            const header = document.getElementById('header');
+            if(!header) return;
+            window.addEventListener('scroll', () => header.classList.toggle('header-scrolled', window.scrollY > 50), { passive: true }); 
+        },
+        initThreeJSBackground() {
+            try {
+                const canvas = document.getElementById('bg-canvas');
+                if (!canvas) return;
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
+                renderer.setPixelRatio(window.devicePixelRatio);
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                camera.position.setZ(30);
+                const starGeometry = new THREE.BufferGeometry();
+                const starCount = 8000;
+                const positions = new Float32Array(starCount * 3);
+                for (let i = 0; i < starCount * 3; i++) { positions[i] = (Math.random() - 0.5) * 200; }
+                starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                const starMaterial = new THREE.PointsMaterial({ color: 0xaaaaaa, size: 0.15, transparent: true, blending: THREE.AdditiveBlending });
+                const stars = new THREE.Points(starGeometry, starMaterial);
+                scene.add(stars);
+                let mouseX = 0, mouseY = 0;
+                document.addEventListener('mousemove', e => { mouseX = (e.clientX / window.innerWidth) * 2 - 1; mouseY = -(e.clientY / window.innerHeight) * 2 + 1; }, { passive: true });
+                window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+                function animate() {
+                    requestAnimationFrame(animate);
+                    stars.rotation.y += 0.0001;
+                    stars.rotation.x += 0.0001;
+                    camera.position.x += (mouseX * 5 - camera.position.x) * 0.02;
+                    camera.position.y += (mouseY * 5 - camera.position.y) * 0.02;
+                    camera.lookAt(scene.position);
+                    renderer.render(scene, camera);
+                }
+                animate();
+            } catch (e) {
+                console.error("Three.js failed to initialize:", e);
+                document.body.style.backgroundColor = '#0a0a1a';
+            }
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => App.init());
+    </script>
+</body>
+</html>
