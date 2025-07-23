@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>How It Works | The BI Platform Data Teams Trust</title>
+    <title>How It Works | The BI Platform Data Teams Trust & Use</title>
     
-    <meta name="description" content="Discover the architecture behind BI MAGICS. See how our read-only agent securely maps your data warehouse, builds a live catalog, and empowers users without sacrificing governance.">
-    <meta name="keywords" content="How It Works, Data Governance, BI Architecture, Data Agent, Automated Data Catalog, Data Lineage, Data Warehouse Mapping, AI Data Documentation, Metadata Analysis, BI Automation">
+    <meta name="description" content="See our intelligent Agent in action. Discover how it scans your DWH, builds a live data catalog with business context, finds relationships, and provides optimization recommendations.">
+    <meta name="keywords" content="Data Agent, Automated Data Catalog, Data Governance, BI Architecture, LLM Agnostic, VPC Deployment, Data Optimization, Data Discovery, Self-Service BI">
     <meta name="theme-color" content="#0a0a1a">
 
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://www.bimagics.com/how-it-works.html">
-    <meta property="og:title" content="How It Works | The BI Platform Data Teams Trust">
-    <meta property="og:description" content="Learn how our agent connects to your data, builds a live catalog, and understands relationships to power the entire BI MAGICS experience, with full security and governance.">
+    <meta property="og:title" content="How It Works | The BI Platform Data Teams Trust & Use">
+    <meta property="og:description" content="Our agent provides self-service for business teams and a powerful optimization & discovery tool for data teams. See the live demo.">
     <meta property="og:image" content="https://www.bimagics.com/og-image-how.png">
 
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
@@ -28,43 +28,37 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Tilt+Neon&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Tilt+Neon&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.js"></script>
     <script src="https://unpkg.com/lucide-static@latest/dist/lucide.js"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <style>
-        /* General Styles */
         html { scroll-behavior: smooth; }
         body { font-family: 'Inter', sans-serif; background-color: #0a0a1a; color: #E0E0E0; overflow-x: hidden; }
         #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
         .content-wrapper { position: relative; z-index: 1; }
         .font-tilt-neon { font-family: 'Tilt Neon', sans-serif; }
+        .font-fira-code { font-family: 'Fira Code', monospace; }
         .glass-effect { background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .header-scrolled { background: rgba(10, 10, 26, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
         
-        /* Text & Gradients */
         .neon-text-cyan { text-shadow: 0 0 8px #22D3EE, 0 0 12px #22D3EE, 0 0 20px #67e8f9; }
         .gradient-text { background: linear-gradient(90deg, #A855F7, #22D3EE); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-fill-color: transparent; }
         
-        /* Animations */
-        .fade-in-section { opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
         .fade-in-section.is-visible { opacity: 1; transform: translateY(0); }
-        .fade-in-element { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
-        .fade-in-element.is-visible { opacity: 1; transform: translateY(0); }
-        @keyframes draw-line { to { stroke-dashoffset: 0; } }
-        .lineage-path { stroke-dasharray: 500; stroke-dashoffset: 500; animation: draw-line 1s ease-out forwards; }
+        .fade-in-section { opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
         
-        /* Process Flow */
-        .process-step { border-left: 2px solid #374151; }
-        .process-step-icon { background: #1f2937; border: 2px solid #4b5563; }
-        
-        /* FAQ Accordion */
-        .faq-item { transition: margin 0.3s ease; }
-        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-in-out, padding 0.5s ease; padding: 0 1.5rem; }
-        .faq-item.open .faq-answer { max-height: 500px; padding: 0.5rem 1.5rem 1.5rem; }
         .faq-item.open .faq-icon { transform: rotate(135deg); }
         .faq-icon { transition: transform 0.3s ease-in-out; }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-in-out, padding 0.5s ease; padding: 0 1.5rem; }
+        .faq-item.open .faq-answer { max-height: 500px; padding: 0.5rem 1.5rem 1.5rem; }
+
+        /* Demo Console specific styles */
+        .demo-element { opacity: 0; transform: translateY(15px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
+        .demo-element.visible { opacity: 1; transform: translateY(0); }
+        .lineage-path { stroke-dasharray: 500; stroke-dashoffset: 500; animation: draw-line 1s ease-out forwards; }
+        @keyframes draw-line { to { stroke-dashoffset: 0; } }
     </style>
 </head>
 <body class="antialiased">
@@ -112,84 +106,75 @@
              <section id="how-it-works-hero" class="py-24 bg-cyan-900/10 fade-in-section is-visible">
                 <div class="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="text-center max-w-4xl mx-auto">
-                        <h1 class="text-4xl md:text-5xl font-black font-tilt-neon mb-4"><span class="neon-text-cyan">The Self-Service Platform Data Teams Actually Trust</span></h1>
+                        <h1 class="text-4xl md:text-5xl font-black font-tilt-neon mb-4"><span class="neon-text-cyan">The Intelligent Agent That Powers Modern BI</span></h1>
                         <p class="text-lg md:text-xl text-gray-300 mb-8">
-                            Empower your business users without sacrificing security, governance, or control. Our intelligent Agent works within your ecosystem to build an automated, trustworthy data foundation that makes true self-service possible.
+                           Go beyond dashboards. Our autonomous agent doesn't just enable self-service for your business teams—it gives your data team a powerful new tool for governance, discovery, and optimization. This is where the real magic happens.
                         </p>
                     </div>
                 </div>
             </section>
             
-            <section id="architecture" class="py-24 fade-in-section is-visible">
+            <section id="agent-demo" class="py-24 fade-in-section is-visible" x-data="agentDemo">
                 <div class="container mx-auto px-4 sm:px-6 lg:px-8">
                      <div class="text-center mb-16">
-                        <h2 class="text-3xl md:text-5xl font-black">Secure By Design: Your Data Stays Yours</h2>
-                        <p class="text-lg text-gray-400 max-w-3xl mx-auto mt-4">We never copy your raw data. Our read-only Agent can be deployed within your VPC, working with metadata to understand your business while your data remains securely in your warehouse.</p>
+                        <h2 class="text-3xl md:text-5xl font-black">See The Agent in Action</h2>
+                        <p class="text-lg text-gray-400 max-w-3xl mx-auto mt-4">This is a live simulation of our Agent building a data catalog. Click "Run" to begin.</p>
                     </div>
-                    <div class="max-w-4xl mx-auto glass-effect rounded-2xl p-8">
-                        <div class="grid md:grid-cols-3 gap-8 items-center text-center">
-                            <div class="flex flex-col items-center gap-4">
-                                <i data-lucide="users" class="w-12 h-12 text-purple-300"></i>
-                                <h3 class="font-bold text-lg">Business Teams</h3>
-                                <p class="text-sm text-gray-400">Ask questions in Slack, WhatsApp, or Web App</p>
-                                <div class="w-full h-px bg-gradient-to-l from-purple-500 to-transparent"></div>
+                    <div class="max-w-7xl mx-auto flex flex-col items-center gap-8">
+                        <div class="flex items-center gap-6">
+                            <div class="flex items-center gap-3 text-lg">
+                                <i data-lucide="database" class="w-8 h-8 text-cyan-400"></i>
+                                <span class="font-fira-code">prod_data_warehouse</span>
                             </div>
-
-                            <div class="flex flex-col items-center gap-4 p-6 rounded-lg border-2 border-cyan-400 border-dashed">
-                                <h3 class="font-bold text-lg text-cyan-300">Your Secure Cloud (VPC)</h3>
-                                <div class="w-full space-y-4">
-                                    <div class="flex items-center gap-3 bg-gray-800 p-3 rounded-md">
-                                        <i data-lucide="database" class="w-6 h-6 text-cyan-400"></i>
-                                        <span class="text-sm">Your Data Warehouse</span>
-                                    </div>
-                                    <div class="flex items-center gap-3 bg-gray-800 p-3 rounded-md">
-                                        <i data-lucide="brain-circuit" class="w-6 h-6 text-purple-400"></i>
-                                        <span class="text-sm">BI MAGICS Agent (Read-Only)</span>
-                                    </div>
+                            <button @click="runScript()" class="bg-cyan-600 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 hover:bg-cyan-500 active:scale-95 flex items-center gap-2 text-lg" :disabled="scriptRunning">
+                                <i data-lucide="play-circle" x-show="!scriptRunning"></i>
+                                <div x-show="scriptRunning" class="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
+                                <span x-text="scriptRunning ? 'Agent Running...' : 'Run Discovery'"></span>
+                            </button>
+                        </div>
+                        
+                        <div class="w-full h-[600px] glass-effect rounded-2xl flex flex-col p-1 border-2 border-cyan-400/30 mt-8">
+                             <div class="flex-shrink-0 p-2 border-b border-cyan-800/50 flex items-center justify-between"><div class="flex items-center gap-2"><span class="w-3 h-3 bg-red-500 rounded-full"></span><span class="w-3 h-3 bg-yellow-500 rounded-full"></span><span class="w-3 h-3 bg-green-500 rounded-full"></span></div><div class="text-xs text-cyan-300 font-fira-code">BI MAGICS Agent Console</div></div>
+                             <div class="flex-grow flex flex-col lg:flex-row p-4 gap-4 overflow-hidden h-full">
+                                 <div class="w-full lg:w-3/5 bg-black/20 rounded-lg p-4 overflow-y-auto space-y-4" x-ref="visualPanel">
+                                    <template x-for="visual in visuals" :key="visual.id">
+                                        <div class="demo-element" :class="{ 'visible': visual.visible }" x-html="visual.html"></div>
+                                    </template>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-2">Agent analyzes metadata & query logs. Raw data is never moved or stored.</p>
-                            </div>
-                            
-                            <div class="flex flex-col items-center gap-4">
-                                <i data-lucide="arrow-left-right" class="w-12 h-12 text-gray-500"></i>
-                                <h3 class="font-bold text-lg">Secure Communication</h3>
-                                <p class="text-sm text-gray-400">Natural language is converted to SQL. Queries run directly in your warehouse.</p>
-                                <div class="w-full h-px bg-gradient-to-r from-purple-500 to-transparent"></div>
-                            </div>
+                                 <div class="w-full lg:w-2/5 bg-black/20 rounded-lg p-4 flex flex-col font-fira-code text-sm overflow-y-auto" x-ref="logContainer">
+                                    <template x-for="log in logs" :key="log.id">
+                                        <p :class="log.color" class="flex gap-2 text-xs"><span class="flex-shrink-0 text-gray-500" x-text="log.timestamp"></span><span class="flex-shrink-0" x-text="log.level"></span><span class="whitespace-pre-wrap" x-html="log.message"></span></p>
+                                    </template>
+                                </div>
+                             </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section id="process" class="py-24 bg-gray-900/20 fade-in-section is-visible">
+            <section id="dual-value" class="py-24 bg-gray-900/20 fade-in-section is-visible">
                  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-                     <div class="text-center mb-16">
-                        <h2 class="text-3xl md:text-5xl font-black">How The Magic Happens</h2>
-                        <p class="text-lg text-gray-400 max-w-3xl mx-auto mt-4">Our Agent follows a four-step process to build the intelligent foundation for WizBI.</p>
+                    <div class="text-center mb-16 max-w-3xl mx-auto">
+                        <h2 class="text-3xl md:text-5xl font-black">A Force Multiplier for Your Entire Organization</h2>
+                        <p class="text-lg text-gray-400">Our Agent delivers value to everyone, from the CEO to the data engineer.</p>
                     </div>
-                    <div class="max-w-3xl mx-auto mt-12 space-y-12">
-                        <div class="relative process-step pl-12 pb-12">
-                            <div class="absolute -left-5 top-1 w-10 h-10 rounded-full flex items-center justify-center process-step-icon"><i data-lucide="plug-zap" class="w-5 h-5 text-cyan-300"></i></div>
-                            <h3 class="text-2xl font-bold font-tilt-neon text-cyan-200 mb-2">1. Secure Connection</h3>
-                            <p class="text-gray-300">It starts with a simple, secure, read-only connection to your data warehouse (Snowflake, BigQuery, etc.). This takes minutes and can be scoped to specific schemas.</p>
+                    <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                        <div class="glass-effect p-8 rounded-xl border border-purple-500/30">
+                             <div class="flex items-center gap-4 mb-4">
+                                <i data-lucide="users" class="w-10 h-10 text-purple-300"></i>
+                                <h3 class="text-2xl font-bold">For Your Business Teams</h3>
+                             </div>
+                            <p class="text-gray-300">Instant, self-service answers via WizBI. They get the insights they need to drive growth, without waiting for reports or learning SQL. The automated catalog ensures every answer is accurate and contextualized.</p>
                         </div>
-                        <div class="relative process-step pl-12 pb-12">
-                            <div class="absolute -left-5 top-1 w-10 h-10 rounded-full flex items-center justify-center process-step-icon"><i data-lucide="scan-line" class="w-5 h-5 text-cyan-300"></i></div>
-                            <h3 class="text-2xl font-bold font-tilt-neon text-cyan-200 mb-2">2. Automated Cataloging</h3>
-                            <p class="text-gray-300">Our Agent scans metadata (e.g., `INFORMATION_SCHEMA`) to discover every table, view, and column, creating a living data catalog without any manual effort from your team.</p>
-                        </div>
-                         <div class="relative process-step pl-12 pb-12">
-                            <div class="absolute -left-5 top-1 w-10 h-10 rounded-full flex items-center justify-center process-step-icon"><i data-lucide="brain-circuit" class="w-5 h-5 text-cyan-300"></i></div>
-                            <h3 class="text-2xl font-bold font-tilt-neon text-cyan-200 mb-2">3. Contextual Understanding</h3>
-                            <p class="text-gray-300">The Agent analyzes query logs to understand relationships, join keys, and popular query patterns. It then uses AI to generate human-readable documentation and summaries for your tables.</p>
-                        </div>
-                        <div class="relative pl-12">
-                             <div class="absolute -left-5 top-1 w-10 h-10 rounded-full flex items-center justify-center process-step-icon ring-2 ring-purple-400 bg-purple-900/50"><i data-lucide="wand-2" class="w-5 h-5 text-purple-300"></i></div>
-                            <h3 class="text-2xl font-bold font-tilt-neon text-purple-200 mb-2">4. Powering WizBI</h3>
-                            <p class="text-gray-300">This rich, automated context is the "brain" behind WizBI. It allows the AI Analyst to understand business terms, translate questions into efficient SQL, and deliver accurate answers to your users.</p>
+                         <div class="glass-effect p-8 rounded-xl border border-cyan-500/30">
+                            <div class="flex items-center gap-4 mb-4">
+                                <i data-lucide="cpu" class="w-10 h-10 text-cyan-300"></i>
+                                <h3 class="text-2xl font-bold">For Your Data Team</h3>
+                             </div>
+                            <p class="text-gray-300">A powerful new tool for governance and optimization. Proactively find inefficient queries, identify cost-saving opportunities, and get a clear, documented view of your entire data estate. We handle the ad-hoc questions so you can focus on strategic projects.</p>
                         </div>
                     </div>
-                </div>
+                 </div>
             </section>
 
             <section id="faq-how" class="py-24 fade-in-section is-visible">
@@ -201,21 +186,21 @@
                     <div class="space-y-4" x-data="{ open: 1 }">
                         <div class="glass-effect rounded-lg faq-item" :class="{'open': open === 1}">
                             <button @click="open = (open === 1 ? null : 1)" class="w-full flex justify-between items-center text-left text-xl font-semibold p-6">
-                                <span>Do you store a copy of our data?</span><i data-lucide="plus" class="faq-icon w-6 h-6 text-cyan-400"></i>
+                                <span>Can we deploy the agent in our own cloud environment?</span><i data-lucide="plus" class="faq-icon w-6 h-6 text-cyan-400"></i>
                             </button>
-                            <div class="faq-answer"><p class="text-gray-300 leading-relaxed"><strong>No, never.</strong> We are a metadata-only platform. Our Agent analyzes schemas, column names, and query logs. When a user asks a question, we generate a real-time SQL query that runs directly in your warehouse. The results are streamed back to the user, not stored on our servers.</p></div>
+                            <div class="faq-answer"><p class="text-gray-300 leading-relaxed"><strong>Absolutely.</strong> For maximum security and control, our Agent can be deployed entirely within your own VPC. This means your data, including metadata, never leaves your secure cloud environment, ensuring compliance with the strictest data residency and privacy policies.</p></div>
                         </div>
                         <div class="glass-effect rounded-lg faq-item" :class="{'open': open === 2}">
                             <button @click="open = (open === 2 ? null : 2)" class="w-full flex justify-between items-center text-left text-xl font-semibold p-6">
-                                <span>What data warehouses do you support?</span><i data-lucide="plus" class="faq-icon w-6 h-6 text-cyan-400"></i>
+                                <span>Are we locked into a specific LLM?</span><i data-lucide="plus" class="faq-icon w-6 h-6 text-cyan-400"></i>
                             </button>
-                             <div class="faq-answer"><p class="text-gray-300 leading-relaxed">We support all major cloud data warehouses and lakehouses, including Snowflake, Google BigQuery, Amazon Redshift, and Databricks. Our list of native connectors is constantly growing.</p></div>
+                             <div class="faq-answer"><p class="text-gray-300 leading-relaxed"><strong>No. We are model-agnostic.</strong> Our platform is designed for flexibility. While we have optimized integrations with leading models like Google's Gemini and OpenAI's GPT series, you can connect to your preferred LLM. This includes private models hosted in your environment or any other commercial or open-source model you choose.</p></div>
                         </div>
                         <div class="glass-effect rounded-lg faq-item" :class="{'open': open === 3}">
                             <button @click="open = (open === 3 ? null : 3)" class="w-full flex justify-between items-center text-left text-xl font-semibold p-6">
-                                <span>What happens if our data schemas change?</span><i data-lucide="plus" class="faq-icon w-6 h-6 text-cyan-400"></i>
+                                <span>Do you store a copy of our raw data?</span><i data-lucide="plus" class="faq-icon w-6 h-6 text-cyan-400"></i>
                             </button>
-                             <div class="faq-answer"><p class="text-gray-300 leading-relaxed">Our Agent creates a <strong>living data catalog</strong>. It can run on a schedule to automatically detect schema changes, update the catalog and documentation, and make new assets immediately available to WizBI. This ensures your data model stays in sync with reality, effortlessly.</p></div>
+                             <div class="faq-answer"><p class="text-gray-300 leading-relaxed"><strong>Never.</strong> We are a metadata-only platform. Our Agent analyzes schemas, column names, and query logs. When a user asks a question, we generate a real-time SQL query that runs directly in your warehouse. The results are streamed back to the user, not stored on our servers.</p></div>
                         </div>
                     </div>
                 </div>
@@ -226,7 +211,7 @@
                     <i data-lucide="binary" class="w-16 h-16 text-cyan-300 mx-auto mb-6"></i>
                     <h2 class="text-4xl font-black font-tilt-neon mb-4">Ready for a Technical Deep-Dive?</h2>
                     <p class="text-lg text-gray-300 mb-8">
-                        Have questions about our architecture, security protocols, or integration process? Our engineers are ready to talk.
+                        Have questions about our architecture, security protocols, or the Agent's capabilities? Our engineers are ready to talk.
                     </p>
                     <a href="mailto:hello@bimagics.com?subject=Technical%20Deep-Dive%20Request" class="inline-block bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-4 px-10 rounded-full text-lg transition-all duration-300 transform hover:scale-105">
                         Schedule a Call with an Engineer
@@ -238,7 +223,7 @@
         <footer class="bg-gray-900/50">
             <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div class="text-center text-gray-500">
-                    <p>&copy; <span class="year"></span> BI MAGICS. All Spells Reserved.</p>
+                    <p>&copy; <span id="year-footer"></span> BI MAGICS. All Spells Reserved.</p>
                     <p class="text-xs mt-2">Crafted with magic in Tel Aviv</p>
                 </div>
             </div>
@@ -246,7 +231,104 @@
     </div>
 
     <script>
-    // All page-level JS (Menu, Header, Background) remains the same
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('agentDemo', () => ({
+            logs: [],
+            visuals: [],
+            scriptRunning: false,
+            
+            clearPrevious() {
+                this.logs = [];
+                this.visuals = [];
+                this.scriptRunning = true;
+                // Defer icon creation to ensure all elements are in the DOM
+                this.$nextTick(() => {
+                    if (typeof lucide !== 'undefined') {
+                        lucide.createIcons();
+                    }
+                });
+            },
+            
+            addLog(log, delay = 100) {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        this.logs.push({ 
+                            id: Date.now() + Math.random(), 
+                            timestamp: new Date().toLocaleTimeString(), 
+                            level: `[${log.level.padEnd(8)}]`, 
+                            message: log.message, 
+                            color: log.color 
+                        });
+                        this.$nextTick(() => { 
+                            if (this.$refs.logContainer) {
+                                this.$refs.logContainer.scrollTop = this.$refs.logContainer.scrollHeight;
+                            }
+                        });
+                        resolve();
+                    }, delay);
+                });
+            },
+
+            addVisual(id, html, delay = 100) {
+                 return new Promise(resolve => {
+                    setTimeout(() => {
+                        const existingIndex = this.visuals.findIndex(v => v.id === id);
+                        const newVisual = { id, html, visible: false };
+
+                        if (existingIndex > -1) {
+                            this.visuals.splice(existingIndex, 1, newVisual);
+                        } else {
+                            this.visuals.push(newVisual);
+                        }
+                        
+                        this.$nextTick(() => {
+                            const visualToUpdate = this.visuals.find(v => v.id === id);
+                            if (visualToUpdate) {
+                                visualToUpdate.visible = true;
+                            }
+                            if (typeof lucide !== 'undefined') lucide.createIcons();
+                            if(this.$refs.visualPanel) this.$refs.visualPanel.scrollTop = this.$refs.visualPanel.scrollHeight;
+                            resolve();
+                        });
+                    }, delay);
+                });
+            },
+            
+            async runScript() {
+                if (this.scriptRunning) return;
+                this.clearPrevious();
+                
+                try {
+                    await this.addLog({ level: 'INIT', message: 'Agent activated. Connecting to `prod_data_warehouse`...', color: 'text-cyan-400' }, 200);
+                    
+                    await this.addLog({ level: 'SCAN', message: 'Scanning `analytics` schema...', color: 'text-gray-400' }, 800);
+                    await this.addLog({ level: 'DISCOVER', message: 'Found table: `dim_customers`', color: 'text-gray-400' }, 400);
+                    await this.addVisual('table1', `<div class="p-3 bg-slate-800 rounded-lg"><div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>dim_customers</div></div>`, 300);
+
+                    await this.addLog({ level: 'DISCOVER', message: 'Found table: `fact_orders`', color: 'text-gray-400' }, 500);
+                    await this.addVisual('table2', `<div class="p-3 bg-slate-800 rounded-lg"><div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div></div>`, 300);
+
+                    await this.addLog({ level: 'AI-CTX', message: 'Generating business context for `fact_orders`...', color: 'text-purple-400' }, 1200);
+                    await this.addVisual('table2', `<div class="p-3 bg-slate-800 rounded-lg border border-purple-500"><div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div><div class="mt-3 pt-3 border-t border-purple-800 text-purple-300 text-xs flex items-start gap-2"><i data-lucide="brain-circuit" class="w-4 h-4 mt-0.5 flex-shrink-0"></i><div><strong>AI Summary:</strong> Contains transactional order data, including amounts, status, and keys linking to customers and products. Central table for revenue reporting.</div></div></div>`, 100);
+                    
+                    await this.addLog({ level: 'METADATA', message: 'Analyzing `INFORMATION_SCHEMA` for relationships...', color: 'text-gray-400' }, 1000);
+                    await this.addLog({ level: 'RELATION', message: 'Detected JOIN key: <span class="text-yellow-400">fact_orders.customer_id</span> -> <span class="text-yellow-400">dim_customers.id</span>', color: 'text-gray-400' }, 800);
+                    await this.addVisual('lineage', `<div class="p-4 bg-slate-800 rounded-lg text-center"><h4 class="font-bold text-sm mb-3 text-cyan-300">Data Lineage View</h4><svg viewBox="0 0 300 60" class="w-full h-auto"><defs><marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#67e8f9"></path></marker></defs><g><rect x="10" y="15" width="100" height="30" rx="5" fill="#1e293b" stroke="#38bdf8"></rect><text x="60" y="35" font-size="10" fill="white" class="font-fira-code">dim_customers</text></g><g><rect x="190" y="15" width="100" height="30" rx="5" fill="#4c1d95" stroke="#a855f7"></rect><text x="240" y="35" font-size="10" fill="white" class="font-fira-code">fact_orders</text></g><path d="M 110 30 L 190 30" stroke="#67e8f9" stroke-width="1.5" marker-end="url(#arrow)" class="lineage-path"></path></svg></div>`, 500);
+
+                    await this.addLog({ level: 'OPTIMIZE', message: 'Analyzing query history for inefficiencies...', color: 'text-gray-400' }, 1200);
+                    await this.addLog({ level: 'RECOMMEND', message: 'High-cardinality join on `fact_orders` detected. Recommend creating pre-aggregated daily sales view.', color: 'text-yellow-400' }, 800);
+                    
+                    await this.addLog({ level: 'COMPLETE', message: 'Cataloging complete. <span class="text-purple-300">WizBI</span> is now enabled.', color: 'text-green-400' }, 1000);
+                } catch(e) {
+                    console.error("Agent demo failed:", e);
+                    await this.addLog({level: "ERROR", message: "Demo script failed.", color: "text-red-500"}, 100);
+                } finally {
+                    this.scriptRunning = false;
+                }
+            }
+        }));
+    });
+    
     const App = {
         init() {
             this.setupMobileMenu(); 
@@ -257,20 +339,20 @@
         },
         updateDynamicContent() { 
             if (typeof lucide !== 'undefined') { lucide.createIcons(); }
-            document.querySelectorAll('.year').forEach(el => el.textContent = new Date().getFullYear()); 
+            document.querySelector('#year-footer').textContent = new Date().getFullYear(); 
         },
         setupMobileMenu() {
             const btn = document.getElementById('mobile-menu-button'); 
             const menu = document.getElementById('mobile-menu');
             if(!btn || !menu) return;
-            btn.addEventListener('click', () => menu.classList.toggle('hidden'));
+            const toggleMenu = () => menu.classList.toggle('hidden');
+            btn.addEventListener('click', toggleMenu);
             menu.querySelectorAll('a').forEach(link => {
-                 if (!link.href.includes('#')) return; // Don't hide for external links
-                 link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    document.querySelector(link.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
-                    menu.classList.add('hidden');
-                 });
+                link.addEventListener('click', () => {
+                    if (link.getAttribute('href').startsWith('#')) {
+                        toggleMenu();
+                    }
+                });
             });
         },
         setupHeaderScroll() { 
@@ -325,7 +407,7 @@
             }
         }
     };
-    document.addEventListener('DOMContentLoaded', () => App.init());
+    document.addEventListener('DOMContentLoaded', () => { App.init(); });
     </script>
 </body>
 </html>
