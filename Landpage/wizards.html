@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WizBI: AI Analyst for Teams | BI MAGICS</title>
+    
+    <meta name="description" content="Meet WizBI, your team's personal AI Data Analyst. Ask questions in natural language and get instant, actionable insights and visualizations.">
+    <meta name="keywords" content="WizBI, AI Data Analyst, Self-Service Analytics, Natural Language Query, Business Intelligence, Data for Business Teams">
+    <meta name="theme-color" content="#0a0a1a">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.bimagics.com/wizards.html">
+    <meta property="og:title" content="WizBI: AI Analyst for Teams | BI MAGICS">
+    <meta property="og:description" content="Meet WizBI, your team's personal AI Data Analyst. Ask questions in natural language and get instant, actionable insights and visualizations.">
+    <meta property="og:image" content="https://www.bimagics.com/og-image.png">
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2EY1HGXGNT"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-2EY1HGXGNT');
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Tilt+Neon&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.js"></script>
+    <script src="https://unpkg.com/lucide-static@latest/dist/lucide.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        /* General Styles */
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background-color: #0a0a1a; color: #E0E0E0; overflow-x: hidden; }
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        .content-wrapper { position: relative; z-index: 1; }
+        .font-tilt-neon { font-family: 'Tilt Neon', sans-serif; }
+        .glass-effect { background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .header-scrolled { background: rgba(10, 10, 26, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        .header-scrolled .h-20 { height: 4.5rem; }
+
+        /* Text & Gradients */
+        .neon-text-purple { text-shadow: 0 0 5px #A855F7, 0 0 10px #A855F7, 0 0 15px #c084fc; }
+        .gradient-text { background: linear-gradient(90deg, #A855F7, #22D3EE); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-fill-color: transparent; }
+        
+        /* Animations */
+        .fade-in-section { opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+        .fade-in-section.is-visible { opacity: 1; transform: translateY(0); }
+
+        /* WizBI Chat Demo */
+        .chat-bubble { max-width: 85%; }
+        .chat-bubble-user { background-color: #4c1d95; }
+        .chat-bubble-wizard { background-color: #1e293b; }
+        .wizbi-summary { background-color: rgba(139, 92, 246, 0.1); padding: 0.75rem; border-radius: 0.5rem; margin-top: 0.75rem; border-left: 3px solid #a78bfa; }
+        .wizbi-chart-bar { transform-origin: bottom; transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55); box-shadow: 0 0 8px rgba(34, 211, 238, 0.3); }
+        .animated-line-chart-path { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: draw-line 1.5s ease-out forwards; }
+        .pie-chart-container { display: flex; align-items: center; gap: 1rem; }
+        .pie-chart { width: 120px; height: 120px; border-radius: 50%; background-image: conic-gradient(from 0deg); transition: transform 0.5s; transform: scale(0); }
+        .pie-chart.visible { transform: scale(1); }
+        .pie-legend { font-size: 0.75rem; color: #9ca3af; }
+        .try-now-btn { animation: soft-pulse 2s infinite ease-in-out; }
+        @keyframes soft-pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(232, 121, 249, 0.4); } 70% { transform: scale(1.05); box-shadow: 0 0 10px 10px rgba(232, 121, 249, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(232, 121, 249, 0); } }
+        @keyframes draw-line { to { stroke-dashoffset: 0; } }
+    </style>
+</head>
+<body class="antialiased">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="content-wrapper">
+        <header id="header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-20 transition-all duration-300">
+                    <a href="index.html" class="flex items-center space-x-2">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-purple-400"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span class="text-2xl font-bold font-tilt-neon gradient-text">BI MAGICS</span>
+                    </a>
+                    <nav class="hidden lg:flex items-center space-x-8">
+                        <a href="index.html#solutions" class="text-gray-300 hover:text-white transition-colors">Solutions</a>
+                        <a href="wizards.html" class="text-white transition-colors neon-text-purple">WizBI</a>
+                        <a href="data-agent.html" class="text-gray-300 hover:text-white transition-colors">Data Agent</a>
+                        <a href="bi-services.html" class="text-gray-300 hover:text-white transition-colors">BI Services</a>
+                        <a href="index.html#contact" class="text-gray-300 hover:text-white transition-colors">Contact</a>
+                    </nav>
+                    <div class="flex items-center gap-4">
+                        <div class="hidden lg:block">
+                            <a href="index.html#contact" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105">Let's Talk</a>
+                        </div>
+                        <div class="lg:hidden">
+                            <button id="mobile-menu-button" aria-label="Open mobile menu" class="text-white focus:outline-none"><i data-lucide="menu"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="mobile-menu" class="hidden lg:hidden glass-effect">
+                <nav class="px-4 pt-2 pb-4 space-y-1 sm:px-6">
+                    <a href="index.html#solutions" class="block text-gray-300 hover:text-white py-2 rounded-md">Solutions</a>
+                    <a href="wizards.html" class="block text-white py-2 rounded-md">WizBI</a>
+                    <a href="data-agent.html" class="block text-gray-300 hover:text-white py-2 rounded-md">Data Agent</a>
+                    <a href="bi-services.html" class="block text-gray-300 hover:text-white py-2 rounded-md">BI Services</a>
+                    <a href="index.html#contact" class="block text-gray-300 hover:text-white py-2 rounded-md">Contact</a>
+                    <a href="index.html#contact" class="block bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 text-center mt-4">Let's Talk</a>
+                </nav>
+            </div>
+        </header>
+
+        <main class="pt-20">
+             <section id="wizards" class="py-24 bg-purple-900/10 fade-in-section is-visible">
+                <div class="container mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-16 items-center">
+                    <div>
+                        <h2 class="text-4xl md:text-5xl font-black font-tilt-neon mb-4"><span class="neon-text-purple">WizBI:</span> An AI Analyst for Every Team</h2>
+                        <p class="text-lg text-gray-300 mb-2"><strong>Who is this for?</strong> Marketing, Sales, Product, and Finance teams who need answers now.</p>
+                        <p class="text-lg text-gray-300 mb-8">Stop the bottleneck. With WizBI, your teams can ask questions in natural language and get immediate, actionable insights, including rich visualizations. It's true self-service analytics, finally available to everyone.</p>
+                        <a href="https://wizbi.ai" target="_blank" rel="noopener noreferrer" class="try-now-btn bg-fuchsia-500 text-white font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-110 inline-flex items-center gap-2 text-lg">
+                            <i data-lucide="sparkles"></i>
+                            Try the Full System Now
+                        </a>
+                    </div>
+                    <div class="glass-effect rounded-2xl p-4 border border-purple-500/30" x-data="wizbiChatDemo">
+                        <div class="bg-gray-900 rounded-lg p-4 h-[550px] flex flex-col">
+                            <div class="flex-grow overflow-y-auto space-y-4 pr-2" x-ref="chatWindow">
+                                <template x-for="message in messages" :key="message.id">
+                                    <div class="flex" :class="message.author === 'user' ? 'justify-end' : 'justify-start'">
+                                        <div x-show="message.author === 'user'" class="chat-bubble rounded-lg p-3 chat-bubble-user">
+                                            <p class="text-white" x-text="message.text"></p>
+                                        </div>
+                                        <div x-show="message.author === 'wizbi'" class="flex items-end gap-2 chat-bubble">
+                                            <img :src="message.wizbi.avatar" alt="WizBI Avatar" class="w-10 h-10 rounded-full flex-shrink-0 bg-gray-700">
+                                            <div class="w-full chat-bubble-wizard rounded-lg p-3">
+                                                <p class="font-bold mb-1" x-text="message.wizbi.name"></p>
+                                                <p class="text-white" x-text="message.text"></p>
+                                                
+                                                <div x-show="message.summary" class="wizbi-summary" x-html="message.summary"></div>
+
+                                                <div x-show="message.chartData && message.showChart" x-transition class="mt-3 bg-gray-800 p-3 rounded-lg">
+                                                    <div x-show="message.chartType === 'bar'">
+                                                        <div class="h-48 w-full flex items-end justify-around gap-2 border-b border-l border-gray-600 p-2">
+                                                            <template x-for="bar in message.chartData">
+                                                                <div class="w-full h-full flex flex-col justify-end items-center gap-1">
+                                                                    <div class="text-green-400 font-bold text-xs" x-text="bar.value_display"></div>
+                                                                    <div class="wizbi-chart-bar w-full bg-gradient-to-t from-purple-500 to-cyan-400 rounded-t-md" :style="`height: ${bar.height}%; transform: scaleY(${message.showChart ? 1 : 0}); transition-delay: ${bar.delay}ms;`"></div>
+                                                                    <div class="text-xs text-gray-500" x-text="bar.label"></div>
+                                                                </div>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                    <div x-show="message.chartType === 'line'">
+                                                        <svg viewBox="0 0 300 150" class="w-full h-48">
+                                                            <path :d="message.linePath" fill="none" stroke="#22D3EE" stroke-width="2" class="animated-line-chart-path"></path>
+                                                            <template x-for="(point, index) in message.chartData">
+                                                                <g>
+                                                                    <circle :cx="point.x" :cy="point.y" r="3" fill="#fff"></circle>
+                                                                    <text :x="point.x" :y="145" fill="#9ca3af" font-size="10" text-anchor="middle" x-text="point.label"></text>
+                                                                </g>
+                                                            </template>
+                                                        </svg>
+                                                    </div>
+                                                    <div x-show="message.chartType === 'pie'" class="pie-chart-container">
+                                                         <div class="pie-chart" :class="{'visible': message.showChart}" :style="`background-image: ${message.pieGradient};`"></div>
+                                                         <div class="pie-legend space-y-2">
+                                                            <template x-for="slice in message.chartData">
+                                                                <div class="flex items-center gap-2">
+                                                                    <span class="w-3 h-3 rounded-sm" :style="{ backgroundColor: slice.color }"></span>
+                                                                    <span x-text="`${slice.label} (${slice.value}%)`"></span>
+                                                                </div>
+                                                            </template>
+                                                         </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <div x-show="isTyping" class="flex justify-start" x-transition>
+                                    <div class="flex items-end gap-2 chat-bubble">
+                                        <img src="https://placehold.co/40x40/4c1d95/FFFFFF?text=W" alt="WizBI Avatar" class="w-10 h-10 rounded-full flex-shrink-0">
+                                        <div class="chat-bubble-wizard rounded-lg p-3 flex items-center gap-2">
+                                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0s;"></div>
+                                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.2s;"></div>
+                                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.4s;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="bg-gray-900/50">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="text-center text-gray-500">
+                    <p>&copy; <span class="year"></span> BI MAGICS. All Spells Reserved.</p>
+                     <p class="text-xs mt-2">Crafted with magic in Tel Aviv</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('wizbiChatDemo', () => ({
+            messages: [],
+            isTyping: false,
+            hasStarted: false,
+            wizbis: {
+                sales: { name: 'Sales Wizard', avatar: 'https://placehold.co/40x40/5b21b6/FFFFFF?text=S' },
+                marketing: { name: 'Marketing Wizard', avatar: 'https://placehold.co/40x40/1d4ed8/FFFFFF?text=M' },
+                finance: { name: 'Finance Wizard', avatar: 'https://placehold.co/40x40/047857/FFFFFF?text=F' },
+            },
+            demoScenario: [
+                { id: 1, author: 'user', text: "How did our Q2 revenue from new customers in the US compare to Q1?" },
+                { id: 2, author: 'wizbi', wizbi_key: 'sales', text: "Here's the quarterly comparison:", summary: "📈 We saw a <strong>strong 54% increase</strong> in Q2! <br>Q1: $120k | Q2: $185k", chartType: 'bar', chartData: [ { label: 'Q1', value: 120000, height: 60, value_display: '$120k', delay: 100 }, { label: 'Q2', value: 185000, height: 92.5, value_display: '$185k', delay: 200 } ] },
+                { id: 3, author: 'user', text: "Show me the trend of user signups over the last 7 days." },
+                { id: 4, author: 'wizbi', wizbi_key: 'marketing', text: "Here is the user signup trend for the past week:", summary: "🚀 Signups are trending up, with a <strong>peak of 90 today!</strong>", chartType: 'line', chartData: [ {label: 'D-6', value: 25}, {label: 'D-5', value: 30}, {label: 'D-4', value: 45}, {label: 'D-3', value: 40}, {label: 'D-2', value: 60}, {label: 'D-1', value: 75}, {label: 'Today', value: 90} ] },
+                { id: 5, author: 'user', text: "Great! Now what's the revenue breakdown by region for this quarter?" },
+                { id: 6, author: 'wizbi', wizbi_key: 'finance', text: "Here is the revenue breakdown by region:", summary: "🌎 North America continues to be our <strong>dominant market</strong> at 45%.", chartType: 'pie', chartData: [ {label: 'NA', value: 45, color: '#8b5cf6'}, {label: 'EMEA', value: 35, color: '#22d3ee'}, {label: 'APAC', value: 15, color: '#34d399'}, {label: 'LATAM', value: 5, color: '#f87171'} ] },
+            ],
+            
+            init() {
+                this.run();
+            },
+            
+            prepareChartData(message) {
+                if (message.chartType === 'line') {
+                    const data = message.chartData;
+                    const maxVal = Math.max(...data.map(p => p.value));
+                    const width = 300, height = 130, padding = 10;
+                    const points = data.map((point, i) => {
+                        const x = (width / (data.length - 1)) * i;
+                        const y = height - (point.value / maxVal * (height - padding));
+                        return { ...point, x, y };
+                    });
+                    message.linePath = points.reduce((
