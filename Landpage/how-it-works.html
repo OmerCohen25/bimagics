@@ -66,6 +66,7 @@
         @keyframes draw-line { to { stroke-dashoffset: 0; } }
         .data-tool-tab { border-bottom: 2px solid transparent; transition: all 0.2s ease-in-out; }
         .data-tool-tab.active { color: #22D3EE; border-bottom-color: #22D3EE; }
+        .wizbi-bar { transform-origin: bottom; transition: transform 0.5s ease-out; }
     </style>
 </head>
 <body class="antialiased">
@@ -126,7 +127,6 @@
                         <p class="text-lg text-gray-400 max-w-3xl mx-auto mt-4" x-text="demoSubtitle"></p>
                     </div>
                     <div class="max-w-7xl mx-auto flex flex-col items-center">
-                        
                         <div x-show="state === 'idle'" x-transition class="w-full max-w-md text-center">
                             <div class="glass-effect rounded-2xl p-8">
                                 <i data-lucide="database" class="w-16 h-16 text-cyan-400 mx-auto mb-4"></i>
@@ -194,7 +194,7 @@
                             </button>
                         </div>
                         
-                        <div class="relative min-h-[250px]">
+                        <div class="relative min-h-[300px]">
                             <div x-show="activeTab === 'catalog'" x-transition:enter.duration.300ms x-transition:leave.duration.200ms class="data-tool-content absolute w-full" :class="{'visible': activeTab === 'catalog'}">
                                 <div class="glass-effect rounded-lg p-6">
                                     <h3 class="text-xl font-bold mb-4">`analytics` Schema Catalog</h3>
@@ -332,6 +332,7 @@
             },
 
             clearPrevious() {
+                this.state = 'running';
                 this.logs = [];
                 this.visuals = [];
                 this.wizardMessages = [];
@@ -356,8 +357,7 @@
                         if (existingIndex > -1) { this.visuals.splice(existingIndex, 1, newVisual); } 
                         else { this.visuals.push(newVisual); }
                         this.$nextTick(() => {
-                            const visualToUpdate = this.visuals.find(v => v.id === id);
-                            if (visualToUpdate) { visualToUpdate.visible = true; }
+                            this.visuals.find(v => v.id === id).visible = true;
                             lucide.createIcons();
                             if(this.$refs.visualPanel) this.$refs.visualPanel.scrollTop = this.$refs.visualPanel.scrollHeight;
                             resolve();
@@ -372,7 +372,7 @@
                         const newMsg = { id: Date.now() + Math.random(), visible: false, ...msg };
                         this.wizardMessages.push(newMsg);
                         this.$nextTick(() => {
-                           this.wizardMessages[this.wizardMessages.length - 1].visible = true;
+                           this.wizardMessages.find(m => m.id === newMsg.id).visible = true;
                            lucide.createIcons();
                            if(this.$refs.visualPanel) this.$refs.visualPanel.scrollTop = this.$refs.visualPanel.scrollHeight;
                            resolve();
@@ -383,28 +383,48 @@
             
             async runScript() {
                 if (this.scriptRunning) return;
-                this.state = 'running';
                 this.clearPrevious();
                 
                 try {
                     await this.addLog({ level: 'INIT', message: 'Agent activated. Secure connection to `prod_data_warehouse` established.', color: 'text-cyan-400' }, 200);
                     await this.addLog({ level: 'SCAN', message: "Scanning schemas...", color: 'text-gray-400' }, 500);
+                    await this.addVisual('schema', `<div class="p-3 bg-slate-800/50 border border-gray-700 rounded-lg"><h4 class="font-bold text-gray-400 font-fira-code">Schema: analytics</h4><div id="tables-container" class="mt-2 space-y-2"></div></div>`);
                     await this.addLog({ level: 'SCAN', message: "Found 3 schemas: `analytics`, `raw_data`, `staging`", color: 'text-gray-400' }, 500);
                     await this.addLog({ level: 'MAP', message: "Mapping `analytics` schema...", color: 'text-gray-400' }, 300);
+                    
+                    const tablesContainer = this.$refs.visualPanel.querySelector('#tables-container');
+                    
                     await this.addLog({ level: 'DISCOVER', message: 'Found table: `dim_customers` (21 columns)', color: 'text-gray-400' }, 400);
-                    await this.addVisual('table1', `<div class="p-3 bg-slate-800 rounded-lg"><div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>dim_customers</div></div>`, 300);
+                    tablesContainer.innerHTML += '<div id="table-customers" class="p-3 bg-slate-800 rounded-md transition-all duration-300"><div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>dim_customers</div></div>';
+                    lucide.createIcons();
+                    
+                    await this.addLog({ level: 'ANALYZE', message: 'Analyzing `dim_customers`...', color: 'text-gray-400' }, 800);
+                    const customerTable = this.$refs.visualPanel.querySelector('#table-customers');
+                    customerTable.innerHTML += `<div class="mt-3 pt-3 border-t border-gray-700 space-y-2 text-xs">
+                        <p class="text-purple-300"><i data-lucide="brain-circuit" class="w-4 h-4 inline-block mr-1"></i><strong>AI Summary:</strong> Customer profiles, location, and status.</p>
+                        <p><strong>Key Columns:</strong> <span class="inline-flex items-center gap-1"><i data-lucide="key-round" class="w-3 h-3 text-yellow-400"></i>id</span>, <span class="inline-flex items-center gap-1"><i data-lucide="mail" class="w-3 h-3"></i>email</span>, <span class="inline-flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i>signup_date</span></p>
+                        <p><strong>Tags:</strong> <span class="text-xs bg-blue-500/50 text-blue-300 px-2 py-0.5 rounded-full">Dimension</span> <span class="text-xs bg-red-500/50 text-red-300 px-2 py-0.5 rounded-full">PII Detected</span></p>
+                    </div>`;
+                    lucide.createIcons();
 
                     await this.addLog({ level: 'DISCOVER', message: 'Found table: `fact_orders` (15 columns)', color: 'text-gray-400' }, 500);
-                    await this.addVisual('table2', `<div class="p-3 bg-slate-800 rounded-lg"><div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div></div>`, 300);
-
-                    await this.addLog({ level: 'AI-CTX', message: 'Generating business context for `fact_orders`...', color: 'text-purple-400' }, 1200);
-                    await this.addVisual('table2', `<div class="p-3 bg-slate-800 rounded-lg border border-purple-500"><div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div><div class="mt-3 pt-3 border-t border-purple-800 text-purple-300 text-xs flex items-start gap-2"><i data-lucide="brain-circuit" class="w-4 h-4 mt-0.5 flex-shrink-0"></i><div><strong>AI Summary:</strong> Contains transactional order data, including amounts, product IDs, customer IDs, and timestamps. Central table for revenue analysis.</div></div></div>`, 100);
+                    tablesContainer.innerHTML += '<div id="table-orders" class="p-3 bg-slate-800 rounded-md transition-all duration-300"><div class="font-bold flex items-center gap-2"><i data-lucide="table-2"></i>fact_orders</div></div>';
+                    lucide.createIcons();
                     
-                    await this.addLog({ level: 'METADATA', message: 'Analyzing `INFORMATION_SCHEMA` for relationships...', color: 'text-gray-400' }, 1000);
+                    await this.addLog({ level: 'ANALYZE', message: 'Analyzing `fact_orders`...', color: 'text-gray-400' }, 800);
+                    const ordersTable = this.$refs.visualPanel.querySelector('#table-orders');
+                     ordersTable.innerHTML += `<div class="mt-3 pt-3 border-t border-gray-700 space-y-2 text-xs">
+                        <p class="text-purple-300"><i data-lucide="brain-circuit" class="w-4 h-4 inline-block mr-1"></i><strong>AI Summary:</strong> Core table for sales transactions and revenue analysis.</p>
+                        <p><strong>Key Columns:</strong> <span class="inline-flex items-center gap-1"><i data-lucide="key-round" class="w-3 h-3 text-yellow-400"></i>order_id</span>, <span class="inline-flex items-center gap-1"><i data-lucide="dollar-sign" class="w-3 h-3"></i>amount</span>, <span class="inline-flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i>order_date</span></p>
+                        <p><strong>Tags:</strong> <span class="text-xs bg-green-500/50 text-green-300 px-2 py-0.5 rounded-full">Fact Table</span> <span class="text-xs bg-yellow-500/50 text-yellow-300 px-2 py-0.5 rounded-full">High Cardinality</span></p>
+                    </div>`;
+                    lucide.createIcons();
+                    
+                    await this.addLog({ level: 'METADATA', message: 'Analyzing relationships...', color: 'text-gray-400' }, 1000);
                     await this.addLog({ level: 'RELATION', message: 'Detected JOIN key: <span class="text-yellow-400">fact_orders.customer_id</span> -> <span class="text-yellow-400">dim_customers.id</span>', color: 'text-gray-400' }, 800);
-                    await this.addVisual('lineage', `<div class="p-4 bg-slate-800 rounded-lg text-center"><h4 class="font-bold text-sm mb-3 text-cyan-300">Data Lineage View</h4><svg viewBox="0 0 300 60" class="w-full h-auto"><defs><marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#67e8f9"></path></marker></defs><g><rect x="10" y="15" width="100" height="30" rx="5" fill="#1e293b" stroke="#38bdf8"></rect><text x="60" y="35" font-size="10" fill="white" class="font-fira-code">dim_customers</text></g><g><rect x="190" y="15" width="100" height="30" rx="5" fill="#4c1d95" stroke="#a855f7"></rect><text x="240" y="35" font-size="10" fill="white" class="font-fira-code">fact_orders</text></g><path d="M 110 30 L 190 30" stroke="#67e8f9" stroke-width="1.5" marker-end="url(#arrow)" class="lineage-path"></path></svg></div>`, 500);
+                    await this.addVisual('lineage', `<div class="p-4 bg-slate-800/50 border border-gray-700 rounded-lg text-center"><h4 class="font-bold text-sm mb-3 text-cyan-300">Data Lineage</h4><svg viewBox="0 0 300 60" class="w-full h-auto"><defs><marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#67e8f9"></path></marker></defs><g><rect x="10" y="15" width="100" height="30" rx="5" fill="#1e293b" stroke="#38bdf8"></rect><text x="60" y="35" font-size="10" fill="white" class="font-fira-code">dim_customers</text></g><g><rect x="190" y="15" width="100" height="30" rx="5" fill="#1e293b" stroke="#38bdf8"></rect><text x="240" y="35" font-size="10" fill="white" class="font-fira-code">fact_orders</text></g><path d="M 110 30 L 190 30" stroke="#67e8f9" stroke-width="1.5" marker-end="url(#arrow)" class="lineage-path"></path></svg></div>`, 500);
 
-                    await this.addLog({ level: 'OPTIMIZE', message: 'Analyzing query history for inefficiencies...', color: 'text-gray-400' }, 1200);
+                    await this.addLog({ level: 'OPTIMIZE', message: 'Analyzing query history for performance...', color: 'text-gray-400' }, 1200);
                     await this.addLog({ level: 'RECOMMEND', message: 'High-cardinality join on `fact_orders` detected. Recommend creating pre-aggregated daily sales view.', color: 'text-yellow-400' }, 800);
                     
                     await this.addLog({ level: 'COMPLETE', message: 'Cataloging complete. <span class="text-purple-300">WizBI</span> is now enabled.', color: 'text-green-400' }, 1000);
@@ -417,9 +437,11 @@
             
             async runWizardHandoff() {
                 await new Promise(r => setTimeout(r, 1500));
-                await this.addWizardMessage({ author: 'user', text: 'Show me the top 5 products by revenue from fact_orders' }, 500);
+                await this.addWizardMessage({ author: 'user', text: 'Show me the top 5 products by revenue' }, 500);
                 await new Promise(r => setTimeout(r, 1500));
-                await this.addWizardMessage({ author: 'wizbi', text: '<p>Of course. Based on the catalog, here are the top 5 products by revenue:</p><ol class="list-decimal list-inside text-sm mt-2 text-gray-300"><li><strong>Quantum Widget:</strong> $450,230</li><li><strong>Hyper-Module:</strong> $320,100</li><li><strong>Omega Gear:</strong> $280,540</li><li><strong>Nano-Connector:</strong> $190,880</li><li><strong>Zeta Probe:</strong> $150,400</li></ol>' }, 500);
+                const chartHTML = `<div class="space-y-1 mt-2">${[{label: 'Quantum Widget', val: 100}, {label: 'Hyper-Module', val: 71}, {label: 'Omega Gear', val: 62}, {label: 'Nano-Connector', val: 42}, {label: 'Zeta Probe', val: 33}].map(p => `<div class="text-xs text-gray-300"><span class="font-bold w-28 inline-block">${p.label}:</span><span class="inline-block h-4 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-sm wizbi-bar" style="width: ${p.val}px; transform: scaleX(0); transition-delay: ${Math.random()*200}ms;"></span></div>`).join('')}</div>`;
+                await this.addWizardMessage({ author: 'wizbi', text: `<p>Of course. Here are the top 5 products by revenue from the newly cataloged data:</p>${chartHTML}` }, 500);
+                this.$nextTick(() => { this.$refs.visualPanel.querySelectorAll('.wizbi-bar').forEach(bar => bar.style.transform = 'scaleX(1)'); });
             }
         }));
         
