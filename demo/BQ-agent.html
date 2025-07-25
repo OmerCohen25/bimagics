@@ -1,506 +1,483 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BigQuery Autopilot Agent - הדגמה</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>BigQuery Autopilot Demo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <style>
         :root {
-            --g-blue: #1a73e8;
-            --g-green: #1e8e3e;
-            --g-red: #d93025;
-            --g-yellow: #f9ab00;
-            --g-grey-100: #f8f9fa;
-            --g-grey-200: #e8eaed;
-            --g-grey-300: #dadce0;
-            --g-grey-500: #9aa0a6;
-            --g-grey-700: #5f6368;
-            --g-grey-800: #3c4043;
-            --g-grey-900: #202124;
-            --font-main: 'Rubik', 'Roboto', sans-serif;
+            --bg-dark: #131417;
+            --bg-light: #1E1F22;
+            --bg-accent: #2A2C31;
+            --text-primary: #F0F1F1;
+            --text-secondary: #A0A3A8;
+            --brand-blue: #4A80F0;
+            --brand-green: #34A853;
+            --brand-yellow: #f9ab00;
+            --brand-red: #ea4335;
         }
 
-        /* --- Base & Layout --- */
-        body {
+        /* --- Base & Reset --- */
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
             margin: 0;
-            padding: 0;
-            font-family: var(--font-main);
-            background-color: var(--g-grey-100);
-            color: var(--g-grey-900);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+        
+        /* --- Login Screen --- */
+        #login-screen {
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            padding: 20px;
+            text-align: center;
+            background: radial-gradient(circle, #1a1d24, var(--bg-dark));
+            animation: fadeIn 1s ease-in-out;
         }
-
-        .main-container {
-            display: flex;
-            flex-grow: 1;
-            overflow: hidden;
-        }
-
-        /* --- Header --- */
-        .top-bar {
+        .logo-container {
             display: flex;
             align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .logo-container .material-symbols-outlined {
+            font-size: 48px;
+            color: var(--brand-blue);
+        }
+        .logo-container h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0;
+        }
+        #login-screen h2 {
+            font-size: 20px;
+            font-weight: 400;
+            color: var(--text-secondary);
+            max-width: 320px;
+            line-height: 1.5;
+            margin: 0 0 40px 0;
+        }
+        #connect-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 24px;
+            background-color: var(--brand-blue);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        #connect-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(74, 128, 240, 0.2);
+        }
+        #connect-btn img {
+            width: 24px;
+        }
+        
+        /* --- App Shell --- */
+        #app-shell {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            max-width: 450px; /* Mobile device width */
+            margin: 0 auto;
+            background-color: var(--bg-dark);
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        /* --- App Header --- */
+        .app-header {
+            display: flex;
             justify-content: space-between;
-            padding: 8px 20px;
-            background-color: #ffffff;
-            border-bottom: 1px solid var(--g-grey-300);
+            align-items: center;
+            padding: 16px 20px;
+            background-color: var(--bg-light);
             flex-shrink: 0;
         }
-        .top-bar .logo {
-            display: flex;
-            align-items: center;
-            font-size: 22px;
-            font-weight: 500;
+        .app-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
         }
-        .top-bar .logo img {
-            width: 30px;
-            margin-left: 10px;
-        }
-        .top-bar .user-info {
-            display: flex;
-            align-items: center;
-        }
-        .top-bar .user-info .material-symbols-outlined {
-            color: var(--g-grey-700);
-            margin: 0 8px;
-        }
-        .top-bar .user-info .avatar {
-            width: 32px;
-            height: 32px;
+        .app-header .avatar {
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            background-color: var(--g-blue);
-            color: white;
+            background-color: var(--brand-blue);
+        }
+        
+        /* --- Main Content --- */
+        .app-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 24px 20px;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+            animation: slideUp 0.5s ease-out;
+        }
+        h2.section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 20px 0;
+            color: var(--text-secondary);
+        }
+
+        /* --- KPI Cards (Dashboard) --- */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .kpi-card {
+            background-color: var(--bg-light);
+            padding: 16px;
+            border-radius: 12px;
+        }
+        .kpi-card .icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .kpi-card .value {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+        }
+        .kpi-card .label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin: 4px 0 0 0;
+        }
+        .icon.green { color: var(--brand-green); }
+        .icon.blue { color: var(--brand-blue); }
+        .icon.yellow { color: var(--brand-yellow); }
+        .icon.red { color: var(--brand-red); }
+
+        /* --- List Styles (Activity, Recommendations, Catalog) --- */
+        .item-list .item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background-color: var(--bg-light);
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+        .item-list .item-icon {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 500;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--bg-accent);
         }
-
-        /* --- Explorer Panel (Left) --- */
-        .explorer-panel {
-            width: 280px;
-            background-color: #ffffff;
-            border-left: 1px solid var(--g-grey-300);
-            padding: 16px;
-            overflow-y: auto;
-            flex-shrink: 0;
-            transition: width 0.3s;
+        .item-list .item-icon .material-symbols-outlined {
+            font-size: 22px;
         }
-        .explorer-header {
-            font-weight: 500;
-            margin-bottom: 16px;
-            font-size: 14px;
-        }
-        .tree-item {
-            display: flex;
-            align-items: center;
-            padding: 6px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .tree-item:hover {
-            background-color: var(--g-grey-100);
-        }
-        .tree-item.active {
-            background-color: #e8f0fe;
-            color: var(--g-blue);
-            font-weight: 500;
-        }
-        .tree-item .material-symbols-outlined {
-            margin-left: 8px;
-            font-size: 20px;
-        }
-        .tree-item.dataset {
-            margin-top: 12px;
-        }
-        .tree-item.table {
-            padding-right: 24px;
-        }
-        .doc-status {
-            font-size: 11px;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-weight: 500;
-            margin-right: auto;
-        }
-        .doc-status.documented {
-            background-color: #e6f4ea;
-            color: var(--g-green);
-        }
-        .doc-status.missing {
-            background-color: #fce8e6;
-            color: var(--g-red);
-        }
-
-        /* --- Main Content --- */
-        .main-content {
+        .item-list .item-content {
             flex-grow: 1;
-            padding: 24px;
-            overflow-y: auto;
         }
-        .content-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-        .content-header h1 {
-            font-size: 24px;
+        .item-list .item-content p {
             margin: 0;
             font-weight: 500;
+            line-height: 1.4;
         }
-        .content-header .main-cta {
-            background-color: var(--g-blue);
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            transition: background-color 0.3s;
-        }
-        .main-cta:hover {
-            background-color: #185abc;
-        }
-        .main-cta .material-symbols-outlined {
-            margin-left: 8px;
-        }
-
-        /* --- Dashboard Cards --- */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-        }
-        .card {
-            background-color: #ffffff;
-            border: 1px solid var(--g-grey-300);
-            border-radius: 8px;
-            padding: 20px;
-        }
-        .card-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        .card-header .material-symbols-outlined {
-            color: var(--g-blue);
-            margin-left: 12px;
-        }
-        .card-header h3 {
-            margin: 0;
-            font-size: 16px;
-            font-weight: 500;
-        }
-        .stat-card .stat-value {
-            font-size: 36px;
-            font-weight: 500;
-            color: var(--g-green);
-        }
-        .stat-card .stat-label {
-            font-size: 14px;
-            color: var(--g-grey-700);
-        }
-        .stat-card .stat-value.yellow { color: var(--g-yellow); }
-        .stat-card .stat-value.blue { color: var(--g-blue); }
-
-        /* --- Recommendations List --- */
-        .recommendation-list .recommendation-item {
-            display: flex;
-            align-items: flex-start;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--g-grey-200);
-        }
-        .recommendation-list .recommendation-item:last-child {
-            border-bottom: none;
-        }
-        .recommendation-icon {
-            color: var(--g-yellow);
-            margin-left: 16px;
-        }
-        .recommendation-details p {
-            margin: 0;
-            font-weight: 500;
-            font-size: 14px;
-        }
-        .recommendation-details small {
-            color: var(--g-grey-700);
+        .item-list .item-content small {
+            color: var(--text-secondary);
             font-size: 13px;
-        }
-        .recommendation-actions {
-            margin-right: auto;
-            padding-right: 10px;
-        }
-        .approve-btn {
-            background-color: transparent;
-            border: 1px solid var(--g-blue);
-            color: var(--g-blue);
-            padding: 6px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 13px;
-            transition: all 0.2s;
-        }
-        .approve-btn:hover {
-            background-color: #e8f0fe;
-        }
-        .approve-btn.processing {
-            background-color: var(--g-grey-200);
-            border-color: var(--g-grey-300);
-            color: var(--g-grey-700);
-            cursor: wait;
-        }
-        .approve-btn.applied {
-            background-color: #e6f4ea;
-            border-color: var(--g-green);
-            color: var(--g-green);
-            cursor: default;
-        }
-        .approve-btn.applied .material-symbols-outlined { font-size: 16px; vertical-align: middle; }
-
-        /* --- Schema View --- */
-        .schema-view {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        .schema-view th, .schema-view td {
-            text-align: right;
-            padding: 12px;
-            border-bottom: 1px solid var(--g-grey-300);
-        }
-        .schema-view th {
-            font-weight: 500;
-            color: var(--g-grey-700);
-            background-color: var(--g-grey-100);
-        }
-        .schema-view .ai-description {
-            display: flex;
-            align-items: center;
-        }
-        .schema-view .ai-description .material-symbols-outlined {
-            font-size: 18px;
-            color: var(--g-blue);
-            margin-left: 8px;
-        }
-        .schema-view .ai-description span {
-            color: var(--g-grey-800);
         }
         
-        /* --- Mobile Responsiveness --- */
-        @media (max-width: 768px) {
-            .main-container {
-                flex-direction: column;
-            }
-            .explorer-panel {
-                width: 100%;
-                height: auto;
-                border-left: none;
-                border-bottom: 1px solid var(--g-grey-300);
-                max-height: 250px;
-            }
-            .top-bar .logo span { display: none; }
+        /* --- Recommendations Specifics --- */
+        .approve-btn {
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--brand-blue);
+            background-color: rgba(74, 128, 240, 0.1);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
         }
+        .approve-btn.processing, .approve-btn.applied {
+            color: white;
+            pointer-events: none;
+        }
+        .approve-btn.processing { background-color: var(--brand-yellow); }
+        .approve-btn.applied { background-color: var(--brand-green); }
+
+        /* --- Catalog Specifics --- */
+        .catalog-item .status-badge {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+        .catalog-item .status-badge.documented {
+            color: var(--brand-green);
+            background-color: rgba(52, 168, 83, 0.1);
+        }
+        .catalog-item .status-badge.missing {
+            color: var(--brand-red);
+            background-color: rgba(234, 67, 53, 0.1);
+        }
+
+        /* --- Bottom Nav --- */
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            background-color: var(--bg-light);
+            padding: 10px 0;
+            flex-shrink: 0;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: color 0.2s;
+            border: none;
+            background: none;
+        }
+        .nav-item.active {
+            color: var(--brand-blue);
+        }
+        .nav-item .material-symbols-outlined {
+            font-size: 26px;
+        }
+        .nav-item span {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* --- Animations --- */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
     </style>
 </head>
 <body>
 
-    <header class="top-bar">
-        <div class="logo">
-            <img src="https://www.gstatic.com/cloud/images/cloud-logo.svg" alt="Google Cloud">
-            <span>Google Cloud</span>
+    <div id="login-screen">
+        <div class="logo-container">
+            <span class="material-symbols-outlined">auto_awesome</span>
+            <h1>BigQuery Autopilot</h1>
         </div>
-        <div class="user-info">
-            <span class="material-symbols-outlined">help</span>
-            <span class="material-symbols-outlined">notifications</span>
-            <div class="avatar">A</div>
-        </div>
-    </header>
+        <h2>The intelligent layer that optimizes, documents, and secures your data warehouse.</h2>
+        <button id="connect-btn">
+            <img src="https://www.gstatic.com/images/branding/product/1x/google_cloud_48dp.png" alt="Google Cloud Logo">
+            <span>Connect & Activate</span>
+        </button>
+    </div>
 
-    <div class="main-container">
-        <aside class="explorer-panel">
-            <div class="explorer-header">פרויקט: my-company-prod</div>
+    <div id="app-shell">
+        <header class="app-header">
+            <h1>Dashboard</h1>
+            <div class="avatar"></div>
+        </header>
+
+        <main class="app-content">
+
+            <div id="dashboard" class="content-section active">
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <span class="material-symbols-outlined icon green">savings</span>
+                        <p class="value">$4,120</p>
+                        <p class="label">Monthly Savings</p>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="material-symbols-outlined icon blue">description</span>
+                        <p class="value">92%</p>
+                        <p class="label">Doc Coverage</p>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="material-symbols-outlined icon yellow">monitoring</span>
+                        <p class="value">$1.8k</p>
+                        <p class="label">Wasted Spend</p>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="material-symbols-outlined icon red">security</span>
+                        <p class="value">3</p>
+                        <p class="label">Security Alerts</p>
+                    </div>
+                </div>
+
+                <h2 class="section-title">Recent Activity</h2>
+                <div class="item-list">
+                    <div class="item">
+                        <div class="item-icon"><span class="material-symbols-outlined" style="color:var(--brand-green);">task_alt</span></div>
+                        <div class="item-content">
+                            <p>Created Materialized View for `active_users`</p>
+                            <small>Savings: $2,100/mo. Approved 2 hours ago.</small>
+                        </div>
+                    </div>
+                    <div class="item">
+                        <div class="item-icon"><span class="material-symbols-outlined" style="color:var(--brand-blue);">edit_note</span></div>
+                        <div class="item-content">
+                            <p>AI-Generated Docs for `ga_sessions_2024`</p>
+                            <small>32 fields documented. 4 hours ago.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="recommendations" class="content-section">
+                <h2 class="section-title">Pending Recommendations</h2>
+                <div class="item-list">
+                     <div class="item">
+                        <div class="item-icon"><span class="material-symbols-outlined" style="color:var(--brand-yellow);">layers</span></div>
+                        <div class="item-content">
+                            <p>Add Clustering to `ga_sessions_2024`</p>
+                            <small>Savings: <strong>$950/mo</strong>. Will speed up 12 frequent queries.</small>
+                        </div>
+                        <button class="approve-btn" onclick="handleApprove(this)">Approve</button>
+                    </div>
+                    <div class="item">
+                        <div class="item-icon"><span class="material-symbols-outlined" style="color:var(--brand-red);">no_encryption</span></div>
+                        <div class="item-content">
+                            <p>Restrict Access to `temp_report_data`</p>
+                            <small><strong>High-Impact Security Risk.</strong> Publicly accessible table.</small>
+                        </div>
+                        <button class="approve-btn" onclick="handleApprove(this)">Approve</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="catalog" class="content-section">
+                <h2 class="section-title">Data Catalog</h2>
+                 <div class="item-list">
+                    <div class="item catalog-item">
+                        <div class="item-icon"><span class="material-symbols-outlined">database</span></div>
+                        <div class="item-content">
+                            <p>production_logs.user_events</p>
+                        </div>
+                        <span class="status-badge documented">Documented</span>
+                    </div>
+                    <div class="item catalog-item">
+                        <div class="item-icon"><span class="material-symbols-outlined">database</span></div>
+                        <div class="item-content">
+                            <p>marketing.ga_sessions_2024</p>
+                        </div>
+                        <span class="status-badge documented">Documented</span>
+                    </div>
+                    <div class="item catalog-item">
+                        <div class="item-icon"><span class="material-symbols-outlined">database</span></div>
+                        <div class="item-content">
+                            <p>staging.temp_report_data</p>
+                        </div>
+                        <span class="status-badge missing">Missing Docs</span>
+                    </div>
+                </div>
+            </div>
             
-            <div class="tree-item active">
-                <span class="material-symbols-outlined">auto_awesome</span>
-                Autopilot Dashboard
+            <div id="settings" class="content-section">
+                 <h2 class="section-title">Settings</h2>
+                 <div class="item-list">
+                    <div class="item">
+                        <div class="item-icon"><span class="material-symbols-outlined">person</span></div>
+                        <p>Profile</p>
+                    </div>
+                     <div class="item">
+                        <div class="item-icon"><span class="material-symbols-outlined">notifications</span></div>
+                        <p>Notifications</p>
+                    </div>
+                 </div>
             </div>
 
-            <div class="tree-item dataset">
-                <span class="material-symbols-outlined">database</span>
-                <strong>production_logs</strong>
-            </div>
-            <div class="tree-item table">
-                <span class="material-symbols-outlined">table</span>
-                user_events
-                <span class="doc-status documented">מתועד</span>
-            </div>
-            <div class="tree-item table">
-                <span class="material-symbols-outlined">table</span>
-                app_errors
-                <span class="doc-status documented">מתועד</span>
-            </div>
-
-            <div class="tree-item dataset">
-                <span class="material-symbols-outlined">database</span>
-                <strong>marketing_analytics</strong>
-            </div>
-            <div class="tree-item table">
-                <span class="material-symbols-outlined">table</span>
-                campaign_performance
-                <span class="doc-status documented">מתועד</span>
-            </div>
-            <div class="tree-item table">
-                <span class="material-symbols-outlined">table</span>
-                ga_sessions_2024
-                <span class="doc-status missing">חסר תיעוד</span>
-            </div>
-             <div class="tree-item table">
-                <span class="material-symbols-outlined">table</span>
-                temp_report_data
-                <span class="doc-status missing">חסר תיעוד</span>
-            </div>
-        </aside>
-
-        <main class="main-content">
-            <div class="content-header">
-                <h1>Autopilot Dashboard</h1>
-                <a href="#" class="main-cta">
-                    הפעל סריקה חדשה
-                    <span class="material-symbols-outlined">play_arrow</span>
-                </a>
-            </div>
-
-            <div class="dashboard-grid">
-                <div class="card stat-card">
-                    <div class="card-header">
-                        <span class="material-symbols-outlined">savings</span>
-                        <h3>חיסכון חודשי מוערך</h3>
-                    </div>
-                    <p class="stat-value">$4,120</p>
-                    <p class="stat-label">על בסיס המלצות שאושרו</p>
-                </div>
-                <div class="card stat-card">
-                    <div class="card-header">
-                        <span class="material-symbols-outlined">description</span>
-                        <h3>כיסוי תיעוד</h3>
-                    </div>
-                    <p class="stat-value blue">92%</p>
-                    <p class="stat-label">עלייה של 40% מהשבוע שעבר</p>
-                </div>
-                <div class="card stat-card">
-                    <div class="card-header">
-                        <span class="material-symbols-outlined">monitoring</span>
-                        <h3>עלות סריקה מבוזבזת</h3>
-                    </div>
-                    <p class="stat-value yellow">$1,850</p>
-                    <p class="stat-label">זוהתה ב-30 הימים האחרונים</p>
-                </div>
-            </div>
-
-            <div class="card" style="margin-top: 24px;">
-                <div class="card-header">
-                    <span class="material-symbols-outlined">recommend</span>
-                    <h3>המלצות לביצוע מיידי</h3>
-                </div>
-                <div class="recommendation-list">
-                    <div class="recommendation-item">
-                        <span class="material-symbols-outlined recommendation-icon">layers</span>
-                        <div class="recommendation-details">
-                            <p>הוספת Clustering לטבלת `ga_sessions_2024` לפי `user_pseudo_id`</p>
-                            <small>חיסכון מוערך: <strong>$950 לחודש</strong>. יאיץ 12 שאילתות נפוצות.</small>
-                        </div>
-                        <div class="recommendation-actions">
-                            <button class="approve-btn" onclick="handleApprove(this)">אשר</button>
-                        </div>
-                    </div>
-                    <div class="recommendation-item">
-                        <span class="material-symbols-outlined recommendation-icon">view_cozy</span>
-                        <div class="recommendation-details">
-                            <p>יצירת Materialized View עבור דשבורד המשתמשים הפעילים</p>
-                            <small>חיסכון מוערך: <strong>$2,100 לחודש</strong>. יקטין עלות סריקה ב-99%.</small>
-                        </div>
-                         <div class="recommendation-actions">
-                            <button class="approve-btn" onclick="handleApprove(this)">אשר</button>
-                        </div>
-                    </div>
-                    <div class="recommendation-item">
-                        <span class="material-symbols-outlined recommendation-icon">edit_note</span>
-                        <div class="recommendation-details">
-                            <p>הוספת תיאורים אוטומטיים (AI) לטבלת `temp_report_data`</p>
-                            <small>יחסוך זמן עבודה לאנליסטים וימנע טעויות.</small>
-                        </div>
-                         <div class="recommendation-actions">
-                            <button class="approve-btn" onclick="handleApprove(this)">אשר</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card" style="margin-top: 24px;">
-                <div class="card-header">
-                    <span class="material-symbols-outlined">schema</span>
-                    <h3>תיעוד אוטומטי לדוגמה: `campaign_performance`</h3>
-                </div>
-                <table class="schema-view">
-                    <thead>
-                        <tr>
-                            <th>שדה</th>
-                            <th>סוג</th>
-                            <th>תיאור (נוצר ע"י AI)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>campaign_id</td>
-                            <td>STRING</td>
-                            <td class="ai-description"><span class="material-symbols-outlined">auto_awesome</span><span>מזהה ייחודי של הקמפיין הפרסומי.</span></td>
-                        </tr>
-                        <tr>
-                            <td>event_date</td>
-                            <td>DATE</td>
-                            <td class="ai-description"><span class="material-symbols-outlined">auto_awesome</span><span>התאריך בו נרשם האירוע.</span></td>
-                        </tr>
-                        <tr>
-                            <td>spend</td>
-                            <td>FLOAT</td>
-                            <td class="ai-description"><span class="material-symbols-outlined">auto_awesome</span><span>הסכום שהוצא על הקמפיין ביום האירוע.</span></td>
-                        </tr>
-                        <tr>
-                            <td>clicks</td>
-                            <td>INTEGER</td>
-                            <td class="ai-description"><span class="material-symbols-outlined">auto_awesome</span><span>מספר ההקלקות שהתקבלו.</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
         </main>
+
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-page="dashboard">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span>Dashboard</span>
+            </button>
+            <button class="nav-item" data-page="recommendations">
+                <span class="material-symbols-outlined">recommend</span>
+                <span>Actions</span>
+            </button>
+            <button class="nav-item" data-page="catalog">
+                <span class="material-symbols-outlined">source_environment</span>
+                <span>Catalog</span>
+            </button>
+            <button class="nav-item" data-page="settings">
+                <span class="material-symbols-outlined">settings</span>
+                <span>Settings</span>
+            </button>
+        </nav>
     </div>
 
     <script>
+        // --- Login Screen to App Shell Transition ---
+        const connectBtn = document.getElementById('connect-btn');
+        const loginScreen = document.getElementById('login-screen');
+        const appShell = document.getElementById('app-shell');
+
+        connectBtn.addEventListener('click', () => {
+            loginScreen.style.display = 'none';
+            appShell.style.display = 'flex';
+        });
+
+        // --- Bottom Navigation Logic ---
+        const navItems = document.querySelectorAll('.nav-item');
+        const contentSections = document.querySelectorAll('.content-section');
+        const headerTitle = document.querySelector('.app-header h1');
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const page = item.dataset.page;
+                
+                // Update active tab
+                navItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+
+                // Update content
+                contentSections.forEach(s => s.classList.remove('active'));
+                document.getElementById(page).classList.add('active');
+
+                // Update header title
+                headerTitle.textContent = page.charAt(0).toUpperCase() + page.slice(1);
+            });
+        });
+        
+        // --- Interactive 'Approve' Button Logic ---
         function handleApprove(button) {
             button.classList.add('processing');
-            button.textContent = 'מעבד...';
-            button.disabled = true;
+            button.textContent = 'Processing...';
 
             setTimeout(() => {
                 button.classList.remove('processing');
                 button.classList.add('applied');
-                button.innerHTML = '<span class="material-symbols-outlined">check</span> בוצע';
+                button.textContent = 'Applied';
             }, 1500);
         }
-    </script>
 
+    </script>
 </body>
 </html>
