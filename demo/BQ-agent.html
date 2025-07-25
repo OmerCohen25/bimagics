@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Autopilot Agent</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            background-color: #ffffff;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #1a1a1a;
+            line-height: 1.2;
+        }
+        h1 {
+            font-size: 2.5rem;
+        }
+        h2 {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        section {
+            padding: 60px 0;
+        }
+        .text-center {
+            text-align: center;
+        }
+        hr {
+            border: 0;
+            height: 1px;
+            background: #e0e0e0;
+            margin: 60px 0;
+        }
+
+        /* Call-to-action Button */
+        .cta-button {
+            background-color: #4285F4;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            display: inline-block;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .cta-button:hover {
+            background-color: #3367D6;
+            transform: translateY(-2px);
+        }
+        .cta-button.green {
+            background-color: #34A853;
+        }
+        .cta-button.green:hover {
+            background-color: #2c8e43;
+        }
+
+        /* Header */
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+            background-color: #f8f9fa;
+        }
+        .hero h1 {
+            margin-bottom: 15px;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto 30px auto;
+            color: #5f6368;
+        }
+        .hero small {
+            color: #5f6368;
+        }
+
+        /* KPI Section */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            text-align: center;
+        }
+        .kpi-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+        }
+        .kpi-card h3 {
+            margin-top: 0;
+            font-size: 1.1rem;
+            color: #3c4043;
+        }
+        .kpi-card .before {
+            color: #d93025;
+            text-decoration: line-through;
+            font-size: 1.1rem;
+        }
+        .kpi-card .after {
+            color: #1e8e3e;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        .kpi-card .arrow {
+            font-size: 2rem;
+            color: #5f6368;
+            margin: 10px 0;
+        }
+
+        /* How It Works Section */
+        .how-it-works-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+        .step {
+            display: flex;
+            align-items: flex-start;
+        }
+        .step-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4285F4;
+            margin-right: 15px;
+            line-height: 1;
+        }
+        .step h4 {
+            margin: 0 0 5px 0;
+        }
+        .step p {
+            margin: 0;
+            color: #5f6368;
+        }
+
+        /* Interactive Demo */
+        .demo-container {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #e0e0e0;
+        }
+        .demo-header {
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .demo-header h3 {
+            margin: 0;
+        }
+        .recommendation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .recommendation:last-child {
+            border-bottom: none;
+        }
+        .recommendation-content strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .recommendation-content small {
+            color: #5f6368;
+            display: block;
+        }
+        .recommendation-actions {
+            display: flex;
+            flex-shrink: 0;
+            margin-left: 15px;
+        }
+        .recommendation-actions button {
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 8px;
+            font-size: 0.9rem;
+        }
+        .approve-btn { background-color: #28a745; }
+        .skip-btn { background-color: #6c757d; }
+        .approve-btn:disabled { background-color: #1e8e3e; cursor: not-allowed; }
+        .savings { color: #1e8e3e; font-weight: bold; }
+
+        /* Security Section */
+        .security-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        .security-feature {
+            background-color: #e8f0fe;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid #4285F4;
+        }
+        .security-feature h4 {
+            margin-top: 0;
+        }
+        
+        /* Pricing Section */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        .pricing-tier {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+        }
+        .pricing-tier h3 { font-size: 1.5rem; }
+        .pricing-tier .price { font-size: 2.2rem; font-weight: bold; margin: 15px 0; color: #4285F4; }
+        .pricing-tier ul { list-style: none; padding: 0; margin: 20px 0; text-align: left; flex-grow: 1; }
+        .pricing-tier li { margin-bottom: 10px; }
+        .pricing-tier li::before { content: '✅'; margin-right: 10px; color: #34A853; }
+        .pricing-tier.popular {
+            border: 2px solid #4285F4;
+            position: relative;
+        }
+        .popular-badge {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4285F4;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #f8f9fa;
+            padding: 40px 0;
+            margin-top: 60px;
+            text-align: center;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.7rem; }
+            .hero { padding: 60px 20px; }
+            .recommendation { flex-direction: column; align-items: flex-start; }
+            .recommendation-actions { margin-top: 15px; margin-left: 0; }
+            .pricing-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="hero">
+        <div class="container">
+            <h1>From BigQuery Chaos to Clarity. <strong>Automatically.</strong> 🚀</h1>
+            <p>The autonomous agent that maps, documents, and optimizes your data warehouse—safely inside your GCP project.</p>
+            <a href="#connect" class="cta-button">Connect BigQuery & Get a Free Analysis</a>
+            <p><small>Secure 5-minute setup | No credit card required</small></p>
+        </div>
+    </header>
+
+    <main>
+        <section id="kpis">
+            <div class="container">
+                <h2>The DataOps Revolution Starts Now</h2>
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <h3>Time to Find Data</h3>
+                        <p class="before">Hours of digging</p>
+                        <p class="arrow">↓</p>
+                        <p class="after">Seconds</p>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>BigQuery Scan Cost</h3>
+                        <p class="before">100% of Current Cost</p>
+                        <p class="arrow">↓</p>
+                        <p class="after">30-70% Savings</p>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Documentation Quality</h3>
+                        <p class="before">Sparse & Outdated</p>
+                        <p class="arrow">↓</p>
+                        <p class="after">100% AI Coverage</p>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Analyst Onboarding</h3>
+                        <p class="before">Weeks of Friction</p>
+                        <p class="arrow">↓</p>
+                        <p class="after">One Productive Day</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="how-it-works">
+            <div class="container">
+                <h2>How the Magic Happens: A Simple, Automated Loop</h2>
+                <div class="how-it-works-grid">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div>
+                            <h4>Scan & Profile</h4>
+                            <p>Agent maps your `INFORMATION_SCHEMA` to understand data structure and volume.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div>
+                            <h4>Smart Usage Analysis</h4>
+                            <p>Mines query history to find expensive joins, popular tables, and hidden patterns.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div>
+                            <h4>AI-Powered Enrichment</h4>
+                            <p>In-built Gemini LLM generates clear descriptions for all tables and columns automatically.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div>
+                            <h4>Generate Recommendations</h4>
+                            <p>Creates a prioritized list of optimizations (Clustering, MVs, etc.) based on impact.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">5</div>
+                        <div>
+                            <h4>You Approve. We Act.</h4>
+                            <p><strong>Nothing changes without your say.</strong> Review, approve, or skip every suggestion in the UI.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">6</div>
+                        <div>
+                            <h4>Execute & Document</h4>
+                            <p>Upon approval, the agent runs the required DDL and updates the data catalog in real-time.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="demo">
+            <div class="container">
+                <h2>Interactive Demo: Your Recommendations Center</h2>
+                <div class="demo-container">
+                    <div class="demo-header">
+                        <h3>Actionable Recommendations</h3>
+                        <p>Projected Monthly Savings: <strong class="savings" id="totalSavings">$2,450</strong></p>
+                    </div>
+                    <div class="recommendation" data-savings="1200">
+                        <div class="recommendation-content">
+                            <strong>Create Materialized View for Sales Dashboard</strong>
+                            <small><strong>Reason:</strong> This query runs 250+ times/day. A Materialized View will reduce scan costs by 98%.</small>
+                            <small class="savings">Projected Savings: ~$1,200 / month</small>
+                        </div>
+                        <div class="recommendation-actions">
+                            <button class="approve-btn">Approve</button>
+                            <button class="skip-btn">Skip</button>
+                        </div>
+                    </div>
+                    <div class="recommendation" data-savings="450"> <div class="recommendation-content">
+                            <strong>Add AI Descriptions to `orders_2024_new`</strong>
+                            <small><strong>Reason:</strong> High-use table with zero documentation. Descriptions will boost productivity for 5 analysts.</small>
+                            <small class="savings">Projected Savings: ~15 work-hours / month</small>
+                        </div>
+                        <div class="recommendation-actions">
+                             <button class="approve-btn">Approve</button>
+                             <button class="skip-btn">Skip</button>
+                        </div>
+                    </div>
+                    <div class="recommendation" data-savings="800">
+                        <div class="recommendation-content">
+                            <strong>Re-partition `user_events` Table by MONTH</strong>
+                            <small><strong>Reason:</strong> Table is partitioned by DAY, but 90% of queries filter by MONTH, causing wasted scans.</small>
+                            <small class="savings">Projected Savings: ~$800 / month</small>
+                        </div>
+                        <div class="recommendation-actions">
+                             <button class="approve-btn">Approve</button>
+                             <button class="skip-btn">Skip</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <hr>
+
+        <section id="security">
+            <div class="container">
+                <h2>Built for Uncompromising Security & Control 🔒</h2>
+                <div class="security-grid">
+                    <div class="security-feature">
+                        <h4>Zero Data Egress</h4>
+                        <p>100% of the code, metadata, and LLM calls stay within your GCP project. Your data never leaves.</p>
+                    </div>
+                    <div class="security-feature">
+                        <h4>Least-Privilege IAM</h4>
+                        <p>The agent uses a Service Account with the absolute minimum permissions required. No "Owner" roles needed.</p>
+                    </div>
+                    <div class="security-feature">
+                        <h4>Built-in Budget Guard</h4>
+                        <p>Every action is dry-run to estimate costs first. Set alerts to prevent any surprises.</p>
+                    </div>
+                     <div class="security-feature">
+                        <h4>Complete Auditability</h4>
+                        <p>Every DDL change is logged, signed, and fully tracked. You always know who approved what and when.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="pricing">
+            <div class="container">
+                <h2>Find Your Perfect Plan</h2>
+                <div class="pricing-grid">
+                    <div class="pricing-tier">
+                        <h3>Free Diagnostic</h3>
+                        <p class="price">$0</p>
+                        <p>An instant scan and initial findings report.</p>
+                        <ul>
+                            <li>Scan up to 100 GB</li>
+                            <li>Projected ROI Report (PDF)</li>
+                            <li>Identifies top costly tables</li>
+                            <li>No DDL changes executed</li>
+                        </ul>
+                        <a href="#connect" class="cta-button">Start for Free</a>
+                    </div>
+                    <div class="pricing-tier popular">
+                        <div class="popular-badge">Most Popular</div>
+                        <h3>Pro</h3>
+                        <p class="price">Usage-Based</p>
+                        <p>Continuous optimization loop and live catalog.</p>
+                        <ul>
+                            <li><strong>Everything in Free</strong></li>
+                            <li>Full optimization loop</li>
+                            <li>Interactive Approval Center</li>
+                            <li>Live & updated data catalog</li>
+                            <li>Automated semantic layer</li>
+                        </ul>
+                        <a href="#connect" class="cta-button">Choose Pro</a>
+                    </div>
+                    <div class="pricing-tier">
+                        <h3>Enterprise</h3>
+                        <p class="price">Custom</p>
+                        <p>The complete solution for complex organizations.</p>
+                        <ul>
+                            <li><strong>Everything in Pro</strong></li>
+                            <li>DW Re-Design Report</li>
+                            <li>SSO & VPC-SC Support</li>
+                            <li>Dedicated 24/7 Support</li>
+                            <li>Guaranteed SLA</li>
+                        </ul>
+                        <a href="#connect" class="cta-button">Contact Us</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    
+    <footer id="connect">
+        <div class="container">
+            <h2>Ready to Put Your BigQuery on Autopilot?</h2>
+            <p>Setup takes 5 minutes. Connect with your Google account, grant permissions, and get your first report.</p>
+            <br>
+            <a href="#" class="cta-button green">🚀 Connect BigQuery & Start Saving Now!</a>
+            <p><small>Secured with Firebase Auth & Google Cloud IAM. No manual keys needed.</small></p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const approveButtons = document.querySelectorAll('.approve-btn');
+            const skipButtons = document.querySelectorAll('.skip-btn');
+
+            approveButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    this.textContent = 'Approved ✅';
+                    this.disabled = true;
+                    // Optional: also disable the corresponding skip button
+                    this.closest('.recommendation-actions').querySelector('.skip-btn').disabled = true;
+                });
+            });
+
+            skipButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const recommendationCard = this.closest('.recommendation');
+                    recommendationCard.style.opacity = '0.5';
+                    recommendationCard.style.transition = 'opacity 0.5s';
+                    // Optional: disable both buttons
+                    this.disabled = true;
+                    this.closest('.recommendation-actions').querySelector('.approve-btn').disabled = true;
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
