@@ -1,527 +1,505 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BigQuery Autopilot Agent</title>
+    <title>BigQuery Autopilot Agent - הדגמה</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <style>
-        /* General Styles */
+        :root {
+            --g-blue: #1a73e8;
+            --g-green: #1e8e3e;
+            --g-red: #d93025;
+            --g-yellow: #f9ab00;
+            --g-grey-100: #f8f9fa;
+            --g-grey-200: #e8eaed;
+            --g-grey-300: #dadce0;
+            --g-grey-500: #9aa0a6;
+            --g-grey-700: #5f6368;
+            --g-grey-800: #3c4043;
+            --g-grey-900: #202124;
+            --font-main: 'Rubik', 'Roboto', sans-serif;
+        }
+
+        /* --- Base & Layout --- */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
             margin: 0;
-            background-color: #ffffff;
-        }
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        h1, h2, h3 {
-            color: #1a1a1a;
-            line-height: 1.2;
-        }
-        h1 {
-            font-size: 2.5rem;
-        }
-        h2 {
-            font-size: 2rem;
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        section {
-            padding: 60px 0;
-        }
-        .text-center {
-            text-align: center;
-        }
-        hr {
-            border: 0;
-            height: 1px;
-            background: #e0e0e0;
-            margin: 60px 0;
-        }
-
-        /* Call-to-action Button */
-        .cta-button {
-            background-color: #4285F4;
-            color: white;
-            padding: 15px 30px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            display: inline-block;
-            transition: background-color 0.3s, transform 0.3s;
-        }
-        .cta-button:hover {
-            background-color: #3367D6;
-            transform: translateY(-2px);
-        }
-        .cta-button.green {
-            background-color: #34A853;
-        }
-        .cta-button.green:hover {
-            background-color: #2c8e43;
-        }
-
-        /* Header */
-        .hero {
-            text-align: center;
-            padding: 80px 20px;
-            background-color: #f8f9fa;
-        }
-        .hero h1 {
-            margin-bottom: 15px;
-        }
-        .hero p {
-            font-size: 1.2rem;
-            max-width: 600px;
-            margin: 0 auto 30px auto;
-            color: #5f6368;
-        }
-        .hero small {
-            color: #5f6368;
-        }
-
-        /* KPI Section */
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            text-align: center;
-        }
-        .kpi-card {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 8px;
-        }
-        .kpi-card h3 {
-            margin-top: 0;
-            font-size: 1.1rem;
-            color: #3c4043;
-        }
-        .kpi-card .before {
-            color: #d93025;
-            text-decoration: line-through;
-            font-size: 1.1rem;
-        }
-        .kpi-card .after {
-            color: #1e8e3e;
-            font-weight: bold;
-            font-size: 1.5rem;
-        }
-        .kpi-card .arrow {
-            font-size: 2rem;
-            color: #5f6368;
-            margin: 10px 0;
-        }
-
-        /* How It Works Section */
-        .how-it-works-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
-        }
-        .step {
+            padding: 0;
+            font-family: var(--font-main);
+            background-color: var(--g-grey-100);
+            color: var(--g-grey-900);
             display: flex;
-            align-items: flex-start;
-        }
-        .step-number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #4285F4;
-            margin-right: 15px;
-            line-height: 1;
-        }
-        .step h4 {
-            margin: 0 0 5px 0;
-        }
-        .step p {
-            margin: 0;
-            color: #5f6368;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        /* Interactive Demo */
-        .demo-container {
-            background-color: #f5f5f5;
-            border-radius: 8px;
-            padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
-            border: 1px solid #e0e0e0;
+        .main-container {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
         }
-        .demo-header {
-            text-align: center;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #e0e0e0;
+
+        /* --- Header --- */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 20px;
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--g-grey-300);
+            flex-shrink: 0;
         }
-        .demo-header h3 {
-            margin: 0;
+        .top-bar .logo {
+            display: flex;
+            align-items: center;
+            font-size: 22px;
+            font-weight: 500;
         }
-        .recommendation {
+        .top-bar .logo img {
+            width: 30px;
+            margin-left: 10px;
+        }
+        .top-bar .user-info {
+            display: flex;
+            align-items: center;
+        }
+        .top-bar .user-info .material-symbols-outlined {
+            color: var(--g-grey-700);
+            margin: 0 8px;
+        }
+        .top-bar .user-info .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--g-blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+        }
+
+        /* --- Explorer Panel (Left) --- */
+        .explorer-panel {
+            width: 280px;
+            background-color: #ffffff;
+            border-left: 1px solid var(--g-grey-300);
+            padding: 16px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            transition: width 0.3s;
+        }
+        .explorer-header {
+            font-weight: 500;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        .tree-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .tree-item:hover {
+            background-color: var(--g-grey-100);
+        }
+        .tree-item.active {
+            background-color: #e8f0fe;
+            color: var(--g-blue);
+            font-weight: 500;
+        }
+        .tree-item .material-symbols-outlined {
+            margin-left: 8px;
+            font-size: 20px;
+        }
+        .tree-item.dataset {
+            margin-top: 12px;
+        }
+        .tree-item.table {
+            padding-right: 24px;
+        }
+        .doc-status {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 500;
+            margin-right: auto;
+        }
+        .doc-status.documented {
+            background-color: #e6f4ea;
+            color: var(--g-green);
+        }
+        .doc-status.missing {
+            background-color: #fce8e6;
+            color: var(--g-red);
+        }
+
+        /* --- Main Content --- */
+        .main-content {
+            flex-grow: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+        .content-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 24px;
         }
-        .recommendation:last-child {
-            border-bottom: none;
+        .content-header h1 {
+            font-size: 24px;
+            margin: 0;
+            font-weight: 500;
         }
-        .recommendation-content strong {
-            display: block;
-            margin-bottom: 5px;
-        }
-        .recommendation-content small {
-            color: #5f6368;
-            display: block;
-        }
-        .recommendation-actions {
-            display: flex;
-            flex-shrink: 0;
-            margin-left: 15px;
-        }
-        .recommendation-actions button {
-            border: none;
+        .content-header .main-cta {
+            background-color: var(--g-blue);
             color: white;
-            padding: 8px 12px;
+            padding: 10px 20px;
+            text-decoration: none;
             border-radius: 5px;
-            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        .main-cta:hover {
+            background-color: #185abc;
+        }
+        .main-cta .material-symbols-outlined {
             margin-left: 8px;
-            font-size: 0.9rem;
         }
-        .approve-btn { background-color: #28a745; }
-        .skip-btn { background-color: #6c757d; }
-        .approve-btn:disabled { background-color: #1e8e3e; cursor: not-allowed; }
-        .savings { color: #1e8e3e; font-weight: bold; }
 
-        /* Security Section */
-        .security-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-        }
-        .security-feature {
-            background-color: #e8f0fe;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 5px solid #4285F4;
-        }
-        .security-feature h4 {
-            margin-top: 0;
-        }
-        
-        /* Pricing Section */
-        .pricing-grid {
+        /* --- Dashboard Cards --- */
+        .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
+            gap: 24px;
         }
-        .pricing-tier {
-            border: 1px solid #ccc;
+        .card {
+            background-color: #ffffff;
+            border: 1px solid var(--g-grey-300);
             border-radius: 8px;
-            padding: 30px;
-            text-align: center;
+            padding: 20px;
+        }
+        .card-header {
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            margin-bottom: 16px;
         }
-        .pricing-tier h3 { font-size: 1.5rem; }
-        .pricing-tier .price { font-size: 2.2rem; font-weight: bold; margin: 15px 0; color: #4285F4; }
-        .pricing-tier ul { list-style: none; padding: 0; margin: 20px 0; text-align: left; flex-grow: 1; }
-        .pricing-tier li { margin-bottom: 10px; }
-        .pricing-tier li::before { content: '✅'; margin-right: 10px; color: #34A853; }
-        .pricing-tier.popular {
-            border: 2px solid #4285F4;
-            position: relative;
+        .card-header .material-symbols-outlined {
+            color: var(--g-blue);
+            margin-left: 12px;
         }
-        .popular-badge {
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #4285F4;
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: bold;
+        .card-header h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 500;
         }
+        .stat-card .stat-value {
+            font-size: 36px;
+            font-weight: 500;
+            color: var(--g-green);
+        }
+        .stat-card .stat-label {
+            font-size: 14px;
+            color: var(--g-grey-700);
+        }
+        .stat-card .stat-value.yellow { color: var(--g-yellow); }
+        .stat-card .stat-value.blue { color: var(--g-blue); }
 
-        /* Footer */
-        footer {
-            background-color: #f8f9fa;
-            padding: 40px 0;
-            margin-top: 60px;
-            text-align: center;
+        /* --- Recommendations List --- */
+        .recommendation-list .recommendation-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--g-grey-200);
         }
+        .recommendation-list .recommendation-item:last-child {
+            border-bottom: none;
+        }
+        .recommendation-icon {
+            color: var(--g-yellow);
+            margin-left: 16px;
+        }
+        .recommendation-details p {
+            margin: 0;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .recommendation-details small {
+            color: var(--g-grey-700);
+            font-size: 13px;
+        }
+        .recommendation-actions {
+            margin-right: auto;
+            padding-right: 10px;
+        }
+        .approve-btn {
+            background-color: transparent;
+            border: 1px solid var(--g-blue);
+            color: var(--g-blue);
+            padding: 6px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .approve-btn:hover {
+            background-color: #e8f0fe;
+        }
+        .approve-btn.processing {
+            background-color: var(--g-grey-200);
+            border-color: var(--g-grey-300);
+            color: var(--g-grey-700);
+            cursor: wait;
+        }
+        .approve-btn.applied {
+            background-color: #e6f4ea;
+            border-color: var(--g-green);
+            color: var(--g-green);
+            cursor: default;
+        }
+        .approve-btn.applied .material-symbols-outlined { font-size: 16px; vertical-align: middle; }
 
-        /* Mobile Responsiveness */
+        /* --- Schema View --- */
+        .schema-view {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .schema-view th, .schema-view td {
+            text-align: right;
+            padding: 12px;
+            border-bottom: 1px solid var(--g-grey-300);
+        }
+        .schema-view th {
+            font-weight: 500;
+            color: var(--g-grey-700);
+            background-color: var(--g-grey-100);
+        }
+        .schema-view .ai-description {
+            display: flex;
+            align-items: center;
+        }
+        .schema-view .ai-description .material-symbols-outlined {
+            font-size: 18px;
+            color: var(--g-blue);
+            margin-left: 8px;
+        }
+        .schema-view .ai-description span {
+            color: var(--g-grey-800);
+        }
+        
+        /* --- Mobile Responsiveness --- */
         @media (max-width: 768px) {
-            h1 { font-size: 2rem; }
-            h2 { font-size: 1.7rem; }
-            .hero { padding: 60px 20px; }
-            .recommendation { flex-direction: column; align-items: flex-start; }
-            .recommendation-actions { margin-top: 15px; margin-left: 0; }
-            .pricing-grid { grid-template-columns: 1fr; }
+            .main-container {
+                flex-direction: column;
+            }
+            .explorer-panel {
+                width: 100%;
+                height: auto;
+                border-left: none;
+                border-bottom: 1px solid var(--g-grey-300);
+                max-height: 250px;
+            }
+            .top-bar .logo span { display: none; }
         }
+
     </style>
 </head>
 <body>
 
-    <header class="hero">
-        <div class="container">
-            <h1>From BigQuery Chaos to Clarity. <strong>Automatically.</strong> 🚀</h1>
-            <p>The autonomous agent that maps, documents, and optimizes your data warehouse—safely inside your GCP project.</p>
-            <a href="#connect" class="cta-button">Connect BigQuery & Get a Free Analysis</a>
-            <p><small>Secure 5-minute setup | No credit card required</small></p>
+    <header class="top-bar">
+        <div class="logo">
+            <img src="https://www.gstatic.com/cloud/images/cloud-logo.svg" alt="Google Cloud">
+            <span>Google Cloud</span>
+        </div>
+        <div class="user-info">
+            <span class="material-symbols-outlined">help</span>
+            <span class="material-symbols-outlined">notifications</span>
+            <div class="avatar">A</div>
         </div>
     </header>
 
-    <main>
-        <section id="kpis">
-            <div class="container">
-                <h2>The DataOps Revolution Starts Now</h2>
-                <div class="kpi-grid">
-                    <div class="kpi-card">
-                        <h3>Time to Find Data</h3>
-                        <p class="before">Hours of digging</p>
-                        <p class="arrow">↓</p>
-                        <p class="after">Seconds</p>
+    <div class="main-container">
+        <aside class="explorer-panel">
+            <div class="explorer-header">פרויקט: my-company-prod</div>
+            
+            <div class="tree-item active">
+                <span class="material-symbols-outlined">auto_awesome</span>
+                Autopilot Dashboard
+            </div>
+
+            <div class="tree-item dataset">
+                <span class="material-symbols-outlined">database</span>
+                <strong>production_logs</strong>
+            </div>
+            <div class="tree-item table">
+                <span class="material-symbols-outlined">table</span>
+                user_events
+                <span class="doc-status documented">מתועד</span>
+            </div>
+            <div class="tree-item table">
+                <span class="material-symbols-outlined">table</span>
+                app_errors
+                <span class="doc-status documented">מתועד</span>
+            </div>
+
+            <div class="tree-item dataset">
+                <span class="material-symbols-outlined">database</span>
+                <strong>marketing_analytics</strong>
+            </div>
+            <div class="tree-item table">
+                <span class="material-symbols-outlined">table</span>
+                campaign_performance
+                <span class="doc-status documented">מתועד</span>
+            </div>
+            <div class="tree-item table">
+                <span class="material-symbols-outlined">table</span>
+                ga_sessions_2024
+                <span class="doc-status missing">חסר תיעוד</span>
+            </div>
+             <div class="tree-item table">
+                <span class="material-symbols-outlined">table</span>
+                temp_report_data
+                <span class="doc-status missing">חסר תיעוד</span>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="content-header">
+                <h1>Autopilot Dashboard</h1>
+                <a href="#" class="main-cta">
+                    הפעל סריקה חדשה
+                    <span class="material-symbols-outlined">play_arrow</span>
+                </a>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card stat-card">
+                    <div class="card-header">
+                        <span class="material-symbols-outlined">savings</span>
+                        <h3>חיסכון חודשי מוערך</h3>
                     </div>
-                    <div class="kpi-card">
-                        <h3>BigQuery Scan Cost</h3>
-                        <p class="before">100% of Current Cost</p>
-                        <p class="arrow">↓</p>
-                        <p class="after">30-70% Savings</p>
+                    <p class="stat-value">$4,120</p>
+                    <p class="stat-label">על בסיס המלצות שאושרו</p>
+                </div>
+                <div class="card stat-card">
+                    <div class="card-header">
+                        <span class="material-symbols-outlined">description</span>
+                        <h3>כיסוי תיעוד</h3>
                     </div>
-                    <div class="kpi-card">
-                        <h3>Documentation Quality</h3>
-                        <p class="before">Sparse & Outdated</p>
-                        <p class="arrow">↓</p>
-                        <p class="after">100% AI Coverage</p>
+                    <p class="stat-value blue">92%</p>
+                    <p class="stat-label">עלייה של 40% מהשבוע שעבר</p>
+                </div>
+                <div class="card stat-card">
+                    <div class="card-header">
+                        <span class="material-symbols-outlined">monitoring</span>
+                        <h3>עלות סריקה מבוזבזת</h3>
                     </div>
-                    <div class="kpi-card">
-                        <h3>Analyst Onboarding</h3>
-                        <p class="before">Weeks of Friction</p>
-                        <p class="arrow">↓</p>
-                        <p class="after">One Productive Day</p>
-                    </div>
+                    <p class="stat-value yellow">$1,850</p>
+                    <p class="stat-label">זוהתה ב-30 הימים האחרונים</p>
                 </div>
             </div>
-        </section>
 
-        <hr>
-
-        <section id="how-it-works">
-            <div class="container">
-                <h2>How the Magic Happens: A Simple, Automated Loop</h2>
-                <div class="how-it-works-grid">
-                    <div class="step">
-                        <div class="step-number">1</div>
-                        <div>
-                            <h4>Scan & Profile</h4>
-                            <p>Agent maps your `INFORMATION_SCHEMA` to understand data structure and volume.</p>
-                        </div>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">2</div>
-                        <div>
-                            <h4>Smart Usage Analysis</h4>
-                            <p>Mines query history to find expensive joins, popular tables, and hidden patterns.</p>
-                        </div>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">3</div>
-                        <div>
-                            <h4>AI-Powered Enrichment</h4>
-                            <p>In-built Gemini LLM generates clear descriptions for all tables and columns automatically.</p>
-                        </div>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">4</div>
-                        <div>
-                            <h4>Generate Recommendations</h4>
-                            <p>Creates a prioritized list of optimizations (Clustering, MVs, etc.) based on impact.</p>
-                        </div>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">5</div>
-                        <div>
-                            <h4>You Approve. We Act.</h4>
-                            <p><strong>Nothing changes without your say.</strong> Review, approve, or skip every suggestion in the UI.</p>
-                        </div>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">6</div>
-                        <div>
-                            <h4>Execute & Document</h4>
-                            <p>Upon approval, the agent runs the required DDL and updates the data catalog in real-time.</p>
-                        </div>
-                    </div>
+            <div class="card" style="margin-top: 24px;">
+                <div class="card-header">
+                    <span class="material-symbols-outlined">recommend</span>
+                    <h3>המלצות לביצוע מיידי</h3>
                 </div>
-            </div>
-        </section>
-
-        <hr>
-
-        <section id="demo">
-            <div class="container">
-                <h2>Interactive Demo: Your Recommendations Center</h2>
-                <div class="demo-container">
-                    <div class="demo-header">
-                        <h3>Actionable Recommendations</h3>
-                        <p>Projected Monthly Savings: <strong class="savings" id="totalSavings">$2,450</strong></p>
-                    </div>
-                    <div class="recommendation" data-savings="1200">
-                        <div class="recommendation-content">
-                            <strong>Create Materialized View for Sales Dashboard</strong>
-                            <small><strong>Reason:</strong> This query runs 250+ times/day. A Materialized View will reduce scan costs by 98%.</small>
-                            <small class="savings">Projected Savings: ~$1,200 / month</small>
+                <div class="recommendation-list">
+                    <div class="recommendation-item">
+                        <span class="material-symbols-outlined recommendation-icon">layers</span>
+                        <div class="recommendation-details">
+                            <p>הוספת Clustering לטבלת `ga_sessions_2024` לפי `user_pseudo_id`</p>
+                            <small>חיסכון מוערך: <strong>$950 לחודש</strong>. יאיץ 12 שאילתות נפוצות.</small>
                         </div>
                         <div class="recommendation-actions">
-                            <button class="approve-btn">Approve</button>
-                            <button class="skip-btn">Skip</button>
+                            <button class="approve-btn" onclick="handleApprove(this)">אשר</button>
                         </div>
                     </div>
-                    <div class="recommendation" data-savings="450"> <div class="recommendation-content">
-                            <strong>Add AI Descriptions to `orders_2024_new`</strong>
-                            <small><strong>Reason:</strong> High-use table with zero documentation. Descriptions will boost productivity for 5 analysts.</small>
-                            <small class="savings">Projected Savings: ~15 work-hours / month</small>
+                    <div class="recommendation-item">
+                        <span class="material-symbols-outlined recommendation-icon">view_cozy</span>
+                        <div class="recommendation-details">
+                            <p>יצירת Materialized View עבור דשבורד המשתמשים הפעילים</p>
+                            <small>חיסכון מוערך: <strong>$2,100 לחודש</strong>. יקטין עלות סריקה ב-99%.</small>
                         </div>
-                        <div class="recommendation-actions">
-                             <button class="approve-btn">Approve</button>
-                             <button class="skip-btn">Skip</button>
+                         <div class="recommendation-actions">
+                            <button class="approve-btn" onclick="handleApprove(this)">אשר</button>
                         </div>
                     </div>
-                    <div class="recommendation" data-savings="800">
-                        <div class="recommendation-content">
-                            <strong>Re-partition `user_events` Table by MONTH</strong>
-                            <small><strong>Reason:</strong> Table is partitioned by DAY, but 90% of queries filter by MONTH, causing wasted scans.</small>
-                            <small class="savings">Projected Savings: ~$800 / month</small>
+                    <div class="recommendation-item">
+                        <span class="material-symbols-outlined recommendation-icon">edit_note</span>
+                        <div class="recommendation-details">
+                            <p>הוספת תיאורים אוטומטיים (AI) לטבלת `temp_report_data`</p>
+                            <small>יחסוך זמן עבודה לאנליסטים וימנע טעויות.</small>
                         </div>
-                        <div class="recommendation-actions">
-                             <button class="approve-btn">Approve</button>
-                             <button class="skip-btn">Skip</button>
+                         <div class="recommendation-actions">
+                            <button class="approve-btn" onclick="handleApprove(this)">אשר</button>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
-        
-        <hr>
 
-        <section id="security">
-            <div class="container">
-                <h2>Built for Uncompromising Security & Control 🔒</h2>
-                <div class="security-grid">
-                    <div class="security-feature">
-                        <h4>Zero Data Egress</h4>
-                        <p>100% of the code, metadata, and LLM calls stay within your GCP project. Your data never leaves.</p>
-                    </div>
-                    <div class="security-feature">
-                        <h4>Least-Privilege IAM</h4>
-                        <p>The agent uses a Service Account with the absolute minimum permissions required. No "Owner" roles needed.</p>
-                    </div>
-                    <div class="security-feature">
-                        <h4>Built-in Budget Guard</h4>
-                        <p>Every action is dry-run to estimate costs first. Set alerts to prevent any surprises.</p>
-                    </div>
-                     <div class="security-feature">
-                        <h4>Complete Auditability</h4>
-                        <p>Every DDL change is logged, signed, and fully tracked. You always know who approved what and when.</p>
-                    </div>
+            <div class="card" style="margin-top: 24px;">
+                <div class="card-header">
+                    <span class="material-symbols-outlined">schema</span>
+                    <h3>תיעוד אוטומטי לדוגמה: `campaign_performance`</h3>
                 </div>
+                <table class="schema-view">
+                    <thead>
+                        <tr>
+                            <th>שדה</th>
+                            <th>סוג</th>
+                            <th>תיאור (נוצר ע"י AI)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>campaign_id</td>
+                            <td>STRING</td>
+                            <td class="ai-description"><span class="material-symbols-outlined">auto_awesome</span><span>מזהה ייחודי של הקמפיין הפרסומי.</span></td>
+                        </tr>
+                        <tr>
+                            <td>event_date</td>
+                            <td>DATE</td>
+                            <td class="ai-description"><span class="material-symbols-outlined">auto_awesome</span><span>התאריך בו נרשם האירוע.</span></td>
+                        </tr>
+                        <tr>
+                            <td>spend</td>
+                            <td>FLOAT</td>
+                            <td class="ai-description"><span class="material-symbols-outlined">auto_awesome</span><span>הסכום שהוצא על הקמפיין ביום האירוע.</span></td>
+                        </tr>
+                        <tr>
+                            <td>clicks</td>
+                            <td>INTEGER</td>
+                            <td class="ai-description"><span class="material-symbols-outlined">auto_awesome</span><span>מספר ההקלקות שהתקבלו.</span></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-        </section>
-
-        <hr>
-
-        <section id="pricing">
-            <div class="container">
-                <h2>Find Your Perfect Plan</h2>
-                <div class="pricing-grid">
-                    <div class="pricing-tier">
-                        <h3>Free Diagnostic</h3>
-                        <p class="price">$0</p>
-                        <p>An instant scan and initial findings report.</p>
-                        <ul>
-                            <li>Scan up to 100 GB</li>
-                            <li>Projected ROI Report (PDF)</li>
-                            <li>Identifies top costly tables</li>
-                            <li>No DDL changes executed</li>
-                        </ul>
-                        <a href="#connect" class="cta-button">Start for Free</a>
-                    </div>
-                    <div class="pricing-tier popular">
-                        <div class="popular-badge">Most Popular</div>
-                        <h3>Pro</h3>
-                        <p class="price">Usage-Based</p>
-                        <p>Continuous optimization loop and live catalog.</p>
-                        <ul>
-                            <li><strong>Everything in Free</strong></li>
-                            <li>Full optimization loop</li>
-                            <li>Interactive Approval Center</li>
-                            <li>Live & updated data catalog</li>
-                            <li>Automated semantic layer</li>
-                        </ul>
-                        <a href="#connect" class="cta-button">Choose Pro</a>
-                    </div>
-                    <div class="pricing-tier">
-                        <h3>Enterprise</h3>
-                        <p class="price">Custom</p>
-                        <p>The complete solution for complex organizations.</p>
-                        <ul>
-                            <li><strong>Everything in Pro</strong></li>
-                            <li>DW Re-Design Report</li>
-                            <li>SSO & VPC-SC Support</li>
-                            <li>Dedicated 24/7 Support</li>
-                            <li>Guaranteed SLA</li>
-                        </ul>
-                        <a href="#connect" class="cta-button">Contact Us</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-    </main>
-    
-    <footer id="connect">
-        <div class="container">
-            <h2>Ready to Put Your BigQuery on Autopilot?</h2>
-            <p>Setup takes 5 minutes. Connect with your Google account, grant permissions, and get your first report.</p>
-            <br>
-            <a href="#" class="cta-button green">🚀 Connect BigQuery & Start Saving Now!</a>
-            <p><small>Secured with Firebase Auth & Google Cloud IAM. No manual keys needed.</small></p>
-        </div>
-    </footer>
+        </main>
+    </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const approveButtons = document.querySelectorAll('.approve-btn');
-            const skipButtons = document.querySelectorAll('.skip-btn');
+        function handleApprove(button) {
+            button.classList.add('processing');
+            button.textContent = 'מעבד...';
+            button.disabled = true;
 
-            approveButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    this.textContent = 'Approved ✅';
-                    this.disabled = true;
-                    // Optional: also disable the corresponding skip button
-                    this.closest('.recommendation-actions').querySelector('.skip-btn').disabled = true;
-                });
-            });
-
-            skipButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const recommendationCard = this.closest('.recommendation');
-                    recommendationCard.style.opacity = '0.5';
-                    recommendationCard.style.transition = 'opacity 0.5s';
-                    // Optional: disable both buttons
-                    this.disabled = true;
-                    this.closest('.recommendation-actions').querySelector('.approve-btn').disabled = true;
-                });
-            });
-        });
+            setTimeout(() => {
+                button.classList.remove('processing');
+                button.classList.add('applied');
+                button.innerHTML = '<span class="material-symbols-outlined">check</span> בוצע';
+            }, 1500);
+        }
     </script>
 
 </body>
