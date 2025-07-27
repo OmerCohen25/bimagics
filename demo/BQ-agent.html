@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Warehouse Autopilot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>BigQuery Autopilot Demo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -15,22 +15,14 @@
             --bg-accent: #2A2C31;
             --text-primary: #F0F1F1;
             --text-secondary: #A0A3A8;
+            --brand-blue: #4A80F0;
+            --brand-green: #34A853;
+            --brand-yellow: #f9ab00;
+            --brand-red: #ea4335;
             --border-color: #33353A;
-            --success-green: #34A853;
-            --warning-yellow: #f9ab00;
-            --danger-red: #ea4335;
-
-            /* Default to BigQuery Theme */
-            --brand-primary: #4A80F0;
-            --logo-symbol: 'auto_awesome';
         }
 
-        body[data-theme='snowflake'] {
-            --brand-primary: #29B5E8;
-            --logo-symbol: 'ac_unit';
-        }
-
-        /* --- Base, Reset & A11y --- */
+        /* --- Base & Reset --- */
         * { box-sizing: border-box; }
         html, body {
             height: 100%;
@@ -38,174 +30,135 @@
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-primary);
+            overflow: hidden;
         }
-        /* For keyboard navigation, show a clear focus outline */
-        :focus-visible {
-            outline: 2px solid var(--brand-primary);
-            outline-offset: 2px;
-            border-radius: 4px;
-        }
-
-
-        /* --- Main Layout & Screen Transitions --- */
-        #app-container {
-            display: flex;
-            height: 100%;
-            width: 100%;
-        }
-
+        
+        /* --- Screens --- */
         .screen {
             display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
             height: 100%;
-            position: fixed;
+            width: 100%;
+            position: absolute;
             top: 0;
             left: 0;
-            padding: 20px;
-            text-align: center;
             opacity: 1;
             transition: opacity 0.5s ease-out;
-            z-index: 100;
         }
         .screen.hidden {
             opacity: 0;
             pointer-events: none;
-            z-index: -1;
         }
 
-        /* --- Choice Screen --- */
-        #choice-screen {
+        /* --- Login Screen --- */
+        #login-screen {
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
             background: radial-gradient(circle, #1a1d24, var(--bg-dark));
         }
         .logo-container { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
-        .logo-container .material-symbols-outlined { font-size: 48px; color: var(--text-primary); }
+        .logo-container .material-symbols-outlined { font-size: 48px; color: var(--brand-blue); }
         .logo-container h1 { font-size: 28px; font-weight: 600; margin: 0; }
-        #choice-screen h2 { font-size: 20px; font-weight: 400; color: var(--text-secondary); max-width: 320px; line-height: 1.5; margin: 0 0 40px 0; }
-        .choice-buttons { display: grid; grid-template-columns: 1fr; gap: 16px; width: 100%; max-width: 320px; }
-        .choice-btn { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 18px 24px; border: 1px solid var(--border-color); color: var(--text-primary); background-color: var(--bg-light); border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
-        .choice-btn:not(:disabled):hover { transform: translateY(-3px); border-color: var(--brand-primary); }
-        .choice-btn img { height: 32px; }
-        .choice-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .choice-btn:disabled .soon-badge { font-size: 10px; font-weight: 700; background-color: var(--warning-yellow); color: var(--bg-dark); padding: 2px 6px; border-radius: 4px; margin-left: auto; }
+        #login-screen h2 { font-size: 20px; font-weight: 400; color: var(--text-secondary); max-width: 320px; line-height: 1.5; margin: 0 0 40px 0; }
+        #connect-btn { display: flex; align-items: center; gap: 12px; padding: 14px 24px; background-color: var(--brand-blue); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        #connect-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(74, 128, 240, 0.2); }
+        #connect-btn img { width: 24px; }
 
         /* --- Loader Screen --- */
-        #loader-screen { gap: 20px; background-color: var(--bg-dark); z-index: 90; }
-        .scanner .body { width: 100px; height: 100px; background-color: color-mix(in srgb, var(--brand-primary) 10%, transparent); border-radius: 50%; border: 1px solid var(--brand-primary); }
-        .scanner .beam { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background: conic-gradient(from 0deg, transparent, var(--brand-primary), transparent); animation: rotate 2s linear infinite; }
-        #loader-text { font-size: 16px; color: var(--text-secondary); transition: opacity 0.3s; }
-
-        /* --- Main App Shell (Responsive) --- */
-        #side-nav { display: none; /* Hidden on mobile */ }
-        #app-shell {
-            display: flex;
+        #loader-screen {
             flex-direction: column;
-            width: 100%;
-            height: 100%;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
             background-color: var(--bg-dark);
         }
+        .scanner { width: 100px; height: 100px; position: relative; }
+        .scanner .body { width: 100%; height: 100%; background-color: rgba(74, 128, 240, 0.1); border-radius: 50%; border: 1px solid var(--brand-blue); }
+        .scanner .beam { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background: conic-gradient(from 0deg, transparent, var(--brand-blue), transparent); animation: rotate 2s linear infinite; }
+        #loader-screen p { font-size: 16px; color: var(--text-secondary); }
+
+        /* --- App Shell --- */
+        #app-shell {
+            flex-direction: column;
+            width: 100%;
+            max-width: 450px; /* Mobile device width */
+            margin: 0 auto;
+            background-color: var(--bg-dark);
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
         .app-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background-color: var(--bg-light); border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
-        .app-header h1 { font-size: 20px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px; }
-        .app-header h1 .material-symbols-outlined { color: var(--brand-primary); font-size: 28px; }
-        .app-header .avatar { width: 36px; height: 36px; border-radius: 50%; background-color: var(--brand-primary); }
+        .app-header h1 { font-size: 20px; font-weight: 600; margin: 0; }
+        .app-header .avatar { width: 36px; height: 36px; border-radius: 50%; background-color: var(--brand-blue); }
         .app-content { flex-grow: 1; overflow-y: auto; padding: 24px 20px; }
-        .content-section.hidden { display: none; }
-        .content-section { animation: slideUp 0.5s ease-out; }
+        .content-section { display: none; }
+        .content-section.active { display: block; animation: slideUp 0.5s ease-out; }
         h2.section-title { font-size: 18px; font-weight: 600; margin: 0 0 20px 0; color: var(--text-secondary); }
-        
-        #bottom-nav { display: flex; /* Visible on mobile */ }
 
-        /* --- Responsive Design --- */
-        @media (min-width: 768px) {
-            .choice-buttons { grid-template-columns: 1fr 1fr; max-width: 660px; }
-            .kpi-grid { grid-template-columns: repeat(4, 1fr) !important; }
-        }
-
-        @media (min-width: 1024px) {
-            #bottom-nav { display: none; } /* Hide bottom nav on desktop */
-            #side-nav {
-                display: flex;
-                flex-direction: column;
-                padding: 20px 12px;
-                background-color: var(--bg-light);
-                border-right: 1px solid var(--border-color);
-                align-items: center;
-                gap: 16px;
-            }
-            #app-shell { flex-grow: 1; }
-            .app-header { border-bottom: 1px solid var(--border-color); }
-        }
-
-        /* --- Reusable Components & Cards --- */
+        /* --- Reusable Components --- */
         .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 30px; }
-        .kpi-card { background-color: var(--bg-light); padding: 16px; border-radius: 12px; text-align: left; }
+        .kpi-card { background-color: var(--bg-light); padding: 16px; border-radius: 12px; }
         .kpi-card .icon { font-size: 28px; margin-bottom: 8px; }
         .kpi-card .value { font-size: 24px; font-weight: 700; margin: 0; }
         .kpi-card .label { font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0; }
-        .icon.green { color: var(--success-green); } .icon.blue { color: var(--brand-primary); } .icon.yellow { color: var(--warning-yellow); } .icon.red { color: var(--danger-red); }
+        .icon.green { color: var(--brand-green); } .icon.blue { color: var(--brand-blue); } .icon.yellow { color: var(--brand-yellow); } .icon.red { color: var(--brand-red); }
 
-        .item-list .item { display: flex; align-items: center; gap: 16px; padding: 16px; background-color: var(--bg-light); border-radius: 12px; margin-bottom: 12px; text-align: left;}
+        .item-list .item { display: flex; align-items: center; gap: 16px; padding: 16px; background-color: var(--bg-light); border-radius: 12px; margin-bottom: 12px; }
         .item-list .item-icon { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background-color: var(--bg-accent); flex-shrink: 0; }
         .item-list .item-icon .material-symbols-outlined { font-size: 22px; }
         .item-list .item-content { flex-grow: 1; }
         .item-list .item-content p { margin: 0; font-weight: 500; line-height: 1.4; }
         .item-list .item-content small { color: var(--text-secondary); font-size: 13px; }
-        .approve-btn { padding: 8px 16px; font-size: 14px; font-weight: 600; color: var(--brand-primary); background-color: color-mix(in srgb, var(--brand-primary) 15%, transparent); border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
-        .approve-btn.processing { background-color: var(--warning-yellow); color: var(--bg-dark); }
-        .approve-btn.applied { background-color: var(--success-green); color: white; }
-        .approve-btn.processing, .approve-btn.applied { pointer-events: none; }
+        .approve-btn { padding: 8px 16px; font-size: 14px; font-weight: 600; color: var(--brand-blue); background-color: rgba(74, 128, 240, 0.1); border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .approve-btn.processing, .approve-btn.applied { color: white; pointer-events: none; }
+        .approve-btn.processing { background-color: var(--brand-yellow); } .approve-btn.applied { background-color: var(--brand-green); }
 
-        /* --- Navigation (Side & Bottom) --- */
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-secondary); cursor: pointer; transition: color 0.2s; border: none; background: none; padding: 8px; width: 64px; }
-        .nav-item.active { color: var(--brand-primary); }
+        /* --- Chat Interface --- */
+        #chat .content-wrapper { display: flex; flex-direction: column; height: 100%; }
+        .chat-history { flex-grow: 1; overflow-y: auto; margin-bottom: 16px; }
+        .chat-message { display: flex; margin-bottom: 16px; max-width: 90%; }
+        .chat-message .icon { font-size: 24px; margin-right: 12px; }
+        .chat-message .text { background-color: var(--bg-light); padding: 12px 16px; border-radius: 18px; line-height: 1.5; }
+        .chat-message.user { margin-left: auto; flex-direction: row-reverse; }
+        .chat-message.user .text { background-color: var(--brand-blue); color: white; }
+        .chat-message.user .icon { margin-left: 12px; margin-right: 0; }
+        .chat-prompts { flex-shrink: 0; }
+        .prompt-btn { width: 100%; background-color: var(--bg-accent); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px; border-radius: 8px; margin-bottom: 8px; text-align: right; cursor: pointer; transition: background-color 0.2s; }
+        .prompt-btn:hover { background-color: var(--border-color); }
+        .prompt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* --- Settings --- */
+        .settings-card { background-color: var(--bg-light); padding: 20px; border-radius: 12px; margin-bottom: 24px; }
+        .settings-card h3 { display: flex; align-items: center; gap: 8px; font-size: 16px; margin: 0 0 16px 0; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
+        .settings-card p, .settings-card code { margin: 0 0 8px 0; color: var(--text-secondary); line-height: 1.6; }
+        .settings-card code { background-color: var(--bg-accent); padding: 2px 6px; border-radius: 4px; color: var(--text-primary); }
+
+        /* --- Bottom Nav --- */
+        .bottom-nav { display: flex; justify-content: space-around; background-color: var(--bg-light); border-top: 1px solid var(--border-color); padding: 10px 0; flex-shrink: 0; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-secondary); cursor: pointer; transition: color 0.2s; border: none; background: none; }
+        .nav-item.active { color: var(--brand-blue); }
         .nav-item .material-symbols-outlined { font-size: 26px; }
         .nav-item span { font-size: 11px; font-weight: 500; }
-        #bottom-nav { justify-content: space-around; background-color: var(--bg-light); border-top: 1px solid var(--border-color); padding: 10px 0; flex-shrink: 0; width:100%; }
 
-        /* --- Share Modal & Growth --- */
-        #share-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; backdrop-filter: blur(5px); }
-        #share-modal { background: var(--bg-light); padding: 24px; border-radius: 16px; max-width: 400px; width: calc(100% - 40px); border: 1px solid var(--border-color); text-align: center; }
-        #share-modal h3 { margin: 0 0 16px; }
-        #share-modal p { color: var(--text-secondary); margin: 0 0 24px; }
-        #share-image { width: 100%; border-radius: 8px; margin-bottom: 24px; background-color: var(--bg-accent); padding: 20px; }
-        .close-btn { background: var(--bg-accent); color: var(--text-primary); border: none; border-radius: 8px; padding: 10px 16px; cursor: pointer; }
-        
         /* --- Animations --- */
         @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
     </style>
 </head>
 <body>
 
-    <div id="choice-screen" class="screen">
+    <div id="login-screen" class="screen">
         <div class="logo-container">
-            <span class="material-symbols-outlined">hub</span>
-            <h1>Data Warehouse Autopilot</h1>
+            <span class="material-symbols-outlined">auto_awesome</span>
+            <h1>BigQuery Autopilot</h1>
         </div>
-        <h2>The intelligent layer that optimizes, documents, and secures your data warehouse. Select your platform to begin.</h2>
-        <div class="choice-buttons">
-            <button class="choice-btn" data-platform="snowflake">
-                <img src="https://logowik.com/content/uploads/images/snowflake-inc6222.jpg" alt="Snowflake Logo">
-                <span>Connect Snowflake</span>
-            </button>
-            <button class="choice-btn" data-platform="bigquery">
-                <img src="https://www.gstatic.com/images/branding/product/1x/google_cloud_48dp.png" alt="Google Cloud Logo">
-                <span>Connect BigQuery</span>
-            </button>
-             <button class="choice-btn" data-platform="redshift" disabled>
-                <img src="https://cdn.worldvectorlogo.com/logos/aws-redshift.svg" alt="Redshift Logo">
-                <span>Connect Redshift</span>
-                <span class="soon-badge">SOON</span>
-            </button>
-            <button class="choice-btn" data-platform="databricks" disabled>
-                <img src="https://www.databricks.com/wp-content/uploads/2022/07/databricks-logo.svg" alt="Databricks Logo">
-                <span>Connect Databricks</span>
-                <span class="soon-badge">SOON</span>
-            </button>
-        </div>
+        <h2>The intelligent layer that optimizes, documents, and secures your data warehouse.</h2>
+        <button id="connect-btn">
+            <img src="https://www.gstatic.com/images/branding/product/1x/google_cloud_48dp.png" alt="Google Cloud Logo">
+            <span>Connect & Activate</span>
+        </button>
     </div>
 
     <div id="loader-screen" class="screen hidden">
@@ -213,254 +166,156 @@
             <div class="body"></div>
             <div class="beam"></div>
         </div>
-        <p id="loader-text">Initializing...</p>
+        <p>Scanning your BigQuery project...</p>
     </div>
 
-    <div id="app-container" class="hidden">
-        <nav id="side-nav">
-            </nav>
+    <div id="app-shell" class="screen hidden">
+        <header class="app-header">
+            <h1 id="header-title">Dashboard</h1>
+            <div class="avatar"></div>
+        </header>
 
-        <div id="app-shell">
-            <header class="app-header">
-                <h1 id="header-title-container"><span class="material-symbols-outlined" id="header-logo"></span><span id="header-title"></span></h1>
-                <div class="avatar"></div>
-            </header>
+        <main class="app-content">
+            <div id="dashboard" class="content-section active">
+                <div class="kpi-grid">
+                    <div class="kpi-card"><span class="material-symbols-outlined icon green">savings</span><p class="value">$4,120</p><p class="label">Monthly Savings</p></div>
+                    <div class="kpi-card"><span class="material-symbols-outlined icon blue">description</span><p class="value">92%</p><p class="label">Doc Coverage</p></div>
+                    <div class="kpi-card"><span class="material-symbols-outlined icon yellow">monitoring</span><p class="value">$1.8k</p><p class="label">Wasted Spend</p></div>
+                    <div class="kpi-card"><span class="material-symbols-outlined icon red">security</span><p class="value">3</p><p class="label">Security Alerts</p></div>
+                </div>
+                <h2 class="section-title">Recent Activity</h2>
+                <div class="item-list">
+                    <div class="item"><div class="item-icon"><span class="material-symbols-outlined" style="color:var(--brand-green);">task_alt</span></div><div class="item-content"><p>Created Materialized View for `active_users`</p><small>Savings: $2,100/mo. Approved 2 hours ago.</small></div></div>
+                    <div class="item"><div class="item-icon"><span class="material-symbols-outlined" style="color:var(--brand-red);">gpp_bad</span></div><div class="item-content"><p>Applied access policy to `temp_report_data`</p><small>High-impact security risk resolved.</small></div></div>
+                    <div class="item"><div class="item-icon"><span class="material-symbols-outlined" style="color:var(--brand-blue);">edit_note</span></div><div class="item-content"><p>AI-Generated Docs for `ga_sessions_2024`</p><small>32 fields documented. 4 hours ago.</small></div></div>
+                </div>
+            </div>
 
-            <main class="app-content">
-                </main>
+            <div id="actions" class="content-section">
+                <h2 class="section-title">Pending Actions</h2>
+                <div class="item-list">
+                     <div class="item"><div class="item-icon"><span class="material-symbols-outlined" style="color:var(--brand-yellow);">layers</span></div><div class="item-content"><p>Add Clustering to `ga_sessions_2024`</p><small>Savings: <strong>$950/mo</strong>. Will speed up 12 frequent queries.</small></div><button class="approve-btn" onclick="handleApprove(this)">Approve</button></div>
+                     <div class="item"><div class="item-icon"><span class="material-symbols-outlined" style="color:var(--brand-yellow);">archive</span></div><div class="item-content"><p>Archive Unused Table `old_logs_2022`</p><small>Savings: <strong>$50/mo</strong> in storage costs. Not queried in 180 days.</small></div><button class="approve-btn" onclick="handleApprove(this)">Approve</button></div>
+                </div>
+            </div>
 
-            <nav id="bottom-nav">
-                </nav>
-        </div>
+            <div id="chat" class="content-section">
+                <div class="content-wrapper">
+                    <div class="chat-history" id="chat-history">
+                        <div class="chat-message ai"><span class="material-symbols-outlined icon">auto_awesome</span><div class="text">Hi! I'm your data warehouse AI assistant. How can I help you today?</div></div>
+                    </div>
+                    <div class="chat-prompts" id="chat-prompts">
+                        <h2 class="section-title">Suggested Prompts</h2>
+                        <button class="prompt-btn" onclick="askQuestion(this)">Which are my most expensive queries?</button>
+                        <button class="prompt-btn" onclick="askQuestion(this)">Why is the `ga_sessions` table so slow?</button>
+                        <button class="prompt-btn" onclick="askQuestion(this)">Suggest a description for the `temp_report` table.</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="settings" class="content-section">
+                 <h2 class="section-title">Configuration</h2>
+                 <div class="settings-card">
+                    <h3><span class="material-symbols-outlined">key</span>Required Permissions</h3>
+                    <p>Autopilot runs securely inside your project using a dedicated Service Account with the minimum required roles:</p>
+                    <code>roles/bigquery.admin</code>
+                    <p>To analyze queries, create materialized views, and apply optimizations you approve.</p>
+                    <code>roles/datastore.user</code>
+                    <p>To manage recommendations and maintain state safely within Firestore.</p>
+                 </div>
+                 <div class="settings-card">
+                    <h3><span class="material-symbols-outlined">link</span>Connection Method</h3>
+                    <p>Connection is established securely via <strong>Google Sign-In (OAuth 2.0)</strong> and <strong>Workload Identity Federation</strong>.</p>
+                    <p>This is a modern, keyless method that eliminates the need for manual service account keys, enhancing your project's security.</p>
+                 </div>
+            </div>
+        </main>
+
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-page="dashboard"><span class="material-symbols-outlined">dashboard</span><span>Dashboard</span></button>
+            <button class="nav-item" data-page="actions"><span class="material-symbols-outlined">recommend</span><span>Actions</span></button>
+            <button class="nav-item" data-page="chat"><span class="material-symbols-outlined">chat_bubble</span><span>AI Chat</span></button>
+            <button class="nav-item" data-page="settings"><span class="material-symbols-outlined">settings</span><span>Settings</span></button>
+        </nav>
     </div>
-    
-    <div id="share-modal-overlay" class="screen hidden">
-        <div id="share-modal">
-             <h3>Share Your Success!</h3>
-             <p>Let your team know about the savings and optimizations achieved.</p>
-             <div id="share-image">
-                <p style="font-size: 24px; font-weight: bold;" id="share-kpi-value"></p>
-                <p style="font-size: 16px; color: var(--text-secondary);" id="share-kpi-label"></p>
-             </div>
-             <button class="close-btn" id="close-share-modal">Close</button>
-        </div>
-    </div>
-
 
     <script>
-    // --- PLATFORM CONFIGURATION & DUMMY API LAYER ---
-    // This structure makes adding new platforms (like Redshift) a "plug-in" action.
-    // We are simulating a real API layer to make the transition to a backend easier.
-
-    const platforms = {
-        bigquery: {
-            name: "BigQuery",
-            theme: "bigquery",
-            kpis: [
-                { id: 'savings', icon: 'savings', color: 'green', value: '$4,120', label: 'Monthly Savings' },
-                { id: 'docs', icon: 'description', color: 'blue', value: '92%', label: 'Doc Coverage' },
-                { id: 'waste', icon: 'monitoring', color: 'yellow', value: '$1.8k', label: 'Wasted Spend' },
-                { id: 'security', icon: 'security', color: 'red', value: '3', label: 'Security Alerts' }
-            ],
-            actions: [
-                { icon: 'layers', color: 'var(--warning-yellow)', title: 'Add Clustering to `ga_sessions_2024`', subtitle: 'Savings: <strong>$950/mo</strong>. Will speed up 12 frequent queries.' },
-                { icon: 'archive', color: 'var(--warning-yellow)', title: 'Archive Unused Table `old_logs_2022`', subtitle: 'Savings: <strong>$50/mo</strong> in storage costs. Not queried in 180 days.' }
-            ]
-        },
-        snowflake: {
-            name: "Snowflake",
-            theme: "snowflake",
-            kpis: [
-                { id: 'savings', icon: 'savings', color: 'green', value: '850', label: 'Monthly Credits Saved' },
-                { id: 'docs', icon: 'description', color: 'blue', value: '78%', label: 'Comment Coverage' },
-                { id: 'waste', icon: 'power_off', color: 'yellow', value: '2', label: 'Idle Warehouses' },
-                { id: 'security', icon: 'security', color: 'red', value: '5', label: 'Security Alerts' }
-            ],
-            actions: [
-                { icon: 'layers', color: 'var(--warning-yellow)', title: 'Add Clustering Key to `FCT_SALES`', subtitle: 'Savings: <strong>150 Credits/mo</strong>. Will speed up 8 dashboards.' },
-                { icon: 'pause_circle', color: 'var(--warning-yellow)', title: 'Suspend Idle Warehouse `DEV_WH`', subtitle: 'Cost: <strong>~24 Credits/day</strong>. Warehouse has been idle for 48 hours.' }
-            ]
-        }
-    };
-
-    const dummyApi = {
-        fetchData: async (platformKey, dataType) => {
-            // Simulate network latency
-            const delay = 500 + Math.random() * 500;
-            await new Promise(resolve => setTimeout(resolve, delay));
-            if (platforms[platformKey] && platforms[platformKey][dataType]) {
-                return platforms[platformKey][dataType];
-            }
-            return Promise.reject(`No data of type ${dataType} for ${platformKey}`);
-        }
-    };
-
-
-    // --- DOM ELEMENTS & APP STATE ---
-
-    const choiceScreen = document.getElementById('choice-screen');
-    const loaderScreen = document.getElementById('loader-screen');
-    const appContainer = document.getElementById('app-container');
-    const mainContentContainer = document.querySelector('.app-content');
-    let currentPlatformConfig = {};
-
-    // --- INITIALIZATION FLOW ---
-
-    document.querySelectorAll('.choice-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            if (!btn.disabled) {
-                initializeApp(btn.dataset.platform);
-            }
-        });
-    });
-
-    async function initializeApp(platformKey) {
-        currentPlatformConfig = platforms[platformKey];
+        const connectBtn = document.getElementById('connect-btn');
+        const loginScreen = document.getElementById('login-screen');
+        const loaderScreen = document.getElementById('loader-screen');
+        const appShell = document.getElementById('app-shell');
         
-        // 1. Transition to Loader and set theme
-        document.body.dataset.theme = currentPlatformConfig.theme;
-        choiceScreen.classList.add('hidden');
-        loaderScreen.classList.remove('hidden');
-        
-        // 2. Progressive loader & async data fetching (simulated)
-        const loaderText = document.getElementById('loader-text');
-        
-        const updateLoader = (text) => {
-            loaderText.style.opacity = 0;
+        connectBtn.addEventListener('click', () => {
+            loginScreen.classList.add('hidden');
+            loaderScreen.classList.remove('hidden');
+
             setTimeout(() => {
-                loaderText.textContent = text;
-                loaderText.style.opacity = 1;
-            }, 300);
+                loaderScreen.classList.add('hidden');
+                appShell.classList.remove('hidden');
+            }, 2500);
+        });
+
+        const navItems = document.querySelectorAll('.nav-item');
+        const contentSections = document.querySelectorAll('.content-section');
+        const headerTitle = document.getElementById('header-title');
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const page = item.dataset.page;
+                navItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                contentSections.forEach(s => {
+                    s.classList.remove('active');
+                    if (s.id === 'chat') s.parentElement.style.height = '100%';
+                });
+                const activeSection = document.getElementById(page);
+                activeSection.classList.add('active');
+                if(page === 'chat') activeSection.style.height = '100%';
+
+                headerTitle.textContent = page.charAt(0).toUpperCase() + page.slice(1);
+            });
+        });
+        
+        function handleApprove(button) {
+            button.classList.add('processing');
+            button.textContent = 'Processing...';
+
+            setTimeout(() => {
+                button.classList.remove('processing');
+                button.classList.add('applied');
+                button.textContent = 'Applied';
+            }, 1500);
+        }
+
+        const chatHistory = document.getElementById('chat-history');
+        const promptButtons = document.querySelectorAll('.prompt-btn');
+
+        const responses = {
+            "Which are my most expensive queries?": "Your top 3 most expensive queries all target the `ga_sessions_2024` table without a date partition filter. I recommend always using `WHERE _TABLE_SUFFIX = ...` to reduce costs.",
+            "Why is the `ga_sessions` table so slow?": "The `ga_sessions_2024` table is slow because it's over 5TB and is frequently joined on `user_pseudo_id` without being clustered. I've created a recommendation to add clustering by this column, which should improve query performance by up to 70%.",
+            "Suggest a description for the `temp_report` table.": "Based on its columns (`user_id`, `start_date`, `end_date`, `metric_value`), a good description would be: 'Temporary table for aggregating user performance metrics for a specific reporting period. Should be truncated after use.'"
         };
-        
-        updateLoader(`Connecting to ${currentPlatformConfig.name}...`);
-        const kpis = await dummyApi.fetchData(platformKey, 'kpis');
-        
-        updateLoader('Authenticating...');
-        const actions = await dummyApi.fetchData(platformKey, 'actions');
 
-        updateLoader('Scanning metadata & calculating savings...');
-        await new Promise(resolve => setTimeout(resolve, 800)); // Final delay for effect
-        
-        // 3. Populate and reveal the app
-        populateShell();
-        populatePage('dashboard', { kpis, actions }); // Initial page
-        
-        loaderScreen.classList.add('hidden');
-        appContainer.classList.remove('hidden');
-        appContainer.style.opacity = 1;
-    }
+        function askQuestion(button) {
+            const question = button.textContent;
+            
+            promptButtons.forEach(btn => btn.disabled = true);
 
-    // --- UI POPULATION & RENDERING ---
+            const userMessage = document.createElement('div');
+            userMessage.className = 'chat-message user';
+            userMessage.innerHTML = `<div class="text">${question}</div><span class="material-symbols-outlined icon">person</span>`;
+            chatHistory.appendChild(userMessage);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
 
-    function populateShell() {
-        // Header
-        document.getElementById('header-logo').textContent = document.body.dataset.theme === 'snowflake' ? 'ac_unit' : 'auto_awesome';
-        document.getElementById('header-title').textContent = `${currentPlatformConfig.name} Autopilot`;
-
-        // Navigation (for both side and bottom navs)
-        const navHtml = `
-            <button class="nav-item active" data-page="dashboard" aria-label="Dashboard">
-                <span class="material-symbols-outlined">dashboard</span><span>Dashboard</span>
-            </button>
-            <button class="nav-item" data-page="actions" aria-label="Actions">
-                <span class="material-symbols-outlined">recommend</span><span>Actions</span>
-            </button>
-            <button class="nav-item" data-page="settings" aria-label="Settings">
-                <span class="material-symbols-outlined">settings</span><span>Settings</span>
-            </button>
-        `;
-        document.getElementById('side-nav').innerHTML = navHtml;
-        document.getElementById('bottom-nav').innerHTML = navHtml;
-
-        // Add event listeners to the newly created nav items
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', () => switchPage(item.dataset.page));
-        });
-    }
-
-    function populatePage(page, data) {
-        let contentHtml = '';
-        switch(page) {
-            case 'dashboard':
-                const kpiHtml = data.kpis.map(kpi => `
-                    <div class="kpi-card">
-                        <span class="material-symbols-outlined icon ${kpi.color}">${kpi.icon}</span>
-                        <p class="value">${kpi.value}</p>
-                        <p class="label">${kpi.label}</p>
-                    </div>`).join('');
-                
-                contentHtml = `
-                    <div class="kpi-grid">${kpiHtml}</div>
-                    <button id="share-btn" class="approve-btn" style="width:100%; margin-bottom: 30px; padding: 12px;">Share Savings</button>
-                    <h2 class="section-title">Pending Actions</h2>
-                    <div class="item-list">${renderActions(data.actions)}</div>
-                `;
-                break;
-            case 'actions':
-                contentHtml = `
-                    <h2 class="section-title">All Pending Actions</h2>
-                    <div class="item-list">${renderActions(data.actions)}</div>
-                `;
-                break;
-            case 'settings':
-                contentHtml = `<h2 class="section-title">Settings</h2><p>Settings page content for ${currentPlatformConfig.name}.</p>`;
-                break;
+            setTimeout(() => {
+                const aiResponse = document.createElement('div');
+                aiResponse.className = 'chat-message ai';
+                aiResponse.innerHTML = `<span class="material-symbols-outlined icon">auto_awesome</span><div class="text">${responses[question]}</div>`;
+                chatHistory.appendChild(aiResponse);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+                promptButtons.forEach(btn => btn.disabled = false);
+            }, 1500);
         }
-        mainContentContainer.innerHTML = contentHtml;
-
-        if (page === 'dashboard') {
-            document.getElementById('share-btn').addEventListener('click', openShareModal);
-        }
-    }
-    
-    function renderActions(actions) {
-        return actions.map(item => `
-            <div class="item">
-                <div class="item-icon"><span class="material-symbols-outlined" style="color:${item.color};">${item.icon}</span></div>
-                <div class="item-content"><p>${item.title}</p><small>${item.subtitle}</small></div>
-                <button class="approve-btn" onclick="handleApprove(this)">Approve</button>
-            </div>`).join('');
-    }
-
-    // --- EVENT HANDLERS & INTERACTIONS ---
-
-    async function switchPage(page) {
-        document.querySelectorAll('.nav-item').forEach(i => {
-            i.classList.toggle('active', i.dataset.page === page);
-        });
-        
-        // Fetch data for the new page
-        const kpis = await dummyApi.fetchData(currentPlatformConfig.theme, 'kpis');
-        const actions = await dummyApi.fetchData(currentPlatformConfig.theme, 'actions');
-
-        populatePage(page, { kpis, actions });
-    }
-
-    function handleApprove(button) {
-        button.classList.add('processing');
-        button.textContent = 'Processing...';
-        button.disabled = true;
-        setTimeout(() => {
-            button.classList.remove('processing');
-            button.classList.add('applied');
-            button.textContent = 'Applied';
-        }, 1500);
-    }
-    
-    // Share Modal Logic
-    const shareModalOverlay = document.getElementById('share-modal-overlay');
-    function openShareModal() {
-        const savingsKpi = currentPlatformConfig.kpis.find(kpi => kpi.id === 'savings');
-        document.getElementById('share-kpi-value').textContent = savingsKpi.value;
-        document.getElementById('share-kpi-label').textContent = savingsKpi.label;
-        shareModalOverlay.classList.remove('hidden');
-    }
-    
-    document.getElementById('close-share-modal').addEventListener('click', () => {
-        shareModalOverlay.classList.add('hidden');
-    });
-
     </script>
 </body>
 </html>
