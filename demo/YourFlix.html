@@ -1,386 +1,251 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YourFlix: מיכאל גופמן – הסדרה</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YourFlix: מיכאל גופמן – הסדרה</title>
 
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
 
-    <!-- =====  STYLE  ===== -->
-    <style>
-        :root {
-            --yourflix-red:   #e50914;
-            --yourflix-black: #111;
-            --yourflix-dark-gray: #181818;
-            --poster-width:  280px;
-            --poster-height: 157px;
-        }
+  <style>
+    :root{
+      --yourflix-red:#e50914;
+      --yourflix-black:#111;
+      --yourflix-dark-gray:#181818;
+      --poster-width:280px;
+      --poster-height:157px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Heebo',sans-serif;background:#111;color:#fff;overflow-x:hidden}
+    .page{display:none;min-height:100vh;width:100vw;animation:fadeIn .4s}
+    .page.active{display:flex}@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
-        /* --- RESET & BASICS --- */
-        *{box-sizing:border-box;margin:0;padding:0}
-        body{
-            font-family:'Heebo',sans-serif;
-            background-color:var(--yourflix-black);
-            color:#fff;
-            overflow-x:hidden;
-        }
-        .page{display:none;min-height:100vh;width:100vw;animation:fadeIn .5s ease-in}
-        .page.active{display:flex}
-        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    /* upload */
+    #upload-page{flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:2rem;position:relative;z-index:1}
+    #bg-video{position:fixed;inset:0;min-width:100%;min-height:100%;width:auto;height:auto;object-fit:cover;z-index:-2;opacity:.3}
+    #upload-page::before{content:'';position:absolute;inset:0;background:radial-gradient(circle,rgba(0,0,0,.3) 0%,rgba(0,0,0,.9) 100%);z-index:-1}
+    .upload-content h1{font-size:3.5rem;font-weight:900;max-width:800px}
+    .upload-content h2{font-size:1.4rem;margin-top:.8rem;max-width:700px}
+    #create-series-btn{margin-top:2rem;padding:1rem 2.5rem;font-size:1.4rem;font-weight:700;border:none;border-radius:5px;cursor:pointer;background:var(--yourflix-red);color:#fff}
+    #create-series-btn:hover{background:#f40612}
 
-        /* ---------- Upload page ---------- */
-        #upload-page{
-            flex-direction:column;
-            justify-content:center;
-            align-items:center;
-            text-align:center;
-            padding:2rem;
-            position:relative;
-            z-index:1;
-        }
-        #bg-video{
-            position:fixed;top:50%;left:50%;
-            min-width:100%;min-height:100%;
-            width:auto;height:auto;
-            z-index:-2;
-            transform:translate(-50%,-50%);
-            opacity:.3;
-        }
-        #upload-page::before{
-            content:'';
-            position:absolute;inset:0;
-            background:radial-gradient(ellipse at center,rgba(0,0,0,.4) 0%,rgba(0,0,0,.9) 100%);
-            z-index:-1;
-        }
-        .upload-content h1{font-size:3.5rem;font-weight:900;max-width:800px}
-        .upload-content h2{font-size:1.5rem;font-weight:400;margin-top:1rem;max-width:700px}
-        #create-series-btn{
-            background-color:var(--yourflix-red);color:#fff;border:none;
-            padding:1rem 2.5rem;font-size:1.5rem;font-weight:700;
-            border-radius:5px;margin-top:2rem;cursor:pointer;
-            transition:background-color .2s;
-        }
-        #create-series-btn:hover{background-color:#f40612}
+    /* loading */
+    #loading-page{flex-direction:column;justify-content:center;align-items:center}
+    .loading-logo{width:180px;animation:pulse 1.6s infinite}@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+    .loading-text-container{margin-top:2rem;height:28px;text-align:center}
+    .loading-text{display:none}@keyframes fade{0%,100%{opacity:0}15%,85%{opacity:1}}
 
-        /* ---------- Loading page ---------- */
-        #loading-page{flex-direction:column;justify-content:center;align-items:center}
-        .loading-logo{width:200px;height:auto;animation:pulse 1.5s infinite}
-        @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
-        .loading-text-container{margin-top:2rem;height:30px;font-size:1.2rem;text-align:center}
-        .loading-text{display:none;animation:fadeInOut 2.5s ease-in-out}
-        .loading-text.active{display:block}
-        @keyframes fadeInOut{0%,100%{opacity:0}20%,80%{opacity:1}}
+    /* main-nav & hero */
+    #main-page{flex-direction:column}
+    .nav{position:fixed;top:0;left:0;width:100%;padding:20px 4%;display:flex;justify-content:space-between;align-items:center;z-index:200;transition:background .4s}
+    .nav--scrolled{background:var(--yourflix-black)}
+    .nav__logo{width:110px}.nav__profile{width:40px;height:40px;border-radius:4px;object-fit:cover}
+    .hero{position:relative;height:56.25vw;max-height:850px;background-size:cover;background-position:center 20%}
+    .hero__contents{padding:0 4%;padding-top:180px}
+    .hero__title{font-size:3.6rem;font-weight:900;text-shadow:2px 2px 6px #000}
+    .hero__rank{display:flex;align-items:center;font-weight:700;margin-top:1rem;font-size:1.1rem}
+    .hero__rank_icon{background:var(--yourflix-red);padding:2px 8px;border-radius:3px;margin-left:10px;font-size:.85rem}
+    .hero__subtitle{max-width:80%;line-height:1.4;margin-top:1rem}
+    .hero__buttons .hero__button{display:inline-block;margin-top:1.5rem;margin-right:1rem;padding:.8rem 2.1rem;font-weight:700;border:none;border-radius:5px;cursor:pointer;background:rgba(109,109,110,.75);color:#fff}
+    .hero__button.play{background:#fff;color:#000}.hero__button:hover{opacity:.85}
+    .hero--fade-bottom{position:absolute;bottom:0;left:0;right:0;height:14rem;background:linear-gradient(180deg,transparent,rgba(17,17,17,.7),#111)}
 
-        /* ---------- Main page ---------- */
-        #main-page{flex-direction:column}
-        .nav{
-            position:fixed;top:0;width:100%;padding:20px 4%;
-            display:flex;justify-content:space-between;align-items:center;
-            z-index:200;transition:background-color .5s;
-        }
-        .nav--scrolled{background-color:var(--yourflix-black)}
-        .nav__logo{width:120px;object-fit:contain;cursor:pointer}
-        .nav__profile{width:40px;height:40px;border-radius:4px;object-fit:cover;cursor:pointer}
+    /* rows */
+    .rows-container{padding:2rem 0}
+    .row{margin-bottom:2.3rem}
+    .row h2{font-size:1.45rem;font-weight:700;margin:0 4% .5rem}
+    .row__posters{display:flex;overflow-x:auto;padding:14px 4%;scrollbar-width:none}
+    .row__posters::-webkit-scrollbar{display:none}
 
-        .hero{
-            position:relative;height:56.25vw;max-height:850px;
-            color:#fff;background-size:cover;background-position:center 20%;
-        }
-        .hero__contents{padding:0 4%;padding-top:180px;height:100%}
-        .hero__title{font-size:3.8rem;font-weight:900;text-shadow:2px 2px 6px rgba(0,0,0,.6)}
-        .hero__rank{display:flex;align-items:center;font-size:1.2rem;font-weight:bold;margin-top:1rem}
-        .hero__rank_icon{
-            background-color:var(--yourflix-red);padding:2px 8px;border-radius:3px;
-            font-size:.9rem;margin-left:10px;
-        }
-        .hero__subtitle{
-            width:45rem;max-width:80%;line-height:1.4;
-            padding-top:1rem;font-size:1.2rem;
-            text-shadow:1px 1px 3px rgba(0,0,0,.8);
-        }
-        .hero__buttons .hero__button{
-            cursor:pointer;color:#fff;border:none;font-weight:700;border-radius:5px;
-            padding:.8rem 2.2rem;margin-right:1rem;margin-top:1.5rem;
-            background-color:rgba(109,109,110,.7);outline:none;
-        }
-        .hero__button.play{background-color:#fff;color:#000}
-        .hero__button:hover{background-color:rgba(255,255,255,.75);transition:all .2s}
-        .hero__button.play:hover{background-color:rgba(255,255,255,.85)}
-        .hero--fade-bottom{
-            position:absolute;bottom:0;left:0;right:0;height:15rem;
-            background-image:linear-gradient(180deg,transparent,rgba(17,17,17,.6),var(--yourflix-black));
-        }
+    .poster-container{flex-shrink:0;margin-right:10px;cursor:pointer;width:var(--poster-width);height:var(--poster-height);position:relative;transition:transform .25s}
+    .poster-container:hover{transform:scale(1.08);z-index:99}
+    .poster-container img{width:100%;height:100%;object-fit:cover;border-radius:4px;background:#333}
+    .poster-container--large{width:200px;height:280px}.poster-container--skill{width:150px;height:150px}.poster-container--skill img{border-radius:50%}
+    .poster-title{position:absolute;inset-inline:0;bottom:0;padding:18px 8px 6px;text-align:center;font-size:.9rem;font-weight:700;background:linear-gradient(to top,rgba(0,0,0,.9),transparent 60%);border-end-end-radius:4px;border-end-start-radius:4px}
 
-        .rows-container{padding:2rem 0;overflow:hidden}
-        .row{margin-bottom:2.5rem}
-        .row h2{font-size:1.5rem;font-weight:700;margin-bottom:.5rem;padding:0 4%}
-        .row__posters{display:flex;overflow-y:hidden;overflow-x:scroll;padding:15px 4%;scrollbar-width:none}
-        .row__posters::-webkit-scrollbar{display:none}
+    /* modal */
+    #details-modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;justify-content:center;align-items:center;opacity:0;visibility:hidden;transition:opacity .3s}
+    #details-modal.active{opacity:1;visibility:visible}
+    .modal-content{background:#181818;border-radius:8px;width:92%;max-width:840px;max-height:90vh;overflow-y:auto;transform:scale(.9);transition:transform .3s}
+    #details-modal.active .modal-content{transform:scale(1)}
+    .modal-header{position:relative;padding-top:56.25%;background-size:cover;background-position:center;border-top-left-radius:8px;border-top-right-radius:8px}
+    .modal-header__close{position:absolute;top:14px;right:14px;width:34px;height:34px;font-size:1.4rem;border:none;border-radius:50%;background:rgba(24,24,24,.8);color:#fff;cursor:pointer}
+    .modal-header-fade{position:absolute;bottom:-1px;left:0;right:0;height:7rem;background:linear-gradient(180deg,transparent,rgba(24,24,24,.7),#181818)}
+    .modal-body{padding:1.4rem 2.3rem}.modal-body h2{font-size:2rem}.modal-body p{margin-top:1rem;line-height:1.55}.modal-tags{margin-top:1rem;color:#aaa;font-weight:700}
 
-        .poster-container{
-            position:relative;flex-shrink:0;margin-right:10px;transition:all 300ms ease;cursor:pointer;
-            width:var(--poster-width);height:var(--poster-height);
-        }
-        .poster-container img{width:100%;height:100%;object-fit:cover;border-radius:4px;display:block}
-        .poster-container--large{width:200px;height:280px}
-        .poster-container--skill{width:150px;height:150px}
-        .poster-container--skill img{border-radius:50%}
-        .poster-title{
-            position:absolute;bottom:0;left:0;right:0;
-            padding:20px 10px 8px;font-size:.9rem;font-weight:bold;text-align:center;
-            background-image:linear-gradient(to top,rgba(0,0,0,.85) 20%,transparent);
-            border-bottom-left-radius:4px;border-bottom-right-radius:4px;
-        }
-        .poster-container:hover{transform:scale(1.1);z-index:100}
-
-        /* ---------- Modal ---------- */
-        #details-modal{
-            position:fixed;inset:0;background-color:rgba(0,0,0,.8);
-            justify-content:center;align-items:center;z-index:1000;
-            opacity:0;visibility:hidden;transition:opacity .3s;
-        }
-        #details-modal.active{opacity:1;visibility:visible}
-        .modal-content{
-            background-color:var(--yourflix-dark-gray);border-radius:8px;
-            width:90%;max-width:850px;max-height:90vh;overflow-y:auto;
-            position:relative;transform:scale(.9);transition:transform .3s;
-        }
-        #details-modal.active .modal-content{transform:scale(1)}
-        .modal-header{position:relative;padding-top:56.25%;background-size:cover;background-position:center;border-top-left-radius:8px;border-top-right-radius:8px}
-        .modal-header__close{
-            position:absolute;top:15px;right:15px;background:rgba(24,24,24,.8);
-            border-radius:50%;width:36px;height:36px;color:#fff;border:none;font-size:1.5rem;
-            cursor:pointer;display:flex;justify-content:center;align-items:center;
-        }
-        .modal-header-fade{
-            position:absolute;bottom:-1px;left:0;right:0;height:7.4rem;
-            background-image:linear-gradient(180deg,transparent,rgba(24,24,24,.7),var(--yourflix-dark-gray));
-        }
-        .modal-body{padding:1.5rem 2.5rem}
-        .modal-body h2{font-size:2rem;font-weight:700}
-        .modal-body p{font-size:1rem;line-height:1.5;margin-top:1rem}
-        .modal-tags{margin-top:1rem;color:#999;font-weight:bold}
-
-        /* ---------- Responsive ---------- */
-        @media(max-width:768px){
-            :root{--poster-width:220px;--poster-height:124px}
-            .upload-content h1{font-size:2.5rem}
-            .upload-content h2{font-size:1.2rem}
-            .hero__title{font-size:2rem}
-            .hero__subtitle{max-width:100%;font-size:.9rem}
-            .hero__contents{padding-top:150px}
-            .nav__logo{width:90px}
-            .poster-container--large{width:160px;height:230px}
-            .poster-container--skill{width:120px;height:120px}
-        }
-    </style>
+    /* responsive */
+    @media(max-width:768px){
+      :root{--poster-width:220px;--poster-height:124px}
+      .upload-content h1{font-size:2.5rem}.upload-content h2{font-size:1.1rem}
+      .hero__title{font-size:2rem}.hero__contents{padding-top:150px}
+      .poster-container--large{width:160px;height:230px}.poster-container--skill{width:120px;height:120px}
+    }
+  </style>
 </head>
 <body>
-    <!-- =====  SFX  ===== -->
-    <audio id="tadum-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-dramatic-cinematic-trailer-hit-471.mp3" preload="auto"></audio>
+  <audio id="tadum" src="https://assets.mixkit.co/sfx/preview/mixkit-dramatic-cinematic-trailer-hit-471.mp3" preload="auto"></audio>
 
-    <!-- =================  UPLOAD  ================= -->
-    <div id="upload-page" class="page active">
-        <video autoplay muted loop id="bg-video">
-            <source src="https://assets.mixkit.co/videos/preview/mixkit-red-abstract-liquid-3987-large.mp4" type="video/mp4">
-        </video>
-        <div class="upload-content">
-            <h1>הפסיקו לשלוח קורות-חיים. התחילו להקרין אותם.</h1>
-            <h2>YourFlix הופך את הסיפור המקצועי שלכם לסדרה שאי-אפשר להפסיק לראות.</h2>
-            <button id="create-series-btn">🎬 צפייה בסיפור של מיכאל גופמן</button>
-        </div>
+  <!-- Upload -->
+  <div id="upload-page" class="page active">
+    <video id="bg-video" autoplay muted loop>
+      <source src="https://assets.mixkit.co/videos/preview/mixkit-red-abstract-liquid-3987-large.mp4" type="video/mp4">
+    </video>
+    <div class="upload-content">
+      <h1>הפסיקו לשלוח קורות-חיים. התחילו להקרין אותם.</h1>
+      <h2>YourFlix הופך את הסיפור המקצועי שלכם לסדרה שאי-אפשר להפסיק לראות.</h2>
+      <button id="create-series-btn">🎬 צפייה בסיפור של מיכאל גופמן</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading-page" class="page">
+    <img class="loading-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Netflix_2015_N_logo.svg/256px-Netflix_2015_N_logo.svg.png" alt="">
+    <div class="loading-text-container">
+      <p class="loading-text">מנתח את סילבוס הקורסים...</p>
+      <p class="loading-text">קורא מאמרים מצוטטים...</p>
+      <p class="loading-text">מחשב דירוגי כתבי-עת...</p>
+      <p class="loading-text">מלחין פסקול של אקדמיה...</p>
+      <p class="loading-text">הסדרה של מיכאל מוכנה!</p>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div id="main-page" class="page">
+    <div class="nav" id="nav">
+      <img class="nav__logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Logonetflix.png/320px-Logonetflix.png" alt="">
+      <img class="nav__profile" id="nav-profile-img" alt="">
     </div>
 
-    <!-- =================  LOADING  ================= -->
-    <div id="loading-page" class="page">
-        <img class="loading-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Netflix_2015_N_logo.svg/1200px-Netflix_2015_N_logo.svg.png" alt="Loading logo">
-        <div class="loading-text-container">
-            <p class="loading-text">מנתח את סילבוס הקורסים...</p>
-            <p class="loading-text">קורא מאמרים מצוטטים...</p>
-            <p class="loading-text">מחשב דירוגי כתב-עת...</p>
-            <p class="loading-text">מלחין פסקול של אקדמיה...</p>
-            <p class="loading-text">הסדרה של מיכאל כמעט מוכנה!</p>
+    <header class="hero" id="hero-bg">
+      <div class="hero__contents">
+        <h1 class="hero__title">מיכאל גופמן: מאקדמיה לפיננסים עולמיים</h1>
+        <div class="hero__rank"><span class="hero__rank_icon">TOP 10</span> סדרות אקדמיה מומלצות</div>
+        <h2 class="hero__subtitle">
+          מסע אקדמי מרתק – מבנקאות כמותית בישראל לכתבי-העת המובילים בארה״ב,
+          ומשם לכיתות הלימוד של האוניברסיטה העברית.
+        </h2>
+        <div class="hero__buttons">
+          <button class="hero__button play">▶️ נגן את פרק הפיילוט</button>
+          <button class="hero__button">ℹ️ מידע נוסף</button>
         </div>
+      </div>
+      <div class="hero--fade-bottom"></div>
+    </header>
+
+    <div class="rows-container">
+      <section class="row">
+        <h2>תחנות בקריירה</h2>
+        <div class="row__posters" id="career"></div>
+      </section>
+      <section class="row">
+        <h2>פרויקטים ואתגרים</h2>
+        <div class="row__posters" id="projects"></div>
+      </section>
+      <section class="row">
+        <h2>ארגז הכלים</h2>
+        <div class="row__posters" id="skills"></div>
+      </section>
     </div>
+  </div>
 
-    <!-- =================  MAIN  ================= -->
-    <div id="main-page" class="page">
-        <div class="nav" id="main-nav">
-            <img class="nav__logo" src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Logonetflix.png" alt="YourFlix Logo">
-            <img class="nav__profile" id="nav-profile-img" alt="Profile">
-        </div>
-
-        <header class="hero" id="hero-bg-img">
-            <div class="hero__contents">
-                <h1 class="hero__title">מיכאל גופמן: מאקדמיה לפיננסים עולמיים</h1>
-                <div class="hero__rank">
-                    <span class="hero__rank_icon">TOP&nbsp;10</span>
-                    סדרות אקדמיה מומלצות
-                </div>
-                <h2 class="hero__subtitle">
-                    מסע אקדמי מרתק – מבנקאות כמותית בישראל אל כתבי-העת המובילים בארה״ב,
-                    ומשם לכיתות הלימוד של האוניברסיטה העברית.
-                </h2>
-                <div class="hero__buttons">
-                    <button class="hero__button play">▶️ נגן את פרק הפיילוט</button>
-                    <button class="hero__button">ℹ️ מידע נוסף</button>
-                </div>
-            </div>
-            <div class="hero--fade-bottom"></div>
-        </header>
-
-        <div class="rows-container">
-            <div class="row">
-                <h2>תחנות בקריירה</h2>
-                <div class="row__posters" id="career-posters"></div>
-            </div>
-            <div class="row">
-                <h2>פרויקטים ואתגרים</h2>
-                <div class="row__posters" id="projects-posters"></div>
-            </div>
-            <div class="row">
-                <h2>ארגז הכלים</h2>
-                <div class="row__posters" id="skills-posters"></div>
-            </div>
-        </div>
+  <!-- Modal -->
+  <div id="details-modal">
+    <div class="modal-content">
+      <div class="modal-header" id="modal-header">
+        <button class="modal-header__close" id="close-btn">&times;</button>
+        <div class="modal-header-fade"></div>
+      </div>
+      <div class="modal-body">
+        <h2 id="modal-title"></h2>
+        <p id="modal-desc"></p>
+        <p id="modal-tags" class="modal-tags"></p>
+      </div>
     </div>
+  </div>
 
-    <!-- =================  MODAL  ================= -->
-    <div id="details-modal" class="page">
-        <div class="modal-content">
-            <div class="modal-header" id="modal-header-img">
-                <button class="modal-header__close" id="modal-close-btn">&times;</button>
-                <div class="modal-header-fade"></div>
-            </div>
-            <div class="modal-body">
-                <h2 id="modal-title"></h2>
-                <p id="modal-desc"></p>
-                <p id="modal-tags" class="modal-tags"></p>
-            </div>
-        </div>
-    </div>
+  <script>
+    /* ---------- images ---------- */
+    const IMG={
+      HERO:'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1500&q=80',
+      PROFILE:'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80',
+      HEB:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Hebrew_University_New_Logo_2012.png/320px-Hebrew_University_New_Logo_2012.png',
+      ROC:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/University_of_Rochester_seal.svg/320px-University_of_Rochester_seal.svg.png',
+      WIS:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/University_of_Wisconsin–Madison_logo.svg/320px-University_of_Wisconsin–Madison_logo.svg.png',
+      POALIM:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Poalim_logo.svg/320px-Poalim_logo.svg.png',
+      RES:'https://images.unsplash.com/photo-1535223289827-42f1e9919769?auto=format&fit=crop&w=600&q=80',
+      TEACH:'https://images.unsplash.com/photo-1529078155058-5d716f45d604?auto=format&fit=crop&w=600&q=80',
+      GLOBAL:'https://images.unsplash.com/photo-1522199710521-72d69614c702?auto=format&fit=crop&w=600&q=80',
+      PLACE:'https://via.placeholder.com/320x180/444/fff?text=Image'
+    };
 
-    <!-- =================  SCRIPT  ================= -->
-    <script>
-        /* ---------- IMAGE REPO ---------- */
-        const IMAGES={
-            HERO:'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1500&q=80',
-            PROFILE:'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80',
-            LOGO_HEB:'https://upload.wikimedia.org/wikipedia/commons/6/6f/Hebrew_University_New_Logo_2012.png',
-            LOGO_ROC:'https://upload.wikimedia.org/wikipedia/commons/6/6c/University_of_Rochester_seal.svg',
-            LOGO_WIS:'https://upload.wikimedia.org/wikipedia/commons/5/5c/University_of_Wisconsin%E2%80%93Madison_logo.svg',
-            LOGO_POALIM:'https://upload.wikimedia.org/wikipedia/commons/4/4a/Poalim_logo.svg',
-            UNSPLASH_RESEARCH:'https://images.unsplash.com/photo-1535223289827-42f1e9919769?auto=format&fit=crop&w=600&q=80',
-            UNSPLASH_TEACH:'https://images.unsplash.com/photo-1529078155058-5d716f45d604?auto=format&fit=crop&w=600&q=80',
-            UNSPLASH_GLOBAL:'https://images.unsplash.com/photo-1522199710521-72d69614c702?auto=format&fit=crop&w=600&q=80'
-        };
+    /* ---------- data ---------- */
+    const career=[
+      {t:'מרצה בכיר למימון – האוניברסיטה העברית',d:'מאז 2022...',tag:'#Academia #Finance',img:IMG.HEB,cls:'large'},
+      {t:'Assistant Professor – University of Rochester',d:'חמש שנים...',tag:'#Rochester #Research',img:IMG.ROC,cls:'large'},
+      {t:'Associate Professor – Wisconsin School of Business',d:'שש שנים...',tag:'#Wisconsin',img:IMG.WIS,cls:'large'},
+      {t:'Quant – Bank Hapoalim',d:'תחילת הדרך...',tag:'#Banking',img:IMG.POALIM,cls:'large'}
+    ];
+    const projects=[
+      {t:'מאמר מוביל ברגולציה פיננסית',d:'פורסם ב-JFE...',tag:'#Regulation',img:IMG.RES,cls:'regular'},
+      {t:'קורס FinTech מתקדם',d:'סילבוס חדשני...',tag:'#FinTech',img:IMG.TEACH,cls:'regular'}
+    ];
+    const skills=[
+      {t:'הוראה אקדמית ומחקר',d:'ניסיון עשיר...',tag:'#Teaching',img:IMG.PROFILE,cls:'skill'},
+      {t:'פיננסים ורגולציה',d:'התמחות ברגולציה...',tag:'#Finance',img:IMG.GLOBAL,cls:'skill'},
+      {t:'עבודה חוצת גבולות',d:'שיתופי פעולה...',tag:'#Global',img:IMG.TEACH,cls:'skill'}
+    ];
 
-        /* ---------- DATA ---------- */
-        const careerData=[
-            {title:'מרצה בכיר למימון – האוניברסיטה העברית',
-             desc:'מאז 2022 מוביל קורסים ומחקרים מתקדמים בתחום הבנקאות והרגולציה הפיננסית בבית הספר למנהל עסקים.',
-             tags:'#Academia #Finance #Jerusalem',
-             img:IMAGES.LOGO_HEB,type:'large'},
-            {title:'Assistant Professor – University of Rochester',
-             desc:'חמש שנים של הוראה ומחקר בארה״ב עם דגש על מימון תאגידי ומוסדות פיננסיים.',
-             tags:'#Rochester #Finance #Research',
-             img:IMAGES.LOGO_ROC,type:'large'},
-            {title:'Associate Professor – Wisconsin School of Business',
-             desc:'שש שנות הוראה, מחקר ופרסומים בנושא רגולציה ושווקים מתפתחים.',
-             tags:'#Wisconsin #Business_School #Economics',
-             img:IMAGES.LOGO_WIS,type:'large'},
-            {title:'Quant – Bank Hapoalim',
-             desc:'תחילת הדרך בבנקאות כמותית: פיתוח מודלים וניהול סיכונים בבנק המוביל בישראל.',
-             tags:'#Quant #Banking #Israel',
-             img:IMAGES.LOGO_POALIM,type:'large'}
-        ];
+    /* ---------- helpers ---------- */
+    const poster=(o)=>{
+      const c=document.createElement('div');
+      c.className=`poster-container poster-container--${o.cls}`;
+      Object.assign(c.dataset,{title:o.t,desc:o.d,tags:o.tag,img:o.img});
+      const i=new Image();
+      i.src=o.img;i.loading='lazy';
+      i.onerror=()=>{i.src=IMG.PLACE};
+      const ttl=document.createElement('div');ttl.className='poster-title';ttl.textContent=o.t;
+      c.append(i,ttl);return c;
+    };
+    const fill=(id,arr)=>{const el=document.getElementById(id);arr.forEach(o=>el.append(poster(o)))};
 
-        const projectsData=[
-            {title:'מאמר מוביל ברגולציה פיננסית',
-             desc:'חוקר את יחסי הגומלין בין ממשלות לבנקים בזמן משבר. פורסם ב-Journal of Financial Economics.',
-             tags:'#Regulation #Crisis #Banking',
-             img:IMAGES.UNSPLASH_RESEARCH,type:'regular'},
-            {title:'קורס FinTech מתקדם',
-             desc:'פיתח סילבוס חדשני המשלב בלוקצ׳יין, למידת מכונה ושווקים דיגיטליים לסטודנטים לתואר שני.',
-             tags:'#FinTech #Teaching #Innovation',
-             img:IMAGES.UNSPLASH_TEACH,type:'regular'}
-        ];
+    /* ---------- flow ---------- */
+    document.addEventListener('DOMContentLoaded',()=>{
+      document.getElementById('nav-profile-img').src=IMG.PROFILE;
+      document.getElementById('hero-bg').style.backgroundImage=`url('${IMG.HERO}')`;
+      fill('career',career);fill('projects',projects);fill('skills',skills);
 
-        const skillsData=[
-            {title:'הוראה אקדמית ומחקר',
-             desc:'ניסיון עשיר בהוראה באוניברסיטאות מובילות ופרסומים בכתבי עת מדעיים מדורגים.',
-             tags:'#Teaching #Research #Academia',
-             img:IMAGES.PROFILE,type:'skill'},
-            {title:'פיננסים, רגולציה ושווקים',
-             desc:'התמחות ברגולציה פיננסית, שוקי הון, בנקאות תאגידית וניהול סיכונים.',
-             tags:'#Finance #Markets #Regulation',
-             img:IMAGES.UNSPLASH_GLOBAL,type:'skill'},
-            {title:'עבודה חוצת גבולות',
-             desc:'חוויית מחקר והוראה בארה״ב ובישראל, כולל שיתופי פעולה בינלאומיים.',
-             tags:'#International #Collaboration #Global',
-             img:IMAGES.UNSPLASH_TEACH,type:'skill'}
-        ];
+      const pages=[...document.querySelectorAll('.page')];
+      const show=id=>pages.forEach(p=>p.classList.toggle('active',p.id===id));
 
-        /* ---------- HELPERS ---------- */
-        const createPoster=item=>{
-            const c=document.createElement('div');
-            c.className=`poster-container poster-container--${item.type}`;
-            Object.assign(c.dataset,{title:item.title,desc:item.desc,tags:item.tags,img:item.img});
-            const img=document.createElement('img');img.src=item.img;img.alt=item.title;img.loading='lazy';
-            const t=document.createElement('div');t.className='poster-title';t.textContent=item.title;
-            c.append(img,t);return c;
-        };
-        const populateRow=(id,data)=>{
-            const el=document.getElementById(id);data.forEach(i=>el.appendChild(createPoster(i)));
-        };
+      document.getElementById('create-series-btn').onclick=()=>{
+        show('loading-page');document.getElementById('tadum').play().catch(()=>{});
+        const txt=[...document.querySelectorAll('.loading-text')];let i=0;
+        txt[i].style.display='block';
+        const iv=setInterval(()=>{
+          txt[i].style.display='none';i++;
+          if(i<txt.length){txt[i].style.display='block'}
+          else{clearInterval(iv);setTimeout(()=>{show('main-page');document.getElementById('nav').classList.add('nav--scrolled')},500)}
+        },1500);
+      };
 
-        /* ---------- FLOW ---------- */
-        document.addEventListener('DOMContentLoaded',()=>{
-            // initial visuals
-            document.getElementById('nav-profile-img').src=IMAGES.PROFILE;
-            document.getElementById('hero-bg-img').style.backgroundImage=`url('${IMAGES.HERO}')`;
+      window.addEventListener('scroll',()=>{const n=document.getElementById('nav');n.classList.toggle('nav--scrolled',scrollY>50)},{passive:true});
 
-            populateRow('career-posters',careerData);
-            populateRow('projects-posters',projectsData);
-            populateRow('skills-posters',skillsData);
-
-            const pages=document.querySelectorAll('.page');
-            const showPage=id=>{pages.forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');};
-            const btn=document.getElementById('create-series-btn');
-            const sounds=document.getElementById('tadum-sound');
-            const texts=[...document.querySelectorAll('.loading-text')];
-
-            btn.addEventListener('click',()=>{
-                showPage('loading-page');
-                sounds.play().catch(()=>{});
-                let i=0;texts[i].classList.add('active');
-                const int=setInterval(()=>{
-                    texts[i].classList.remove('active');i++;
-                    if(i<texts.length)texts[i].classList.add('active');
-                    else{clearInterval(int);setTimeout(()=>{showPage('main-page');document.getElementById('main-nav').classList.add('nav--scrolled');},500);}
-                },1500);
-            });
-
-            window.addEventListener('scroll',()=>{const nav=document.getElementById('main-nav');window.scrollY>50?nav.classList.add('nav--scrolled'):nav.classList.remove('nav--scrolled')},{passive:true});
-
-            // modal
-            const modal=document.getElementById('details-modal');
-            const close=()=>modal.classList.remove('active');
-            document.getElementById('modal-close-btn').addEventListener('click',close);
-            modal.addEventListener('click',e=>{if(e.target===modal)close();});
-
-            document.addEventListener('click',e=>{
-                const target=e.target.closest('.poster-container');
-                if(!target)return;
-                document.getElementById('modal-title').textContent=target.dataset.title;
-                document.getElementById('modal-desc').textContent=target.dataset.desc;
-                document.getElementById('modal-tags').textContent=target.dataset.tags;
-                document.getElementById('modal-header-img').style.backgroundImage=`url('${target.dataset.img}')`;
-                modal.classList.add('active');
-            });
-        });
-    </script>
+      const modal=document.getElementById('details-modal');
+      const open=o=>{
+        document.getElementById('modal-header').style.backgroundImage=`url('${o.img}')`;
+        document.getElementById('modal-title').textContent=o.title;
+        document.getElementById('modal-desc').textContent=o.desc;
+        document.getElementById('modal-tags').textContent=o.tags;
+        modal.classList.add('active');
+      };
+      document.addEventListener('click',e=>{
+        const p=e.target.closest('.poster-container');
+        if(p)open(p.dataset);
+      });
+      document.getElementById('close-btn').onclick=()=>modal.classList.remove('active');
+      modal.onclick=e=>{if(e.target===modal)modal.classList.remove('active')};
+    });
+  </script>
 </body>
 </html>
