@@ -107,10 +107,10 @@
         .app-nav-btn.active { color: var(--brand-green); border-top-color: var(--brand-green); }
         .app-nav-btn .material-symbols-outlined { display: block; margin: 0 auto 4px; }
 
-        .app-tab { position: absolute; top:0; left:0; width:100%; height:100%; padding: 16px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-in-out; overflow-y: auto;}
+        .app-tab { position: absolute; top:0; left:0; width:100%; height:100%; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-in-out; overflow-y: auto;}
         .app-tab.active { opacity: 1; pointer-events: auto; }
         
-        #dashboard-view { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        #dashboard-view { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px;}
         .dash-card { grid-column: span 1; background: #22272e; padding: 12px; border-radius: 12px; }
         .dash-card h4 { font-size: 0.8rem; color: var(--text-secondary); font-weight: 400; margin-bottom: 4px; }
         .dash-card .value { font-size: 1.5rem; font-weight: 900; color: #fff; }
@@ -241,10 +241,14 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- SCRIPT FOR AUTO-PLAYING WHATSAPP DEMO ---
-    const autoChatContent = document.querySelector('#whatsapp-auto-demo .screen-content');
-    if (autoChatContent) {
-        const autoMessages = [ { type: 'bot', text: 'שלום 👋 אני Wizbi. במה אוכל לעזור?' }, { type: 'me', text: 'היי, כמה הכנסות היו לי השבוע?' }, { type: 'bot', text: 'הכנסות השבוע עומדות על <b>₪17,530</b>.' }, { type: 'me', text: 'מעולה, ומי הלקוחות שעדיין לא שילמו לי?' }, { type: 'bot', text: 'מצאתי 3 לקוחות עם חובות פתוחים:<br>• רוני כהן – ₪3,200<br>• סטודיו יעקב – ₪1,850<br>• ר.ש. אחזקות – ₪980' } ];
+    const autoDemoContainer = document.getElementById('whatsapp-auto-demo');
+    if (autoDemoContainer) {
+        const autoChatContent = autoDemoContainer.querySelector('.screen-content');
+        const autoMessages = [
+            { type: 'bot', text: 'שלום 👋 אני Wizbi. במה אוכל לעזור?' }, { type: 'me', text: 'היי, כמה הכנסות היו לי השבוע?' }, { type: 'bot', text: 'הכנסות השבוע עומדות על <b>₪17,530</b>.' }, { type: 'me', text: 'מעולה, ומי הלקוחות שעדיין לא שילמו לי?' }, { type: 'bot', text: 'מצאתי 3 לקוחות עם חובות פתוחים:<br>• רוני כהן – ₪3,200<br>• סטודיו יעקב – ₪1,850<br>• ר.ש. אחזקות – ₪980' }
+        ];
         let autoMessageIndex = 0;
+        
         function runAutoConversation() {
             if (autoMessageIndex >= autoMessages.length) {
                 setTimeout(() => { autoChatContent.innerHTML = ''; autoMessageIndex = 0; }, 4000);
@@ -264,20 +268,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- SCRIPT FOR INTERACTIVE SIMULATOR ---
     const simulator = document.getElementById('interactive-demo');
     if (simulator) {
-        const screens = simulator.querySelectorAll('.demo-screen');
         const googleBtn = simulator.querySelector('.google-btn');
         const connectBtn = simulator.querySelector('.connect-btn');
         const navBtns = simulator.querySelectorAll('.app-nav-btn');
         
         let incomeChart, debtChart; 
 
-        function switchScreen(screenId) {
-            screens.forEach(screen => screen.classList.remove('active'));
-            const activeScreen = document.getElementById(screenId);
+        const switchScreen = (screenId) => {
+            simulator.querySelectorAll('.demo-screen').forEach(screen => screen.classList.remove('active'));
+            const activeScreen = simulator.querySelector('#' + screenId);
             if (activeScreen) activeScreen.classList.add('active');
-        }
+        };
 
-        googleBtn.addEventListener('click', (e) => { e.preventDefault(); switchScreen('api-key-screen'); });
+        googleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchScreen('api-key-screen');
+        });
+        
         connectBtn.addEventListener('click', () => {
             switchScreen('loading-screen');
             setTimeout(() => {
@@ -291,9 +298,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const tabId = btn.dataset.tab;
                 navBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
+                
                 simulator.querySelectorAll('.app-tab').forEach(tab => tab.classList.remove('active'));
-                const activeTab = document.getElementById(tabId);
+                const activeTab = simulator.querySelector('#' + tabId);
                 if (activeTab) activeTab.classList.add('active');
+                
                 if (tabId === 'chat-view' && !activeTab.dataset.initialized) {
                     initializeInteractiveChat();
                     activeTab.dataset.initialized = 'true';
@@ -305,20 +314,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const questionsArea = simulator.querySelector('.suggested-questions');
         const qaPairs = { "כמה הכנסות היו החודש?": "הכנסות החודש עומדות על <b>₪72,410</b>.", "מי הלקוח הכי רווחי שלי?": "הלקוח הכי רווחי שלך החודש הוא <b>'סטודיו יעקב'</b>, עם הכנסות של ₪12,500.", "האם יש חשבוניות שמתקרבות לתאריך היעד?": "כן, חשבונית בסך ₪1,850 ללקוח 'רוני כהן' צפויה להגיע לתאריך היעד מחר." };
 
-        function initializeInteractiveChat() {
+        const initializeInteractiveChat = () => {
             addSimMessage('sim-bot', 'שלום, אני Wizbi. בחרו שאלה כדי להתחיל.');
             renderQuestions();
-        }
+        };
 
-        function addSimMessage(type, text) {
+        const addSimMessage = (type, text) => {
             const bubble = document.createElement('div');
             bubble.className = `sim-bubble ${type}`;
             bubble.innerHTML = text;
             conversationArea.appendChild(bubble);
             conversationArea.scrollTop = conversationArea.scrollHeight;
-        }
+        };
 
-        function renderQuestions() {
+        const renderQuestions = () => {
             questionsArea.innerHTML = '';
             Object.keys(qaPairs).forEach(question => {
                 const btn = document.createElement('button');
@@ -326,9 +335,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.onclick = () => handleQuestionClick(question);
                 questionsArea.appendChild(btn);
             });
-        }
+        };
 
-        function handleQuestionClick(question) {
+        const handleQuestionClick = (question) => {
             addSimMessage('sim-me', question);
             questionsArea.innerHTML = '<p style="text-align:center;color:var(--text-secondary);font-size:0.9rem;">Wizbi חושב...</p>';
             
@@ -348,9 +357,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
             }, 1200);
-        }
+        };
 
-        function initializeCharts() {
+        const initializeCharts = () => {
             Chart.defaults.color = '#9BA3AE'; Chart.defaults.font.family = "'Heebo', sans-serif"; Chart.defaults.font.size = 10; Chart.defaults.plugins.legend.display = false;
             const tooltipDefaults = { backgroundColor: '#101114', titleFont: { weight: 'bold' }, bodyFont: { size: 10 }, padding: 8, callbacks: { label: (c) => `${c.dataset.label || ''}: ${new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', minimumFractionDigits: 0 }).format(c.parsed.y || c.parsed)}` } };
             incomeChart = new Chart(document.getElementById('incomeExpenseChart').getContext('2d'), { type: 'bar', data: { labels: ['חודש קודם', 'חודש נוכחי'], datasets: [{ label: 'הכנסות', data: [67046, 72410], backgroundColor: 'rgba(0, 193, 117, 0.6)', borderRadius: 4 }, { label: 'הוצאות', data: [36010, 34210], backgroundColor: 'rgba(255, 115, 115, 0.6)', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { display: false }, x: { ticks: { color: '#9BA3AE' } } }, plugins: { tooltip: tooltipDefaults } } });
