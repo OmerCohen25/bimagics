@@ -3,114 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YourFlix: מיכאל גופמן - הסדרה</title>
+    <title>YourFlix: מיכאל גופמן – הסדרה</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <!-- =====  STYLE  ===== -->
     <style>
         :root {
-            --yourflix-red: #e50914;
+            --yourflix-red:   #e50914;
             --yourflix-black: #111;
             --yourflix-dark-gray: #181818;
-            --poster-width: 280px;
+            --poster-width:  280px;
             --poster-height: 157px;
         }
-        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Heebo', sans-serif; background-color: var(--yourflix-black); color: #fff; overflow-x: hidden; }
-        .page { display: none; min-height: 100vh; width: 100vw; animation: fadeIn 0.5s ease-in; }
-        .page.active { display: flex; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        #upload-page { flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 2rem; position: relative; z-index: 1; }
-        #bg-video { position: fixed; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; z-index: -2; transform: translateX(-50%) translateY(-50%); opacity: 0.3; }
-        #upload-page::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(ellipse at center, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%); z-index: -1; }
-        .upload-content h1 { font-size: 3.5rem; font-weight: 900; max-width: 800px; }
-        .upload-content h2 { font-size: 1.5rem; font-weight: 400; margin-top: 1rem; max-width: 700px; }
-        #create-series-btn { background-color: var(--yourflix-red); color: white; border: none; padding: 1rem 2.5rem; font-size: 1.5rem; font-weight: 700; border-radius: 5px; margin-top: 2rem; cursor: pointer; transition: background-color 0.2s ease; }
-        #create-series-btn:hover { background-color: #f40612; }
-        #loading-page { flex-direction: column; justify-content: center; align-items: center; }
-        .loading-logo { width: 200px; height: auto; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        .loading-text-container { margin-top: 2rem; height: 30px; font-size: 1.2rem; text-align: center; }
-        .loading-text { display: none; animation: fadeInOut 2.5s ease-in-out; }
-        .loading-text.active { display: block; }
-        @keyframes fadeInOut { 0%, 100% { opacity: 0; } 20%, 80% { opacity: 1; } }
-        #main-page { flex-direction: column; }
-        .nav { position: fixed; top: 0; width: 100%; padding: 20px 4%; display: flex; justify-content: space-between; align-items: center; z-index: 200; transition: background-color 0.5s; }
-        .nav--scrolled { background-color: var(--yourflix-black); }
-        .nav__logo { width: 120px; object-fit: contain; cursor: pointer; }
-        .nav__profile { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; cursor: pointer; }
-        .hero { position: relative; height: 56.25vw; max-height: 850px; color: white; background-size: cover; background-position: center 20%; }
-        .hero__contents { padding: 0 4%; padding-top: 180px; height: 100%; }
-        .hero__title { font-size: 3.8rem; font-weight: 900; text-shadow: 2px 2px 6px rgba(0,0,0,0.6); }
-        .hero__rank { display: flex; align-items: center; font-size: 1.2rem; font-weight: bold; margin-top: 1rem; }
-        .hero__rank_icon { background-color: var(--yourflix-red); padding: 2px 8px; border-radius: 3px; font-size: 0.9rem; margin-left: 10px; }
-        .hero__subtitle { width: 45rem; max-width: 80%; line-height: 1.4; padding-top: 1rem; font-size: 1.2rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
-        .hero__buttons .hero__button { cursor: pointer; color: white; outline: none; border: none; font-weight: 700; border-radius: 5px; padding: 0.8rem 2.2rem; margin-right: 1rem; margin-top: 1.5rem; background-color: rgba(109, 109, 110, 0.7); }
-        .hero__button.play { background-color: white; color: black; }
-        .hero__button:hover { background-color: rgba(255, 255, 255, 0.75); transition: all 0.2s; }
-        .hero__button.play:hover { background-color: rgba(255, 255, 255, 0.85); }
-        .hero--fade-bottom { position: absolute; bottom: 0; left: 0; right: 0; height: 15rem; background-image: linear-gradient(180deg, transparent, rgba(17,17,17,0.6), var(--yourflix-black)); }
-        .rows-container { padding: 2rem 0 2rem 0; overflow: hidden; }
-        .row { margin-bottom: 2.5rem; }
-        .row h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; padding: 0 4%;}
-        .row__posters { display: flex; overflow-y: hidden; overflow-x: scroll; padding: 15px 4%; scrollbar-width: none; }
-        .row__posters::-webkit-scrollbar { display: none; }
-        .poster-container { position: relative; flex-shrink: 0; margin-right: 10px; transition: all 300ms ease; cursor: pointer; }
-        .poster-container img { display: block; object-fit: cover; object-position: center; border-radius: 4px; }
-        .poster-container { width: var(--poster-width); height: var(--poster-height); }
-        .poster-container img { width: 100%; height: 100%; }
-        .poster-container--large { width: 200px; height: 280px; }
-        .poster-container--skill { width: 150px; height: 150px; }
-        .poster-container--skill img { border-radius: 50%; }
-        .poster-title { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 10px 8px 10px; font-size: 0.9rem; font-weight: bold; text-align: center; background-image: linear-gradient(to top, rgba(0,0,0,0.85) 20%, transparent); border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; transition: opacity 0.3s; }
-        .poster-container:hover { transform: scale(1.1); z-index: 100; }
-        #details-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease; }
-        #details-modal.active { opacity: 1; visibility: visible; }
-        .modal-content { background-color: var(--yourflix-dark-gray); border-radius: 8px; width: 90%; max-width: 850px; max-height: 90vh; overflow-y: auto; position: relative; transform: scale(0.9); transition: transform 0.3s ease; }
-        #details-modal.active .modal-content { transform: scale(1); }
-        .modal-header { position: relative; padding-top: 56.25%; background-size: cover; background-position: center; border-top-left-radius: 8px; border-top-right-radius: 8px;}
-        .modal-header__close { position: absolute; top: 15px; right: 15px; background: rgba(24,24,24,0.8); border-radius: 50%; width: 36px; height: 36px; color: white; border: none; font-size: 1.5rem; cursor: pointer; display: flex; justify-content: center; align-items: center; }
-        .modal-header-fade { position: absolute; bottom: -1px; left: 0; right: 0; height: 7.4rem; background-image: linear-gradient(180deg, transparent, rgba(24,24,24,0.7), var(--yourflix-dark-gray)); }
-        .modal-body { padding: 1.5rem 2.5rem; }
-        .modal-body h2 { font-size: 2rem; font-weight: 700; }
-        .modal-body p { font-size: 1rem; line-height: 1.5; margin-top: 1rem; }
-        .modal-tags { margin-top: 1rem; color: #999; font-weight: bold; }
-        @media (max-width: 768px) {
-            :root { --poster-width: 220px; --poster-height: 124px; }
-            .upload-content h1 { font-size: 2.5rem; }
-            .upload-content h2 { font-size: 1.2rem; }
-            .hero__title { font-size: 2rem; }
-            .hero__subtitle { max-width: 100%; font-size: 0.9rem; }
-            .hero__contents { padding-top: 150px; }
-            .nav__logo { width: 90px; }
-            .poster-container--large { width: 160px; height: 230px; }
-            .poster-container--skill { width: 120px; height: 120px; }
+
+        /* --- RESET & BASICS --- */
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{
+            font-family:'Heebo',sans-serif;
+            background-color:var(--yourflix-black);
+            color:#fff;
+            overflow-x:hidden;
+        }
+        .page{display:none;min-height:100vh;width:100vw;animation:fadeIn .5s ease-in}
+        .page.active{display:flex}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+        /* ---------- Upload page ---------- */
+        #upload-page{
+            flex-direction:column;
+            justify-content:center;
+            align-items:center;
+            text-align:center;
+            padding:2rem;
+            position:relative;
+            z-index:1;
+        }
+        #bg-video{
+            position:fixed;top:50%;left:50%;
+            min-width:100%;min-height:100%;
+            width:auto;height:auto;
+            z-index:-2;
+            transform:translate(-50%,-50%);
+            opacity:.3;
+        }
+        #upload-page::before{
+            content:'';
+            position:absolute;inset:0;
+            background:radial-gradient(ellipse at center,rgba(0,0,0,.4) 0%,rgba(0,0,0,.9) 100%);
+            z-index:-1;
+        }
+        .upload-content h1{font-size:3.5rem;font-weight:900;max-width:800px}
+        .upload-content h2{font-size:1.5rem;font-weight:400;margin-top:1rem;max-width:700px}
+        #create-series-btn{
+            background-color:var(--yourflix-red);color:#fff;border:none;
+            padding:1rem 2.5rem;font-size:1.5rem;font-weight:700;
+            border-radius:5px;margin-top:2rem;cursor:pointer;
+            transition:background-color .2s;
+        }
+        #create-series-btn:hover{background-color:#f40612}
+
+        /* ---------- Loading page ---------- */
+        #loading-page{flex-direction:column;justify-content:center;align-items:center}
+        .loading-logo{width:200px;height:auto;animation:pulse 1.5s infinite}
+        @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+        .loading-text-container{margin-top:2rem;height:30px;font-size:1.2rem;text-align:center}
+        .loading-text{display:none;animation:fadeInOut 2.5s ease-in-out}
+        .loading-text.active{display:block}
+        @keyframes fadeInOut{0%,100%{opacity:0}20%,80%{opacity:1}}
+
+        /* ---------- Main page ---------- */
+        #main-page{flex-direction:column}
+        .nav{
+            position:fixed;top:0;width:100%;padding:20px 4%;
+            display:flex;justify-content:space-between;align-items:center;
+            z-index:200;transition:background-color .5s;
+        }
+        .nav--scrolled{background-color:var(--yourflix-black)}
+        .nav__logo{width:120px;object-fit:contain;cursor:pointer}
+        .nav__profile{width:40px;height:40px;border-radius:4px;object-fit:cover;cursor:pointer}
+
+        .hero{
+            position:relative;height:56.25vw;max-height:850px;
+            color:#fff;background-size:cover;background-position:center 20%;
+        }
+        .hero__contents{padding:0 4%;padding-top:180px;height:100%}
+        .hero__title{font-size:3.8rem;font-weight:900;text-shadow:2px 2px 6px rgba(0,0,0,.6)}
+        .hero__rank{display:flex;align-items:center;font-size:1.2rem;font-weight:bold;margin-top:1rem}
+        .hero__rank_icon{
+            background-color:var(--yourflix-red);padding:2px 8px;border-radius:3px;
+            font-size:.9rem;margin-left:10px;
+        }
+        .hero__subtitle{
+            width:45rem;max-width:80%;line-height:1.4;
+            padding-top:1rem;font-size:1.2rem;
+            text-shadow:1px 1px 3px rgba(0,0,0,.8);
+        }
+        .hero__buttons .hero__button{
+            cursor:pointer;color:#fff;border:none;font-weight:700;border-radius:5px;
+            padding:.8rem 2.2rem;margin-right:1rem;margin-top:1.5rem;
+            background-color:rgba(109,109,110,.7);outline:none;
+        }
+        .hero__button.play{background-color:#fff;color:#000}
+        .hero__button:hover{background-color:rgba(255,255,255,.75);transition:all .2s}
+        .hero__button.play:hover{background-color:rgba(255,255,255,.85)}
+        .hero--fade-bottom{
+            position:absolute;bottom:0;left:0;right:0;height:15rem;
+            background-image:linear-gradient(180deg,transparent,rgba(17,17,17,.6),var(--yourflix-black));
+        }
+
+        .rows-container{padding:2rem 0;overflow:hidden}
+        .row{margin-bottom:2.5rem}
+        .row h2{font-size:1.5rem;font-weight:700;margin-bottom:.5rem;padding:0 4%}
+        .row__posters{display:flex;overflow-y:hidden;overflow-x:scroll;padding:15px 4%;scrollbar-width:none}
+        .row__posters::-webkit-scrollbar{display:none}
+
+        .poster-container{
+            position:relative;flex-shrink:0;margin-right:10px;transition:all 300ms ease;cursor:pointer;
+            width:var(--poster-width);height:var(--poster-height);
+        }
+        .poster-container img{width:100%;height:100%;object-fit:cover;border-radius:4px;display:block}
+        .poster-container--large{width:200px;height:280px}
+        .poster-container--skill{width:150px;height:150px}
+        .poster-container--skill img{border-radius:50%}
+        .poster-title{
+            position:absolute;bottom:0;left:0;right:0;
+            padding:20px 10px 8px;font-size:.9rem;font-weight:bold;text-align:center;
+            background-image:linear-gradient(to top,rgba(0,0,0,.85) 20%,transparent);
+            border-bottom-left-radius:4px;border-bottom-right-radius:4px;
+        }
+        .poster-container:hover{transform:scale(1.1);z-index:100}
+
+        /* ---------- Modal ---------- */
+        #details-modal{
+            position:fixed;inset:0;background-color:rgba(0,0,0,.8);
+            justify-content:center;align-items:center;z-index:1000;
+            opacity:0;visibility:hidden;transition:opacity .3s;
+        }
+        #details-modal.active{opacity:1;visibility:visible}
+        .modal-content{
+            background-color:var(--yourflix-dark-gray);border-radius:8px;
+            width:90%;max-width:850px;max-height:90vh;overflow-y:auto;
+            position:relative;transform:scale(.9);transition:transform .3s;
+        }
+        #details-modal.active .modal-content{transform:scale(1)}
+        .modal-header{position:relative;padding-top:56.25%;background-size:cover;background-position:center;border-top-left-radius:8px;border-top-right-radius:8px}
+        .modal-header__close{
+            position:absolute;top:15px;right:15px;background:rgba(24,24,24,.8);
+            border-radius:50%;width:36px;height:36px;color:#fff;border:none;font-size:1.5rem;
+            cursor:pointer;display:flex;justify-content:center;align-items:center;
+        }
+        .modal-header-fade{
+            position:absolute;bottom:-1px;left:0;right:0;height:7.4rem;
+            background-image:linear-gradient(180deg,transparent,rgba(24,24,24,.7),var(--yourflix-dark-gray));
+        }
+        .modal-body{padding:1.5rem 2.5rem}
+        .modal-body h2{font-size:2rem;font-weight:700}
+        .modal-body p{font-size:1rem;line-height:1.5;margin-top:1rem}
+        .modal-tags{margin-top:1rem;color:#999;font-weight:bold}
+
+        /* ---------- Responsive ---------- */
+        @media(max-width:768px){
+            :root{--poster-width:220px;--poster-height:124px}
+            .upload-content h1{font-size:2.5rem}
+            .upload-content h2{font-size:1.2rem}
+            .hero__title{font-size:2rem}
+            .hero__subtitle{max-width:100%;font-size:.9rem}
+            .hero__contents{padding-top:150px}
+            .nav__logo{width:90px}
+            .poster-container--large{width:160px;height:230px}
+            .poster-container--skill{width:120px;height:120px}
         }
     </style>
 </head>
 <body>
+    <!-- =====  SFX  ===== -->
     <audio id="tadum-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-dramatic-cinematic-trailer-hit-471.mp3" preload="auto"></audio>
 
+    <!-- =================  UPLOAD  ================= -->
     <div id="upload-page" class="page active">
         <video autoplay muted loop id="bg-video">
             <source src="https://assets.mixkit.co/videos/preview/mixkit-red-abstract-liquid-3987-large.mp4" type="video/mp4">
         </video>
         <div class="upload-content">
-            <h1>הפסיקו לשלוח קורות חיים. התחילו להקרין אותם.</h1>
-            <h2>YourFlix הופך את הסיפור המקצועי שלכם לסדרה שאי אפשר להפסיק לראות.</h2>
-            <button id="create-series-btn">+ צור את הסדרה של מיכאל</button>
+            <h1>הפסיקו לשלוח קורות-חיים. התחילו להקרין אותם.</h1>
+            <h2>YourFlix הופך את הסיפור המקצועי שלכם לסדרה שאי-אפשר להפסיק לראות.</h2>
+            <button id="create-series-btn">🎬 צפייה בסיפור של מיכאל גופמן</button>
         </div>
     </div>
 
+    <!-- =================  LOADING  ================= -->
     <div id="loading-page" class="page">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Netflix_2015_N_logo.svg/1200px-Netflix_2015_N_logo.svg.png" alt="Loading Logo" class="loading-logo">
+        <img class="loading-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Netflix_2015_N_logo.svg/1200px-Netflix_2015_N_logo.svg.png" alt="Loading logo">
         <div class="loading-text-container">
-            <p class="loading-text">מנתח את הנרטיב היזמי...</p>
-            <p class="loading-text">כותב תסריטים לפרקי הקריירה...</p>
-            <p class="loading-text">מג'נרט אסטרטגיות צמיחה...</p>
-            <p class="loading-text">מלחין פסקול של הצלחה...</p>
+            <p class="loading-text">מנתח את סילבוס הקורסים...</p>
+            <p class="loading-text">קורא מאמרים מצוטטים...</p>
+            <p class="loading-text">מחשב דירוגי כתב-עת...</p>
+            <p class="loading-text">מלחין פסקול של אקדמיה...</p>
             <p class="loading-text">הסדרה של מיכאל כמעט מוכנה!</p>
         </div>
     </div>
 
+    <!-- =================  MAIN  ================= -->
     <div id="main-page" class="page">
         <div class="nav" id="main-nav">
             <img class="nav__logo" src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Logonetflix.png" alt="YourFlix Logo">
@@ -119,13 +214,14 @@
 
         <header class="hero" id="hero-bg-img">
             <div class="hero__contents">
-                <h1 class="hero__title">מיכאל גופמן: הקוד ליזמות</h1>
+                <h1 class="hero__title">מיכאל גופמן: מאקדמיה לפיננסים עולמיים</h1>
                 <div class="hero__rank">
-                    <span class="hero__rank_icon">TOP 10</span>
-                    #2 בסדרות הסייבר בישראל היום
+                    <span class="hero__rank_icon">TOP&nbsp;10</span>
+                    סדרות אקדמיה מומלצות
                 </div>
                 <h2 class="hero__subtitle">
-                    מיזם ל-CTO, ממייסד למנהל בכיר. סדרת מתח טכנולוגית העוקבת אחר קריירה של הובלה, חדשנות ובניית חברות מהיסוד בעולם הסייבר והבינה המלאכותית.
+                    מסע אקדמי מרתק – מבנקאות כמותית בישראל אל כתבי-העת המובילים בארה״ב,
+                    ומשם לכיתות הלימוד של האוניברסיטה העברית.
                 </h2>
                 <div class="hero__buttons">
                     <button class="hero__button play">▶️ נגן את פרק הפיילוט</button>
@@ -141,7 +237,7 @@
                 <div class="row__posters" id="career-posters"></div>
             </div>
             <div class="row">
-                <h2>הפקות מקור (פרויקטים ואתגרים)</h2>
+                <h2>פרויקטים ואתגרים</h2>
                 <div class="row__posters" id="projects-posters"></div>
             </div>
             <div class="row">
@@ -150,12 +246,13 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- =================  MODAL  ================= -->
     <div id="details-modal" class="page">
         <div class="modal-content">
             <div class="modal-header" id="modal-header-img">
-                 <button class="modal-header__close" id="modal-close-btn">&times;</button>
-                 <div class="modal-header-fade"></div>
+                <button class="modal-header__close" id="modal-close-btn">&times;</button>
+                <div class="modal-header-fade"></div>
             </div>
             <div class="modal-body">
                 <h2 id="modal-title"></h2>
@@ -165,141 +262,123 @@
         </div>
     </div>
 
+    <!-- =================  SCRIPT  ================= -->
     <script>
-        // --- DATA STORE ---
-        // Using live URLs from Unsplash and Wikimedia for reliable image loading.
-        const IMAGES = {
-            HERO: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=1500&q=80',
-            PROFILE: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-            CYBER: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=600&q=80',
-            AI: 'https://images.unsplash.com/photo-1620712943543-2858200e94b1?auto=format&fit=crop&w=600&q=80',
-            LEADER: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=600&q=80'
+        /* ---------- IMAGE REPO ---------- */
+        const IMAGES={
+            HERO:'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1500&q=80',
+            PROFILE:'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80',
+            LOGO_HEB:'https://upload.wikimedia.org/wikipedia/commons/6/6f/Hebrew_University_New_Logo_2012.png',
+            LOGO_ROC:'https://upload.wikimedia.org/wikipedia/commons/6/6c/University_of_Rochester_seal.svg',
+            LOGO_WIS:'https://upload.wikimedia.org/wikipedia/commons/5/5c/University_of_Wisconsin%E2%80%93Madison_logo.svg',
+            LOGO_POALIM:'https://upload.wikimedia.org/wikipedia/commons/4/4a/Poalim_logo.svg',
+            UNSPLASH_RESEARCH:'https://images.unsplash.com/photo-1535223289827-42f1e9919769?auto=format&fit=crop&w=600&q=80',
+            UNSPLASH_TEACH:'https://images.unsplash.com/photo-1529078155058-5d716f45d604?auto=format&fit=crop&w=600&q=80',
+            UNSPLASH_GLOBAL:'https://images.unsplash.com/photo-1522199710521-72d69614c702?auto=format&fit=crop&w=600&q=80'
         };
 
-        const careerData = [
-            { title: 'מייסד ו-CTO ב-CyberPeak', desc: 'בשיא הקריירה, מיכאל מקים מאפס סטארטאפ סייבר פורץ דרך. הפרק עוקב אחר אתגרי הגיוס, פיתוח הטכנולוגיה, בניית התרבות והובלת החברה לאקזיט מרשים.', tags: '#יזמות #Cybersecurity #CTO #Fundraising #Leadership', img: IMAGES.PROFILE, type: 'large' },
-            { title: 'VP R&D ב-Innovate.AI', desc: 'מיכאל מצטרף לחברה בצמיחה ומוביל את כלל הפיתוח. הוא מכפיל את הצוות, מטמיע מתודולוגיות Agile ומוביל השקה של פלטפורמת AI מהפכנית לשוק הגלובלי.', tags: '#VP_R&D #AI #Machine_Learning #Scaling', img: IMAGES.LEADER, type: 'large' },
-            { title: 'ראש צוות ב-DataFlow', desc: 'הכל התחיל כאן. מיכאל מוביל צוות פיתוח קטן ומבריק, ומוכיח את יכולותיו הטכניות והניהוליות בפרויקט דגל של החברה בתחום ה-Big Data.', tags: '#Team_Leader #Big_Data #Hands_On #Cloud', img: IMAGES.AI, type: 'large' }
+        /* ---------- DATA ---------- */
+        const careerData=[
+            {title:'מרצה בכיר למימון – האוניברסיטה העברית',
+             desc:'מאז 2022 מוביל קורסים ומחקרים מתקדמים בתחום הבנקאות והרגולציה הפיננסית בבית הספר למנהל עסקים.',
+             tags:'#Academia #Finance #Jerusalem',
+             img:IMAGES.LOGO_HEB,type:'large'},
+            {title:'Assistant Professor – University of Rochester',
+             desc:'חמש שנים של הוראה ומחקר בארה״ב עם דגש על מימון תאגידי ומוסדות פיננסיים.',
+             tags:'#Rochester #Finance #Research',
+             img:IMAGES.LOGO_ROC,type:'large'},
+            {title:'Associate Professor – Wisconsin School of Business',
+             desc:'שש שנות הוראה, מחקר ופרסומים בנושא רגולציה ושווקים מתפתחים.',
+             tags:'#Wisconsin #Business_School #Economics',
+             img:IMAGES.LOGO_WIS,type:'large'},
+            {title:'Quant – Bank Hapoalim',
+             desc:'תחילת הדרך בבנקאות כמותית: פיתוח מודלים וניהול סיכונים בבנק המוביל בישראל.',
+             tags:'#Quant #Banking #Israel',
+             img:IMAGES.LOGO_POALIM,type:'large'}
         ];
 
-        const projectsData = [
-            { title: 'בניית ארכיטקטורת Multi-Cloud', desc: 'צלילה טכנית אל מאחורי הקלעים של הקמת פלטפורמה שעובדת על AWS, Azure ו-GCP במקביל, תוך הבטחת אבטחה וביצועים.', tags: '#Cloud #DevOps #Kubernetes #Scalability', img: IMAGES.CYBER, type: 'regular' },
-            { title: 'ממונוליט למיקרו-שירותים', desc: 'מסע כואב אך מתגמל של פירוק מערכת לגאסי מונוליטית למאות מיקרו-שירותים עצמאיים, שהוביל למהירות פיתוח ויציבות מערכת.', tags: '#Microservices #System_Design #Refactoring', img: IMAGES.AI, type: 'regular' }
+        const projectsData=[
+            {title:'מאמר מוביל ברגולציה פיננסית',
+             desc:'חוקר את יחסי הגומלין בין ממשלות לבנקים בזמן משבר. פורסם ב-Journal of Financial Economics.',
+             tags:'#Regulation #Crisis #Banking',
+             img:IMAGES.UNSPLASH_RESEARCH,type:'regular'},
+            {title:'קורס FinTech מתקדם',
+             desc:'פיתח סילבוס חדשני המשלב בלוקצ׳יין, למידת מכונה ושווקים דיגיטליים לסטודנטים לתואר שני.',
+             tags:'#FinTech #Teaching #Innovation',
+             img:IMAGES.UNSPLASH_TEACH,type:'regular'}
         ];
 
-        const skillsData = [
-            { title: 'מנהיגות והובלה', desc: 'ניסיון מוכח בהקמה וניהול של צוותי פיתוח גדולים, הגדרת חזון, בניית תרבות ארגונית והובלת תהליכים מורכבים.', tags: '#Leadership #Management #Strategy', img: IMAGES.LEADER, type: 'skill' },
-            { title: 'ארכיטקטורת ענן וסייבר', desc: 'מומחיות בתכנון ויישום מערכות מאובטחות, מבוזרות וסקיילביליות בסביבות ענן מורכבות.', tags: '#Architecture #Cloud #Security', img: IMAGES.CYBER, type: 'skill' },
-            { title: 'בינה מלאכותית ו-Data', desc: 'יכולת להפוך דאטה למוצר. ניסיון בעבודה עם מודלי ML, פלטפורמות Big Data והובלת מוצרים מבוססי AI.', tags: '#AI #Machine_Learning #Data', img: IMAGES.AI, type: 'skill' }
+        const skillsData=[
+            {title:'הוראה אקדמית ומחקר',
+             desc:'ניסיון עשיר בהוראה באוניברסיטאות מובילות ופרסומים בכתבי עת מדעיים מדורגים.',
+             tags:'#Teaching #Research #Academia',
+             img:IMAGES.PROFILE,type:'skill'},
+            {title:'פיננסים, רגולציה ושווקים',
+             desc:'התמחות ברגולציה פיננסית, שוקי הון, בנקאות תאגידית וניהול סיכונים.',
+             tags:'#Finance #Markets #Regulation',
+             img:IMAGES.UNSPLASH_GLOBAL,type:'skill'},
+            {title:'עבודה חוצת גבולות',
+             desc:'חוויית מחקר והוראה בארה״ב ובישראל, כולל שיתופי פעולה בינלאומיים.',
+             tags:'#International #Collaboration #Global',
+             img:IMAGES.UNSPLASH_TEACH,type:'skill'}
         ];
 
-        // --- DYNAMIC CONTENT GENERATION ---
-        function createPoster(item) {
-            const container = document.createElement('div');
-            container.className = `poster-container poster-container--${item.type}`;
-            container.dataset.title = item.title;
-            container.dataset.desc = item.desc;
-            container.dataset.tags = item.tags;
-            container.dataset.img = item.img;
+        /* ---------- HELPERS ---------- */
+        const createPoster=item=>{
+            const c=document.createElement('div');
+            c.className=`poster-container poster-container--${item.type}`;
+            Object.assign(c.dataset,{title:item.title,desc:item.desc,tags:item.tags,img:item.img});
+            const img=document.createElement('img');img.src=item.img;img.alt=item.title;img.loading='lazy';
+            const t=document.createElement('div');t.className='poster-title';t.textContent=item.title;
+            c.append(img,t);return c;
+        };
+        const populateRow=(id,data)=>{
+            const el=document.getElementById(id);data.forEach(i=>el.appendChild(createPoster(i)));
+        };
 
-            const img = document.createElement('img');
-            img.src = item.img;
-            img.alt = item.title;
-            img.loading = 'lazy'; // Improve performance
+        /* ---------- FLOW ---------- */
+        document.addEventListener('DOMContentLoaded',()=>{
+            // initial visuals
+            document.getElementById('nav-profile-img').src=IMAGES.PROFILE;
+            document.getElementById('hero-bg-img').style.backgroundImage=`url('${IMAGES.HERO}')`;
 
-            const titleDiv = document.createElement('div');
-            titleDiv.className = 'poster-title';
-            titleDiv.textContent = item.title;
-            
-            container.appendChild(img);
-            container.appendChild(titleDiv);
-            return container;
-        }
+            populateRow('career-posters',careerData);
+            populateRow('projects-posters',projectsData);
+            populateRow('skills-posters',skillsData);
 
-        function populateRow(containerId, data) {
-            const container = document.getElementById(containerId);
-            data.forEach(item => {
-                container.appendChild(createPoster(item));
-            });
-        }
+            const pages=document.querySelectorAll('.page');
+            const showPage=id=>{pages.forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');};
+            const btn=document.getElementById('create-series-btn');
+            const sounds=document.getElementById('tadum-sound');
+            const texts=[...document.querySelectorAll('.loading-text')];
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- Initial Setup ---
-            document.getElementById('nav-profile-img').src = IMAGES.PROFILE;
-            document.getElementById('hero-bg-img').style.backgroundImage = `url('${IMAGES.HERO}')`;
-            
-            populateRow('career-posters', careerData);
-            populateRow('projects-posters', projectsData);
-            populateRow('skills-posters', skillsData);
-
-            // --- Page Logic ---
-            const pages = document.querySelectorAll('.page');
-            const createBtn = document.getElementById('create-series-btn');
-            const tadumSound = document.getElementById('tadum-sound');
-            const loadingTexts = document.querySelectorAll('.loading-text');
-            const nav = document.getElementById('main-nav');
-            
-            function showPage(pageId) {
-                pages.forEach(page => page.classList.remove('active'));
-                document.getElementById(pageId).classList.add('active');
-            }
-
-            createBtn.addEventListener('click', () => {
+            btn.addEventListener('click',()=>{
                 showPage('loading-page');
-                tadumSound.play().catch(e => console.error("Audio play failed"));
-                
-                let i = 0;
-                loadingTexts[i].classList.add('active');
-                const loadingInterval = setInterval(() => {
-                    loadingTexts[i].classList.remove('active');
-                    i++;
-                    if (i < loadingTexts.length) {
-                        loadingTexts[i].classList.add('active');
-                    } else {
-                        clearInterval(loadingInterval);
-                        setTimeout(() => {
-                            showPage('main-page');
-                            nav.classList.add('nav--scrolled');
-                        }, 500);
-                    }
-                }, 1500); 
+                sounds.play().catch(()=>{});
+                let i=0;texts[i].classList.add('active');
+                const int=setInterval(()=>{
+                    texts[i].classList.remove('active');i++;
+                    if(i<texts.length)texts[i].classList.add('active');
+                    else{clearInterval(int);setTimeout(()=>{showPage('main-page');document.getElementById('main-nav').classList.add('nav--scrolled');},500);}
+                },1500);
             });
 
-            window.addEventListener('scroll', () => {
-                if (window.scrollY > 50) {
-                    nav.classList.add('nav--scrolled');
-                } else {
-                    nav.classList.remove('nav--scrolled');
-                }
-            }, { passive: true });
-            
-            // --- Modal Logic ---
-            const modal = document.getElementById('details-modal');
-            const modalCloseBtn = document.getElementById('modal-close-btn');
-            const modalTitle = document.getElementById('modal-title');
-            const modalDesc = document.getElementById('modal-desc');
-            const modalTags = document.getElementById('modal-tags');
-            const modalHeaderImg = document.getElementById('modal-header-img');
-            
-            document.querySelectorAll('.poster-container').forEach(container => {
-                container.addEventListener('click', () => {
-                    modalTitle.textContent = container.dataset.title;
-                    modalDesc.textContent = container.dataset.desc;
-                    modalTags.textContent = container.dataset.tags;
-                    modalHeaderImg.style.backgroundImage = `url('${container.dataset.img}')`;
-                    modal.classList.add('active');
-                });
-            });
-            
-            function closeModal() {
-                 modal.classList.remove('active');
-            }
-            
-            modalCloseBtn.addEventListener('click', closeModal);
-            modal.addEventListener('click', (event) => {
-                if(event.target === modal) {
-                    closeModal();
-                }
+            window.addEventListener('scroll',()=>{const nav=document.getElementById('main-nav');window.scrollY>50?nav.classList.add('nav--scrolled'):nav.classList.remove('nav--scrolled')},{passive:true});
+
+            // modal
+            const modal=document.getElementById('details-modal');
+            const close=()=>modal.classList.remove('active');
+            document.getElementById('modal-close-btn').addEventListener('click',close);
+            modal.addEventListener('click',e=>{if(e.target===modal)close();});
+
+            document.addEventListener('click',e=>{
+                const target=e.target.closest('.poster-container');
+                if(!target)return;
+                document.getElementById('modal-title').textContent=target.dataset.title;
+                document.getElementById('modal-desc').textContent=target.dataset.desc;
+                document.getElementById('modal-tags').textContent=target.dataset.tags;
+                document.getElementById('modal-header-img').style.backgroundImage=`url('${target.dataset.img}')`;
+                modal.classList.add('active');
             });
         });
     </script>
