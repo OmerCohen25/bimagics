@@ -202,7 +202,11 @@
         <p class="section-subtitle">מהחיבור הפשוט, דרך הדשבורד החכם ועד הצ'אט האינטראקטיבי - הכל במקום אחד.</p>
         <div class="phone-wrapper">
             <div class="phone-inner">
-                <div id="login-screen" class="demo-screen active"><a href="#" class="header-logo" style="color: var(--text-primary);">Wizbi <span>✨</span></a><h3>ברוכים הבאים</h3><div class="google-btn"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google icon"><span>התחבר עם Google</span></div></div>
+                <div id="login-screen" class="demo-screen active">
+                    <a href="#" class="header-logo" style="color: var(--text-primary);">Wizbi <span>✨</span></a>
+                    <h3>ברוכים הבאים</h3>
+                    <a href="#" class="google-btn"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google icon"><span>התחבר עם Google</span></a>
+                </div>
                 <div id="api-key-screen" class="demo-screen"><span class="material-symbols-outlined">key</span><h3>חיבור לחשבון Morning</h3><p>הדביקו את מפתח ה-API שהעתקתם מהאתר של Morning.</p><div class="api-input">c3a7f4e2-9b1d-4c6f-8a0e-1b9d5c8f2a1b</div><button class="connect-btn">התחבר</button></div>
                 <div id="loading-screen" class="demo-screen"><div class="loader"></div></div>
                 <div id="app-view-screen" class="demo-screen">
@@ -248,10 +252,16 @@ document.addEventListener('DOMContentLoaded', () => {
             { type: 'bot', text: 'שלום 👋 אני Wizbi. במה אוכל לעזור?' }, { type: 'me', text: 'היי, כמה הכנסות היו לי השבוע?' }, { type: 'bot', text: 'הכנסות השבוע עומדות על <b>₪17,530</b>.' }, { type: 'me', text: 'מעולה, ומי הלקוחות שעדיין לא שילמו לי?' }, { type: 'bot', text: 'מצאתי 3 לקוחות עם חובות פתוחים:<br>• רוני כהן – ₪3,200<br>• סטודיו יעקב – ₪1,850<br>• ר.ש. אחזקות – ₪980' }
         ];
         let autoMessageIndex = 0;
+        let intervalId = null;
         
-        function runAutoConversation() {
+        const runAutoConversation = () => {
             if (autoMessageIndex >= autoMessages.length) {
-                setTimeout(() => { autoChatContent.innerHTML = ''; autoMessageIndex = 0; }, 4000);
+                clearInterval(intervalId); // Stop the interval
+                setTimeout(() => { 
+                    autoChatContent.innerHTML = ''; 
+                    autoMessageIndex = 0;
+                    intervalId = setInterval(runAutoConversation, 2500); // Restart
+                }, 4000);
                 return;
             }
             const msg = autoMessages[autoMessageIndex];
@@ -262,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if(autoChatContent.parentElement) { autoChatContent.parentElement.scrollTop = autoChatContent.parentElement.scrollHeight; }
             autoMessageIndex++;
         }
-        setInterval(runAutoConversation, 2500);
+        intervalId = setInterval(runAutoConversation, 2500);
     }
 
     // --- SCRIPT FOR INTERACTIVE SIMULATOR (ROBUST VERSION) ---
@@ -270,27 +280,33 @@ document.addEventListener('DOMContentLoaded', () => {
     if (simulator) {
         let incomeChart, debtChart; 
 
-        // Centralized function to switch screens
         const switchScreen = (screenId) => {
             simulator.querySelectorAll('.demo-screen').forEach(screen => screen.classList.remove('active'));
             const activeScreen = simulator.querySelector('#' + screenId);
             if (activeScreen) activeScreen.classList.add('active');
         };
 
-        // Initialize Charts
         const initializeCharts = () => {
             Chart.defaults.color = '#9BA3AE'; Chart.defaults.font.family = "'Heebo', sans-serif"; Chart.defaults.font.size = 10; Chart.defaults.plugins.legend.display = false;
             const tooltipDefaults = { backgroundColor: '#101114', titleFont: { weight: 'bold' }, bodyFont: { size: 10 }, padding: 8, callbacks: { label: (c) => `${c.dataset.label || ''}: ${new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', minimumFractionDigits: 0 }).format(c.parsed.y || c.parsed)}` } };
-            incomeChart = new Chart(document.getElementById('incomeExpenseChart').getContext('2d'), { type: 'bar', data: { labels: ['חודש קודם', 'חודש נוכחי'], datasets: [{ label: 'הכנסות', data: [67046, 72410], backgroundColor: 'rgba(0, 193, 117, 0.6)', borderRadius: 4 }, { label: 'הוצאות', data: [36010, 34210], backgroundColor: 'rgba(255, 115, 115, 0.6)', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { display: false }, x: { ticks: { color: '#9BA3AE' } } }, plugins: { tooltip: tooltipDefaults } } });
-            debtChart = new Chart(document.getElementById('debtChart').getContext('2d'), { type: 'doughnut', data: { labels: ['ר.ש. אחזקות', 'סטודיו יעקב', 'רוני כהן', 'אחרים'], datasets: [{ data: [9800, 4850, 3200, 3620], backgroundColor: ['#FFD54F', '#00C175', '#FF7373', '#9BA3AE'], borderColor: '#22272e', borderWidth: 2, hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, padding: 10 } }, tooltip: tooltipDefaults } } });
+            
+            const incomeCtx = document.getElementById('incomeExpenseChart')?.getContext('2d');
+            if(incomeCtx) {
+              incomeChart = new Chart(incomeCtx, { type: 'bar', data: { labels: ['חודש קודם', 'חודש נוכחי'], datasets: [{ label: 'הכנסות', data: [67046, 72410], backgroundColor: 'rgba(0, 193, 117, 0.6)', borderRadius: 4 }, { label: 'הוצאות', data: [36010, 34210], backgroundColor: 'rgba(255, 115, 115, 0.6)', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { display: false }, x: { ticks: { color: '#9BA3AE' } } }, plugins: { tooltip: tooltipDefaults } } });
+            }
+
+            const debtCtx = document.getElementById('debtChart')?.getContext('2d');
+            if(debtCtx) {
+              debtChart = new Chart(debtCtx, { type: 'doughnut', data: { labels: ['ר.ש. אחזקות', 'סטודיו יעקב', 'רוני כהן', 'אחרים'], datasets: [{ data: [9800, 4850, 3200, 3620], backgroundColor: ['#FFD54F', '#00C175', '#FF7373', '#9BA3AE'], borderColor: '#22272e', borderWidth: 2, hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, padding: 10 } }, tooltip: tooltipDefaults } } });
+            }
         }
 
-        // Interactive Chat Logic
         const conversationArea = simulator.querySelector('.conversation-area');
         const questionsArea = simulator.querySelector('.suggested-questions');
         const qaPairs = { "כמה הכנסות היו החודש?": "הכנסות החודש עומדות על <b>₪72,410</b>.", "מי הלקוח הכי רווחי שלי?": "הלקוח הכי רווחי שלך החודש הוא <b>'סטודיו יעקב'</b>, עם הכנסות של ₪12,500.", "האם יש חשבוניות שמתקרבות לתאריך היעד?": "כן, חשבונית בסך ₪1,850 ללקוח 'רוני כהן' צפויה להגיע לתאריך היעד מחר." };
         
         const initializeInteractiveChat = () => {
+            if (!conversationArea || !questionsArea) return;
             conversationArea.innerHTML = '';
             addSimMessage('sim-bot', 'שלום, אני Wizbi. בחרו שאלה כדי להתחיל.');
             renderQuestions();
@@ -311,18 +327,15 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         };
         
-        // Use a single event listener on the simulator container (Event Delegation)
         simulator.addEventListener('click', function(event) {
             const target = event.target;
 
-            // Handle Google Button click
             if (target.closest('.google-btn')) {
                 event.preventDefault();
                 switchScreen('api-key-screen');
                 return;
             }
 
-            // Handle Connect Button click
             if (target.closest('.connect-btn')) {
                 switchScreen('loading-screen');
                 setTimeout(() => {
@@ -332,7 +345,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Handle Nav Tabs click
             const navBtn = target.closest('.app-nav-btn');
             if (navBtn) {
                 const tabId = navBtn.dataset.tab;
@@ -340,41 +352,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 navBtn.classList.add('active');
                 simulator.querySelectorAll('.app-tab').forEach(tab => tab.classList.remove('active'));
                 const activeTab = simulator.querySelector('#' + tabId);
-                if (activeTab) activeTab.classList.add('active');
-                
-                if (tabId === 'chat-view' && !activeTab.dataset.initialized) {
-                    initializeInteractiveChat();
-                    activeTab.dataset.initialized = 'true';
+                if (activeTab) {
+                    activeTab.classList.add('active');
+                    if (tabId === 'chat-view' && !activeTab.dataset.initialized) {
+                        initializeInteractiveChat();
+                        activeTab.dataset.initialized = 'true';
+                    }
                 }
                 return;
             }
 
-            // Handle Suggested Question click
             const questionBtn = target.closest('.suggested-questions button');
-            if (questionBtn && !questionBtn.disabled) {
-                const question = questionBtn.textContent;
-                addSimMessage('sim-me', question);
-                questionsArea.innerHTML = '<p style="text-align:center;color:var(--text-secondary);font-size:0.9rem;">Wizbi חושב...</p>';
-                
-                setTimeout(() => {
-                    addSimMessage('sim-bot', qaPairs[question]);
-                    const answeredQuestions = [...conversationArea.querySelectorAll('.sim-me')].map(el => el.textContent);
-                    if (answeredQuestions.length >= Object.keys(qaPairs).length) {
-                        questionsArea.innerHTML = '';
-                        const resetButton = document.createElement('button');
-                        resetButton.textContent = 'התחל שיחה מחדש';
-                        questionsArea.appendChild(resetButton);
-                    } else {
-                        renderQuestions();
-                        [...questionsArea.querySelectorAll('button')].forEach(btn => {
-                            if (answeredQuestions.includes(btn.textContent)) { btn.disabled = true; }
-                        });
-                    }
-                }, 1200);
-            }
-             // Handle Reset button click
-            if(questionBtn && questionBtn.textContent === 'התחל שיחה מחדש'){
-                 initializeInteractiveChat();
+            if (questionBtn) {
+                 if(questionBtn.textContent === 'התחל שיחה מחדש'){
+                    initializeInteractiveChat();
+                    return;
+                 }
+
+                if (!questionBtn.disabled) {
+                    const question = questionBtn.textContent;
+                    addSimMessage('sim-me', question);
+                    questionsArea.innerHTML = '<p style="text-align:center;color:var(--text-secondary);font-size:0.9rem;">Wizbi חושב...</p>';
+                    
+                    setTimeout(() => {
+                        addSimMessage('sim-bot', qaPairs[question]);
+                        const answeredQuestions = [...conversationArea.querySelectorAll('.sim-me')].map(el => el.textContent);
+                        
+                        if (answeredQuestions.length >= Object.keys(qaPairs).length) {
+                            questionsArea.innerHTML = '';
+                            const resetButton = document.createElement('button');
+                            resetButton.textContent = 'התחל שיחה מחדש';
+                            questionsArea.appendChild(resetButton);
+                        } else {
+                            renderQuestions();
+                            [...questionsArea.querySelectorAll('button')].forEach(btn => {
+                                if (answeredQuestions.includes(btn.textContent)) { btn.disabled = true; }
+                            });
+                        }
+                    }, 1200);
+                }
             }
         });
     }
