@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YourFlix: הסדרה של הקריירה שלך</title>
+    <style>
+        /* --- Global Styles & Fonts --- */
+        :root {
+            --yourflix-red: #e50914;
+            --yourflix-black: #111;
+            --yourflix-dark-gray: #181818;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--yourflix-black);
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        /* --- Page Containers --- */
+        .page {
+            display: none;
+            min-height: 100vh;
+            width: 100vw;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* --- 1. Upload Page --- */
+        #upload-page {
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        #bg-video {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -2;
+            transform: translateX(-50%) translateY(-50%);
+            opacity: 0.3;
+        }
+
+        #upload-page::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%);
+            z-index: -1;
+        }
+        
+        .upload-content h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            max-width: 800px;
+        }
+
+        .upload-content h2 {
+            font-size: 1.5rem;
+            font-weight: 400;
+            margin-top: 1rem;
+            max-width: 700px;
+        }
+
+        #create-series-btn {
+            background-color: var(--yourflix-red);
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border-radius: 5px;
+            margin-top: 2rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        #create-series-btn:hover {
+            background-color: #f40612;
+        }
+
+        /* --- 2. Loading Page --- */
+        #loading-page {
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading-logo {
+            width: 200px;
+            height: auto;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .loading-text-container {
+            margin-top: 2rem;
+            height: 30px;
+            font-size: 1.2rem;
+        }
+
+        .loading-text {
+            display: none;
+            animation: fadeInOut 2.5s ease-in-out;
+        }
+
+        .loading-text.active {
+            display: block;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            20%, 80% { opacity: 1; }
+        }
+
+        /* --- 3. Main Page --- */
+        #main-page {
+            flex-direction: column;
+        }
+
+        /* Nav Bar */
+        .nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            transition: background-color 0.5s;
+        }
+        
+        .nav--scrolled {
+            background-color: var(--yourflix-black);
+        }
+
+        .nav__logo {
+            width: 120px;
+            object-fit: contain;
+            cursor: pointer;
+        }
+        
+        .nav__profile {
+            width: 30px;
+            object-fit: contain;
+            cursor: pointer;
+        }
+
+        /* Hero Banner */
+        .hero {
+            position: relative;
+            height: 56.25vw; /* 16:9 Aspect Ratio */
+            max-height: 800px;
+            color: white;
+            object-fit: contain;
+            background-size: cover;
+            background-position: center center;
+        }
+
+        .hero__contents {
+            padding: 0 4%;
+            padding-top: 240px;
+            height: 100%;
+        }
+
+        .hero__title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            padding-bottom: 0.3rem;
+        }
+        
+        .hero__subtitle {
+            width: 45rem;
+            max-width: 80%;
+            line-height: 1.3;
+            padding-top: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        .hero__buttons .hero__button {
+            cursor: pointer;
+            color: white;
+            outline: none;
+            border: none;
+            font-weight: 700;
+            border-radius: 0.2vw;
+            padding: 0.75rem 2rem;
+            margin-right: 1rem;
+            background-color: rgba(51, 51, 51, 0.7);
+        }
+
+        .hero__button.play {
+            background-color: white;
+            color: black;
+        }
+        
+        .hero__button:hover {
+            color: #000;
+            background-color: #e6e6e6;
+            transition: all 0.2s;
+        }
+
+        .hero--fade-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 15rem;
+            background-image: linear-gradient(180deg, transparent, rgba(17,17,17,0.6), var(--yourflix-black));
+        }
+
+        /* Content Rows */
+        .rows-container {
+            padding: 0 0 0 4%;
+        }
+        .row {
+            margin-bottom: 2rem;
+        }
+
+        .row h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .row__posters {
+            display: flex;
+            overflow-y: hidden;
+            overflow-x: scroll;
+            padding: 15px 0;
+        }
+
+        .row__posters::-webkit-scrollbar {
+            display: none; /* Hide scrollbar for Chrome, Safari and Opera */
+        }
+        
+        .row__poster {
+            object-fit: cover;
+            width: 100%;
+            max-height: 150px;
+            margin-right: 10px;
+            transition: transform 450ms;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .row__poster:hover {
+            transform: scale(1.08);
+            opacity: 1;
+        }
+
+        .row__poster--large {
+            max-height: 250px;
+        }
+
+        /* --- Modal --- */
+        #details-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+        
+        #details-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: var(--yourflix-dark-gray);
+            border-radius: 8px;
+            width: 90%;
+            max-width: 850px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        #details-modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            position: relative;
+            height: 450px;
+            background-size: cover;
+            background-position: center;
+        }
+        .modal-header__close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-header-fade {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 7.4rem;
+            background-image: linear-gradient(180deg, transparent, rgba(24,24,24,0.6), var(--yourflix-dark-gray));
+        }
+        
+        .modal-body {
+            padding: 1.5rem 2.5rem;
+        }
+        
+        .modal-body h2 {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .modal-body p {
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-top: 1rem;
+        }
+
+        .modal-tags {
+            margin-top: 1rem;
+            color: #777;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .upload-content h1 {
+                font-size: 2.5rem;
+            }
+            .upload-content h2 {
+                font-size: 1.2rem;
+            }
+            .hero__title {
+                font-size: 2rem;
+            }
+            .hero__subtitle {
+                max-width: 100%;
+                font-size: 0.9rem;
+            }
+            .hero__contents {
+                padding-top: 150px;
+            }
+            .nav__logo {
+                width: 90px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="tadum-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-dramatic-cinematic-trailer-hit-471.mp3" preload="auto"></audio>
+
+    <div id="upload-page" class="page active">
+        <video autoplay muted loop id="bg-video">
+            <source src="https://assets.mixkit.co/videos/preview/mixkit-red-abstract-liquid-3987-large.mp4" type="video/mp4">
+        </video>
+        <div class="upload-content">
+            <h1>הפסיקו לשלוח קורות חיים. התחילו להקרין אותם.</h1>
+            <h2>YourFlix הופך את הסיפור המקצועי שלכם לסדרה שאי אפשר להפסיק לראות.</h2>
+            <button id="create-series-btn">+ צור את הסדרה שלי</button>
+        </div>
+    </div>
+
+    <div id="loading-page" class="page">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Netflix_2015_N_logo.svg/1200px-Netflix_2015_N_logo.svg.png" alt="Loading Logo" class="loading-logo">
+        <div class="loading-text-container">
+            <p class="loading-text">מנתח את הנרטיב...</p>
+            <p class="loading-text">כותב תסריטים לפרקי הקריירה...</p>
+            <p class="loading-text">מג'נרט פוסטרים וטריילרים...</p>
+            <p class="loading-text">מלחין פסקול מקורי...</p>
+            <p class="loading-text">הפרמיירה שלך כמעט מוכנה!</p>
+        </div>
+    </div>
+
+    <div id="main-page" class="page">
+        <div class="nav" id="main-nav">
+            <img class="nav__logo" src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Logonetflix.png" alt="YourFlix Logo">
+            <img class="nav__profile" src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png" alt="Profile">
+        </div>
+
+        <header class="hero" style="background-image: url('https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');">
+            <div class="hero__contents">
+                <h1 class="hero__title">דנה ישראלי: המסע</h1>
+                <h2 class="hero__subtitle">
+                    מסע מטלטל של חדשנות, ניהול ואתגרים. סדרה המתחקה אחר התפתחותה של מנהלת מוצר, מרעיון ראשוני ועד להשקות גלובליות.
+                </h2>
+                <div class="hero__buttons">
+                    <button class="hero__button play">▶️ נגן את הפרק הראשון</button>
+                    <button class="hero__button">ℹ️ מידע נוסף</button>
+                </div>
+            </div>
+            <div class="hero--fade-bottom"></div>
+        </header>
+
+        <div class="rows-container">
+            <div class="row">
+                <h2>תחנות בקריירה</h2>
+                <div class="row__posters">
+                    <img class="row__poster row__poster--large" src="https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Waze"
+                         data-title="עונה 3: הניווט להצלחה ב-Waze"
+                         data-desc="בתפקידה הבכיר ביותר עד כה, דנה מובילה צוות גלובלי, מגדירה חזון מוצרי חדשני ומתמודדת עם תחרות עזה בשוק הניווט. הישגיה כוללים השקת פיצ'רים מבוססי קהילה שהעלו את המעורבות ב-20%."
+                         data-tags="#אסטרטגיה #ניהול_צוות #B2C #Data-Driven">
+                    <img class="row__poster row__poster--large" src="https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Monday.com"
+                         data-title="עונה 2: לבנות את יום שני המושלם"
+                         data-desc="כמנהלת מוצר באחד הסטארטאפים המהירים בעולם, דנה הייתה אחראית על פיצ'רי האוטומציה והאינטגרציות, שהפכו לאבן יסוד בהצלחת המוצר והובילו לצמיחה משמעותית בהכנסות."
+                         data-tags="#SaaS #ניהול_מוצר #Agile #B2B">
+                    <img class="row__poster row__poster--large" src="https://images.pexels.com/photos/2102416/pexels-photo-2102416.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="8200"
+                         data-title="עונה 1: שירות משמעותי"
+                         data-desc="הכל התחיל כאן. בתפקידה כמנהלת פרויקטים טכנולוגיים ביחידת 8200, דנה רכשה ניסיון מעשי בהובלת פרויקטים מורכבים תחת לחץ, עבודה עם כמויות מידע אדירות ופיתוח יכולות אנליטיות יוצאות דופן."
+                         data-tags="#ניהול_פרויקטים #Big_Data #Cyber">
+                </div>
+            </div>
+
+            <div class="row">
+                <h2>הפקות מקור (פרויקטים נבחרים)</h2>
+                <div class="row__posters">
+                     <img class="row__poster" src="https://images.pexels.com/photos/7988086/pexels-photo-7988086.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Project 1"
+                         data-title="סרט דוקו: השקת ה-Waze Carpool באירופה"
+                         data-desc="צלילה אל מאחורי הקלעים של אחד הפרויקטים המורכבים בקריירה של דנה: התאמת מוצר אמריקאי לשוק האירופאי המפוצל, התמודדות עם רגולציה וניהול השקה ב-5 מדינות במקביל."
+                         data-tags="#Go-To-Market #לוקליזציה #ניהול_פרויקט">
+                    <img class="row__poster" src="https://images.pexels.com/photos/590022/pexels-photo-590022.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Project 2"
+                         data-title="ספיישל: הגדרת אסטרטגיית התמחור של Monday"
+                         data-desc="פרק מיוחד החושף את תהליך המחקר, ניתוח הנתונים וההחלטות האסטרטגיות שהובילו לבניית מודל התמחור המצליח של Monday, המשלב בין צרכי הלקוחות הקטנים והגדולים."
+                         data-tags="#תמחור #אסטרטגיה #מחקר_שוק">
+                     <img class="row__poster" src="https://images.pexels.com/photos/3861964/pexels-photo-3861964.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Project 3"
+                         data-title="סרט קצר: פיתוח פיצ'ר ה-Automations"
+                         data-desc="איך לוקחים צורך בסיסי של משתמשים והופכים אותו למנוע צמיחה? סרט זה עוקב אחר תהליך הפיתוח של פיצ'ר האוטומציות, משלב הרעיון ועד להשפעה האדירה על שימור הלקוחות."
+                         data-tags="#Product_Development #UX #Feature_Launch">
+                </div>
+            </div>
+
+             <div class="row">
+                <h2>שנות האקדמיה</h2>
+                <div class="row__posters">
+                    <img class="row__poster" src="https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="TAU"
+                         data-title="תואר שני במנהל עסקים (MBA)"
+                         data-desc="התמחות באסטרטגיה וטכנולוגיה באוניברסיטת תל אביב. כאן דנה חידדה את החשיבה העסקית, יכולות הניהול והבנת השוק הגלובלי."
+                         data-tags="#MBA #אסטרטגיה #אוניברסיטת_תל_אביב">
+                    <img class="row__poster" src="https://images.pexels.com/photos/1370296/pexels-photo-1370296.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Technion"
+                         data-title="תואר ראשון במדעי המחשב"
+                         data-desc="הבסיס הטכנולוגי החזק נבנה בטכניון. לימודים מצטיינים שהקנו לדנה הבנה עמוקה של ארכיטקטורת תוכנה, אלגוריתמים ופתרון בעיות."
+                         data-tags="#BSc #מדעי_המחשב #הטכניון">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="details-modal" class="page">
+        <div class="modal-content">
+            <div class="modal-header" id="modal-header-img">
+                 <button class="modal-header__close" id="modal-close-btn">&times;</button>
+                 <div class="modal-header-fade"></div>
+            </div>
+            <div class="modal-body">
+                <h2 id="modal-title"></h2>
+                <p id="modal-desc"></p>
+                <p id="modal-tags" class="modal-tags"></p>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Page elements
+            const pages = document.querySelectorAll('.page');
+            const uploadPage = document.getElementById('upload-page');
+            const loadingPage = document.getElementById('loading-page');
+            const mainPage = document.getElementById('main-page');
+            
+            // Buttons and interactive elements
+            const createBtn = document.getElementById('create-series-btn');
+            const tadumSound = document.getElementById('tadum-sound');
+            const loadingTexts = document.querySelectorAll('.loading-text');
+            const nav = document.getElementById('main-nav');
+            
+            // Modal elements
+            const modal = document.getElementById('details-modal');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            const modalTitle = document.getElementById('modal-title');
+            const modalDesc = document.getElementById('modal-desc');
+            const modalTags = document.getElementById('modal-tags');
+            const modalHeaderImg = document.getElementById('modal-header-img');
+            const posters = document.querySelectorAll('.row__poster');
+
+            // Function to switch pages
+            function showPage(pageId) {
+                pages.forEach(page => page.classList.remove('active'));
+                document.getElementById(pageId).classList.add('active');
+            }
+
+            // --- 1. Start Process on Button Click ---
+            createBtn.addEventListener('click', () => {
+                showPage('loading-page');
+                tadumSound.play().catch(e => console.log("Audio play failed, user interaction needed."));
+                
+                // Simulate loading process
+                let i = 0;
+                loadingTexts[i].classList.add('active');
+                const loadingInterval = setInterval(() => {
+                    loadingTexts[i].classList.remove('active');
+                    i++;
+                    if (i < loadingTexts.length) {
+                        loadingTexts[i].classList.add('active');
+                    } else {
+                        clearInterval(loadingInterval);
+                        // --- 2. Transition to Main Page ---
+                        setTimeout(() => {
+                            showPage('main-page');
+                            // Make nav bar black from the start
+                            nav.classList.add('nav--scrolled');
+                        }, 500);
+                    }
+                }, 1500); 
+            });
+
+            // --- 3. Navbar Scroll Effect ---
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 100) {
+                    nav.classList.add('nav--scrolled');
+                } else {
+                    nav.classList.remove('nav--scrolled');
+                }
+            });
+            
+            // --- 4. Modal Logic ---
+            posters.forEach(poster => {
+                poster.addEventListener('click', () => {
+                    const title = poster.dataset.title;
+                    const desc = poster.dataset.desc;
+                    const tags = poster.dataset.tags;
+                    const imgSrc = poster.src;
+                    
+                    modalTitle.textContent = title;
+                    modalDesc.textContent = desc;
+                    modalTags.textContent = tags;
+                    modalHeaderImg.style.backgroundImage = `url('${imgSrc}')`;
+                    
+                    modal.classList.add('active');
+                });
+            });
+            
+            function closeModal() {
+                 modal.classList.remove('active');
+            }
+            
+            modalCloseBtn.addEventListener('click', closeModal);
+            // Also close if clicking on the background
+            modal.addEventListener('click', (event) => {
+                if(event.target === modal) {
+                    closeModal();
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
