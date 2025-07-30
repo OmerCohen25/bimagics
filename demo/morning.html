@@ -82,8 +82,29 @@
         #interactive-demo .phone-wrapper{margin:40px auto;width:340px;height:700px;background:#111;border:14px solid #333;border-radius:48px;position:relative; box-shadow: 0 20px 40px rgba(0,0,0,0.4); padding: 12px;}
         #interactive-demo .phone-inner { width: 100%; height: 100%; border-radius: 34px; background-color: var(--brand-dark); display: flex; flex-direction: column; overflow: hidden; position: relative;}
         
-        .demo-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--brand-dark); color: var(--text-primary); transition: opacity 0.4s ease, transform 0.4s ease; opacity: 0; transform: scale(1.05); pointer-events: none; display: flex; flex-direction: column; }
-        .demo-screen.active { opacity: 1; transform: scale(1); pointer-events: auto; }
+        /* THIS IS THE FIX: Added z-index */
+        .demo-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--brand-dark);
+            color: var(--text-primary);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            opacity: 0;
+            transform: scale(1.05);
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            z-index: 1; /* Ensures non-active screens are on a lower layer */
+        }
+        .demo-screen.active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+            z-index: 2; /* Ensures the active screen is on the top layer */
+        }
 
         #login-screen { justify-content: center; align-items: center; gap: 24px; }
         #login-screen h3 { font-size: 1.8rem; }
@@ -256,11 +277,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const runAutoConversation = () => {
             if (autoMessageIndex >= autoMessages.length) {
-                clearInterval(intervalId); // Stop the interval
+                clearInterval(intervalId);
                 setTimeout(() => { 
                     autoChatContent.innerHTML = ''; 
                     autoMessageIndex = 0;
-                    intervalId = setInterval(runAutoConversation, 2500); // Restart
+                    intervalId = setInterval(runAutoConversation, 2500);
                 }, 4000);
                 return;
             }
@@ -303,99 +324,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const conversationArea = simulator.querySelector('.conversation-area');
         const questionsArea = simulator.querySelector('.suggested-questions');
-        const qaPairs = { "כמה הכנסות היו החודש?": "הכנסות החודש עומדות על <b>₪72,410</b>.", "מי הלקוח הכי רווחי שלי?": "הלקוח הכי רווחי שלך החודש הוא <b>'סטודיו יעקב'</b>, עם הכנסות של ₪12,500.", "האם יש חשבוניות שמתקרבות לתאריך היעד?": "כן, חשבונית בסך ₪1,850 ללקוח 'רוני כהן' צפויה להגיע לתאריך היעד מחר." };
-        
-        const initializeInteractiveChat = () => {
-            if (!conversationArea || !questionsArea) return;
-            conversationArea.innerHTML = '';
-            addSimMessage('sim-bot', 'שלום, אני Wizbi. בחרו שאלה כדי להתחיל.');
-            renderQuestions();
-        };
-        const addSimMessage = (type, text) => {
-            const bubble = document.createElement('div');
-            bubble.className = `sim-bubble ${type}`;
-            bubble.innerHTML = text;
-            conversationArea.appendChild(bubble);
-            conversationArea.scrollTop = conversationArea.scrollHeight;
-        };
-        const renderQuestions = () => {
-            questionsArea.innerHTML = '';
-            Object.keys(qaPairs).forEach(question => {
-                const btn = document.createElement('button');
-                btn.textContent = question;
-                questionsArea.appendChild(btn);
-            });
-        };
-        
-        simulator.addEventListener('click', function(event) {
-            const target = event.target;
-
-            if (target.closest('.google-btn')) {
-                event.preventDefault();
-                switchScreen('api-key-screen');
-                return;
-            }
-
-            if (target.closest('.connect-btn')) {
-                switchScreen('loading-screen');
-                setTimeout(() => {
-                    switchScreen('app-view-screen');
-                    if (!incomeChart) initializeCharts();
-                }, 1500);
-                return;
-            }
-
-            const navBtn = target.closest('.app-nav-btn');
-            if (navBtn) {
-                const tabId = navBtn.dataset.tab;
-                simulator.querySelectorAll('.app-nav-btn').forEach(b => b.classList.remove('active'));
-                navBtn.classList.add('active');
-                simulator.querySelectorAll('.app-tab').forEach(tab => tab.classList.remove('active'));
-                const activeTab = simulator.querySelector('#' + tabId);
-                if (activeTab) {
-                    activeTab.classList.add('active');
-                    if (tabId === 'chat-view' && !activeTab.dataset.initialized) {
-                        initializeInteractiveChat();
-                        activeTab.dataset.initialized = 'true';
-                    }
-                }
-                return;
-            }
-
-            const questionBtn = target.closest('.suggested-questions button');
-            if (questionBtn) {
-                 if(questionBtn.textContent === 'התחל שיחה מחדש'){
-                    initializeInteractiveChat();
-                    return;
-                 }
-
-                if (!questionBtn.disabled) {
-                    const question = questionBtn.textContent;
-                    addSimMessage('sim-me', question);
-                    questionsArea.innerHTML = '<p style="text-align:center;color:var(--text-secondary);font-size:0.9rem;">Wizbi חושב...</p>';
-                    
-                    setTimeout(() => {
-                        addSimMessage('sim-bot', qaPairs[question]);
-                        const answeredQuestions = [...conversationArea.querySelectorAll('.sim-me')].map(el => el.textContent);
-                        
-                        if (answeredQuestions.length >= Object.keys(qaPairs).length) {
-                            questionsArea.innerHTML = '';
-                            const resetButton = document.createElement('button');
-                            resetButton.textContent = 'התחל שיחה מחדש';
-                            questionsArea.appendChild(resetButton);
-                        } else {
-                            renderQuestions();
-                            [...questionsArea.querySelectorAll('button')].forEach(btn => {
-                                if (answeredQuestions.includes(btn.textContent)) { btn.disabled = true; }
-                            });
-                        }
-                    }, 1200);
-                }
-            }
-        });
-    }
-});
-</script>
-
-</body>
-</html>
+        const qaPairs = { "כמה הכנסות היו החודש?": "הכנסות החודש עומדות על
