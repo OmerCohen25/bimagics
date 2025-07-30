@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YourFlix: מיכאל גופמן - הסדרה</title>
     <style>
-        /* --- Global Styles & Fonts --- */
         :root {
             --yourflix-red: #e50914;
             --yourflix-black: #111;
@@ -13,28 +12,12 @@
             --poster-width: 280px;
             --poster-height: 157px;
         }
-
         @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap');
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Heebo', sans-serif;
-            background-color: var(--yourflix-black);
-            color: #fff;
-            overflow-x: hidden;
-        }
-        
-        /* --- Page Containers --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Heebo', sans-serif; background-color: var(--yourflix-black); color: #fff; overflow-x: hidden; }
         .page { display: none; min-height: 100vh; width: 100vw; animation: fadeIn 0.5s ease-in; }
         .page.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* --- 1. Upload Page --- */
         #upload-page { flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 2rem; position: relative; z-index: 1; }
         #bg-video { position: fixed; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; z-index: -2; transform: translateX(-50%) translateY(-50%); opacity: 0.3; }
         #upload-page::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(ellipse at center, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%); z-index: -1; }
@@ -42,8 +25,6 @@
         .upload-content h2 { font-size: 1.5rem; font-weight: 400; margin-top: 1rem; max-width: 700px; }
         #create-series-btn { background-color: var(--yourflix-red); color: white; border: none; padding: 1rem 2.5rem; font-size: 1.5rem; font-weight: 700; border-radius: 5px; margin-top: 2rem; cursor: pointer; transition: background-color 0.2s ease; }
         #create-series-btn:hover { background-color: #f40612; }
-
-        /* --- 2. Loading Page --- */
         #loading-page { flex-direction: column; justify-content: center; align-items: center; }
         .loading-logo { width: 200px; height: auto; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
@@ -51,14 +32,11 @@
         .loading-text { display: none; animation: fadeInOut 2.5s ease-in-out; }
         .loading-text.active { display: block; }
         @keyframes fadeInOut { 0%, 100% { opacity: 0; } 20%, 80% { opacity: 1; } }
-
-        /* --- 3. Main Page --- */
         #main-page { flex-direction: column; }
         .nav { position: fixed; top: 0; width: 100%; padding: 20px 4%; display: flex; justify-content: space-between; align-items: center; z-index: 200; transition: background-color 0.5s; }
         .nav--scrolled { background-color: var(--yourflix-black); }
         .nav__logo { width: 120px; object-fit: contain; cursor: pointer; }
         .nav__profile { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; cursor: pointer; }
-        
         .hero { position: relative; height: 56.25vw; max-height: 850px; color: white; background-size: cover; background-position: center 20%; }
         .hero__contents { padding: 0 4%; padding-top: 180px; height: 100%; }
         .hero__title { font-size: 3.8rem; font-weight: 900; text-shadow: 2px 2px 6px rgba(0,0,0,0.6); }
@@ -70,48 +48,20 @@
         .hero__button:hover { background-color: rgba(255, 255, 255, 0.75); transition: all 0.2s; }
         .hero__button.play:hover { background-color: rgba(255, 255, 255, 0.85); }
         .hero--fade-bottom { position: absolute; bottom: 0; left: 0; right: 0; height: 15rem; background-image: linear-gradient(180deg, transparent, rgba(17,17,17,0.6), var(--yourflix-black)); }
-        
-        /* --- Rows & Posters --- */
         .rows-container { padding: 2rem 0 2rem 0; overflow: hidden; }
         .row { margin-bottom: 2.5rem; }
         .row h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; padding: 0 4%;}
         .row__posters { display: flex; overflow-y: hidden; overflow-x: scroll; padding: 15px 4%; scrollbar-width: none; }
         .row__posters::-webkit-scrollbar { display: none; }
-        
-        .poster-container { position: relative; flex-shrink: 0; margin-right: 10px; transition: all 300ms ease; }
+        .poster-container { position: relative; flex-shrink: 0; margin-right: 10px; transition: all 300ms ease; cursor: pointer; }
         .poster-container img { display: block; object-fit: cover; object-position: center; border-radius: 4px; }
-
-        /* Regular Posters */
         .poster-container { width: var(--poster-width); height: var(--poster-height); }
         .poster-container img { width: 100%; height: 100%; }
-        
-        /* Large Posters */
         .poster-container--large { width: 200px; height: 280px; }
-
-        /* Skill "Posters" */
         .poster-container--skill { width: 150px; height: 150px; }
         .poster-container--skill img { border-radius: 50%; }
-
-        .poster-title {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 20px 10px 8px 10px;
-            font-size: 0.9rem;
-            font-weight: bold;
-            text-align: center;
-            background-image: linear-gradient(to top, rgba(0,0,0,0.85) 20%, transparent);
-            border-bottom-left-radius: 4px;
-            border-bottom-right-radius: 4px;
-        }
-
-        .poster-container:hover {
-            transform: scale(1.1);
-            z-index: 100;
-        }
-        
-        /* --- Modal --- */
+        .poster-title { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 10px 8px 10px; font-size: 0.9rem; font-weight: bold; text-align: center; background-image: linear-gradient(to top, rgba(0,0,0,0.85) 20%, transparent); border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; transition: opacity 0.3s; }
+        .poster-container:hover { transform: scale(1.1); z-index: 100; }
         #details-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease; }
         #details-modal.active { opacity: 1; visibility: visible; }
         .modal-content { background-color: var(--yourflix-dark-gray); border-radius: 8px; width: 90%; max-width: 850px; max-height: 90vh; overflow-y: auto; position: relative; transform: scale(0.9); transition: transform 0.3s ease; }
@@ -123,8 +73,6 @@
         .modal-body h2 { font-size: 2rem; font-weight: 700; }
         .modal-body p { font-size: 1rem; line-height: 1.5; margin-top: 1rem; }
         .modal-tags { margin-top: 1rem; color: #999; font-weight: bold; }
-
-        /* Mobile Adjustments */
         @media (max-width: 768px) {
             :root { --poster-width: 220px; --poster-height: 124px; }
             .upload-content h1 { font-size: 2.5rem; }
@@ -139,17 +87,6 @@
     </style>
 </head>
 <body>
-
-    <script>
-        const IMAGES = {
-            PROFILE_CASUAL: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAJgAqAMBIgACEQEDEQH/xAAbAAEBAAMBAQEAAAAAAAAAAAAAAwECBAUGB//EADcQAAIBAgEKBwcEAwAAAAAAAAABAgMRBCEFEjFBUSJhcYGRobHB0RMyUnLhFPEjQoKyQmKS8RX/xAAXAQEBAQEAAAAAAAAAAAAAAAAAAQID/8QAHBEBAQEAAwEAAwAAAAAAAAAAAAERAhIhMQNRYf/aAABDAQACEQMRAD8A+4gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACySSbbUYrbJ9CLAbRwdJ+vUcuEdi+LNOhQwD9nSlLjbbfzZ0XnLdY5t0oDVo4PAw2qlOXFtcvkdChhsNT+xRinwlts6C7jNssAAAIAAAAAAAAAAAAAAAAAAAABGVejB5VJxT5NsCUBqzx2Hj1bzlwi8zBY3CQeVSblLhFZm8M+rOmAOHisYvcp0l1ZPM+Bqx2LlsnKC4JJHoADgUcbjFsVSUuEkn8jpUMfCTyqyVOXHyfgdYqVadOSjUjKLfFnObWOmgCgAAAAAAAAAAAAAAAAABFSpGnFzm8oq7bAtUqRpwlObskjn4jFVK15NqnHgvi/EpxOIlWleWyPqx5+IrZ5u16T14u5Nttu8mZIAKCkklZKyQCCgAAAAAAAAAAAAAAAAAAAAAAFtWnGpFwmrxeqwNkAcfEUJUZa9sH6stjLPSANQZIAKAAAAAAAAAAAAAAAAAAAAAAAEoVJU5KcHaSA2gOvQxEKsdWs+tF6mWc01Y6wBIAoAAAAAAAAAAAAAAAAAAAAAAAFgASpycJqcHaS1A2gOtQrKrG/rR2NHIc01Y6wBIAoAAAAAAAAAAAAAAAAAAAAAAAFgASpycJqcHaS1A2gOtQrKrG/rR2NHIc01Y6wBIAoAAAAAAAAAAAAAAAAAAAAAAAFgASpycJqcHaS1A2gOtQrKrG/rR2NHIc01Y6wBIAoAAAAAAAAAAAAAAAAAAAAAAAFgASpycJqcHaS1A2gOtQrKrG/rR2NHIc01Y6wBIAoAAAAAAAAAAAAAAAAAAAAAAAFgASpycJqcHaS1A2gOtQrKrG/rR2NHIc01Y6wBIAoAAAAAAAAAAAAAAAAAAAAAAAFgASpycJqcHaS1A2gOtQrKrG/rR2NHIc01Y6wBIAoAAAAAAAAAAAAAAAAAAAAAAAFgASpycJqcHaS1A2gOtQrKrG/rR2NHIc01Y6wBIAoAAAAAAAAAAAAAAAAAAAAAAAFgASpycJqcHaS1A2gOtQrKrG/rR2NHIc01Y6wBIAoAAAAAAAAAAAAAAAAAAAAAAA//Z',
-            PROFILE_SUIT: 'data:image/jpeg;base64,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',
-            PROFILE_HERO: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAK8AoAMBIgACEQEDEQH/xAAaAAEBAQEBAQEAAAAAAAAAAAAAAgEDBQQG/8QANBABAAIBAgMGAwYHAQAAAAAAAQACAxEEIRIxQVFhcQUTIjKBkUKhscHR8FKSIzRicpKy4fH/xAAXAQEBAQEAAAAAAAAAAAAAAAAAAQID/8QAHREBAQEBAAIDAQEAAAAAAAAAAAECEQMhMRJBUf/aAABDAQACEQMRAD8A+zAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADfE/5bfL9zpF/D/ANp/pAekAAAAAAAAAAAAAAABa2vVv8A6gAAbYv+S/yOodL4r6Vv8SAekAAAAAAAAAAAAAAAB9F4e9rG/hAG2KPSv8j3D9Q6XxY9K/yAekAAAAAAAAAAAAAAAAE2h43tHxtAHQ+N6t4X0h0gB6QAAAAAAAAAAAAAAAABPh+reNo3tAHS+N6t4h9IdIAekAAAAAAAAAAAAAAAABfD3tPwnSNoA6Xxb1bwt7Q6QA9IAAAAAAAAAAAAAAAAAJsf0rxUb2gDpfG/SeG/aHSAPSAAAAAAAAAAAAAAAAAmxb1vCvqgdL436Twt7Q6QB6QAAAAAAAAAAAAAAAAXY+leFfVA6Xxr1bwt7Q6QB6QAAAAAAAAAAAAAAAE2P6V4V9UDpfGvVvC3tDpAD0gAAAAAAAAAAAAAAAIsetbwv1j9wdL43q3hb2h0gB6QAAAAAAAAAAAAAAAF2Let4W+sfpHSAPQAAAAAAAAAAAAAABNietb5X+sfpDpAHoAAAAAAAAAAAAAABdiep8p/WPo6QB6AAAAAAAAAAAAAAAXYnqfKf1j6OqAPQAAAAAAAAAAAAAADYnYbzqTtAIDYm07xudQAAAAAAAAAAAAABq2neNxqAAGpNprec6m07QCAAAAAAAAAAAAAGpNprec6gAAGpWbWtOsb2gEAAAAAAAAAAABqVrWvWs7xvaAQAAAAAAAAA//9k=',
-            STOCK_CYBER: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAJgAqAMBIgACEQEDEQH/xAAbAAEBAAMBAQEAAAAAAAAAAAAAAQIDBAUGB//EADcQAAIBAgMECQIEBwAAAAAAAAABAgMRBCEFEjFBUSJhkbETICMycaHB0UJSYnLwFUI0U4KS8RX/xAAXAQEBAQEAAAAAAAAAAAAAAAAAAQID/8QAHBEBAQEAAwEAAwAAAAAAAAAAAAERAhIhMQNRYf/aAABDAQACEQMRAD8A/SAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACUoqMXKTsordgWlKMYuUnZRWbfI51bFWu6MeHFL9kZ62JnUvGTcY8I7fiZWeXOOt+g62LhC9Om1N8Zbr+phqVKlV8VSUpc3sRDKGeS2dYCCgAAAAAAAAAAAAAAAAAAAAAAAlCnKpJRpxcpPYluBvVqU6MXOpJRXNnm61eVaXHPZ9WOw2UaEaMVCCsue1s1k5prV1AASAKgAAAAAAAAAAAAAAAAAAAAAAAIQg5yUYK8pNRS5sDobKUJThOpZTlG6T3pM6BJJJKyS2JFolYAAEAAAAAAAAAAAAAAAAAAAAAAAFZxjKLjJJxaafNItoJwUlZgcmrB05yhLcU0yGWq0lWpSpS2SWXNPczlpqStJWZ5zS9+IAkgUAAAAAAAAAAAAAAAAAAAAAAAEoScZKUW007pryBqB0aNVVaalvWzXNHOMlSbpzU1sktDrmmrVGoASAKgAAAAAAAAAAAAAAAAAAAAAAAIpNuyuwN4Uqk9lOTXHobxoQW3Nx9i+h1Wc9I7caEIrYlLyV2bJJbEklyQHJdsAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAH//2Q==',
-            STOCK_AI: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAJgAqAMBIgACEQEDEQH/xAAaAAEBAAMBAQAAAAAAAAAAAAAAAQIDBAUG/8QANxAAAgIBAgEKBAMIAwAAAAAAAAECAwQRITESQVEFYXGREyKBobHB0TIzQlLh8BVSYnLxgtLi/8QAFwEBAQEBAAAAAAAAAAAAAAAAAAECA//EABwRAQEBAAMAAwEAAAAAAAAAAAABEQIhMRIDUSL/2gAMAwEAAhEDEQA/AP2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJzlGEXOTUYxWrb6IoCnOUYxc5NRjFat+COdlja3Vp4x85rX4L9TCyyytdqc34RitPp4mQ55a1+nWytjVVaE5rznsvzMNllla3U5y8IxWkf6ZkM8k1rrAQUAAAAAAAAAAAAAAAAAAAAAAAJQg5yjCCvKTSivNsDe2yurrjOcoLq3suZkq0VVcYRWkdX1t9bI0VVVCEYR1SXm+tvqzkmsdYACSBUAAAAAAAAAAAAAAAAAAAAAAABBJJtuyWrbfJAdhUnKcJyg4ykrvzXQ3oJJJJKyS1JJFolYAAEAAAAAAAAAAAAAAAAAAAAAAAFZxjKLi0mmnFrzTK0E4qSswOTZBU2zg+jbfmaGWysVWlKnLpHV+a6M5STjJxa1aZ5zS9uIAkgUAAAAAAAAAAAAAAAAAAAAAAAEoScZKSbTTTT8mBqB0KNkba1Ndeb80c4y0puE1NdbTOuSa1RqAEgAAAAAAAAAAAAAAAAAAAAAAAAAAAJpNuyWrAtClZZLqhBzfm+i/UyKmsaoxVd3zctfwv0O2zlpHVqaxilUvK13sUVyS2/F/o2CC47AAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/2Q==',
-            STOCK_LEADER: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAJgAqAMBIgACEQEDEQH/xAAaAAEBAAMBAQAAAAAAAAAAAAAAAQIDBAUG/8QANxAAAgIBAgEKBAMIAwAAAAAAAAECAwQRITESQVEFYXGREyKBobHB0TIzQlLh8BVSYnLxgtLi/8QAFwEBAQEBAAAAAAAAAAAAAAAAAAECA//EABwRAQEBAAMAAwEAAAAAAAAAAAABEQIhMRIDUSL/2gAMAwEAAhEDEQA/AP2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJzlGEXOTUYxWrb6IoCnOUYxc5NRjFat+COdlja3Vp4x85rX4L9TCyyytdqc34RitPp4mQ55a1+nWytjVVaE5rznsvzMNllla3U5y8IxWkf6ZkM8k1rrAQUAAAAAAAAAAAAAAAAAAAAAAAJQg5yjCCvKTSivNsDe2yurrjOcoLq3suZkq0VVcYRWkdX1t9bI0VVVCEYR1SXm+tvqzkmsdYACSBUAAAAAAAAAAAAAAAAAAAAAAABBJJtuyWrbfJAdhUnKcJyg4ykrvzXQ3oJJJJKyS1JJFolYAAEAAAAAAAAAAAAAAAAAAAAAAAFZxjKLi0mmnFrzTK0E4qSswOTZBU2zg+jbfmaGWysVWlKnLpHV+a6M5STjJxa1aZ5zS9uIAkgUAAAAAAAAAAAAAAAAAAAAAAAEoScZKSbTTTT8mBqB0KNkba1Ndeb80c4y0puE1NdbTOuSa1RqAEgAAAAAAAAAAAAAAAAAAAAAAAAAAAJpNuyWrAtClZZLqhBzfm+i/UyKmsaoxVd3zctfwv0O2zlpHVqaxilUvK13sUVyS2/F/o2CC47AAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/2Q=='
-        };
-    </script>
     <audio id="tadum-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-dramatic-cinematic-trailer-hit-471.mp3" preload="auto"></audio>
 
     <div id="upload-page" class="page active">
@@ -201,52 +138,15 @@
         <div class="rows-container">
             <div class="row">
                 <h2>תחנות בקריירה</h2>
-                <div class="row__posters">
-                    <div class="poster-container poster-container--large" data-title="עונה 3: Co-founder & CTO" data-desc="בשיא הקריירה, מיכאל מקים מאפס סטארטאפ סייבר פורץ דרך. הפרק עוקב אחר אתגרי הגיוס, פיתוח הטכנולוגיה, בניית התרבות והובלת החברה לאקזיט מרשים." data-tags="#יזמות #Cybersecurity #CTO #Fundraising #Leadership">
-                        <img src="" class="poster-image" data-img-key="PROFILE_CASUAL" alt="CTO & Co-founder">
-                        <div class="poster-title">מייסד ו-CTO ב-CyberPeak</div>
-                    </div>
-                    <div class="poster-container poster-container--large" data-title="עונה 2: VP R&D" data-desc="מיכאל מצטרף לחברה בצמיחה ומוביל את כלל הפיתוח. הוא מכפיל את הצוות, מטמיע מתודולוגיות Agile ומוביל השקה של פלטפורמת AI מהפכנית לשוק הגלובלי." data-tags="#VP_R&D #AI #Machine_Learning #Scaling">
-                        <img src="" class="poster-image" data-img-key="PROFILE_SUIT" alt="VP R&D">
-                        <div class="poster-title">VP R&D ב-Innovate.AI</div>
-                    </div>
-                    <div class="poster-container poster-container--large" data-title="עונה 1: ראש צוות" data-desc="הכל התחיל כאן. מיכאל מוביל צוות פיתוח קטן ומבריק, ומוכיח את יכולותיו הטכניות והניהוליות בפרויקט דגל של החברה בתחום ה-Big Data." data-tags="#Team_Leader #Big_Data #Hands_On #Cloud">
-                        <img src="" class="poster-image" data-img-key="STOCK_LEADER" alt="Team Leader">
-                        <div class="poster-title">ראש צוות ב-DataFlow</div>
-                    </div>
-                </div>
+                <div class="row__posters" id="career-posters"></div>
             </div>
-
             <div class="row">
                 <h2>הפקות מקור (פרויקטים ואתגרים)</h2>
-                <div class="row__posters">
-                     <div class="poster-container" data-title="סרט דוקו: ארכיטקטורת Multi-Cloud" data-desc="צלילה טכנית אל מאחורי הקלעים של הקמת פלטפורמה שעובדת על AWS, Azure ו-GCP במקביל, תוך הבטחת אבטחה וביצועים." data-tags="#Cloud #DevOps #Kubernetes #Scalability">
-                        <img src="" class="poster-image" data-img-key="STOCK_CYBER" alt="Project 1">
-                        <div class="poster-title">בניית ארכיטקטורת Multi-Cloud</div>
-                     </div>
-                    <div class="poster-container" data-title="ספיישל: ממונוליט למיקרו-שירותים" data-desc="מסע כואב אך מתגמל של פירוק מערכת לגאסי מונוליטית למאות מיקרו-שירותים עצמאיים, שהוביל למהירות פיתוח ויציבות מערכת." data-tags="#Microservices #System_Design #Refactoring">
-                        <img src="" class="poster-image" data-img-key="STOCK_AI" alt="Project 2">
-                        <div class="poster-title">ממונוליט למיקרו-שירותים</div>
-                    </div>
-                </div>
+                <div class="row__posters" id="projects-posters"></div>
             </div>
-            
-             <div class="row">
+            <div class="row">
                 <h2>ארגז הכלים</h2>
-                <div class="row__posters">
-                    <div class="poster-container poster-container--skill" data-title="מנהיגות והובלה" data-desc="ניסיון מוכח בהקמה וניהול של צוותי פיתוח גדולים, הגדרת חזון, בניית תרבות ארגונית והובלת תהליכים מורכבים." data-tags="#Leadership #Management #Strategy">
-                        <img src="" class="poster-image" data-img-key="STOCK_LEADER" alt="Leadership">
-                        <div class="poster-title">מנהיגות והובלה</div>
-                    </div>
-                    <div class="poster-container poster-container--skill" data-title="ארכיטקטורת ענן וסייבר" data-desc="מומחיות בתכנון ויישום מערכות מאובטחות, מבוזרות וסקיילביליות בסביבות ענן מורכבות." data-tags="#Architecture #Cloud #Security">
-                        <img src="" class="poster-image" data-img-key="STOCK_CYBER" alt="Architecture">
-                        <div class="poster-title">ארכיטקטורת ענן וסייבר</div>
-                    </div>
-                     <div class="poster-container poster-container--skill" data-title="בינה מלאכותית ו-Data" data-desc="יכולת להפוך דאטה למוצר. ניסיון בעבודה עם מודלי ML, פלטפורמות Big Data והובלת מוצרים מבוססי AI." data-tags="#AI #Machine_Learning #Data">
-                        <img src="" class="poster-image" data-img-key="STOCK_AI" alt="AI & Data">
-                        <div class="poster-title">בינה מלאכותית ו-Data</div>
-                    </div>
-                </div>
+                <div class="row__posters" id="skills-posters"></div>
             </div>
         </div>
     </div>
@@ -266,23 +166,70 @@
     </div>
 
     <script>
+        // --- DATA STORE ---
+        // Base64 encoded images to ensure they always load without external dependencies.
+        const IMAGES = {
+            HERO: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAJgAqAMBIgACEQEDEQH/xAAaAAEBAAMBAQAAAAAAAAAAAAAAAQIDBAUG/8QANxAAAgIBAgEKBAMIAwAAAAAAAAECAwQRITESQVEFYXGREyKBobHB0TIzQlLh8BVSYnLxgtLi/8QAFwEBAQEBAAAAAAAAAAAAAAAAAAECA//EABwRAQEBAAMAAwEAAAAAAAAAAAABEQIhMRIDUSL/2gAMAwEAAhEDEQA/AP2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJzlGEXOTUYxWrb6IoCnOUYxc5NRjFat+COdlja3Vp4x85rX4L9TCyyytdqc34RitPp4mQ55a1+nWytjVVaE5rznsvzMNllla3U5y8IxWkf6ZkM8k1rrAQUAAAAAAAAAAAAAAAAAAAAAAAJQg5yjCCvKTSivNsDe2yurrjOcoLq3suZkq0VVcYRWkdX1t9bI0VVVCEYR1SXm+tvqzkmsdYACSBUAAAAAAAAAAAAAAAAAAAAAAABBJJtuyWrbfJAdhUnKcJyg4ykrvzXQ3oJJJJKyS1JJFolYAAEAAAAAAAAAAAAAAAAAAAAAAAFZxjKLi0mmnFrzTK0E4qSswOTZBU2zg+jbfmaGWysVWlKnLpHV+a6M5STjJxa1aZ5zS9uIAkgUAAAAAAAAAAAAAAAAAAAAAAAEoScZKSbTTTT8mBqB0KNkba1Ndeb80c4y0puE1NdbTOuSa1RqAEgAAAAAAAAAAAAAAAAAAAAAAAAAAAJpNuyWrAtClZZLqhBzfm+i/UyKmsaoxVd3zctfwv0O2zlpHVqaxilUvK13sUVyS2/F/o2CC47AAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/2Q==',
+            PROFILE: 'data:image/jpeg;base64,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',
+            CYBER: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAJgAqAMBIgACEQEDEQH/xAAaAAEBAAMBAQAAAAAAAAAAAAAAAQIDBAUG/8QANxAAAgIBAgEKBAMIAwAAAAAAAAECAwQRITESQVEFYXGREyKBobHB0TIzQlLh8BVSYnLxgtLi/8QAFwEBAQEBAAAAAAAAAAAAAAAAAAECA//EABwRAQEBAAMAAwEAAAAAAAAAAAABEQIhMRIDUSL/2gAMAwEAAhEDEQA/AP2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJzlGEXOTUYxWrb6IoCnOUYxc5NRjFat+COdlja3Vp4x85rX4L9TCyyytdqc34RitPp4mQ55a1+nWytjVVaE5rznsvzMNllla3U5y8IxWkf6ZkM8k1rrAQUAAAAAAAAAAAAAAAAAAAAAAAJQg5yjCCvKTSivNsDe2yurrjOcoLq3suZkq0VVcYRWkdX1t9bI0VVVCEYR1SXm+tvqzkmsdYACSBUAAAAAAAAAAAAAAAAAAAAAAABBJJtuyWrbfJAdhUnKcJyg4ykrvzXQ3oJJJJKyS1JJFolYAAEAAAAAAAAAAAAAAAAAAAAAAAFZxjKLi0mmnFrzTK0E4qSswOTZBU2zg+jbfmaGWysVWlKnLpHV+a6M5STjJxa1aZ5zS9uIAkgUAAAAAAAAAAAAAAAAAAAAAAAEoScZKSbTTTT8mBqB0KNkba1Ndeb80c4y0puE1NdbTOuSa1RqAEgAAAAAAAAAAAAAAAAAAAAAAAAAAAJpNuyWrAtClZZLqhBzfm+i/UyKmsaoxVd3zctfwv0O2zlpHVqaxilUvK13sUVyS2/F/o2CC47AAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/2Q==',
+            AI: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAJgAqAMBIgACEQEDEQH/xAAaAAEBAAMBAQAAAAAAAAAAAAAAAQIDBAUG/8QANxAAAgIBAgEKBAMIAwAAAAAAAAECAwQRITESQVEFYXGREyKBobHB0TIzQlLh8BVSYnLxgtLi/8QAFwEBAQEBAAAAAAAAAAAAAAAAAAECA//EABwRAQEBAAMAAwEAAAAAAAAAAAABEQIhMRIDUSL/2gAMAwEAAhEDEQA/AP2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJzlGEXOTUYxWrb6IoCnOUYxc5NRjFat+COdlja3Vp4x85rX4L9TCyyytdqc34RitPp4mQ55a1+nWytjVVaE5rznsvzMNllla3U5y8IxWkf6ZkM8k1rrAQUAAAAAAAAAAAAAAAAAAAAAAAJQg5yjCCvKTSivNsDe2yurrjOcoLq3suZkq0VVcYRWkdX1t9bI0VVVCEYR1SXm+tvqzkmsdYACSBUAAAAAAAAAAAAAAAAAAAAAAABBJJtuyWrbfJAdhUnKcJyg4ykrvzXQ3oJJJJKyS1JJFolYAAEAAAAAAAAAAAAAAAAAAAAAAAFZxjKLi0mmnFrzTK0E4qSswOTZBU2zg+jbfmaGWysVWlKnLpHV+a6M5STjJxa1aZ5zS9uIAkgUAAAAAAAAAAAAAAAAAAAAAAAEoScZKSbTTTT8mBqB0KNkba1Ndeb80c4y0puE1NdbTOuSa1RqAEgAAAAAAAAAAAAAAAAAAAAAAAAAAAJpNuyWrAtClZZLqhBzfm+i/UyKmsaoxVd3zctfwv0O2zlpHVqaxilUvK13sUVyS2/F/o2CC47AAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/2Q==',
+            LEADER: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAJgAqAMBIgACEQEDEQH/xAAaAAEBAAMBAQAAAAAAAAAAAAAAAQIDBAUG/8QANxAAAgIBAgEKBAMIAwAAAAAAAAECAwQRITESQVEFYXGREyKBobHB0TIzQlLh8BVSYnLxgtLi/QAFwEBAQEBAAAAAAAAAAAAAAAAAAECA//EABwRAQEBAAMAAwEAAAAAAAAAAAABEQIhMRIDUSL/2gAMAwEAAhEDEQA/AP2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJzlGEXOTUYxWrb6IoCnOUYxc5NRjFat+COdlja3Vp4x85rX4L9TCyyytdqc34RitPp4mQ55a1+nWytjVVaE5rznsvzMNllla3U5y8IxWkf6ZkM8k1rrAQUAAAAAAAAAAAAAAAAAAAAAAAJQg5yjCCvKTSivNsDe2yurrjOcoLq3suZkq0VVcYRWkdX1t9bI0VVVCEYR1SXm+tvqzkmsdYACSBUAAAAAAAAAAAAAAAAAAAAAAABBJJtuyWrbfJAdhUnKcJyg4ykrvzXQ3oJJJJKyS1JJFolYAAEAAAAAAAAAAAAAAAAAAAAAAAFZxjKLi0mmnFrzTK0E4qSswOTZBU2zg+jbfmaGWysVWlKnLpHV+a6M5STjJxa1aZ5zS9uIAkgUAAAAAAAAAAAAAAAAAAAAAAAEoScZKSbTTTT8mBqB0KNkba1Ndeb80c4y0puE1NdbTOuSa1RqAEgAAAAAAAAAAAAAAAAAAAAAAAAAAAJpNuyWrAtClZZLqhBzfm+i/UyKmsaoxVd3zctfwv0O2zlpHVqaxilUvK13sUVyS2/F/o2CC47AAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/2Q=='
+        };
+
+        const careerData = [
+            { title: 'מייסד ו-CTO ב-CyberPeak', desc: 'בשיא הקריירה, מיכאל מקים מאפס סטארטאפ סייבר פורץ דרך. הפרק עוקב אחר אתגרי הגיוס, פיתוח הטכנולוגיה, בניית התרבות והובלת החברה לאקזיט מרשים.', tags: '#יזמות #Cybersecurity #CTO #Fundraising #Leadership', img: IMAGES.PROFILE, type: 'large' },
+            { title: 'VP R&D ב-Innovate.AI', desc: 'מיכאל מצטרף לחברה בצמיחה ומוביל את כלל הפיתוח. הוא מכפיל את הצוות, מטמיע מתודולוגיות Agile ומוביל השקה של פלטפורמת AI מהפכנית לשוק הגלובלי.', tags: '#VP_R&D #AI #Machine_Learning #Scaling', img: IMAGES.LEADER, type: 'large' },
+            { title: 'ראש צוות ב-DataFlow', desc: 'הכל התחיל כאן. מיכאל מוביל צוות פיתוח קטן ומבריק, ומוכיח את יכולותיו הטכניות והניהוליות בפרויקט דגל של החברה בתחום ה-Big Data.', tags: '#Team_Leader #Big_Data #Hands_On #Cloud', img: IMAGES.AI, type: 'large' }
+        ];
+
+        const projectsData = [
+            { title: 'בניית ארכיטקטורת Multi-Cloud', desc: 'צלילה טכנית אל מאחורי הקלעים של הקמת פלטפורמה שעובדת על AWS, Azure ו-GCP במקביל, תוך הבטחת אבטחה וביצועים.', tags: '#Cloud #DevOps #Kubernetes #Scalability', img: IMAGES.CYBER, type: 'regular' },
+            { title: 'ממונוליט למיקרו-שירותים', desc: 'מסע כואב אך מתגמל של פירוק מערכת לגאסי מונוליטית למאות מיקרו-שירותים עצמאיים, שהוביל למהירות פיתוח ויציבות מערכת.', tags: '#Microservices #System_Design #Refactoring', img: IMAGES.AI, type: 'regular' }
+        ];
+
+        const skillsData = [
+            { title: 'מנהיגות והובלה', desc: 'ניסיון מוכח בהקמה וניהול של צוותי פיתוח גדולים, הגדרת חזון, בניית תרבות ארגונית והובלת תהליכים מורכבים.', tags: '#Leadership #Management #Strategy', img: IMAGES.LEADER, type: 'skill' },
+            { title: 'ארכיטקטורת ענן וסייבר', desc: 'מומחיות בתכנון ויישום מערכות מאובטחות, מבוזרות וסקיילביליות בסביבות ענן מורכבות.', tags: '#Architecture #Cloud #Security', img: IMAGES.CYBER, type: 'skill' },
+            { title: 'בינה מלאכותית ו-Data', desc: 'יכולת להפוך דאטה למוצר. ניסיון בעבודה עם מודלי ML, פלטפורמות Big Data והובלת מוצרים מבוססי AI.', tags: '#AI #Machine_Learning #Data', img: IMAGES.AI, type: 'skill' }
+        ];
+
+        // --- DYNAMIC CONTENT GENERATION ---
+        function createPoster(item) {
+            const container = document.createElement('div');
+            container.className = `poster-container poster-container--${item.type}`;
+            container.dataset.title = item.title;
+            container.dataset.desc = item.desc;
+            container.dataset.tags = item.tags;
+            container.dataset.img = item.img;
+
+            const img = document.createElement('img');
+            img.src = item.img;
+            img.alt = item.title;
+
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'poster-title';
+            titleDiv.textContent = item.title;
+            
+            container.appendChild(img);
+            container.appendChild(titleDiv);
+            return container;
+        }
+
+        function populateRow(containerId, data) {
+            const container = document.getElementById(containerId);
+            data.forEach(item => {
+                container.appendChild(createPoster(item));
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            // --- Image Loading ---
-            // This function sets all images from the Base64 data store
-            // This solves the local file access problem.
-            function loadImages() {
-                document.getElementById('nav-profile-img').src = IMAGES.PROFILE_HERO;
-                document.getElementById('hero-bg-img').style.backgroundImage = `url('${IMAGES.PROFILE_HERO}')`;
-                
-                const posterImages = document.querySelectorAll('.poster-image');
-                posterImages.forEach(img => {
-                    const key = img.dataset.imgKey;
-                    if (IMAGES[key]) {
-                        img.src = IMAGES[key];
-                    }
-                });
-            }
-            loadImages();
+            // --- Initial Setup ---
+            document.getElementById('nav-profile-img').src = IMAGES.PROFILE;
+            document.getElementById('hero-bg-img').style.backgroundImage = `url('${IMAGES.HERO}')`;
+            
+            populateRow('career-posters', careerData);
+            populateRow('projects-posters', projectsData);
+            populateRow('skills-posters', skillsData);
 
             // --- Page Logic ---
             const pages = document.querySelectorAll('.page');
@@ -332,20 +279,13 @@
             const modalDesc = document.getElementById('modal-desc');
             const modalTags = document.getElementById('modal-tags');
             const modalHeaderImg = document.getElementById('modal-header-img');
-            const posterContainers = document.querySelectorAll('.poster-container');
-
-            posterContainers.forEach(container => {
+            
+            document.querySelectorAll('.poster-container').forEach(container => {
                 container.addEventListener('click', () => {
-                    const title = container.dataset.title;
-                    const desc = container.dataset.desc;
-                    const tags = container.dataset.tags;
-                    const imgSrc = container.querySelector('.poster-image').src;
-                    
-                    modalTitle.textContent = title;
-                    modalDesc.textContent = desc;
-                    modalTags.textContent = tags;
-                    modalHeaderImg.style.backgroundImage = `url('${imgSrc}')`;
-                    
+                    modalTitle.textContent = container.dataset.title;
+                    modalDesc.textContent = container.dataset.desc;
+                    modalTags.textContent = container.dataset.tags;
+                    modalHeaderImg.style.backgroundImage = `url('${container.dataset.img}')`;
                     modal.classList.add('active');
                 });
             });
