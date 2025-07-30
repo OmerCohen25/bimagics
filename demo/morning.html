@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡️ Morning Wizard by BI Magics</title>
+    <title>⚡️ Morning Wizard by BI Magics | אנליסט AI אישי בוואטסאפ</title>
 
-    <!-- פונטים ואייקונים -->
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root {
             --brand-green: #00C175;
-            --brand-dark: #101114;
-            --brand-gray: #1E2024;
+            --brand-dark: #0d1117;
+            --brand-gray: #161b22;
             --accent: #FFD54F;
             --text-primary: #F2F5F7;
             --text-secondary: #9BA3AE;
@@ -23,159 +24,421 @@
         }
 
         * {box-sizing:border-box;margin:0;padding:0;font-family:'Heebo',sans-serif;}
-        body{background:var(--brand-dark);color:var(--text-primary);line-height:1.6;}
+        body{background:var(--brand-dark);color:var(--text-primary);line-height:1.6;scroll-behavior: smooth;}
 
         a{color:var(--accent);text-decoration:none;} a:hover{text-decoration:underline;}
 
-        header{display:flex;align-items:center;justify-content:space-between;padding:24px 8%;background:var(--brand-gray);}
-        header img.logo{height:40px}
-        header nav a{margin-left:24px;font-weight:600;}
+        header{display:flex;align-items:center;justify-content:space-between;padding:24px 8%;background:var(--brand-gray);position:sticky;top:0;z-index:100;border-bottom: 1px solid #30363d;}
+        header img.logo{height:36px}
+        header nav a{margin-left:24px;font-weight:600;color: var(--text-primary); transition: color 0.2s;}
+        header nav a:hover {color: var(--accent);}
 
-        .hero{padding:140px 8% 80px;text-align:center;background:linear-gradient(160deg,var(--brand-green) 0%, var(--brand-gray) 60%);}
-        .hero h1{font-size:clamp(2.2rem,6vw,3.8rem);font-weight:900;margin-bottom:24px;}
-        .hero p{font-size:clamp(1rem,2.5vw,1.4rem);color:#E1E7EC;margin-bottom:40px;}
-        .cta-btn{background:var(--accent);border:none;padding:18px 48px;font-size:1.2rem;font-weight:700;border-radius:50px;cursor:pointer;color:#000;}
-        .cta-btn:hover{opacity:.92;}
+        .hero{padding:140px 8% 100px;text-align:center;background:linear-gradient(160deg, #00c1762e 0%, var(--brand-dark) 60%);}
+        .hero h1{font-size:clamp(2.5rem,6vw,4rem);font-weight:900;margin-bottom:24px; line-height: 1.2;}
+        .hero p{font-size:clamp(1.1rem,2.5vw,1.5rem);color:#E1E7EC;margin-bottom:40px;max-width: 800px; margin-left: auto; margin-right: auto;}
+        .cta-btn{background:var(--accent);border:none;padding:18px 48px;font-size:1.2rem;font-weight:700;border-radius:50px;cursor:pointer;color:#000; transition: transform 0.2s, opacity 0.2s;}
+        .cta-btn:hover{transform: scale(1.05); opacity:.95;}
+
+        .section-title {text-align:center;font-size:clamp(2rem, 5vw, 2.8rem);font-weight:900;margin-top:var(--section-gap); margin-bottom: 48px;}
 
         /* --- HOW IT WORKS --- */
-        .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:40px;margin:var(--section-gap) 8%;}
-        .step{background:var(--brand-gray);border-radius:var(--radius);padding:32px;text-align:center;}
-        .step .material-symbols-outlined{font-size:56px;color:var(--accent);margin-bottom:12px;}
-        .step h3{font-size:1.3rem;font-weight:800;margin-bottom:8px;}
+        .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:32px;margin:0 8%;}
+        .step{background:var(--brand-gray);border: 1px solid #30363d; border-radius:var(--radius);padding:40px 32px;text-align:center; transition: transform 0.3s, box-shadow 0.3s;}
+        .step:hover {transform: translateY(-8px); box-shadow: 0px 10px 20px rgba(0,0,0,0.2);}
+        .step .material-symbols-outlined{font-size:56px;color:var(--brand-green);margin-bottom:12px;display: block; margin: 0 auto 16px;}
+        .step h3{font-size:1.4rem;font-weight:700;margin-bottom:8px;}
         .step p{font-size:1rem;color:var(--text-secondary);}
 
-        /* --- PHONE MOCKUP --- */
-        .phone-wrapper{margin:var(--section-gap) auto;width:300px;height:580px;background:#000;border:12px solid #333;border-radius:40px;position:relative; }
-        .speaker{width:80px;height:6px;background:#444;border-radius:3px;margin:16px auto;}
-        .screen{width:100%;height:calc(100% - 120px);background:#ECE5DD;padding:18px 12px 70px;overflow-y:auto;border-radius:0 0 28px 28px;}
-        .bubble{max-width:80%;padding:10px 14px;border-radius:14px;font-size:.9rem;margin-bottom:10px;line-height:1.4;}
-        .me{background:#DCF8C6;margin-left:auto;}
-        .bot{background:#FFF;border:1px solid #ddd;}
-        .timestamp{font-size:.7rem;color:#777;text-align:center;margin-bottom:6px;}
+        /* --- PHONE MOCKUP DEMO --- */
+        #demo { margin-bottom: var(--section-gap); }
+        .phone-wrapper{margin:0 auto;width:320px;height:640px;background:#111;border:14px solid #333;border-radius:48px;position:relative; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .phone-inner { width: 100%; height: 100%; border-radius: 34px; background-image: url('https://i.ibb.co/7jW1pD2/whatsapp-bg.png'); background-size: contain; display: flex; flex-direction: column;}
+        .chat-header { background: #1f2c34; padding: 12px; display: flex; align-items: center; border-radius: 34px 34px 0 0;}
+        .chat-header img { width: 40px; height: 40px; border-radius: 50%; margin-left: 12px;}
+        .chat-header-text { color: #fff; flex-grow: 1;}
+        .chat-header-text h4 { font-size: 1rem; font-weight: 600; margin: 0; }
+        .chat-header-text p { font-size: 0.8rem; color: var(--text-secondary); margin: 0; }
+        .chat-icons .material-symbols-outlined { color: #fff; margin-right: 16px; }
+
+        .screen{flex-grow: 1; padding: 18px 12px;overflow-y:auto; display: flex; flex-direction: column-reverse;}
+        .screen-content { display: flex; flex-direction: column; gap: 4px; }
+        .bubble{max-width:85%;padding:8px 12px;border-radius:12px;font-size:.9rem;margin-bottom:4px;line-height:1.4; opacity: 0; transform: translateY(20px); animation: slide-up 0.5s forwards ease-out;}
+        .me{background:#005c4b;margin-left:auto; border-radius: 12px 12px 0 12px; color: #fff;}
+        .bot{background:#202c33;border-radius: 12px 12px 12px 0; border: 1px solid #2a3942; align-self: flex-start;}
+        
+        @keyframes slide-up { to { opacity: 1; transform: translateY(0); } }
+
+        .chat-footer { padding: 8px 12px; background: #1f2c34; border-radius: 0 0 34px 34px; display: flex; align-items: center;}
+        .chat-input { background: #2a3942; border-radius: 20px; padding: 8px 12px; flex-grow: 1; color: var(--text-secondary); font-size: 0.9rem;}
+        .chat-footer .material-symbols-outlined { font-size: 28px; color: var(--text-secondary); margin: 0 8px;}
+        .mic-btn { background: var(--whatsapp-green); border-radius: 50%; padding: 8px; display: grid; place-items: center;}
+        .mic-btn .material-symbols-outlined { color: #fff; font-size: 24px;}
+        
 
         /* --- DASHBOARD --- */
-        .dashboard{margin:var(--section-gap) 6%;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;}
-        .card{background:var(--brand-gray);padding:24px;border-radius:var(--radius);}
-        .card h4{font-size:1.1rem;font-weight:800;margin-bottom:8px;}
-        .value{font-size:2rem;font-weight:900;color:var(--accent);}
-        .small{font-size:.9rem;color:var(--text-secondary);}
+        .dashboard-container {margin:var(--section-gap) 6%;}
+        .dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:24px;}
+        .card{background:var(--brand-gray);padding:24px;border-radius:var(--radius); border: 1px solid #30363d;}
+        .card h4{font-size:1.1rem;font-weight:600;margin-bottom:8px; color: var(--text-secondary);}
+        .value{font-size:2.2rem;font-weight:900;color:var(--accent); line-height: 1.2;}
+        .card .small{font-size:.9rem;color:var(--text-secondary); margin-top: 4px;}
+
+        .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;}
+        @media (max-width: 900px) {
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+
+        /* --- PRICING --- */
+        .pricing-container {max-width:1024px;margin-left: auto; margin-right: auto; }
+        .pricing-container .step { padding: 32px; }
+        .pricing-container .step h3 {color:var(--accent);font-size:1.8rem;}
+        .pricing-container .price {font-size:2.4rem;font-weight:900;margin:12px 0; line-height: 1;}
+        .pricing-container .price span {font-size:1rem;font-weight:400;color: var(--text-secondary);}
+        .pricing-container ul { list-style: none; padding: 0; margin-top: 20px; color: var(--text-secondary);}
+        .pricing-container li { margin-bottom: 10px; }
+        .pricing-container li::before { content: '✓'; color: var(--brand-green); margin-left: 8px; font-weight: bold;}
+        .highlight-plan{border:2px solid var(--accent); position: relative; overflow: hidden;}
+        .highlight-plan::before {
+            content: 'החבילה המומלצת';
+            position: absolute;
+            top: 20px;
+            right: -40px;
+            background: var(--accent);
+            color: #000;
+            padding: 4px 40px;
+            transform: rotate(45deg);
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+
+        /* --- CALL TO ACTION --- */
+        #cta {text-align:center;margin: var(--section-gap) 8%; padding: 80px 32px; background: var(--brand-gray); border-radius: var(--radius); border: 1px solid #30363d;}
+        #cta h2{font-size:clamp(2rem, 5vw, 2.8rem);font-weight:900;margin-bottom:24px;}
+        #cta .cta-btn { transform: scale(1.1); }
+        #cta .cta-btn:hover { transform: scale(1.15); }
+        #cta p{margin-top:16px;font-size:.9rem;color:var(--text-secondary);}
 
         /* --- FOOTER --- */
-        footer{background:var(--brand-gray);padding:60px 8%;text-align:center;font-size:.85rem;color:var(--text-secondary);}
+        footer{background:var(--brand-gray);padding:60px 8%;text-align:center;font-size:.85rem;color:var(--text-secondary); border-top: 1px solid #30363d;}
         footer a{color:var(--text-secondary);}
     </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <header>
     <img class="logo" src="https://bimagics.com/logo-light.svg" alt="BI Magics">
     <nav>
         <a href="#how">איך זה עובד?</a>
         <a href="#demo">דמו חי</a>
+        <a href="#dashboard">דשבורד</a>
         <a href="#pricing">תמחור</a>
-        <a href="#cta">התחל עכשיו</a>
+        <a href="#cta">התחילו בחינם</a>
     </nav>
 </header>
 
-<!-- HERO -->
 <section class="hero">
-    <h1>כל המספרים העסקיים<br>ב-WhatsApp – בלי אקסלים</h1>
-    <p>חברו את חשבונית&nbsp;ירוקה בלחיצה, שאלו בעברית ותקבלו תשובות מידיות<br>ב-WhatsApp ובדשבורד חכם.</p>
-    <button class="cta-btn" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">נסו בחינם 14 יום</button>
+    <h1>אנליסט AI אישי. ישירות ב-WhatsApp.</h1>
+    <p>קבלו תשובות מיידיות על כל נתון בעסק, בלי לפתוח אקסל. <br>פשוט שאלו בעברית. חיבור למערכת Morning לוקח 60 שניות בדיוק.</p>
+    <button class="cta-btn" onclick="document.getElementById('cta').scrollIntoView()">נסו בחינם 14 יום</button>
 </section>
 
-<!-- HOW IT WORKS -->
-<h2 id="how" style="text-align:center;font-size:2.2rem;font-weight:900;margin-top:var(--section-gap);">איך זה עובד?</h2>
-<div class="steps">
-    <div class="step">
-        <span class="material-symbols-outlined">key</span>
-        <h3>התחברות מאובטחת</h3>
-        <p>נכנסים עם חשבון Morning ומעניקים הרשאה לקריאה בלבד (OAuth). אין אחסון ססמאות.</p>
+<section id="how">
+    <h2 class="section-title">כל כך פשוט, שזה מרגיש כמו קסם</h2>
+    <div class="steps">
+        <div class="step">
+            <span class="material-symbols-outlined">link</span>
+            <h3>1. מתחברים בשני קליקים</h3>
+            <p>מאשרים גישת קריאה-בלבד למערכת Morning (חשבונית ירוקה) בחיבור מאובטח. זהו, אתם בפנים.</p>
+        </div>
+        <div class="step">
+            <span class="material-symbols-outlined">smart_toy</span>
+            <h3>2. שואלים כל מה שרוצים</h3>
+            <p>“מי הלקוח הכי רווחי שלי?” • “כמה כסף נכנס החודש?” – שאלו בעברית פשוטה ותקבלו תשובות מיידיות.</p>
+        </div>
+        <div class="step">
+            <span class="material-symbols-outlined">auto_graph</span>
+            <h3>3. מקבלים תובנות אוטומטיות</h3>
+            <p>מקבלים דוח בוקר יומי עם המספרים החשובים, התראות על חריגות וניתוח מגמות ישירות ל-WhatsApp.</p>
+        </div>
     </div>
-    <div class="step">
-        <span class="material-symbols-outlined">chat_bubble</span>
-        <h3>שואלים בעברית</h3>
-        <p>“כמה גבייה השבוע?” • “מי חייב לי כסף?” – ה-Wizard מבין ומחזיר תשובה מדויקת.</p>
-    </div>
-    <div class="step">
-        <span class="material-symbols-outlined">notifications_active</span>
-        <h3>התראות יומיות</h3>
-        <p>דוח בוקר ל-WhatsApp ומייל: כספים שנכנסו, חובות פתוחים, תחזית תזרים.</p>
-    </div>
-</div>
-
-<!-- PHONE MOCKUP DEMO -->
-<h2 id="demo" style="text-align:center;font-size:2.2rem;font-weight:900;">דמו חי</h2>
-<div class="phone-wrapper">
-    <div class="speaker"></div>
-    <div class="screen">
-        <div class="bubble bot">שלום 👋 איך אפשר לעזור?</div>
-        <div class="bubble me">כמה הכנסות היו לי השבוע?</div>
-        <div class="timestamp">09:41</div>
-        <div class="bubble bot">הכנסות השבוע: ‎₪ 17,530<br><span style="font-size:.8rem;color:#555;">(+12% ביחס לשבוע שעבר)</span></div>
-        <div class="bubble me">ומי עדיין לא שילם לי?</div>
-        <div class="bubble bot">3 לקוחות עם חשבוניות פתוחות:<br>• רוני כהן – ‎₪ 3,200<br>• סטודיו יעקב – ‎₪ 1,850<br>• ר.ש. אחזקות – ‎₪ 980</div>
-    </div>
-</div>
-
-<!-- DASHBOARD -->
-<h2 style="text-align:center;font-size:2.2rem;font-weight:900;margin-top:var(--section-gap);">דשבורד לדוגמה</h2>
-<div class="dashboard">
-    <div class="card">
-        <h4>הכנסות חודש זה</h4>
-        <div class="value">₪ 72,410</div>
-        <div class="small">+8% ביחס לחודש קודם</div>
-    </div>
-    <div class="card">
-        <h4>הוצאות חודש זה</h4>
-        <div class="value" style="color:#FF7373;">₪ 34,210</div>
-        <div class="small">-5% ביחס לחודש קודם</div>
-    </div>
-    <div class="card">
-        <h4>לקוחות שחייבים</h4>
-        <div class="value">₪ 9,650</div>
-        <div class="small">6 חשבוניות פתוחות</div>
-    </div>
-    <div class="card">
-        <h4>תזרים חזוי חודש הבא</h4>
-        <div class="value">₪ 38,200</div>
-        <div class="small">כולל גבייה צפויה</div>
-    </div>
-</div>
-
-<!-- PRICING -->
-<h2 id="pricing" style="text-align:center;font-size:2.2rem;font-weight:900;margin-top:var(--section-gap);">תמחור פשוט</h2>
-<div class="steps" style="max-width:900px;margin-bottom:var(--section-gap);">
-    <div class="step">
-        <h3 style="color:var(--accent);font-size:2rem;">Starter</h3>
-        <p style="font-size:1.6rem;font-weight:900;margin:12px 0;">₪ 99 <span style="font-size:1rem;font-weight:600;">/חודש</span></p>
-        <p>משתמש אחד • 200 שאלות<br>Digest יומי • תמיכה בוואטסאפ</p>
-    </div>
-    <div class="step" style="border:2px solid var(--accent);">
-        <h3 style="color:var(--accent);font-size:2rem;">Growth</h3>
-        <p style="font-size:1.6rem;font-weight:900;margin:12px 0;">₪ 299 /חודש</p>
-        <p>עד 5 משתמשים • ETL לביג-קווארי<br>2,000 שאלות • דוחות מע״מ</p>
-    </div>
-    <div class="step">
-        <h3 style="color:var(--accent);font-size:2rem;">Accountant</h3>
-        <p style="font-size:1.6rem;font-weight:900;margin:12px 0;">₪ 899 /חודש</p>
-        <p>White-Label • עד 10 לקוחות<br>גישה רו״ח • API מתקדם</p>
-    </div>
-</div>
-
-<!-- CALL TO ACTION -->
-<section id="cta" style="text-align:center;margin-bottom:var(--section-gap);">
-    <h2 style="font-size:2.5rem;font-weight:900;margin-bottom:24px;">מוכנים לעבור ל-קסם של BI Magics?</h2>
-    <button class="cta-btn" onclick="window.location='https://app.bimagics.com/signup'">התחילו עכשיו – 14 יום חינם</button>
-    <p style="margin-top:12px;font-size:.9rem;color:var(--text-secondary);">אין צורך בכרטיס אשראי • ביטול בכל עת</p>
 </section>
 
-<!-- FOOTER -->
+<section id="demo">
+    <h2 class="section-title">תראו אותו בפעולה</h2>
+    <div class="phone-wrapper">
+        <div class="phone-inner">
+            <div class="chat-header">
+                <img src="https://bimagics.com/logo-light.svg" alt="BI Magics Profile">
+                <div class="chat-header-text">
+                    <h4>Morning Wizard</h4>
+                    <p>מחובר</p>
+                </div>
+                <div class="chat-icons">
+                    <span class="material-symbols-outlined">videocam</span>
+                    <span class="material-symbols-outlined">call</span>
+                    <span class="material-symbols-outlined">more_vert</span>
+                </div>
+            </div>
+            <div class="screen">
+                <div class="screen-content">
+                    </div>
+            </div>
+            <div class="chat-footer">
+                <span class="material-symbols-outlined">add_reaction</span>
+                <div class="chat-input">כתבו הודעה...</div>
+                <span class="material-symbols-outlined">attach_file</span>
+                <div class="mic-btn">
+                    <span class="material-symbols-outlined">mic</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section id="dashboard" class="dashboard-container">
+    <h2 class="section-title">דשבורד חכם שמחכה לכם תמיד</h2>
+    <div class="dashboard-grid">
+        <div class="card">
+            <h4>הכנסות (חודש נוכחי)</h4>
+            <div class="value">₪ 72,410</div>
+            <div class="small" style="color:#82d9a4;">
+                <span class="material-symbols-outlined" style="font-size: 1em; vertical-align: -2px;">arrow_upward</span>
+                8% ביחס לחודש קודם
+            </div>
+        </div>
+        <div class="card">
+            <h4>הוצאות (חודש נוכחי)</h4>
+            <div class="value" style="color:#FF7373;">₪ 34,210</div>
+             <div class="small" style="color:#ffb8b8;">
+                <span class="material-symbols-outlined" style="font-size: 1em; vertical-align: -2px;">arrow_downward</span>
+                5% ביחס לחודש קודם
+            </div>
+        </div>
+        <div class="card">
+            <h4>חובות פתוחים</h4>
+            <div class="value">₪ 9,650</div>
+            <div class="small">מ-6 לקוחות</div>
+        </div>
+        <div class="card">
+            <h4>תזרים חזוי (30 יום)</h4>
+            <div class="value">₪ 38,200</div>
+            <div class="small">כולל גבייה צפויה</div>
+        </div>
+    </div>
+    <div class="charts-grid">
+         <div class="card">
+            <h4>הכנסות מול הוצאות (₪)</h4>
+            <canvas id="incomeExpenseChart"></canvas>
+        </div>
+        <div class="card">
+            <h4>פירוט חובות לפי לקוח</h4>
+            <canvas id="debtChart"></canvas>
+        </div>
+    </div>
+</section>
+
+<section id="pricing">
+    <h2 class="section-title">תמחור פשוט ושקוף</h2>
+    <div class="steps pricing-container">
+        <div class="step">
+            <h3>Starter</h3>
+            <div class="price">₪ 99 <span >/חודש</span></div>
+            <ul>
+                <li>משתמש אחד</li>
+                <li>200 שאלות בחודש</li>
+                <li>דוח בוקר יומי</li>
+                <li>תמיכה בוואטסאפ</li>
+            </ul>
+        </div>
+        <div class="step highlight-plan">
+            <h3>Growth</h3>
+            <div class="price">₪ 299 <span>/חודש</span></div>
+            <ul>
+                <li>עד 5 משתמשים</li>
+                <li>2,000 שאלות בחודש</li>
+                <li>חיבור ל-BigQuery</li>
+                <li>דוחות מע״מ ותזרים</li>
+            </ul>
+        </div>
+        <div class="step">
+            <h3>Accountants</h3>
+            <div class="price">₪ 899 <span>/חודש</span></div>
+             <ul>
+                <li>White-Label למשרד</li>
+                <li>ניהול עד 10 לקוחות</li>
+                <li>גישת רו״ח ייעודית</li>
+                <li>API ואינטגרציות</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section id="cta">
+    <h2 style="line-height: 1.3;">מוכנים להפסיק לנחש<br>ולהתחיל לדעת?</h2>
+    <button class="cta-btn" onclick="window.open('https://app.bimagics.com/signup', '_blank')">התחילו עכשיו – 14 יום חינם</button>
+    <p>אין צורך בכרטיס אשראי • אפשר לבטל בכל רגע</p>
+</section>
+
 <footer>
-    <p>© 2025 BI Magics. כל הזכויות שמורות. איננו מספקים ייעוץ מס או פיננסים.</p>
-    <p>לוגואים של Morning ו-WhatsApp מוצגים ברשות בעליהם. <a href="#">תנאי שימוש</a> • <a href="#">מדיניות פרטיות</a></p>
+    <p>© 2025 BI Magics. כל הזכויות שמורות. איננו מספקים ייעוץ מס או פיננסי.</p>
+    <p>לוגואים של Morning ו-WhatsApp הינם סימנים מסחריים של בעליהם. <a href="#">תנאי שימוש</a> • <a href="#">מדיניות פרטיות</a></p>
 </footer>
+
+<script>
+// --- INTERACTIVE WHATSAPP DEMO SCRIPT ---
+document.addEventListener('DOMContentLoaded', () => {
+    const chatContent = document.querySelector('.screen-content');
+    const messages = [
+        { type: 'bot', text: 'שלום 👋 אני ה-Wizard של Morning. איך אפשר לעזור?' },
+        { type: 'me', text: 'היי, כמה הכנסות היו לי השבוע?' },
+        { type: 'bot', text: 'בטח. הכנסות השבוע עומדות על <b>₪17,530</b>.<br><span style="font-size:.8rem;color:#82d9a4;">(עלייה של 12% מהשבוע שעבר)</span>' },
+        { type: 'me', text: 'מעולה. ומי הלקוחות שעדיין לא שילמו לי?' },
+        { type: 'bot', text: 'בודק... מצאתי 3 לקוחות עם חשבוניות פתוחות:<br>• רוני כהן – ₪3,200<br>• סטודיו יעקב – ₪1,850<br>• ר.ש. אחזקות – ₪980' }
+    ];
+
+    let messageIndex = 0;
+
+    function showNextMessage() {
+        if (messageIndex >= messages.length) return;
+
+        const msg = messages[messageIndex];
+        const bubble = document.createElement('div');
+        bubble.className = `bubble ${msg.type}`;
+        bubble.innerHTML = msg.text;
+        
+        // Add animation delay
+        const delay = msg.type === 'bot' ? 1500 : 800;
+        bubble.style.animationDelay = `${messageIndex * 0.2}s`;
+
+        chatContent.appendChild(bubble);
+
+        // Scroll to bottom
+        chatContent.parentElement.scrollTop = chatContent.parentElement.scrollHeight;
+
+        messageIndex++;
+        setTimeout(showNextMessage, delay);
+    }
+
+    // Start the conversation after a brief pause
+    setTimeout(showNextMessage, 500);
+});
+
+
+// --- CHARTS.JS SCRIPT ---
+const chartTextColor = '#9BA3AE';
+Chart.defaults.color = chartTextColor;
+Chart.defaults.font.family = "'Heebo', sans-serif";
+Chart.defaults.borderColor = '#30363d';
+
+// 1. Income vs Expense Chart
+const incomeExpenseCtx = document.getElementById('incomeExpenseChart');
+new Chart(incomeExpenseCtx, {
+    type: 'bar',
+    data: {
+        labels: ['חודש קודם', 'חודש נוכחי'],
+        datasets: [{
+            label: 'הכנסות',
+            data: [67046, 72410],
+            backgroundColor: 'rgba(0, 193, 117, 0.6)',
+            borderColor: 'rgba(0, 193, 117, 1)',
+            borderWidth: 1,
+            borderRadius: 4
+        }, {
+            label: 'הוצאות',
+            data: [36010, 34210],
+            backgroundColor: 'rgba(255, 115, 115, 0.6)',
+            borderColor: 'rgba(255, 115, 115, 1)',
+            borderWidth: 1,
+            borderRadius: 4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '₪' + value / 1000 + 'k';
+                    }
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                position: 'bottom',
+            },
+            tooltip: {
+                backgroundColor: '#101114',
+                titleFont: { weight: 'bold' },
+                callbacks: {
+                     label: function(context) {
+                        let label = context.dataset.label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        if (context.parsed.y !== null) {
+                            label += new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(context.parsed.y);
+                        }
+                        return label;
+                    }
+                }
+            }
+        }
+    }
+});
+
+// 2. Debt Chart
+const debtCtx = document.getElementById('debtChart');
+new Chart(debtCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['רוני כהן', 'סטודיו יעקב', 'ר.ש. אחזקות', 'אחרים'],
+        datasets: [{
+            label: 'חוב פתוח',
+            data: [3200, 1850, 980, 3620],
+            backgroundColor: [
+                'rgba(255, 213, 79, 0.8)',
+                'rgba(0, 193, 117, 0.8)',
+                'rgba(255, 115, 115, 0.8)',
+                'rgba(155, 163, 174, 0.6)'
+            ],
+            borderColor: '#161b22',
+            borderWidth: 3,
+            hoverOffset: 8
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+            },
+            tooltip: {
+                 backgroundColor: '#101114',
+                titleFont: { weight: 'bold' },
+                 callbacks: {
+                     label: function(context) {
+                        let label = context.label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        if (context.parsed !== null) {
+                            label += new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(context.parsed);
+                        }
+                        return label;
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+
 </body>
 </html>
-```0
+
