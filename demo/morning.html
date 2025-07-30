@@ -55,7 +55,6 @@
         .section-title {text-align:center;font-size:clamp(2rem, 5vw, 2.8rem);font-weight:900;margin-top:var(--section-gap); margin-bottom: 48px;}
         .section-subtitle { text-align: center; color: var(--text-secondary); font-size: 1.2rem; max-width: 600px; margin: -32px auto 48px; }
 
-        /* --- Standalone Auto-Playing WhatsApp Demo --- */
         #whatsapp-auto-demo .phone-wrapper { margin:40px auto;width:320px;height:640px;background:#111;border:14px solid #333;border-radius:48px;position:relative; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
         #whatsapp-auto-demo .phone-inner { width: 100%; height: 100%; border-radius: 34px; background-color: var(--whatsapp-bg); display: flex; flex-direction: column;}
         #whatsapp-auto-demo .chat-header { background: #f0f2f5; padding: 10px; display: flex; align-items: center; border-radius: 34px 34px 0 0; gap: 12px; border-bottom: 1px solid #e0e0e0;}
@@ -78,11 +77,9 @@
         #whatsapp-auto-demo .mic-btn .material-symbols-outlined { color: #fff; font-size: 24px;}
         @keyframes slide-up { to { opacity: 1; transform: translateY(0); } }
 
-        /* --- INTERACTIVE SIMULATOR --- */
         #interactive-demo .phone-wrapper{margin:40px auto;width:340px;height:700px;background:#111;border:14px solid #333;border-radius:48px;position:relative; box-shadow: 0 20px 40px rgba(0,0,0,0.4); padding: 12px;}
         #interactive-demo .phone-inner { width: 100%; height: 100%; border-radius: 34px; background-color: var(--brand-dark); display: flex; flex-direction: column; overflow: hidden; position: relative;}
         
-        /* THIS IS THE FIX: Added z-index */
         .demo-screen {
             position: absolute;
             top: 0;
@@ -97,13 +94,13 @@
             pointer-events: none;
             display: flex;
             flex-direction: column;
-            z-index: 1; /* Ensures non-active screens are on a lower layer */
+            z-index: 1;
         }
         .demo-screen.active {
             opacity: 1;
             transform: scale(1);
             pointer-events: auto;
-            z-index: 2; /* Ensures the active screen is on the top layer */
+            z-index: 2;
         }
 
         #login-screen { justify-content: center; align-items: center; gap: 24px; }
@@ -121,7 +118,6 @@
         .loader { width: 48px; height: 48px; border: 4px solid var(--border-gray); border-top-color: var(--brand-green); border-radius: 50%; animation: spin 1s linear infinite; }
         #loading-screen { justify-content: center; align-items: center; }
 
-        /* --- App View --- */
         .app-content { position: relative; flex-grow: 1; overflow: hidden; }
         .app-nav { display: flex; border-top: 1px solid var(--border-color); background: var(--brand-gray); }
         .app-nav-btn { flex: 1; text-align: center; padding: 12px 0; cursor: pointer; color: var(--text-secondary); border-top: 3px solid transparent; transition: all 0.2s ease;}
@@ -140,7 +136,6 @@
         .chart-card { grid-column: span 2; background: #22272e; padding: 12px; border-radius: 12px; }
         .chart-wrapper { height: 150px; }
 
-        /* --- New Web Chat Tab Design --- */
         #chat-view { padding: 0; display: flex; flex-direction: column; background: #1a1d21; }
         #chat-view .chat-header-sim { padding: 12px; background: var(--brand-gray); border-bottom: 1px solid var(--border-color); text-align: center; }
         #chat-view .chat-header-sim h4 { font-weight: 700; margin:0; }
@@ -156,7 +151,6 @@
         .suggested-questions button:disabled { opacity: 0.4; cursor: not-allowed; }
         .fake-input { background: #2c313a; padding: 12px; border-radius: 8px; color: var(--text-secondary); text-align: right; }
 
-        /* --- ONBOARDING, PRICING, FAQ, FOOTER (NO CHANGES) --- */
         .onboarding-steps { display: flex; flex-direction: column; align-items: center; gap: 24px; margin: 0 4%; }
         .onboarding-step { background-color: var(--brand-gray); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 24px; width: 100%; max-width: 700px; display: flex; align-items: center; gap: 24px;}
         .onboarding-step .step-number { font-size: 2rem; font-weight: 900; color: var(--brand-green);}
@@ -265,7 +259,6 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- SCRIPT FOR AUTO-PLAYING WHATSAPP DEMO ---
     const autoDemoContainer = document.getElementById('whatsapp-auto-demo');
     if (autoDemoContainer) {
         const autoChatContent = autoDemoContainer.querySelector('.screen-content');
@@ -296,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
         intervalId = setInterval(runAutoConversation, 2500);
     }
 
-    // --- SCRIPT FOR INTERACTIVE SIMULATOR (ROBUST VERSION) ---
+    // --- SCRIPT FOR INTERACTIVE SIMULATOR (FINAL, ROBUST VERSION) ---
     const simulator = document.getElementById('interactive-demo');
     if (simulator) {
         let incomeChart, debtChart; 
@@ -324,4 +317,106 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const conversationArea = simulator.querySelector('.conversation-area');
         const questionsArea = simulator.querySelector('.suggested-questions');
-        const qaPairs = { "כמה הכנסות היו החודש?": "הכנסות החודש עומדות על
+        const qaPairs = { "כמה הכנסות היו החודש?": "הכנסות החודש עומדות על <b>₪72,410</b>.", "מי הלקוח הכי רווחי שלי?": "הלקוח הכי רווחי שלך החודש הוא <b>'סטודיו יעקב'</b>, עם הכנסות של ₪12,500.", "האם יש חשבוניות שמתקרבות לתאריך היעד?": "כן, חשבונית בסך ₪1,850 ללקוח 'רוני כהן' צפויה להגיע לתאריך היעד מחר." };
+        
+        const initializeInteractiveChat = () => {
+            if (!conversationArea || !questionsArea) return;
+            conversationArea.innerHTML = '';
+            addSimMessage('sim-bot', 'שלום, אני Wizbi. בחרו שאלה כדי להתחיל.');
+            renderQuestions();
+        };
+        const addSimMessage = (type, text) => {
+            const bubble = document.createElement('div');
+            bubble.className = `sim-bubble ${type}`;
+            bubble.innerHTML = text;
+            conversationArea.appendChild(bubble);
+            conversationArea.scrollTop = conversationArea.scrollHeight;
+        };
+        const renderQuestions = () => {
+            questionsArea.innerHTML = '';
+            Object.keys(qaPairs).forEach(question => {
+                const btn = document.createElement('button');
+                btn.textContent = question;
+                questionsArea.appendChild(btn);
+            });
+        };
+        
+        // ***** THIS IS THE FIX *****
+        // Dedicated listener for the Google button to ensure preventDefault works
+        const googleBtn = simulator.querySelector('.google-btn');
+        if (googleBtn) {
+            googleBtn.addEventListener('click', (event) => {
+                event.preventDefault(); // This will now correctly prevent the page jump
+                switchScreen('api-key-screen');
+            });
+        }
+
+        // General listener for all other clicks within the simulator
+        simulator.addEventListener('click', function(event) {
+            const target = event.target;
+
+            // Note: Google button logic is handled above and removed from here.
+
+            if (target.closest('.connect-btn')) {
+                switchScreen('loading-screen');
+                setTimeout(() => {
+                    switchScreen('app-view-screen');
+                    if (!incomeChart) initializeCharts();
+                }, 1500);
+                return;
+            }
+
+            const navBtn = target.closest('.app-nav-btn');
+            if (navBtn) {
+                const tabId = navBtn.dataset.tab;
+                simulator.querySelectorAll('.app-nav-btn').forEach(b => b.classList.remove('active'));
+                navBtn.classList.add('active');
+                simulator.querySelectorAll('.app-tab').forEach(tab => tab.classList.remove('active'));
+                const activeTab = simulator.querySelector('#' + tabId);
+                if (activeTab) {
+                    activeTab.classList.add('active');
+                    if (tabId === 'chat-view' && !activeTab.dataset.initialized) {
+                        initializeInteractiveChat();
+                        activeTab.dataset.initialized = 'true';
+                    }
+                }
+                return;
+            }
+
+            const questionBtn = target.closest('.suggested-questions button');
+            if (questionBtn) {
+                 if(questionBtn.textContent === 'התחל שיחה מחדש'){
+                    initializeInteractiveChat();
+                    return;
+                 }
+
+                if (!questionBtn.disabled) {
+                    const question = questionBtn.textContent;
+                    addSimMessage('sim-me', question);
+                    questionsArea.innerHTML = '<p style="text-align:center;color:var(--text-secondary);font-size:0.9rem;">Wizbi חושב...</p>';
+                    
+                    setTimeout(() => {
+                        addSimMessage('sim-bot', qaPairs[question]);
+                        const answeredQuestions = [...conversationArea.querySelectorAll('.sim-me')].map(el => el.textContent);
+                        
+                        if (answeredQuestions.length >= Object.keys(qaPairs).length) {
+                            questionsArea.innerHTML = '';
+                            const resetButton = document.createElement('button');
+                            resetButton.textContent = 'התחל שיחה מחדש';
+                            questionsArea.appendChild(resetButton);
+                        } else {
+                            renderQuestions();
+                            [...questionsArea.querySelectorAll('button')].forEach(btn => {
+                                if (answeredQuestions.includes(btn.textContent)) { btn.disabled = true; }
+                            });
+                        }
+                    }, 1200);
+                }
+            }
+        });
+    }
+});
+</script>
+
+</body>
+</html>
