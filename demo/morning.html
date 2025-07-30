@@ -8,6 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         :root {
             --brand-green: #00C175;
@@ -16,7 +18,6 @@
             --accent: #FFD54F;
             --text-primary: #F2F5F7;
             --text-secondary: #9BA3AE;
-            --whatsapp-bg: #ECE5DD;
             --radius: 16px;
             --section-gap: 100px;
             --border-color: #30363d;
@@ -29,12 +30,7 @@
         a{color:var(--accent);text-decoration:none; font-weight: 700;} a:hover{text-decoration:underline;}
 
         header{display:flex;align-items:center;justify-content:center;padding:20px 4%;background:rgba(13, 17, 23, 0.85); backdrop-filter: blur(10px); position:sticky;top:0;z-index:100;border-bottom: 1px solid var(--border-color);}
-        .header-logo {
-            font-size: 1.8rem;
-            font-weight: 900;
-            color: var(--text-primary);
-            text-decoration: none;
-        }
+        .header-logo {font-size: 1.8rem;font-weight: 900;color: var(--text-primary);text-decoration: none;}
         .header-logo span { color: var(--accent); }
 
         .hero{padding:120px 4% 80px;text-align:center;}
@@ -43,76 +39,98 @@
         .hero p{font-size:clamp(1.1rem,3vw,1.6rem);color:#E1E7EC;margin-bottom:32px;max-width: 800px; margin-left: auto; margin-right: auto;}
         
         .main-cta-btn{
-            background:var(--accent);
-            border:none;
-            padding: 20px 56px;
-            font-size:1.5rem;
-            font-weight:900;
-            border-radius:50px;
-            cursor:pointer;
-            color:#000;
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: inline-block;
-            box-shadow: 0 4px 20px rgba(255, 213, 79, 0.2);
+            background:var(--accent); border:none; padding: 18px 48px; font-size:1.3rem; font-weight:900;
+            border-radius:50px; cursor:pointer; color:#000; transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-block; box-shadow: 0 4px 20px rgba(255, 213, 79, 0.2);
         }
         .main-cta-btn:hover{transform: scale(1.05); box-shadow: 0 6px 25px rgba(255, 213, 79, 0.3);}
         .cta-subtitle { margin-top: 12px; color: var(--text-secondary); }
 
-        .secondary-cta-container { 
-            margin-top: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
+        .secondary-cta-container { margin-top: 40px; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 16px;}
         .secondary-cta-container a {
-            color: var(--text-primary);
-            text-decoration: none;
-            background: var(--brand-gray);
-            padding: 12px 24px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            transition: all 0.2s ease;
+            color: var(--text-primary); text-decoration: none; background: var(--brand-gray); padding: 12px 24px;
+            border-radius: 12px; border: 1px solid var(--border-color); transition: all 0.2s ease;
         }
         .secondary-cta-container a:hover {
-            background: var(--brand-green);
-            color: #000;
-            border-color: var(--brand-green);
-            transform: translateY(-2px);
+            background: var(--brand-green); color: #000; border-color: var(--brand-green); transform: translateY(-2px);
         }
         .secondary-cta-container a .material-symbols-outlined { font-size: 1.2em; vertical-align: -3px; margin-left: 6px; }
 
-
         .section-title {text-align:center;font-size:clamp(2rem, 5vw, 2.8rem);font-weight:900;margin-top:var(--section-gap); margin-bottom: 48px;}
+        .section-subtitle { text-align: center; color: var(--text-secondary); font-size: 1.2rem; max-width: 600px; margin: -32px auto 48px; }
 
-        /* --- PHONE MOCKUP DEMO --- */
-        .phone-wrapper{margin:40px auto;width:320px;height:640px;background:#111;border:14px solid #333;border-radius:48px;position:relative; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        .phone-inner { width: 100%; height: 100%; border-radius: 34px; background-color: var(--whatsapp-bg); display: flex; flex-direction: column;}
+        /* --- INTERACTIVE SIMULATOR --- */
+        .phone-wrapper{margin:40px auto;width:340px;height:700px;background:#111;border:14px solid #333;border-radius:48px;position:relative; box-shadow: 0 20px 40px rgba(0,0,0,0.4); padding: 12px;}
+        .phone-inner { width: 100%; height: 100%; border-radius: 34px; background-color: var(--brand-dark); display: flex; flex-direction: column; overflow: hidden; position: relative;}
         
-        .chat-header { background: #f0f2f5; padding: 10px; display: flex; align-items: center; border-radius: 34px 34px 0 0; gap: 12px; border-bottom: 1px solid #e0e0e0;}
-        .chat-header .profile-icon { background: var(--brand-green); width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;}
-        .chat-header .profile-icon .material-symbols-outlined { color: #fff; font-size: 24px; font-variation-settings: 'FILL' 1;}
-        .chat-header-text { color: #111b21; flex-grow: 1;}
-        .chat-header-text h4 { font-size: 1rem; font-weight: 700; margin: 0; }
-        .chat-header-text p { font-size: 0.8rem; color: #54656f; margin: 0; }
-        .chat-icons .material-symbols-outlined { color: #54656f; margin-left: 16px; }
+        .demo-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--brand-dark); color: var(--text-primary);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            opacity: 0; transform: scale(1.05); pointer-events: none;
+            display: flex; flex-direction: column;
+        }
+        .demo-screen.active { opacity: 1; transform: scale(1); pointer-events: auto; }
 
-        .screen{flex-grow: 1; padding: 18px 12px;overflow-y:auto; display: flex; flex-direction: column-reverse;}
-        .screen-content { display: flex; flex-direction: column; gap: 4px; color: #111b21;}
-        .bubble{max-width:85%;padding:8px 12px;border-radius:12px;font-size:.9rem;margin-bottom:4px;line-height:1.4; opacity: 0; transform: translateY(20px); animation: slide-up 0.5s forwards ease-out;}
-        .me{background:#d9fdd3;margin-left:auto; border-radius: 12px 12px 0 12px;}
-        .bot{background:#fff;border-radius: 12px 12px 12px 0; box-shadow: 0 1px 1px rgba(0,0,0,0.05); align-self: flex-start;}
-        
-        @keyframes slide-up { to { opacity: 1; transform: translateY(0); } }
+        /* --- Login Screen --- */
+        #login-screen { justify-content: center; align-items: center; gap: 24px; }
+        #login-screen h3 { font-size: 1.8rem; }
+        .google-btn {
+            display: flex; align-items: center; gap: 12px; background: #fff; color: #333;
+            padding: 12px 24px; border-radius: 8px; font-weight: 700; cursor: pointer;
+        }
+        .google-btn img { height: 24px; }
 
-        .chat-footer { padding: 8px 12px; background: #f0f2f5; border-radius: 0 0 34px 34px; display: flex; align-items: center;}
-        .chat-input-wrapper { background: #fff; border-radius: 20px; padding: 8px 12px; flex-grow: 1; display: flex; align-items: center;}
-        .chat-input-wrapper .material-symbols-outlined { color: #54656f; }
-        .chat-input-wrapper .text { color: #54656f; font-size: 0.9rem; flex-grow: 1; margin: 0 8px;}
-        .mic-btn { background: var(--brand-green); border-radius: 50%; padding: 8px; display: grid; place-items: center; margin-right: 8px;}
-        .mic-btn .material-symbols-outlined { color: #fff; font-size: 24px;}
+        /* --- API Key Screen --- */
+        #api-key-screen { justify-content: center; align-items: center; gap: 16px; padding: 20px; text-align: center; }
+        #api-key-screen .material-symbols-outlined { font-size: 48px; color: var(--brand-green); }
+        #api-key-screen p { color: var(--text-secondary); font-size: 0.9rem; }
+        .api-input {
+            font-family: monospace; background: var(--brand-gray); border: 1px solid var(--border-color);
+            padding: 12px; border-radius: 8px; color: var(--text-secondary); width: 100%; text-align: center;
+        }
+        .connect-btn {
+            background: var(--brand-green); color: #000; font-weight: 700; padding: 12px 32px;
+            border: none; border-radius: 8px; cursor: pointer; width: 100%;
+        }
+
+        /* --- Loading Screen --- */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader { width: 48px; height: 48px; border: 4px solid var(--border-gray); border-top-color: var(--brand-green); border-radius: 50%; animation: spin 1s linear infinite; }
+        #loading-screen { justify-content: center; align-items: center; }
+
+        /* --- App View --- */
+        .app-content { flex-grow: 1; overflow-y: auto; padding: 16px; }
+        .app-nav { display: flex; border-top: 1px solid var(--border-color); background: var(--brand-gray); }
+        .app-nav-btn {
+            flex: 1; text-align: center; padding: 12px 0; cursor: pointer;
+            color: var(--text-secondary); border-top: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .app-nav-btn.active { color: var(--brand-green); border-top-color: var(--brand-green); }
+        .app-nav-btn .material-symbols-outlined { display: block; margin: 0 auto 4px; }
+
+        .app-tab { display: none; }
+        .app-tab.active { display: block; }
         
+        /* --- Dashboard Tab --- */
+        #dashboard-view { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .dash-card { grid-column: span 1; background: #22272e; padding: 12px; border-radius: 12px; }
+        .dash-card h4 { font-size: 0.8rem; color: var(--text-secondary); font-weight: 400; margin-bottom: 4px; }
+        .dash-card .value { font-size: 1.5rem; font-weight: 900; color: #fff; }
+        .dash-card .value.green { color: var(--brand-green); }
+        .dash-card .value.red { color: #FF7373; }
+        .chart-card { grid-column: span 2; background: #22272e; padding: 12px; border-radius: 12px; }
+        .chart-wrapper { height: 150px; } /* Fixed height for mobile chart */
+
+        /* --- Chat Tab --- */
+        #chat-view { height: 100%; display: flex; flex-direction: column; background: #121a20; }
+        #chat-view .screen-content { flex-grow: 1; overflow-y: auto; padding: 12px; color: var(--text-primary); }
+        #chat-view .bubble { color: #fff; }
+        #chat-view .me { background:#005c4b; }
+        #chat-view .bot { background:#202c33; border: 1px solid #2a3942; }
+
+
         /* --- ONBOARDING STEPS --- */
         .onboarding-steps { display: flex; flex-direction: column; align-items: center; gap: 24px; margin: 0 4%; }
         .onboarding-step { background-color: var(--brand-gray); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 24px; width: 100%; max-width: 700px; display: flex; align-items: center; gap: 24px;}
@@ -140,15 +158,13 @@
         .contact-card p { color: var(--text-secondary); margin-bottom: 20px;}
         .contact-card a { background: var(--brand-dark); border: 1px solid var(--border-color); padding: 10px 20px; border-radius: 8px; }
 
-        /* --- FAQ --- */
+        /* --- FAQ & FOOTER --- */
         .faq-container { max-width: 800px; margin: var(--section-gap) auto 0; padding: 0 4%; }
         .faq-item { border-bottom: 1px solid var(--border-color); padding: 20px 0; }
         .faq-item summary { font-size: 1.2rem; font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center;}
         .faq-item summary::after { content: '+'; font-size: 1.5rem; color: var(--brand-green); transition: transform 0.2s;}
         .faq-item[open] summary::after { transform: rotate(45deg); }
         .faq-item p { color: var(--text-secondary); margin-top: 12px; max-width: 95%;}
-
-        /* --- FINAL CTA & FOOTER --- */
         #final-cta { margin: var(--section-gap) 4% 4%; padding: 60px 24px; text-align: center; background: var(--brand-gray); border-radius: var(--radius);}
         footer{padding: 40px 4%;text-align:center;font-size:.85rem;color:var(--text-secondary); }
     </style>
@@ -178,24 +194,76 @@
         </div>
     </section>
 
-    <div class="phone-wrapper">
-        <div class="phone-inner">
-            <div class="chat-header">
-                <div class="profile-icon"><span class="material-symbols-outlined">auto_awesome</span></div>
-                <div class="chat-header-text"><h4>Wizbi</h4><p>מחובר</p></div>
-                <div class="chat-icons"><span class="material-symbols-outlined">more_vert</span></div>
-            </div>
-            <div class="screen"><div class="screen-content"></div></div>
-            <div class="chat-footer">
-                <div class="mic-btn"><span class="material-symbols-outlined">mic</span></div>
-                <div class="chat-input-wrapper">
-                    <span class="material-symbols-outlined">add_reaction</span>
-                    <div class="text">כתבו הודעה...</div>
-                    <span class="material-symbols-outlined">attach_file</span>
+    <section id="interactive-demo">
+        <h2 class="section-title">חווית Wizbi המלאה</h2>
+        <p class="section-subtitle">מהחיבור הפשוט, דרך הדשבורד החכם ועד הצ'אט האינטראקטיבי - הכל במקום אחד.</p>
+        <div class="phone-wrapper">
+            <div class="phone-inner">
+                
+                <div id="login-screen" class="demo-screen active">
+                    <a href="#" class="header-logo" style="color: var(--text-primary);">Wizbi <span>✨</span></a>
+                    <h3>ברוכים הבאים</h3>
+                    <div class="google-btn">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google icon">
+                        <span>התחבר עם Google</span>
+                    </div>
                 </div>
+
+                <div id="api-key-screen" class="demo-screen">
+                    <span class="material-symbols-outlined">key</span>
+                    <h3>חיבור לחשבון Morning</h3>
+                    <p>הדביקו את מפתח ה-API שהעתקתם מהאתר של Morning.</p>
+                    <div class="api-input">c3a7f4e2-9b1d-4c6f-8a0e-1b9d5c8f2a1b</div>
+                    <button class="connect-btn">התחבר</button>
+                </div>
+
+                <div id="loading-screen" class="demo-screen">
+                    <div class="loader"></div>
+                 </div>
+
+                <div id="app-view-screen" class="demo-screen">
+                    <div class="app-content">
+                        <div id="dashboard-view" class="app-tab active">
+                            <div class="dash-card">
+                                <h4>הכנסות החודש</h4>
+                                <div class="value green">₪72,410</div>
+                            </div>
+                            <div class="dash-card">
+                                <h4>הוצאות החודש</h4>
+                                <div class="value red">₪34,210</div>
+                            </div>
+                            <div class="chart-card">
+                                <h4>הכנסות מול הוצאות</h4>
+                                <div class="chart-wrapper">
+                                    <canvas id="incomeExpenseChart"></canvas>
+                                </div>
+                            </div>
+                             <div class="chart-card">
+                                <h4>חובות פתוחים</h4>
+                                <div class="chart-wrapper">
+                                    <canvas id="debtChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="chat-view" class="app-tab">
+                             <div class="screen-content"></div>
+                        </div>
+                    </div>
+                    <nav class="app-nav">
+                        <div class="app-nav-btn active" data-tab="dashboard-view">
+                            <span class="material-symbols-outlined">dashboard</span>
+                            דשבורד
+                        </div>
+                         <div class="app-nav-btn" data-tab="chat-view">
+                            <span class="material-symbols-outlined">chat</span>
+                            צ'אט
+                        </div>
+                    </nav>
+                </div>
+
             </div>
         </div>
-    </div>
+    </section>
 
     <section id="onboarding">
         <h2 class="section-title">חיבור ל-Morning ב-3 דקות</h2>
@@ -278,17 +346,76 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const chatContent = document.querySelector('.screen-content');
-    if (!chatContent) return;
 
+    // --- Interactive Simulator Logic ---
+    const screens = document.querySelectorAll('.demo-screen');
+    const googleBtn = document.querySelector('.google-btn');
+    const connectBtn = document.querySelector('.connect-btn');
+    const navBtns = document.querySelectorAll('.app-nav-btn');
+    
+    let incomeChart, debtChart; // To hold chart instances
+    let chatInterval; // To control chat loop
+
+    function switchScreen(screenId) {
+        screens.forEach(screen => {
+            screen.classList.remove('active');
+        });
+        const activeScreen = document.getElementById(screenId);
+        if (activeScreen) {
+            activeScreen.classList.add('active');
+        }
+    }
+
+    googleBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchScreen('api-key-screen');
+    });
+
+    connectBtn.addEventListener('click', () => {
+        switchScreen('loading-screen');
+        setTimeout(() => {
+            switchScreen('app-view-screen');
+            // Initialize dashboard charts only when the screen is visible
+            initializeDashboard();
+        }, 1500); // Simulate loading time
+    });
+
+    navBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.dataset.tab;
+            
+            // Handle active state for buttons
+            navBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Handle active state for tabs
+            document.querySelectorAll('.app-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+
+            // Start or stop chat loop based on tab
+            if (tabId === 'chat-view') {
+                startChat();
+            } else {
+                stopChat();
+            }
+        });
+    });
+
+    function initializeDashboard() {
+        if (!incomeChart) { // Prevent re-initialization
+            initializeCharts();
+        }
+    }
+
+    // --- Chat Logic ---
+    const chatContent = document.querySelector('#chat-view .screen-content');
     const messages = [
-        { type: 'bot', text: 'שלום 👋 אני Wizbi, האנליסט האישי שלך. איך אפשר לעזור?' },
-        { type: 'me', text: 'היי, כמה הכנסות היו לי השבוע?' },
-        { type: 'bot', text: 'בטח. הכנסות השבוע עומדות על <b>₪17,530</b>.<br><span style="font-size:.8rem;color:#30694b;">(עלייה של 12% מהשבוע שעבר)</span>' },
-        { type: 'me', text: 'מעולה. ומי הלקוחות שעדיין לא שילמו לי?' },
-        { type: 'bot', text: 'בודק... מצאתי 3 לקוחות עם חשבוניות פתוחות:<br>• רוני כהן – ₪3,200<br>• סטודיו יעקב – ₪1,850<br>• ר.ש. אחזקות – ₪980' }
+        { type: 'bot', text: 'שלום 👋 אני Wizbi. במה אוכל לעזור?' },
+        { type: 'me', text: 'כמה הכנסות היו לי החודש?' },
+        { type: 'bot', text: 'הכנסות החודש עומדות על <b>₪72,410</b>.' },
+        { type: 'me', text: 'ומי הלקוח עם החוב הכי גדול?' },
+        { type: 'bot', text: 'הלקוח עם החוב הגדול ביותר הוא <b>"ר.ש. אחזקות"</b> עם חוב של ₪9,800.' }
     ];
-
     let messageIndex = 0;
 
     function runConversation() {
@@ -296,8 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 chatContent.innerHTML = '';
                 messageIndex = 0;
-                runConversation();
-            }, 5000);
+            }, 4000);
             return;
         }
 
@@ -305,25 +431,93 @@ document.addEventListener('DOMContentLoaded', () => {
         const bubble = document.createElement('div');
         bubble.className = `bubble ${msg.type}`;
         bubble.innerHTML = msg.text;
-        
-        const delay = msg.type === 'bot' ? 1500 : 800;
-        
         chatContent.appendChild(bubble);
-
-        setTimeout(() => {
-            bubble.style.opacity = 1;
-            bubble.style.transform = 'translateY(0)';
-        }, 50);
 
         if(chatContent.parentElement) {
            chatContent.parentElement.scrollTop = chatContent.parentElement.scrollHeight;
         }
-
         messageIndex++;
-        setTimeout(runConversation, delay);
+    }
+    
+    function startChat() {
+        if (chatInterval) return; // Already running
+        chatContent.innerHTML = '';
+        messageIndex = 0;
+        runConversation(); // Run first message immediately
+        chatInterval = setInterval(runConversation, 2500);
     }
 
-    runConversation();
+    function stopChat() {
+        clearInterval(chatInterval);
+        chatInterval = null;
+    }
+
+    // --- Chart.js Logic ---
+    function initializeCharts() {
+        const chartTextColor = '#9BA3AE';
+        Chart.defaults.color = chartTextColor;
+        Chart.defaults.font.family = "'Heebo', sans-serif";
+        Chart.defaults.font.size = 10;
+        Chart.defaults.plugins.legend.display = false;
+        
+        const tooltipDefaults = {
+            backgroundColor: '#101114',
+            titleFont: { weight: 'bold' },
+            bodyFont: { size: 10 },
+            padding: 8,
+            callbacks: {
+                label: function(context) {
+                    let label = context.dataset.label || '';
+                    if (label) { label += ': '; }
+                    const value = context.parsed.y ?? context.parsed;
+                    if (value !== null) {
+                        label += new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', minimumFractionDigits: 0 }).format(value);
+                    }
+                    return label;
+                }
+            }
+        };
+
+        const incomeExpenseCtx = document.getElementById('incomeExpenseChart').getContext('2d');
+        incomeChart = new Chart(incomeExpenseCtx, {
+            type: 'bar',
+            data: {
+                labels: ['חודש קודם', 'חודש נוכחי'],
+                datasets: [{
+                    label: 'הכנסות', data: [67046, 72410],
+                    backgroundColor: 'rgba(0, 193, 117, 0.6)', borderRadius: 4
+                }, {
+                    label: 'הוצאות', data: [36010, 34210],
+                    backgroundColor: 'rgba(255, 115, 115, 0.6)', borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { y: { display: false }, x: { ticks: { color: chartTextColor } } },
+                plugins: { tooltip: tooltipDefaults }
+            }
+        });
+
+        const debtCtx = document.getElementById('debtChart').getContext('2d');
+        debtChart = new Chart(debtCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['ר.ש. אחזקות', 'סטודיו יעקב', 'רוני כהן', 'אחרים'],
+                datasets: [{
+                    data: [9800, 4850, 3200, 3620],
+                    backgroundColor: ['#FFD54F', '#00C175', '#FF7373', '#9BA3AE'],
+                    borderColor: '#22272e', borderWidth: 2, hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { boxWidth: 10, padding: 10 } },
+                    tooltip: tooltipDefaults
+                }
+            }
+        });
+    }
 });
 </script>
 
