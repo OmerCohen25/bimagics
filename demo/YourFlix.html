@@ -10,6 +10,8 @@
             --yourflix-red: #e50914;
             --yourflix-black: #111;
             --yourflix-dark-gray: #181818;
+            --poster-width: 280px;
+            --poster-height: 157px;
         }
 
         @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap');
@@ -21,383 +23,133 @@
         }
 
         body {
-            font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-family: 'Heebo', sans-serif;
             background-color: var(--yourflix-black);
             color: #fff;
             overflow-x: hidden;
         }
         
         /* --- Page Containers --- */
-        .page {
-            display: none;
-            min-height: 100vh;
-            width: 100vw;
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        .page.active {
-            display: flex;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        .page { display: none; min-height: 100vh; width: 100vw; animation: fadeIn 0.5s ease-in; }
+        .page.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         /* --- 1. Upload Page --- */
-        #upload-page {
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 2rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        #bg-video {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            min-width: 100%;
-            min-height: 100%;
-            width: auto;
-            height: auto;
-            z-index: -2;
-            transform: translateX(-50%) translateY(-50%);
-            opacity: 0.3;
-        }
-
-        #upload-page::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(ellipse at center, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%);
-            z-index: -1;
-        }
-        
-        .upload-content h1 {
-            font-size: 3.5rem;
-            font-weight: 900;
-            max-width: 800px;
-        }
-
-        .upload-content h2 {
-            font-size: 1.5rem;
-            font-weight: 400;
-            margin-top: 1rem;
-            max-width: 700px;
-        }
-
-        #create-series-btn {
-            background-color: var(--yourflix-red);
-            color: white;
-            border: none;
-            padding: 1rem 2.5rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            border-radius: 5px;
-            margin-top: 2rem;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-
-        #create-series-btn:hover {
-            background-color: #f40612;
-        }
+        #upload-page { flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 2rem; position: relative; z-index: 1; }
+        #bg-video { position: fixed; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; z-index: -2; transform: translateX(-50%) translateY(-50%); opacity: 0.3; }
+        #upload-page::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(ellipse at center, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%); z-index: -1; }
+        .upload-content h1 { font-size: 3.5rem; font-weight: 900; max-width: 800px; }
+        .upload-content h2 { font-size: 1.5rem; font-weight: 400; margin-top: 1rem; max-width: 700px; }
+        #create-series-btn { background-color: var(--yourflix-red); color: white; border: none; padding: 1rem 2.5rem; font-size: 1.5rem; font-weight: 700; border-radius: 5px; margin-top: 2rem; cursor: pointer; transition: background-color 0.2s ease; }
+        #create-series-btn:hover { background-color: #f40612; }
 
         /* --- 2. Loading Page --- */
-        #loading-page {
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .loading-logo {
-            width: 200px;
-            height: auto;
-            animation: pulse 1.5s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        .loading-text-container {
-            margin-top: 2rem;
-            height: 30px;
-            font-size: 1.2rem;
-            text-align: center;
-        }
-
-        .loading-text {
-            display: none;
-            animation: fadeInOut 2.5s ease-in-out;
-        }
-
-        .loading-text.active {
-            display: block;
-        }
-
-        @keyframes fadeInOut {
-            0%, 100% { opacity: 0; }
-            20%, 80% { opacity: 1; }
-        }
+        #loading-page { flex-direction: column; justify-content: center; align-items: center; }
+        .loading-logo { width: 200px; height: auto; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .loading-text-container { margin-top: 2rem; height: 30px; font-size: 1.2rem; text-align: center; }
+        .loading-text { display: none; animation: fadeInOut 2.5s ease-in-out; }
+        .loading-text.active { display: block; }
+        @keyframes fadeInOut { 0%, 100% { opacity: 0; } 20%, 80% { opacity: 1; } }
 
         /* --- 3. Main Page --- */
-        #main-page {
-            flex-direction: column;
-        }
-
-        /* Nav Bar */
-        .nav {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            padding: 20px 4%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 100;
-            transition: background-color 0.5s;
-        }
+        #main-page { flex-direction: column; }
+        .nav { position: fixed; top: 0; width: 100%; padding: 20px 4%; display: flex; justify-content: space-between; align-items: center; z-index: 200; transition: background-color 0.5s; }
+        .nav--scrolled { background-color: var(--yourflix-black); }
+        .nav__logo { width: 120px; object-fit: contain; cursor: pointer; }
+        .nav__profile { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; cursor: pointer; }
         
-        .nav--scrolled {
-            background-color: var(--yourflix-black);
-        }
-
-        .nav__logo {
-            width: 120px;
-            object-fit: contain;
-            cursor: pointer;
-        }
+        .hero { position: relative; height: 56.25vw; max-height: 850px; color: white; background-size: cover; background-position: center 20%; }
+        .hero__contents { padding: 0 4%; padding-top: 180px; height: 100%; }
+        .hero__title { font-size: 3.8rem; font-weight: 900; text-shadow: 2px 2px 6px rgba(0,0,0,0.6); }
+        .hero__rank { display: flex; align-items: center; font-size: 1.2rem; font-weight: bold; margin-top: 1rem; }
+        .hero__rank_icon { background-color: var(--yourflix-red); padding: 2px 8px; border-radius: 3px; font-size: 0.9rem; margin-left: 10px; }
+        .hero__subtitle { width: 45rem; max-width: 80%; line-height: 1.4; padding-top: 1rem; font-size: 1.2rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
+        .hero__buttons .hero__button { cursor: pointer; color: white; outline: none; border: none; font-weight: 700; border-radius: 5px; padding: 0.8rem 2.2rem; margin-right: 1rem; margin-top: 1.5rem; background-color: rgba(109, 109, 110, 0.7); }
+        .hero__button.play { background-color: white; color: black; }
+        .hero__button:hover { background-color: rgba(255, 255, 255, 0.75); transition: all 0.2s; }
+        .hero__button.play:hover { background-color: rgba(255, 255, 255, 0.85); }
+        .hero--fade-bottom { position: absolute; bottom: 0; left: 0; right: 0; height: 15rem; background-image: linear-gradient(180deg, transparent, rgba(17,17,17,0.6), var(--yourflix-black)); }
         
-        .nav__profile {
-            width: 40px;
-            height: 40px;
-            border-radius: 4px;
-            object-fit: cover;
-            cursor: pointer;
-        }
-
-        /* Hero Banner */
-        .hero {
-            position: relative;
-            height: 56.25vw; /* 16:9 Aspect Ratio */
-            max-height: 800px;
-            color: white;
-            object-fit: cover;
-            background-size: cover;
-            background-position: center 20%; /* Move image up a bit */
-        }
-
-        .hero__contents {
-            padding: 0 4%;
-            padding-top: 200px;
-            height: 100%;
-        }
-
-        .hero__title {
-            font-size: 3.5rem;
-            font-weight: 900;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
+        /* --- Rows & Posters --- */
+        .rows-container { padding: 2rem 0 2rem 0; overflow: hidden; }
+        .row { margin-bottom: 2.5rem; }
+        .row h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; padding: 0 4%;}
+        .row__posters { display: flex; overflow-y: hidden; overflow-x: scroll; padding: 15px 4%; scrollbar-width: none; }
+        .row__posters::-webkit-scrollbar { display: none; }
         
-        .hero__subtitle {
-            width: 45rem;
-            max-width: 80%;
-            line-height: 1.4;
-            padding-top: 1rem;
-            font-size: 1.2rem;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
-        }
-        
-        .hero__buttons .hero__button {
-            cursor: pointer;
-            color: white;
-            outline: none;
-            border: none;
-            font-weight: 700;
-            border-radius: 0.2vw;
-            padding: 0.75rem 2rem;
-            margin-right: 1rem;
-            margin-top: 1rem;
-            background-color: rgba(51, 51, 51, 0.7);
-        }
+        .poster-container { position: relative; flex-shrink: 0; margin-right: 10px; transition: all 300ms ease; }
+        .poster-container img { display: block; object-fit: cover; object-position: center; border-radius: 4px; }
 
-        .hero__button.play {
-            background-color: white;
-            color: black;
-        }
+        /* Regular Posters */
+        .poster-container { width: var(--poster-width); height: var(--poster-height); }
+        .poster-container img { width: 100%; height: 100%; }
         
-        .hero__button:hover {
-            color: #000;
-            background-color: #e6e6e6;
-            transition: all 0.2s;
-        }
+        /* Large Posters */
+        .poster-container--large { width: 200px; height: 280px; }
 
-        .hero--fade-bottom {
+        /* Skill "Posters" */
+        .poster-container--skill { width: 150px; height: 150px; }
+        .poster-container--skill img { border-radius: 50%; }
+
+        .poster-title {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 15rem;
-            background-image: linear-gradient(180deg, transparent, rgba(17,17,17,0.6), var(--yourflix-black));
-        }
-
-        /* Content Rows */
-        .rows-container {
-            padding: 2rem 0 2rem 4%;
-        }
-        .row {
-            margin-bottom: 2rem;
-        }
-
-        .row h2 {
-            font-size: 1.4rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .row__posters {
-            display: flex;
-            overflow-y: hidden;
-            overflow-x: scroll;
-            padding: 15px 0;
-            scrollbar-width: none; /* Firefox */
-        }
-
-        .row__posters::-webkit-scrollbar {
-            display: none; /* Hide scrollbar for Chrome, Safari and Opera */
-        }
-        
-        .row__poster {
-            object-fit: cover;
-            object-position: center;
-            width: 260px; /* Fixed width */
-            height: 150px; /* Fixed height */
-            margin-right: 10px;
-            transition: transform 450ms;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        
-        .row__poster:hover {
-            transform: scale(1.08);
-            opacity: 1;
-        }
-
-        .row__poster--large {
-            width: 200px;
-            height: 250px;
-        }
-
-        /* --- Modal --- */
-        #details-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.8);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease;
-        }
-        
-        #details-modal.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal-content {
-            background-color: var(--yourflix-dark-gray);
-            border-radius: 8px;
-            width: 90%;
-            max-width: 850px;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
-            transform: scale(0.9);
-            transition: transform 0.3s ease;
-        }
-
-        #details-modal.active .modal-content {
-            transform: scale(1);
-        }
-
-        .modal-header {
-            position: relative;
-            padding-top: 56.25%; /* 16:9 Aspect Ratio */
-            background-size: cover;
-            background-position: center;
-        }
-        .modal-header__close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(0,0,0,0.7);
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            color: white;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-header-fade {
-            position: absolute;
-            bottom: -1px; /* Overlap fix */
-            left: 0;
-            right: 0;
-            height: 7.4rem;
-            background-image: linear-gradient(180deg, transparent, rgba(24,24,24,0.7), var(--yourflix-dark-gray));
-        }
-        
-        .modal-body {
-            padding: 1.5rem 2.5rem;
-        }
-        
-        .modal-body h2 {
-            font-size: 2rem;
-            font-weight: 700;
-        }
-        
-        .modal-body p {
-            font-size: 1rem;
-            line-height: 1.5;
-            margin-top: 1rem;
-        }
-
-        .modal-tags {
-            margin-top: 1rem;
-            color: #999;
+            padding: 20px 10px 8px 10px;
+            font-size: 0.9rem;
             font-weight: bold;
+            text-align: center;
+            background-image: linear-gradient(to top, rgba(0,0,0,0.85) 20%, transparent);
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
         }
+
+        .poster-container:hover {
+            transform: scale(1.1);
+            z-index: 100;
+        }
+        
+        /* --- Modal --- */
+        #details-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease; }
+        #details-modal.active { opacity: 1; visibility: visible; }
+        .modal-content { background-color: var(--yourflix-dark-gray); border-radius: 8px; width: 90%; max-width: 850px; max-height: 90vh; overflow-y: auto; position: relative; transform: scale(0.9); transition: transform 0.3s ease; }
+        #details-modal.active .modal-content { transform: scale(1); }
+        .modal-header { position: relative; padding-top: 56.25%; background-size: cover; background-position: center; border-top-left-radius: 8px; border-top-right-radius: 8px;}
+        .modal-header__close { position: absolute; top: 15px; right: 15px; background: rgba(24,24,24,0.8); border-radius: 50%; width: 36px; height: 36px; color: white; border: none; font-size: 1.5rem; cursor: pointer; display: flex; justify-content: center; align-items: center; }
+        .modal-header-fade { position: absolute; bottom: -1px; left: 0; right: 0; height: 7.4rem; background-image: linear-gradient(180deg, transparent, rgba(24,24,24,0.7), var(--yourflix-dark-gray)); }
+        .modal-body { padding: 1.5rem 2.5rem; }
+        .modal-body h2 { font-size: 2rem; font-weight: 700; }
+        .modal-body p { font-size: 1rem; line-height: 1.5; margin-top: 1rem; }
+        .modal-tags { margin-top: 1rem; color: #999; font-weight: bold; }
 
         /* Mobile Adjustments */
         @media (max-width: 768px) {
+            :root { --poster-width: 220px; --poster-height: 124px; }
             .upload-content h1 { font-size: 2.5rem; }
             .upload-content h2 { font-size: 1.2rem; }
             .hero__title { font-size: 2rem; }
             .hero__subtitle { max-width: 100%; font-size: 0.9rem; }
             .hero__contents { padding-top: 150px; }
             .nav__logo { width: 90px; }
-            .row__poster { width: 200px; height: 112px; }
-            .row__poster--large { width: 150px; height: 220px; }
+            .poster-container--large { width: 160px; height: 230px; }
+            .poster-container--skill { width: 120px; height: 120px; }
         }
     </style>
 </head>
 <body>
 
+    <script>
+        const IMAGES = {
+            PROFILE_CASUAL: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAJgAqAMBIgACEQEDEQH/xAAbAAEBAAMBAQEAAAAAAAAAAAAAAwECBAUGB//EADcQAAIBAgEKBwcEAwAAAAAAAAABAgMRBCEFEjFBUSJhcYGRobHB0RMyUnLhFPEjQoKyQmKS8RX/xAAXAQEBAQEAAAAAAAAAAAAAAAAAAQID/8QAHBEBAQEAAwEAAwAAAAAAAAAAAAERAhIhMQNRYf/aAABDAQACEQMRAD8A+4gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACySSbbUYrbJ9CLAbRwdJ+vUcuEdi+LNOhQwD9nSlLjbbfzZ0XnLdY5t0oDVo4PAw2qlOXFtcvkdChhsNT+xRinwlts6C7jNssAAAIAAAAAAAAAAAAAAAAAAAABGVejB5VJxT5NsCUBqzx2Hj1bzlwi8zBY3CQeVSblLhFZm8M+rOmAOHisYvcp0l1ZPM+Bqx2LlsnKC4JJHoADgUcbjFsVSUuEkn8jpUMfCTyqyVOXHyfgdYqVadOSjUjKLfFnObWOmgCgAAAAAAAAAAAAAAAAABFSpGnFzm8oq7bAtUqRpwlObskjn4jFVK15NqnHgvi/EpxOIlWleWyPqx5+IrZ5u16T14u5Nttu8mZIAKCkklZKyQCCgAAAAAAAAAAAAAAAAAAAAAAFtWnGpFwmrxeqwNkAcfEUJUZa9sH6stjLPSANQZIAKAAAAAAAAAAAAAAAAAAAAAAAEoVJU5KcHaSA2gOvQxEKsdWs+tF6mWc01Y6wBIAoAAAAAAAAAAAAAAAAAAAAAAAFgASpycJqcHaS1A2gOtQrKrG/rR2NHIc01Y6wBIAoAAAAAAAAAAAAAAAAAAAAAAAFgASpycJqcHaS1A2gOtQrKrG/rR2NHIc01Y6wBIAoAAAAAAAAAAAAAAAAAAAAAAAFgASpycJqcHaS1A2gOtQrKrG/rR2NHIc01Y6wBIAoAAAAAAAAAAAAAAAAAAAAAAAFgASpycJqcHaS1A2gOtQrKrG/rR2NHIc01Y6wBIAoAAAAAAAAAAAAAAAAAAAAAAAFgASpycJqcHaS1A2gOtQrKrG/rR2NHIc01Y6wBIAoAAAAAAAAAAAAAAAAAAAAAAAFgASpycJqcHaS1A2gOtQrKrG/rR2NHIc01Y6wBIAoAAAAAAAAAAAAAAAAAAAAAAAFgASpycJqcHaS1A2gOtQrKrG/rR2NHIc01Y6wBIAoAAAAAAAAAAAAAAAAAAAAAAAFgASpycJqcHaS1A2gOtQrKrG/rR2NHIc01Y6wBIAoAAAAAAAAAAAAAAAAAAAAAAA//Z',
+            PROFILE_SUIT: 'data:image/jpeg;base64,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',
+            PROFILE_HERO: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAK8AoAMBIgACEQEDEQH/xAAaAAEBAQEBAQEAAAAAAAAAAAAAAgEDBQQG/8QANBABAAIBAgMGAwYHAQAAAAAAAQACAxEEIRIxQVFhcQUTIjKBkUKhscHR8FKSIzRicpKy4fH/xAAXAQEBAQEAAAAAAAAAAAAAAAAAAQID/8QAHREBAQEBAAIDAQEAAAAAAAAAAAECEQMhMRJBUf/aAABDAQACEQMRAD8A+zAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADfE/5bfL9zpF/D/ANp/pAekAAAAAAAAAAAAAAABa2vVv8A6gAAbYv+S/yOodL4r6Vv8SAekAAAAAAAAAAAAAAAB9F4e9rG/hAG2KPSv8j3D9Q6XxY9K/yAekAAAAAAAAAAAAAAAAE2h43tHxtAHQ+N6t4X0h0gB6QAAAAAAAAAAAAAAAABPh+reNo3tAHS+N6t4h9IdIAekAAAAAAAAAAAAAAAABfD3tPwnSNoA6Xxb1bwt7Q6QA9IAAAAAAAAAAAAAAAAAJsf0rxUb2gDpfG/SeG/aHSAPSAAAAAAAAAAAAAAAAAmxb1vCvqgdL436Twt7Q6QB6QAAAAAAAAAAAAAAAAXY+leFfVA6Xxr1bwt7Q6QB6QAAAAAAAAAAAAAAAE2P6V4V9UDpfGvVvC3tDpAD0gAAAAAAAAAAAAAAAIsetbwv1j9wdL43q3hb2h0gB6QAAAAAAAAAAAAAAAF2Let4W+sfpHSAPQAAAAAAAAAAAAAABNietb5X+sfpDpAHoAAAAAAAAAAAAAABdiep8p/WPo6QB6AAAAAAAAAAAAAAAXYnqfKf1j6OqAPQAAAAAAAAAAAAAADYnYbzqTtAIDYm07xudQAAAAAAAAAAAAABq2neNxqAAGpNprec6m07QCAAAAAAAAAAAAAGpNprec6gAAGpWbWtOsb2gEAAAAAAAAAAABqVrWvWs7xvaAQAAAAAAAAA//9k=',
+            STOCK_CYBER: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAJgAqAMBIgACEQEDEQH/xAAbAAEBAAMBAQEAAAAAAAAAAAAAAQIDBAUGB//EADcQAAIBAgMECQIEBwAAAAAAAAABAgMRBCEFEjFBUSJhkbETICMycaHB0UJSYnLwFUI0U4KS8RX/xAAXAQEBAQEAAAAAAAAAAAAAAAAAAQID/8QAHBEBAQEAAwEAAwAAAAAAAAAAAAERAhIhMQNRYf/aAABDAQACEQMRAD8A/SAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACUoqMXKTsordgWlKMYuUnZRWbfI51bFWu6MeHFL9kZ62JnUvGTcY8I7fiZWeXOOt+g62LhC9Om1N8Zbr+phqVKlV8VSUpc3sRDKGeS2dYCCgAAAAAAAAAAAAAAAAAAAAAAAlCnKpJRpxcpPYluBvVqU6MXOpJRXNnm61eVaXHPZ9WOw2UaEaMVCCsue1s1k5prV1AASAKgAAAAAAAAAAAAAAAAAAAAAAAIQg5yUYK8pNRS5sDobKUJThOpZTlG6T3pM6BJJJKyS2JFolYAAEAAAAAAAAAAAAAAAAAAAAAAAFZxjKLjJJxaafNItoJwUlZgcmrB05yhLcU0yGWq0lWpSpS2SWXNPczlpqStJWZ5zS9+IAkgUAAAAAAAAAAAAAAAAAAAAAAAEoScZKUW007pryBqB0aNVVaalvWzXNHOMlSbpzU1sktDrmmrVGoASAKgAAAAAAAAAAAAAAAAAAAAAAAIpNuyuwN4Uqk9lOTXHobxoQW3Nx9i+h1Wc9I7caEIrYlLyV2bJJbEklyQHJdsAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAH//2Q==',
+            STOCK_AI: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAJgAqAMBIgACEQEDEQH/xAAaAAEBAAMBAQAAAAAAAAAAAAAAAQIDBAUG/8QANxAAAgIBAgEKBAMIAwAAAAAAAAECAwQRITESQVEFYXGREyKBobHB0TIzQlLh8BVSYnLxgtLi/8QAFwEBAQEBAAAAAAAAAAAAAAAAAAECA//EABwRAQEBAAMAAwEAAAAAAAAAAAABEQIhMRIDUSL/2gAMAwEAAhEDEQA/AP2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJzlGEXOTUYxWrb6IoCnOUYxc5NRjFat+COdlja3Vp4x85rX4L9TCyyytdqc34RitPp4mQ55a1+nWytjVVaE5rznsvzMNllla3U5y8IxWkf6ZkM8k1rrAQUAAAAAAAAAAAAAAAAAAAAAAAJQg5yjCCvKTSivNsDe2yurrjOcoLq3suZkq0VVcYRWkdX1t9bI0VVVCEYR1SXm+tvqzkmsdYACSBUAAAAAAAAAAAAAAAAAAAAAAABBJJtuyWrbfJAdhUnKcJyg4ykrvzXQ3oJJJJKyS1JJFolYAAEAAAAAAAAAAAAAAAAAAAAAAAFZxjKLi0mmnFrzTK0E4qSswOTZBU2zg+jbfmaGWysVWlKnLpHV+a6M5STjJxa1aZ5zS9uIAkgUAAAAAAAAAAAAAAAAAAAAAAAEoScZKSbTTTT8mBqB0KNkba1Ndeb80c4y0puE1NdbTOuSa1RqAEgAAAAAAAAAAAAAAAAAAAAAAAAAAAJpNuyWrAtClZZLqhBzfm+i/UyKmsaoxVd3zctfwv0O2zlpHVqaxilUvK13sUVyS2/F/o2CC47AAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/2Q==',
+            STOCK_LEADER: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAJgAqAMBIgACEQEDEQH/xAAaAAEBAAMBAQAAAAAAAAAAAAAAAQIDBAUG/8QANxAAAgIBAgEKBAMIAwAAAAAAAAECAwQRITESQVEFYXGREyKBobHB0TIzQlLh8BVSYnLxgtLi/8QAFwEBAQEBAAAAAAAAAAAAAAAAAAECA//EABwRAQEBAAMAAwEAAAAAAAAAAAABEQIhMRIDUSL/2gAMAwEAAhEDEQA/AP2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJzlGEXOTUYxWrb6IoCnOUYxc5NRjFat+COdlja3Vp4x85rX4L9TCyyytdqc34RitPp4mQ55a1+nWytjVVaE5rznsvzMNllla3U5y8IxWkf6ZkM8k1rrAQUAAAAAAAAAAAAAAAAAAAAAAAJQg5yjCCvKTSivNsDe2yurrjOcoLq3suZkq0VVcYRWkdX1t9bI0VVVCEYR1SXm+tvqzkmsdYACSBUAAAAAAAAAAAAAAAAAAAAAAABBJJtuyWrbfJAdhUnKcJyg4ykrvzXQ3oJJJJKyS1JJFolYAAEAAAAAAAAAAAAAAAAAAAAAAAFZxjKLi0mmnFrzTK0E4qSswOTZBU2zg+jbfmaGWysVWlKnLpHV+a6M5STjJxa1aZ5zS9uIAkgUAAAAAAAAAAAAAAAAAAAAAAAEoScZKSbTTTT8mBqB0KNkba1Ndeb80c4y0puE1NdbTOuSa1RqAEgAAAAAAAAAAAAAAAAAAAAAAAAAAAJpNuyWrAtClZZLqhBzfm+i/UyKmsaoxVd3zctfwv0O2zlpHVqaxilUvK13sUVyS2/F/o2CC47AAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/2Q=='
+        };
+    </script>
     <audio id="tadum-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-dramatic-cinematic-trailer-hit-471.mp3" preload="auto"></audio>
 
     <div id="upload-page" class="page active">
@@ -425,12 +177,16 @@
     <div id="main-page" class="page">
         <div class="nav" id="main-nav">
             <img class="nav__logo" src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Logonetflix.png" alt="YourFlix Logo">
-            <img class="nav__profile" src="file_content/1000345366.jpg" alt="Profile">
+            <img class="nav__profile" id="nav-profile-img" alt="Profile">
         </div>
 
-        <header class="hero" style="background-image: url('file_content/1000345366.jpg');">
+        <header class="hero" id="hero-bg-img">
             <div class="hero__contents">
                 <h1 class="hero__title">מיכאל גופמן: הקוד ליזמות</h1>
+                <div class="hero__rank">
+                    <span class="hero__rank_icon">TOP 10</span>
+                    #2 בסדרות הסייבר בישראל היום
+                </div>
                 <h2 class="hero__subtitle">
                     מיזם ל-CTO, ממייסד למנהל בכיר. סדרת מתח טכנולוגית העוקבת אחר קריירה של הובלה, חדשנות ובניית חברות מהיסוד בעולם הסייבר והבינה המלאכותית.
                 </h2>
@@ -446,54 +202,50 @@
             <div class="row">
                 <h2>תחנות בקריירה</h2>
                 <div class="row__posters">
-                    <img class="row__poster row__poster--large" src="file_content/1000345367.jpg" alt="CTO & Co-founder"
-                         data-title="עונה 3: Co-founder & CTO - CyberPeak"
-                         data-desc="בשיא הקריירה, מיכאל מקים מאפס סטארטאפ סייבר פורץ דרך. הפרק עוקב אחר אתגרי הגיוס, פיתוח הטכנולוגיה הסודית, בניית התרבות הארגונית והובלת החברה לאקזיט מרשים."
-                         data-tags="#יזמות #Cybersecurity #CTO #Fundraising #Leadership">
-                    <img class="row__poster row__poster--large" src="file_content/1000345369.jpg" alt="VP R&D"
-                         data-title="עונה 2: VP R&D - Innovate.AI"
-                         data-desc="מיכאל מצטרף לחברה בצמיחה אדירה ומוביל את כלל מאמצי הפיתוח. הוא מכפיל את גודל הצוות, מטמיע מתודולוגיות Agile מתקדמות ומוביל השקה של פלטפורמת AI מהפכנית לשוק הגלובלי."
-                         data-tags="#VP_R&D #AI #Machine_Learning #Scaling #Management">
-                    <img class="row__poster row__poster--large" src="https://images.pexels.com/photos/5439427/pexels-photo-5439427.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Team Leader"
-                         data-title="עונה 1: ראש צוות - DataFlow"
-                         data-desc="הפרק הראשון בסדרה. כאן הכל התחיל. מיכאל מוביל צוות פיתוח קטן אך מבריק, ומוכיח את יכולותיו הטכניות והניהוליות בפרויקט דגל של החברה בתחום ה-Big Data."
-                         data-tags="#Team_Leader #Big_Data #Hands_On #Java #Cloud">
+                    <div class="poster-container poster-container--large" data-title="עונה 3: Co-founder & CTO" data-desc="בשיא הקריירה, מיכאל מקים מאפס סטארטאפ סייבר פורץ דרך. הפרק עוקב אחר אתגרי הגיוס, פיתוח הטכנולוגיה, בניית התרבות והובלת החברה לאקזיט מרשים." data-tags="#יזמות #Cybersecurity #CTO #Fundraising #Leadership">
+                        <img src="" class="poster-image" data-img-key="PROFILE_CASUAL" alt="CTO & Co-founder">
+                        <div class="poster-title">מייסד ו-CTO ב-CyberPeak</div>
+                    </div>
+                    <div class="poster-container poster-container--large" data-title="עונה 2: VP R&D" data-desc="מיכאל מצטרף לחברה בצמיחה ומוביל את כלל הפיתוח. הוא מכפיל את הצוות, מטמיע מתודולוגיות Agile ומוביל השקה של פלטפורמת AI מהפכנית לשוק הגלובלי." data-tags="#VP_R&D #AI #Machine_Learning #Scaling">
+                        <img src="" class="poster-image" data-img-key="PROFILE_SUIT" alt="VP R&D">
+                        <div class="poster-title">VP R&D ב-Innovate.AI</div>
+                    </div>
+                    <div class="poster-container poster-container--large" data-title="עונה 1: ראש צוות" data-desc="הכל התחיל כאן. מיכאל מוביל צוות פיתוח קטן ומבריק, ומוכיח את יכולותיו הטכניות והניהוליות בפרויקט דגל של החברה בתחום ה-Big Data." data-tags="#Team_Leader #Big_Data #Hands_On #Cloud">
+                        <img src="" class="poster-image" data-img-key="STOCK_LEADER" alt="Team Leader">
+                        <div class="poster-title">ראש צוות ב-DataFlow</div>
+                    </div>
                 </div>
             </div>
 
             <div class="row">
                 <h2>הפקות מקור (פרויקטים ואתגרים)</h2>
                 <div class="row__posters">
-                     <img class="row__poster" src="https://images.pexels.com/photos/6153354/pexels-photo-6153354.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Project 1"
-                         data-title="סרט דוקו: בניית ארכיטקטורת Multi-Cloud"
-                         data-desc="צלילה טכנית אל מאחורי הקלעים של אחד הפרויקטים המורכבים: תכנון והקמה של פלטפורמה שעובדת בצורה חלקה על AWS, Azure ו-GCP במקביל, תוך הבטחת אבטחה וביצועים."
-                         data-tags="#Cloud_Architecture #DevOps #Kubernetes #Scalability">
-                    <img class="row__poster" src="https://images.pexels.com/photos/590022/pexels-photo-590022.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Project 2"
-                         data-title="ספיישל: ממונוליט למיקרו-שירותים"
-                         data-desc="פרק מיוחד המתאר מסע כואב אך מתגמל של פירוק מערכת לגאסי מונוליטית למאות מיקרו-שירותים עצמאיים, מה שהוביל למהירות פיתוח גבוהה יותר ויציבות המערכת."
-                         data-tags="#Microservices #System_Design #Refactoring #Legacy">
-                     <img class="row__poster" src="https://images.pexels.com/photos/8386440/pexels-photo-8386440.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Project 3"
-                         data-title="סרט קצר: פיצ'ר ה-AI ששינה את המשחק"
-                         data-desc="איך רעיון שנולד בסשן בריינסטורמינג הפך לפיצ'ר מבוסס בינה מלאכותית שהגדיל את ערך המוצר ללקוחות והיווה מנוע צמיחה מרכזי לחברה."
-                         data-tags="#Product #Innovation #AI #Go_To_Market">
+                     <div class="poster-container" data-title="סרט דוקו: ארכיטקטורת Multi-Cloud" data-desc="צלילה טכנית אל מאחורי הקלעים של הקמת פלטפורמה שעובדת על AWS, Azure ו-GCP במקביל, תוך הבטחת אבטחה וביצועים." data-tags="#Cloud #DevOps #Kubernetes #Scalability">
+                        <img src="" class="poster-image" data-img-key="STOCK_CYBER" alt="Project 1">
+                        <div class="poster-title">בניית ארכיטקטורת Multi-Cloud</div>
+                     </div>
+                    <div class="poster-container" data-title="ספיישל: ממונוליט למיקרו-שירותים" data-desc="מסע כואב אך מתגמל של פירוק מערכת לגאסי מונוליטית למאות מיקרו-שירותים עצמאיים, שהוביל למהירות פיתוח ויציבות מערכת." data-tags="#Microservices #System_Design #Refactoring">
+                        <img src="" class="poster-image" data-img-key="STOCK_AI" alt="Project 2">
+                        <div class="poster-title">ממונוליט למיקרו-שירותים</div>
+                    </div>
                 </div>
             </div>
-
+            
              <div class="row">
-                <h2>הכשרה וכישורי ליבה</h2>
+                <h2>ארגז הכלים</h2>
                 <div class="row__posters">
-                    <img class="row__poster" src="https://images.pexels.com/photos/207692/pexels-photo-207692.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Technion"
-                         data-title="תואר ראשון במדעי המחשב, הטכניון"
-                         data-desc="הבסיס הטכנולוגי החזק נבנה במוסד היוקרתי. לימודים מצטיינים שהקנו למיכאל הבנה עמוקה של אלגוריתמיקה, מבני נתונים וארכיטקטורת תוכנה."
-                         data-tags="#BSc #Computer_Science #הטכניון #מצטיין_דיקן">
-                    <img class="row__poster" src="https://images.pexels.com/photos/3184423/pexels-photo-3184423.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Skills"
-                         data-title="ארגז הכלים של המנהל"
-                         data-desc="שילוב נדיר של יכולות: הובלה טכנולוגית (Hands-on), בניית אסטרטגיית מוצר, גיוס ופיתוח טאלנטים, וניהול תקציבים ותהליכים עסקיים."
-                         data-tags="#מנהיגות #אסטרטגיה #מוצר #פיננסים">
-                    <img class="row__poster" src="https://images.pexels.com/photos/1181298/pexels-photo-1181298.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Tech Stack"
-                         data-title="Tech Stack"
-                         data-desc="שליטה מעמיקה במגוון טכנולוגיות, עם התמחות מיוחדת בארכיטקטורות ענן, פלטפורמות נתונים, פיתוח Backend ופתרונות סייבר מתקדמים."
-                         data-tags="#AWS #GCP #Python #Go #BigQuery #K8s">
+                    <div class="poster-container poster-container--skill" data-title="מנהיגות והובלה" data-desc="ניסיון מוכח בהקמה וניהול של צוותי פיתוח גדולים, הגדרת חזון, בניית תרבות ארגונית והובלת תהליכים מורכבים." data-tags="#Leadership #Management #Strategy">
+                        <img src="" class="poster-image" data-img-key="STOCK_LEADER" alt="Leadership">
+                        <div class="poster-title">מנהיגות והובלה</div>
+                    </div>
+                    <div class="poster-container poster-container--skill" data-title="ארכיטקטורת ענן וסייבר" data-desc="מומחיות בתכנון ויישום מערכות מאובטחות, מבוזרות וסקיילביליות בסביבות ענן מורכבות." data-tags="#Architecture #Cloud #Security">
+                        <img src="" class="poster-image" data-img-key="STOCK_CYBER" alt="Architecture">
+                        <div class="poster-title">ארכיטקטורת ענן וסייבר</div>
+                    </div>
+                     <div class="poster-container poster-container--skill" data-title="בינה מלאכותית ו-Data" data-desc="יכולת להפוך דאטה למוצר. ניסיון בעבודה עם מודלי ML, פלטפורמות Big Data והובלת מוצרים מבוססי AI." data-tags="#AI #Machine_Learning #Data">
+                        <img src="" class="poster-image" data-img-key="STOCK_AI" alt="AI & Data">
+                        <div class="poster-title">בינה מלאכותית ו-Data</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -513,42 +265,41 @@
         </div>
     </div>
 
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Page elements
+            // --- Image Loading ---
+            // This function sets all images from the Base64 data store
+            // This solves the local file access problem.
+            function loadImages() {
+                document.getElementById('nav-profile-img').src = IMAGES.PROFILE_HERO;
+                document.getElementById('hero-bg-img').style.backgroundImage = `url('${IMAGES.PROFILE_HERO}')`;
+                
+                const posterImages = document.querySelectorAll('.poster-image');
+                posterImages.forEach(img => {
+                    const key = img.dataset.imgKey;
+                    if (IMAGES[key]) {
+                        img.src = IMAGES[key];
+                    }
+                });
+            }
+            loadImages();
+
+            // --- Page Logic ---
             const pages = document.querySelectorAll('.page');
-            const uploadPage = document.getElementById('upload-page');
-            const loadingPage = document.getElementById('loading-page');
-            const mainPage = document.getElementById('main-page');
-            
-            // Buttons and interactive elements
             const createBtn = document.getElementById('create-series-btn');
             const tadumSound = document.getElementById('tadum-sound');
             const loadingTexts = document.querySelectorAll('.loading-text');
             const nav = document.getElementById('main-nav');
             
-            // Modal elements
-            const modal = document.getElementById('details-modal');
-            const modalCloseBtn = document.getElementById('modal-close-btn');
-            const modalTitle = document.getElementById('modal-title');
-            const modalDesc = document.getElementById('modal-desc');
-            const modalTags = document.getElementById('modal-tags');
-            const modalHeaderImg = document.getElementById('modal-header-img');
-            const posters = document.querySelectorAll('.row__poster');
-
-            // Function to switch pages
             function showPage(pageId) {
                 pages.forEach(page => page.classList.remove('active'));
                 document.getElementById(pageId).classList.add('active');
             }
 
-            // --- 1. Start Process on Button Click ---
             createBtn.addEventListener('click', () => {
                 showPage('loading-page');
-                tadumSound.play().catch(e => console.log("Audio play failed, user interaction needed."));
+                tadumSound.play().catch(e => console.error("Audio play failed"));
                 
-                // Simulate loading process
                 let i = 0;
                 loadingTexts[i].classList.add('active');
                 const loadingInterval = setInterval(() => {
@@ -558,33 +309,37 @@
                         loadingTexts[i].classList.add('active');
                     } else {
                         clearInterval(loadingInterval);
-                        // --- 2. Transition to Main Page ---
                         setTimeout(() => {
                             showPage('main-page');
-                            // Make nav bar black from the start
                             nav.classList.add('nav--scrolled');
                         }, 500);
                     }
                 }, 1500); 
             });
 
-            // --- 3. Navbar Scroll Effect ---
-            mainPage.addEventListener('scroll', () => { // Listen on the page scroll container if body is not scrolling
-                const scrollTop = mainPage.scrollTop || document.documentElement.scrollTop;
-                if (scrollTop > 50) {
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
                     nav.classList.add('nav--scrolled');
                 } else {
                     nav.classList.remove('nav--scrolled');
                 }
             }, { passive: true });
             
-            // --- 4. Modal Logic ---
-            posters.forEach(poster => {
-                poster.addEventListener('click', () => {
-                    const title = poster.dataset.title;
-                    const desc = poster.dataset.desc;
-                    const tags = poster.dataset.tags;
-                    const imgSrc = poster.src;
+            // --- Modal Logic ---
+            const modal = document.getElementById('details-modal');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            const modalTitle = document.getElementById('modal-title');
+            const modalDesc = document.getElementById('modal-desc');
+            const modalTags = document.getElementById('modal-tags');
+            const modalHeaderImg = document.getElementById('modal-header-img');
+            const posterContainers = document.querySelectorAll('.poster-container');
+
+            posterContainers.forEach(container => {
+                container.addEventListener('click', () => {
+                    const title = container.dataset.title;
+                    const desc = container.dataset.desc;
+                    const tags = container.dataset.tags;
+                    const imgSrc = container.querySelector('.poster-image').src;
                     
                     modalTitle.textContent = title;
                     modalDesc.textContent = desc;
@@ -600,13 +355,11 @@
             }
             
             modalCloseBtn.addEventListener('click', closeModal);
-            // Also close if clicking on the background
             modal.addEventListener('click', (event) => {
                 if(event.target === modal) {
                     closeModal();
                 }
             });
-
         });
     </script>
 </body>
