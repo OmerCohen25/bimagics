@@ -74,7 +74,6 @@
         }
         
         /* --- WhatsApp Auto Demo --- */
-        /* Set phone size to be identical to interactive demo */
         #whatsapp-auto-demo .phone-wrapper { margin:40px auto;width:340px;height:700px;background:#111;border:14px solid #333;border-radius:48px;position:relative; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
         #whatsapp-auto-demo .phone-inner { width: 100%; height: 100%; border-radius: 34px; background-color: var(--whatsapp-bg); display: flex; flex-direction: column;}
         #whatsapp-auto-demo .chat-header { background: #f0f2f5; padding: 10px; display: flex; align-items: center; border-radius: 34px 34px 0 0; gap: 12px; border-bottom: 1px solid #e0e0e0;}
@@ -143,17 +142,21 @@
         .app-nav-btn.active { color: var(--brand-green); border-top-color: var(--brand-green); }
         .app-nav-btn .material-symbols-outlined { display: block; margin: 0 auto 4px; }
 
-        .app-tab { position: absolute; top:0; left:0; width:100%; height:100%; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-in-out; overflow-y: auto;}
+        /* --- CHANGE 1: Disabled scrolling on tabs --- */
+        .app-tab { position: absolute; top:0; left:0; width:100%; height:100%; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-in-out; overflow: hidden;}
         .app-tab.active { opacity: 1; pointer-events: auto; }
         
-        #dashboard-view { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px;}
+        /* --- CHANGE 2: Made dashboard grid flexible --- */
+        #dashboard-view { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr 1fr; gap: 12px; padding: 16px; height: 100%;}
         .dash-card { grid-column: span 1; background: #22272e; padding: 12px; border-radius: 12px; }
         .dash-card h4 { font-size: 0.8rem; color: var(--text-secondary); font-weight: 400; margin-bottom: 4px; }
         .dash-card .value { font-size: 1.5rem; font-weight: 900; color: #fff; }
         .dash-card .value.green { color: var(--brand-green); }
         .dash-card .value.red { color: #FF7373; }
-        .chart-card { grid-column: span 2; background: #22272e; padding: 12px; border-radius: 12px; }
-        .chart-wrapper { height: 160px; /* Adjusted height for legend */ }
+        .chart-card { grid-column: span 2; background: #22272e; padding: 12px; border-radius: 12px; display: flex; flex-direction: column; }
+        
+        /* --- CHANGE 3: Made chart wrappers fill available space --- */
+        .chart-wrapper { height: 100%; }
 
         #chat-view { padding: 0; display: flex; flex-direction: column; background: #1a1d21; }
         #chat-view .chat-header-sim { padding: 12px; background: var(--brand-gray); border-bottom: 1px solid var(--border-color); text-align: center; }
@@ -338,7 +341,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const debtCtx = document.getElementById('debtChart')?.getContext('2d');
             if(debtCtx) {
               debtChart = new Chart(debtCtx, { type: 'doughnut', data: { labels: ['ר.ש. אחזקות', 'סטודיו יעקב', 'רוני כהן', 'אחרים'], datasets: [{ data: [9800, 4850, 3200, 3620], backgroundColor: ['#FFD54F', '#00C175', '#FF7373', '#9BA3AE'], borderColor: '#22272e', borderWidth: 2, hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { 
-                  // *** UPDATED: Moved legend to bottom to prevent overflow ***
                   legend: { display: true, position: 'bottom', labels: { boxWidth: 10, padding: 15 } }, 
                   tooltip: tooltipDefaults 
                 } } });
@@ -383,12 +385,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const target = event.target;
 
             if (target.closest('.connect-btn')) {
-                // *** UPDATED: Show loading screen with a longer delay to simulate processing ***
                 switchScreen('loading-screen');
                 setTimeout(() => {
                     switchScreen('app-view-screen');
                     if (!incomeChart) initializeCharts();
-                }, 2500); // Increased delay
+                }, 2500);
                 return;
             }
 
