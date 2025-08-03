@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wizbi × Morning | החשבונית שמגיבה לך בצ'אט</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg-dark: #0d1117;
+      --bg-light: #161b22;
+      --brand-green: #00C175;
+      --brand-blue: #007bff;
+      --accent: #FFD54F;
+      --text: #ffffff;
+      --text-soft: #c9d1d9;
+      --bubble-user: #00C175;
+      --bubble-bot: #21262d;
+      --card-bg: #1f1f1f;
+      --shadow-primary: 0 10px 30px rgba(0, 193, 117, 0.2);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Heebo', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Dynamic Background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 100% 100%, rgba(0, 193, 117, 0.1) 0%, transparent 25%),
+                  radial-gradient(circle at 0% 0%, rgba(0, 123, 255, 0.1) 0%, transparent 25%);
+      pointer-events: none;
+      z-index: -1;
+      animation: gradientShift 20s infinite alternate ease-in-out;
+    }
+
+    @keyframes gradientShift {
+      from { transform: translate(0, 0); }
+      to { transform: translate(-10%, -10%); }
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 0 1rem;
+    }
+
+    /* Header */
+    header {
+      padding: 3rem 1rem;
+      text-align: center;
+      position: relative;
+    }
+    
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .logo {
+      height: 50px;
+      width: auto;
+      transition: transform 0.3s ease;
+    }
+    .logo:hover {
+        transform: scale(1.05) rotate(5deg);
+    }
+
+    .logo-divider {
+      font-size: 2.5rem;
+      color: var(--text-soft);
+      font-weight: 900;
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); color: var(--brand-green); }
+    }
+
+    header h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 900;
+      line-height: 1.2;
+      background: linear-gradient(45deg, var(--brand-green), var(--accent), var(--brand-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shimmer 5s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+
+    header p {
+      font-size: clamp(1rem, 3vw, 1.3rem);
+      color: var(--text-soft);
+      margin-top: 1rem;
+    }
+
+    /* Main Section - Demo */
+    .demo-section {
+      padding: 2rem 0;
+    }
+    
+    .demo-wrapper {
+      max-width: 650px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid #333;
+      border-radius: 2rem;
+      padding: 2rem;
+      box-shadow: var(--shadow-primary);
+      position: relative;
+    }
+    
+    .demo-wrapper::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 50px;
+      height: 50px;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2300C175"><path d="M12 2C6.486 2 2 6.486 2 12c0 2.26.791 4.348 2.13 6.01L2 22l4.01-2.13c1.662 1.339 3.75 2.13 6.01 2.13 5.514 0 10-4.486 10-10S17.514 2 12 2zm0 18c-1.84 0-3.535-.615-4.9-1.657l-.544-.316-2.91 1.543 1.542-2.91-.316-.544C4.615 15.535 4 13.84 4 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8zm4.72-9.76a1.144 1.144 0 0 0-.69-.974c-.588-.225-.972-.32-.972-.486 0-.214.168-.344.332-.482.164-.138.484-.258.648-.466.164-.208.272-.614.168-.813-.104-.199-.344-.24-.616-.29-.272-.05-.444-.068-.696.096-.252.164-.408.484-.528.648-.12.164-.316.272-.484.272-.168 0-.316-.108-.444-.272-.128-.164-.252-.484-.336-.648-.084-.164-.268-.272-.444-.272-.176 0-.348-.108-.48-.272-.132-.164-.22-.484-.336-.648-.116-.164-.276-.272-.48-.272-.204 0-.416-.016-.548-.032-.132-.016-.272-.084-.404.148-.132.232-.44.596-.44.596-.34 0-.448-.112-.448-.244a.434.434 0 0 1 .156-.364c.092-.084.256-.208.312-.384s.096-.432-.068-.64c-.164-.208-.432-.4-.68-.428-.248-.028-.512-.008-.68.104-.168.112-.296.26-.38.428-.08.168-.236.432-.484.58-.248.148-.528.224-.804.224-.276 0-.552-.076-.804-.224-.248-.148-.408-.34-.484-.58-.076-.24-.22-.432-.38-.428-.16-.004-.424.196-.68.428-.248.224-.316.316-.316.316-.28.188-.408.408-.408.68 0 .272.128.492.408.68.28.188.596.348.804.596.208.248.336.564.444.812.108.248.164.496.164.756 0 .26-.056.508-.164.756-.108.248-.236.564-.444.812-.208.248-.456.408-.704.408-.248 0-.496-.076-.704-.224-.208-.148-.368-.34-.444-.58-.076-.24-.22-.432-.38-.428-.16-.004-.424.196-.68.428-.248.224-.316.316-.316.316-.28.188-.408.408-.408.68 0 .272.128.492.408.68.28.188.596.348.804.596.208.248.336.564.444.812.108.248.164.496.164.756 0 .26-.056.508-.164.756-.108.248-.236.564-.444.812-.208.248-.456.408-.704.408-.248 0-.496-.076-.704-.224-.208-.148-.368-.34-.444-.58-.076-.24-.22-.432-.38-.428-.16-.004-.424.196-.68.428-.248.224-.316.316-.316.316"></path></svg>');
+      background-size: contain;
+      animation: rotate 10s infinite linear;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .chat-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      direction: ltr;
+      border-bottom: 1px solid #333;
+      padding-bottom: 1rem;
+    }
+    
+    .agent-avatar {
+      width: 40px;
+      height: 40px;
+      background: var(--brand-green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: #fff;
+    }
+
+    .agent-status {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      direction: rtl;
+    }
+
+    .agent-status h3 {
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+    
+    .agent-status small {
+      color: var(--text-soft);
+      font-size: 0.8rem;
+    }
+    
+    .bubble-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    
+    .chat-bubble {
+      max-width: 80%;
+      padding: 1rem 1.25rem;
+      border-radius: 1.5rem;
+      font-size: 1rem;
+      line-height: 1.5;
+      position: relative;
+      opacity: 0;
+      transform: translateY(15px);
+      transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .chat-bubble.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .chat-bubble.bot {
+      background: var(--bubble-bot);
+      color: var(--text);
+      align-self: flex-start;
+      border-top-right-radius: 0.5rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .chat-bubble.user {
+      background: linear-gradient(135deg, var(--brand-green), #00A562);
+      color: #fff;
+      align-self: flex-end;
+      border-top-left-radius: 0.5rem;
+      box-shadow: 0 4px 15px rgba(0, 193, 117, 0.3);
+    }
+    
+    .typing-indicator {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      margin: 0.5rem 0;
+      align-self: flex-start;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--text-soft);
+      border-radius: 50%;
+      animation: typing 1s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); background: var(--brand-green); }
+    }
+
+    /* CTA Section */
+    .cta-section {
+      text-align: center;
+      padding: 4rem 1rem;
+    }
+
+    .cta-section h2 {
+      font-size: clamp(1.5rem, 4vw, 2.5rem);
+      margin-bottom: 1rem;
+    }
+
+    .cta-section p {
+      font-size: clamp(1rem, 3vw, 1.25rem);
+      color: var(--text-soft);
+      margin-bottom: 2rem;
+    }
+
+    .cta-button {
+      background: linear-gradient(90deg, var(--brand-green), #00A562);
+      color: white;
+      border: none;
+      padding: 1.2rem 2.5rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-radius: 999px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s ease;
+      box-shadow: 0 10px 30px rgba(0, 193, 117, 0.3);
+    }
+
+    .cta-button:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 15px 40px rgba(0, 193, 117, 0.4);
+    }
+
+    .cta-button::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 300%;
+      height: 300%;
+      background: rgba(255, 255, 255, 0.15);
+      transition: all 0.75s ease-out;
+      transform: translate(-50%, -50%) rotate(45deg);
+      opacity: 0;
+    }
+    
+    .cta-button:hover::before {
+      transform: translate(-50%, -50%) rotate(0deg);
+      opacity: 1;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: #777;
+      font-size: 0.9rem;
+      border-top: 1px solid #222;
+      position: relative;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      header { padding: 2rem 1rem; }
+      .demo-wrapper { padding: 1.5rem; }
+      .cta-button { padding: 1rem 2rem; font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="logo-container">
+      <img src="https://assets.website-files.com/624c94b2f8af125958744b80/636d1ed349a204e9c719875f_wizbi.png" alt="Wizbi Logo" class="logo">
+      <span class="logo-divider">×</span>
+      <img src="https://morning.co.il/wp-content/themes/morning/assets/images/morning-logo.svg" alt="Morning Logo" class="logo">
+    </div>
+    <h1>החשבונית הכי חכמה בעסק שלך.</h1>
+    <h1>היא אפילו עונה לך בוואטסאפ.</h1>
+    <p>אייג'נט חכם שמוציא חשבוניות, מנהל הכנסות ומייעץ לעסק שלך בלחיצת כפתור – או בהודעה.</p>
+  </div>
+</header>
+
+<main class="demo-section">
+  <div class="container">
+    <div class="demo-wrapper">
+      <div class="chat-header">
+        <div class="agent-avatar"><i class="fas fa-robot"></i></div>
+        <div class="agent-status">
+          <h3>אייג'נט Morning</h3>
+          <small>אונליין</small>
+        </div>
+      </div>
+      <div class="bubble-container" id="chat-simulation">
+        </div>
+    </div>
+  </div>
+</main>
+
+<section class="cta-section">
+  <div class="container">
+    <h2>העסק שלך עובד בשביל הלקוחות, והסוכן החכם עובד בשבילך.</h2>
+    <p>קבל/י גישה מוקדמת והתנסה/י בחוויה החדשנית שתשנה את הדרך בה אתה מנהל/ת את העסק.</p>
+    <button class="cta-button" onclick="window.open('https://wa.me/972501234567?text=היי%20אני%20מעוניין%20להצטרף%20לרשימת%20המתנה%20של%20Wizbi%20x%20Morning', '_blank')">
+      <span>✨ רוצה לנסות? שלח/י וואטסאפ עכשיו</span>
+    </button>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>© 2025 Wizbi × Morning | כל הזכויות שמורות</p>
+  </div>
+</footer>
+
+<script>
+  const chatSimulation = document.getElementById('chat-simulation');
+  
+  const chatScript = [
+    { text: 'היי, כמה הכנסות היו לי ביולי?', type: 'user', delay: 1000 },
+    { text: '💰 ביולי היו לך הכנסות של 42,150 ₪ מתוך 78 עסקאות', type: 'bot', delay: 2000 },
+    { text: 'תוציא לי חשבונית ללקוח רועי על 580 ש״ח ייעוץ', type: 'user', delay: 3000 },
+    { text: '🧾 נוצרה חשבונית #7483 עבור רועי, נשלחה לוואטסאפ. רוצה גם לשלוח באימייל?', type: 'bot', delay: 4000 },
+    { text: 'כן', type: 'user', delay: 1000 },
+    { text: '📧 נשלח גם לאימייל roi@example.com. מעודכן במערכת Morning.', type: 'bot', delay: 2500 },
+    { text: 'ומה צפי ההכנסות באוגוסט?', type: 'user', delay: 3500 },
+    { text: '📊 תחזית אוגוסט: 51,000 ₪ (מבוסס על חוזים פתוחים + ממוצע 3 חודשים)', type: 'bot', delay: 4500 }
+  ];
+
+  function showTypingIndicator(delay) {
+    return new Promise(resolve => {
+      const typingIndicator = document.createElement('div');
+      typingIndicator.className = 'typing-indicator';
+      typingIndicator.innerHTML = `
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      `;
+      chatSimulation.appendChild(typingIndicator);
+      setTimeout(() => {
+        typingIndicator.style.opacity = 1;
+        setTimeout(() => {
+          typingIndicator.style.opacity = 0;
+          setTimeout(() => {
+            typingIndicator.remove();
+            resolve();
+          }, 300); // Wait for fade out
+        }, delay);
+      }, 50); // Small delay to allow element to render
+    });
+  }
+
+  async function startChatSimulation() {
+    for (const message of chatScript) {
+      if (message.type === 'bot') {
+        await showTypingIndicator(message.delay - 500); // Show typing before bot message
+      }
+      
+      const chatBubble = document.createElement('div');
+      chatBubble.className = `chat-bubble ${message.type}`;
+      chatBubble.textContent = message.text;
+      
+      chatSimulation.appendChild(chatBubble);
+      
+      // Force reflow to trigger animation on the newly added element
+      chatBubble.offsetWidth; 
+      chatBubble.classList.add('visible');
+      
+      await new Promise(resolve => setTimeout(resolve, message.delay));
+    }
+  }
+
+  // Start the animation when the page loads
+  document.addEventListener('DOMContentLoaded', startChatSimulation);
+
+  // Optional: Restart animation on scroll into view
+  const demoSection = document.querySelector('.demo-section');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        chatSimulation.innerHTML = ''; // Clear chat
+        startChatSimulation();
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.5 });
+  
+  observer.observe(demoSection);
+
+</script>
+
+</body>
+</html>
