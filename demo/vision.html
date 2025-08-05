@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wizbi.ai - חזון וארכיטקטורה</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap');
+
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #9b59b6;
+            --background-color: #ecf0f1;
+            --text-color: #34495e;
+            --card-bg: #ffffff;
+            --header-height: 70px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Assistant', sans-serif;
+            line-height: 1.7;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0 2rem;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: var(--header-height);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .logo .ai {
+            color: var(--secondary-color);
+            font-weight: 700;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+        }
+
+        nav ul li {
+            margin-right: 25px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: var(--secondary-color);
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        section {
+            padding: calc(var(--header-height) + 40px) 0 40px 0;
+            border-bottom: 1px solid #bdc3c7;
+        }
+        
+        section:last-of-type {
+            border-bottom: none;
+        }
+        
+        .hero {
+            background: linear-gradient(rgba(44, 62, 80, 0.85), rgba(44, 62, 80, 0.85)), url(https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80) no-repeat center center/cover;
+            color: white;
+            height: 60vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding-top: var(--header-height);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            font-weight: 300;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            text-align: center;
+            position: relative;
+        }
+        
+        h2::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: var(--secondary-color);
+            margin: 10px auto 0;
+            border-radius: 2px;
+        }
+
+        h3 {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .feature-grid, .personas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .feature-card, .persona-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 5px solid var(--secondary-color);
+        }
+        
+        .feature-card:hover, .persona-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        
+        .feature-card .icon, .persona-card .icon {
+            font-size: 2.5rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+
+        .mockup {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .whatsapp-mockup {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            background-color: #e5ddd5;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .whatsapp-mockup .chat-bg {
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+            padding: 20px;
+            border-radius: 6px;
+        }
+
+        .message {
+            padding: 8px 12px;
+            border-radius: 18px;
+            margin-bottom: 8px;
+            max-width: 80%;
+            position: relative;
+        }
+
+        .message.sent {
+            background-color: #dcf8c6;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+
+        .message.received {
+            background-color: #ffffff;
+            align-self: flex-start;
+            margin-right: auto;
+        }
+        
+        .message.received.agent-thought {
+            background-color: #f1f8ff;
+            border-left: 3px solid var(--accent-color);
+            font-style: italic;
+            color: #555;
+            font-size: 0.8rem;
+        }
+        
+        .dashboard-mockup {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            background: #f9fafb;
+            padding: 1rem;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .widget {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .widget h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+        }
+        
+        .roadmap {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .roadmap-item {
+            padding: 1.5rem 2rem;
+            background: var(--card-bg);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 5px solid var(--accent-color);
+            position: relative;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            background: var(--primary-color);
+            color: white;
+            margin-top: 40px;
+        }
+        
+        /* RTL Fixes */
+        nav ul li { margin-left: 25px; margin-right: 0; }
+        .feature-card, .persona-card { border-left: 0; border-right: 5px solid var(--secondary-color); }
+        .message.sent { margin-right: auto; margin-left: 0; }
+        .message.received { margin-left: auto; margin-right: 0; }
+        .message.received.agent-thought { border-left: 0; border-right: 3px solid var(--accent-color); }
+        .roadmap-item { border-left: 0; border-right: 5px solid var(--accent-color); }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Wizbi<span class="ai">.ai</span></div>
+        <nav>
+            <ul>
+                <li><a href="#vision">החזון</a></li>
+                <li><a href="#features">יכולות</a></li>
+                <li><a href="#personas">פרסונות</a></li>
+                <li><a href="#architecture">ארכיטקטורה</a></li>
+                <li><a href="#demos">הדגמות</a></li>
+                <li><a href="#roadmap">מפת דרכים</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="hero" class="hero">
+            <h1>היועץ העסקי שלך, מבוסס AI</h1>
+            <p>אנחנו הופכים את הדאטה שלך לתובנות, ואת התובנות לפעולות. הכל בשיחת וואטסאפ פשוטה.</p>
+        </section>
+
+        <div class="container">
+
+            <section id="vision">
+                <h2>החזון: מ-BI ל-Decision Intelligence</h2>
+                <p>
+                    בעולם העסקי המודרני, כל עסק, קטן כגדול, יושב על הר של נתונים. מהכנסות והוצאות, דרך התנהגות לקוחות ועד תפעול שוטף. הבעיה היא שהנתונים האלה מפוצלים, קשים לגישה, והפקת תובנות מהם דורשת מומחיות, זמן וכסף - מותרות שרוב העסקים לא יכולים להרשות לעצמם.
+                </p>
+                <p>
+                    <strong>Wizbi.ai באה לשנות את המשוואה.</strong>
+                </p>
+                <p>
+                    החזון שלנו הוא להעניק לכל עסק **יועץ עסקי, אנליסט BI ומנהל תפעול אישי מבוסס AI**. אנו בונים פלטפורמה שמחברת את כל נכסי המידע של העסק באופן אוטומטי, מבינה את ההקשר העסקי הייחודי שלו, ומאפשרת לבעלי העסק, מנהלים ועובדים לקבל החלטות מבוססות נתונים באמצעות שיחה טבעית ופשוטה. אנחנו לא רק מציגים דאטה - אנחנו מפרשים אותו, ממליצים על הפעולה הבאה, ואף מבצעים אותה עבורך.
+                </p>
+            </section>
+
+            <section id="features">
+                <h2>יכולות מפתח ופיצ'רים</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="icon">🔗</div>
+                        <h3>חיבוריות נתונים מקצה לקצה</h3>
+                        <p>מנוע ELT חכם שמתחבר אוטומטית למערכות ישראליות וגלובליות (הנה"ח, CRM, קופות, eCommerce), טוען את הנתונים ל-BigQuery ומעדכן אותם באופן שוטף. הכל מנוהל בממשק פשוט.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">🧠</div>
+                        <h3>ליבת AI אגנוסטית ("הוויזארד")</h3>
+                        <p>מנוע AI מודולרי שיודע להפוך שפה טבעית לשאילתות SQL מורכבות. המערכת תומכת בהחלפה דינמית של מודלי שפה (LLMs) ומאפשרת התאמה מתמדת לטכנולוגיה המתקדמת ביותר.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">📈</div>
+                        <h3>השכבה הסמנטית האוטומטית</h3>
+                        <p>הקסם האמיתי. המערכת ממפה אוטומטית את מבנה הנתונים, מזהה קשרים, ומאפשרת למנהלי הארגון להגדיר בשפה פשוטה מושגים עסקיים ("רווח", "לקוח חוזר"). זה מה שהופך את האייג'נט לחכם באמת.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">🤖</div>
+                        <h3>מנוע פעולות ואוטומציה</h3>
+                        <p>Wizbi.ai הוא לא רק פאסיבי. האייג'נט יכול להפעיל "כלים" - ביצוע פעולות אקטיביות במערכות המקור. לדוגמה: "צרי חשבונית חדשה", "הוסיפי ליד חדש ל-CRM", "שלחי תזכורת תשלום ללקוח".</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">💡</div>
+                        <h3>מנוע תובנות יזומות (שדרוג)</h3>
+                        <p>המערכת לא מחכה לשאלות. היא סורקת את הנתונים באופן קבוע, מזהה אנומליות, מגמות וחריגות, ושולחת למשתמשים הרלוונטיים התראות חכמות בוואטסאפ. "שימי לב, ההוצאות על שיווק החודש גבוהות ב-30% מהממוצע".</p>
+                    </div>
+                     <div class="feature-card">
+                        <div class="icon">📊</div>
+                        <h3>דשבורדים וויזואליזציה מתקדמת</h3>
+                        <p>כל שאילתה ותשובה ניתנות לשמירה כווידג'ט בדשבורד אישי או ארגוני. המערכת תומכת ביצירת דשבורדים מרהיבים, שיתופם, ואף שליחתם כדיוור יומי/שבועי אוטומטי.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="personas">
+                <h2>פרסונות והרשאות</h2>
+                <div class="personas-grid">
+                    <div class="persona-card">
+                         <div class="icon">👑</div>
+                        <h3>מנהל על (Super Admin)</h3>
+                        <p>המייסד/מנהל הפלטפורמה. בעל שליטה מלאה, מנהל ארגונים, מנטר את בריאות המערכת כולה וקובע את אסטרטגיית המוצר והטכנולוגיה הגלובלית.</p>
+                    </div>
+                    <div class="persona-card">
+                         <div class="icon">🛠️</div>
+                        <h3>מנהל ארגון (Org Admin)</h3>
+                        <p>איש הקשר מטעם הלקוח. אחראי על חיבור מקורות המידע, ניהול משתמשים והרשאות בארגון, ובעיקר - על "אימון" הוויזארדים על ידי העשרת השכבה הסמנטית.</p>
+                    </div>
+                    <div class="persona-card">
+                         <div class="icon">🧑‍💻</div>
+                        <h3>משתמש קצה (End User)</h3>
+                        <p>כל עובד בארגון, מהמנכ"ל ועד איש המכירות. צורך את המידע דרך ממשק פשוט (ווב/וואטסאפ), שואל שאלות, מקבל תובנות ומפעיל כלים הרלוונטיים לתפקידו.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="architecture">
+                <h2>ארכיטקטורה וטכנולוגיה</h2>
+                <p>הפלטפורמה בנויה על תשתית GCP מודרנית, מבוססת Serverless, המבטיחה תחזוקה מינימלית ויכולת גדילה אינסופית.</p>
+                <div class="mockup">
+                <h3>תרשים ארכיטקטורה כללי</h3>
+                <pre style="text-align: left; direction: ltr; font-size: 0.8rem; line-height: 1.4; background: #f4f4f4; padding: 1em; border-radius: 5px; overflow-x: auto;">
++----------------------+      +-------------------------+      +-------------------------+
+|   Frontend (Web)     |      |  WhatsApp Interface     |      |   Super Admin UI        |
+| (Next.js on Firebase)|      | (via Twilio/Provider)   |      | (Part of Frontend)      |
++----------------------+      +-------------------------+      +-------------------------+
+           |                             |                            |
+           v                             v                            v
++---------------------------------------------------------------------------------------+
+|                                                                                       |
+|   Backend: Cloud Run Service (Python/FastAPI)                                         |
+|   +-----------------------+   +-----------------------+   +-----------------------+   |
+|   |   Authentication      |   |   AI Core (Gemini)    |   |   ELT Engine          |   |
+|   |   (Firebase Auth)     |   |   (Text-to-SQL)       |   |   (Connectors)        |   |
+|   +-----------------------+   +-----------------------+   +-----------------------+   |
+|   |   Operational DB      |   |   Task Queue          |   |   Action Engine       |   |
+|   |   (Firestore Config)  |   |   (Cloud Tasks)       |   |   (Tools)             |   |
+|   +-----------------------+   +-----------------------+   +-----------------------+   |
+|                                                                                       |
++---------------------------------------------------------------------------------------+
+           |
+           | (Reads/Writes Data)
+           v
++---------------------------------------------------------------------------------------+
+|                                                                                       |
+|   Data Layer: Google BigQuery                                                         |
+|   +-----------------------+   +-----------------------+   +-----------------------+   |
+|   |   Org A Dataset       |   |   Org B Dataset       |   |   Org C Dataset       |   |
+|   +-----------------------+   +-----------------------+   +-----------------------+   |
+|                                                                                       |
++---------------------------------------------------------------------------------------+
+                </pre>
+                </div>
+            </section>
+
+            <section id="demos">
+                <h2>הדגמות ומוקאפים</h2>
+                
+                <h3>דוגמת שיחה בוואטסאפ</h3>
+                <div class="mockup">
+                    <div class="whatsapp-mockup">
+                        <div class="chat-bg">
+                            <div class="message received">היי! אני Wizbi, היועץ העסקי שלך. איך אפשר לעזור היום?</div>
+                            <div class="message sent">היי וויזבי, מה היו ההכנסות שלי החודש לעומת חודש קודם?</div>
+                            <div class="message received agent-thought">המשתמש שואל על השוואת הכנסות חודשית. אני צריך להריץ שאילתה על טבלת `raw_morning_documents`, לסכום את `document_total` עבור החודש הנוכחי והקודם, ולחשב את ההפרש באחוזים.</div>
+                            <div class="message received">בטח. החודש (אוגוסט 2025) ההכנסות עומדות על 45,200 ₪. זוהי <strong>עלייה של 12%</strong> לעומת חודש יולי, בו ההכנסות היו 40,350 ₪. עבודה מצוינת!</div>
+                            <div class="message sent">מעולה! תוכלי להציג לי את הלקוחות שהכניסו הכי הרבה החודש?</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>דוגמת דשבורד</h3>
+                <div class="mockup">
+                    <h4>הדשבורד הראשי - אוגוסט 2025</h4>
+                    <div class="dashboard-mockup">
+                        <div class="widget">
+                            <h4>סה"כ הכנסות</h4>
+                            <div class="kpi-value">45,200 ₪</div>
+                        </div>
+                         <div class="widget">
+                            <h4>סה"כ הוצאות</h4>
+                            <div class="kpi-value">22,800 ₪</div>
+                        </div>
+                         <div class="widget">
+                            <h4>רווח נקי (מוערך)</h4>
+                            <div class="kpi-value">22,400 ₪</div>
+                        </div>
+                         <div class="widget">
+                            <h4>לקוחות חדשים</h4>
+                            <div class="kpi-value">4</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="roadmap">
+                <h2>מפת דרכים שלבית</h2>
+                <div class="roadmap">
+                    <div class="roadmap-item">
+                        <h3>שלב 1: הקמת היסודות (חודשים 1-2)</h3>
+                        <p>הקמת תשתית ה-CI/CD עם GitHub ו-Cloud Build. בניית שלד אפליקציית ה-Frontend וה-Backend. מימוש מודל ההרשאות וה-Multi-Tenancy ב-GCP. המטרה: סביבות QA ו-Prod שעובדות אוטומטית.</p>
+                    </div>
+                    <div class="roadmap-item">
+                        <h3>שלב 2: MVP פונקציונלי (חודשים 3-5)</h3>
+                        <p>מימוש End-to-End של התהליך עבור 2 קונקטורים ראשונים (למשל Morning ו-Sumit). בניית ה-UI לאונבורדינג, ומימוש גרסה ראשונה של האייג'נט בצ'אט. עלייה לאוויר עם 5 לקוחות פיילוט.</p>
+                    </div>
+                    <div class="roadmap-item">
+                        <h3>שלב 3: הרחבה וביסוס (חודשים 6-12)</h3>
+                        <p>הוספת קונקטורים נוספים על בסיס דרישה. פיתוח מנוע התובנות היזומות. בניית יכולות הדשבורד והשיתוף. שיפור מתמיד של ליבת ה-AI על בסיס שימוש אמיתי.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    <footer>
+        <p>&copy; 2025 Wizbi.ai - The Future of Business Intelligence</p>
+    </footer>
+
+</body>
+</html>
