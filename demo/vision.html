@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wizbi.ai - חזון וארכיטקטורה</title>
+    <title>Wizbi.ai - מערכת בינה עסקית פרואקטיבית</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap');
 
@@ -11,10 +11,12 @@
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
             --accent-color: #9b59b6;
-            --background-color: #ecf0f1;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --background-color: #f7f9fc;
             --text-color: #34495e;
             --card-bg: #ffffff;
-            --header-height: 70px;
+            --header-height: 75px;
         }
 
         * {
@@ -26,15 +28,18 @@
 
         body {
             font-family: 'Assistant', sans-serif;
-            line-height: 1.7;
+            line-height: 1.8;
             background-color: var(--background-color);
             color: var(--text-color);
+            overflow-x: hidden;
         }
 
         header {
-            background-color: var(--primary-color);
+            background-color: rgba(44, 62, 80, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             color: white;
-            padding: 0 2rem;
+            padding: 0 2.5rem;
             position: fixed;
             top: 0;
             width: 100%;
@@ -43,26 +48,34 @@
             justify-content: space-between;
             align-items: center;
             z-index: 1000;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: background-color 0.3s ease;
         }
 
         .logo {
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-weight: 700;
+            letter-spacing: -1px;
         }
         
         .logo .ai {
             color: var(--secondary-color);
             font-weight: 700;
+            text-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+
+        nav {
+            display: block;
         }
 
         nav ul {
             list-style: none;
             display: flex;
+            align-items: center;
         }
 
         nav ul li {
-            margin-right: 25px;
+            margin-right: 30px;
         }
 
         nav a {
@@ -70,21 +83,38 @@
             text-decoration: none;
             font-weight: 600;
             transition: color 0.3s ease;
+            position: relative;
+            padding: 5px 0;
+        }
+        
+        nav a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            right: 0;
+            background-color: var(--secondary-color);
+            transition: width 0.3s ease-in-out;
         }
 
-        nav a:hover {
+        nav a:hover, nav a.active {
             color: var(--secondary-color);
+        }
+        
+        nav a:hover::after, nav a.active::after {
+            width: 100%;
         }
 
         .container {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 2.5rem;
         }
 
         section {
-            padding: calc(var(--header-height) + 40px) 0 40px 0;
-            border-bottom: 1px solid #bdc3c7;
+            padding: calc(var(--header-height) + 50px) 0 50px 0;
+            border-bottom: 1px solid #e0e6ed;
         }
         
         section:last-of-type {
@@ -92,31 +122,33 @@
         }
         
         .hero {
-            background: linear-gradient(rgba(44, 62, 80, 0.85), rgba(44, 62, 80, 0.85)), url(https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80) no-repeat center center/cover;
+            background: linear-gradient(rgba(44, 62, 80, 0.9), rgba(44, 62, 80, 0.9)), url(https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80) no-repeat center center/cover;
             color: white;
-            height: 60vh;
+            min-height: 70vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding-top: var(--header-height);
+            padding: var(--header-height) 2rem 2rem;
         }
 
         .hero h1 {
-            font-size: 3.5rem;
+            font-size: 4rem;
             margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         .hero p {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 300;
+            max-width: 800px;
         }
 
         h2 {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             color: var(--primary-color);
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
             text-align: center;
             position: relative;
         }
@@ -124,76 +156,86 @@
         h2::after {
             content: '';
             display: block;
-            width: 80px;
+            width: 100px;
             height: 4px;
             background: var(--secondary-color);
-            margin: 10px auto 0;
+            margin: 12px auto 0;
             border-radius: 2px;
         }
 
         h3 {
-            font-size: 1.8rem;
+            font-size: 2rem;
             color: var(--primary-color);
-            margin-bottom: 1rem;
-            margin-top: 1.5rem;
+            margin-bottom: 1.2rem;
+            margin-top: 2rem;
         }
         
-        .feature-grid, .personas-grid {
+        .feature-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2.5rem;
         }
         
-        .feature-card, .persona-card {
+        .feature-card {
             background: var(--card-bg);
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.07);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border-left: 5px solid var(--secondary-color);
+            border-top: 4px solid var(--secondary-color);
         }
         
-        .feature-card:hover, .persona-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.1);
         }
         
-        .feature-card .icon, .persona-card .icon {
-            font-size: 2.5rem;
+        .feature-card .icon {
+            font-size: 3rem;
             color: var(--secondary-color);
             margin-bottom: 1rem;
+            display: block;
         }
 
         .mockup {
             background-color: var(--card-bg);
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            padding: 1.5rem;
-            margin-top: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.07);
+            padding: 2rem;
+            margin-top: 2.5rem;
+            overflow: hidden;
+        }
+        
+        .whatsapp-mockup-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
         }
 
         .whatsapp-mockup {
             width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
             background-color: #e5ddd5;
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 10px;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
         
         .whatsapp-mockup .chat-bg {
             background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
             padding: 20px;
-            border-radius: 6px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            min-height: 400px;
         }
 
         .message {
-            padding: 8px 12px;
-            border-radius: 18px;
-            margin-bottom: 8px;
-            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            max-width: 85%;
             position: relative;
+            line-height: 1.5;
         }
 
         .message.sent {
@@ -207,87 +249,334 @@
             align-self: flex-start;
             margin-right: auto;
         }
-        
-        .message.received.agent-thought {
+
+        .message.agent-thought {
             background-color: #f1f8ff;
-            border-left: 3px solid var(--accent-color);
+            border-right: 4px solid var(--accent-color);
             font-style: italic;
             color: #555;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
+            padding: 8px 12px;
+            margin: 5px 0;
+            align-self: stretch;
+            max-width: 100%;
         }
+
+        .message.proactive-alert {
+            background-color: #fff9e6;
+            border-right: 4px solid var(--warning-color);
+        }
+
+        .message.voice-message {
+            background-color: #dcf8c6;
+            display: flex;
+            align-items: center;
+        }
+        .voice-message .play-icon { font-size: 1.5rem; margin-left: 10px; color: var(--primary-color);}
+        .voice-message .duration { font-size: 0.8rem; color: #555;}
         
         .dashboard-mockup {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
             background: #f9fafb;
-            padding: 1rem;
+            padding: 1.5rem;
             border: 1px solid #e0e0e0;
+            border-radius: 8px;
         }
         
         .widget {
             background: var(--card-bg);
-            padding: 1rem;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
         }
 
         .widget h4 {
             color: var(--primary-color);
-            margin-bottom: 0.5rem;
-            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
         }
         
         .kpi-value {
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: 700;
             color: var(--secondary-color);
+            margin-top: auto;
         }
         
         .roadmap {
-            display: flex;
-            flex-direction: column;
             position: relative;
+            padding: 2rem 0;
+        }
+        
+        .roadmap::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 20px;
+            height: 100%;
+            width: 4px;
+            background-color: #e0e6ed;
+            border-radius: 2px;
         }
         
         .roadmap-item {
-            padding: 1.5rem 2rem;
+            padding: 2rem;
             background: var(--card-bg);
             border-radius: 8px;
-            margin-bottom: 1rem;
-            border-left: 5px solid var(--accent-color);
+            margin-bottom: 1.5rem;
+            margin-right: 50px;
+            border-right: 5px solid var(--accent-color);
             position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .roadmap-item::before {
+            content: attr(data-phase);
+            position: absolute;
+            right: -83px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+            border: 4px solid var(--background-color);
         }
         
         footer {
             text-align: center;
-            padding: 2rem;
+            padding: 3rem 2rem;
             background: var(--primary-color);
             color: white;
-            margin-top: 40px;
+            margin-top: 50px;
         }
-        
+
         /* RTL Fixes */
-        nav ul li { margin-left: 25px; margin-right: 0; }
-        .feature-card, .persona-card { border-left: 0; border-right: 5px solid var(--secondary-color); }
+        nav ul li { margin-left: 30px; margin-right: 0; }
         .message.sent { margin-right: auto; margin-left: 0; }
         .message.received { margin-left: auto; margin-right: 0; }
-        .message.received.agent-thought { border-left: 0; border-right: 3px solid var(--accent-color); }
-        .roadmap-item { border-left: 0; border-right: 5px solid var(--accent-color); }
+        .message.agent-thought { border-right: 4px solid var(--accent-color); border-left: 0; }
+        .message.proactive-alert { border-right: 4px solid var(--warning-color); border-left: 0; }
+        .voice-message .play-icon { margin-right: 0; margin-left: 10px;}
 
+        /* Connectors Section */
+        .connectors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .connector-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            transition: all 0.3s ease;
+        }
+        .connector-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+        .connector-card img {
+            height: 50px;
+            max-width: 120px;
+            object-fit: contain;
+            filter: grayscale(100%);
+            transition: filter 0.3s ease;
+        }
+        .connector-card:hover img {
+            filter: grayscale(0%);
+        }
+        .connector-card p {
+            margin-top: 1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        /* Architecture Section */
+        #architecture pre {
+            text-align: left;
+            direction: ltr;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            background: #2d3748;
+            color: #f7fafc;
+            padding: 2em;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: pre;
+        }
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2.5rem;
+            align-items: center;
+        }
+        
+        .web-app-mockup {
+            border: 1px solid #e0e6ed;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            background: #fff;
+        }
+        .web-app-header {
+            background: #f9fafb;
+            padding: 0.75rem 1.5rem;
+            border-bottom: 1px solid #e0e6ed;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .web-app-title {
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        .web-app-body {
+            padding: 1.5rem;
+        }
+
+        .hamburger-menu {
+            display: none;
+            cursor: pointer;
+            font-size: 2rem;
+        }
+        
+        /* ================== MOBILE RESPONSIVE STYLES ================== */
+        @media (max-width: 992px) {
+            .architecture-grid {
+                grid-template-columns: 1fr;
+            }
+            header {
+                padding: 0 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                line-height: 1.7;
+            }
+            .hamburger-menu {
+                display: block;
+                z-index: 1002;
+            }
+            nav {
+                display: none;
+                position: fixed;
+                top: 0;
+                right: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(44, 62, 80, 0.98);
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                z-index: 1001;
+            }
+            nav.is-active {
+                display: flex;
+            }
+            nav ul {
+                flex-direction: column;
+            }
+            nav ul li {
+                margin: 0;
+                padding: 1.5rem 0;
+            }
+            nav a {
+                font-size: 1.5rem;
+            }
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            .hero p {
+                font-size: 1.2rem;
+            }
+            h2 {
+                font-size: 2rem;
+            }
+            h3 {
+                font-size: 1.5rem;
+            }
+            .container {
+                padding: 1.5rem;
+            }
+            section {
+                padding-top: calc(var(--header-height) + 20px);
+                padding-bottom: 20px;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            .feature-card {
+                padding: 1.5rem;
+            }
+
+            .whatsapp-mockup-container {
+                grid-template-columns: 1fr;
+            }
+            .mockup {
+                padding: 1.5rem;
+            }
+            
+            .roadmap::before {
+                right: 10px;
+            }
+            .roadmap-item {
+                margin-right: 30px;
+                padding: 1.5rem;
+            }
+            .roadmap-item::before {
+                right: -53px;
+                width: 40px;
+                height: 40px;
+                font-size: 0.9rem;
+            }
+            #architecture pre {
+                font-size: 0.7rem;
+                padding: 1.5em;
+            }
+            .connectors-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 1rem;
+            }
+            .connector-card {
+                padding: 1rem;
+            }
+            .connector-card img {
+                height: 40px;
+            }
+        }
     </style>
 </head>
 <body>
 
     <header>
         <div class="logo">Wizbi<span class="ai">.ai</span></div>
-        <nav>
+        <div class="hamburger-menu" id="hamburger">☰</div>
+        <nav id="nav-menu">
             <ul>
                 <li><a href="#vision">החזון</a></li>
                 <li><a href="#features">יכולות</a></li>
-                <li><a href="#personas">פרסונות</a></li>
-                <li><a href="#architecture">ארכיטקטורה</a></li>
+                <li><a href="#connectors">קונקטורים</a></li>
                 <li><a href="#demos">הדגמות</a></li>
+                <li><a href="#architecture">ארכיטקטורה</a></li>
                 <li><a href="#roadmap">מפת דרכים</a></li>
             </ul>
         </nav>
@@ -295,175 +584,238 @@
 
     <main>
         <section id="hero" class="hero">
-            <h1>היועץ העסקי שלך, מבוסס AI</h1>
-            <p>אנחנו הופכים את הדאטה שלך לתובנות, ואת התובנות לפעולות. הכל בשיחת וואטסאפ פשוטה.</p>
+            <h1>הופכים דאטה להחלטות. בזמן אמת.</h1>
+            <p>Wizbi.ai היא מערכת הבינה העסקית הראשונה שמדברת איתך בוואטסאפ. חבר את כל מקורות המידע שלך וקבל יועץ AI אישי, שינתח, יתריע, ימליץ ואף יבצע פעולות עבורך.</p>
         </section>
 
         <div class="container">
 
             <section id="vision">
-                <h2>החזון: מ-BI ל-Decision Intelligence</h2>
+                <h2>החזון: מ-Business Intelligence ל-Actionable Intelligence</h2>
                 <p>
-                    בעולם העסקי המודרני, כל עסק, קטן כגדול, יושב על הר של נתונים. מהכנסות והוצאות, דרך התנהגות לקוחות ועד תפעול שוטף. הבעיה היא שהנתונים האלה מפוצלים, קשים לגישה, והפקת תובנות מהם דורשת מומחיות, זמן וכסף - מותרות שרוב העסקים לא יכולים להרשות לעצמם.
+                    בעידן הדיגיטלי, עסקים טובעים בים של נתונים: מערכות הנהלת חשבונות, CRM, אתרי סחר, קמפיינים דיגיטליים ועוד. הפוטנציאל הגלום במידע זה אדיר, אך הגישה אליו מורכבת ויקרה. דוחות BI מסורתיים הם פאסיביים ומספקים מבט לאחור, בעוד שהעסק שלך צריך לנוע קדימה.
                 </p>
                 <p>
-                    <strong>Wizbi.ai באה לשנות את המשוואה.</strong>
+                    <strong>Wizbi.ai נולדה כדי לגשר על הפער הזה.</strong>
                 </p>
                 <p>
-                    החזון שלנו הוא להעניק לכל עסק **יועץ עסקי, אנליסט BI ומנהל תפעול אישי מבוסס AI**. אנו בונים פלטפורמה שמחברת את כל נכסי המידע של העסק באופן אוטומטי, מבינה את ההקשר העסקי הייחודי שלו, ומאפשרת לבעלי העסק, מנהלים ועובדים לקבל החלטות מבוססות נתונים באמצעות שיחה טבעית ופשוטה. אנחנו לא רק מציגים דאטה - אנחנו מפרשים אותו, ממליצים על הפעולה הבאה, ואף מבצעים אותה עבורך.
+                    החזון שלנו הוא להעצים כל בעל עסק, מנהל ועובד עם **סוכן AI (Agent) פרואקטיבי וחכם**. לא עוד כלי שמציג גרפים, אלא שותף אסטרטגי שמבין את העסק שלך לעומק. Wizbi מתחבר לכלל נכסי המידע, לומד את ההקשר העסקי הייחודי, ומאפשר לך לא רק לשאול שאלות בשפה טבעית, אלא גם לקבל המלצות אקטיביות ולבצע פעולות ישירות מהצ'אט - מהפקת חשבונית ועד עדכון ליד במערכת ה-CRM. אנחנו הופכים מידע לפעולה.
                 </p>
             </section>
 
             <section id="features">
-                <h2>יכולות מפתח ופיצ'רים</h2>
+                <h2>סט הכלים המלא לצמיחה מבוססת דאטה</h2>
                 <div class="feature-grid">
                     <div class="feature-card">
-                        <div class="icon">🔗</div>
-                        <h3>חיבוריות נתונים מקצה לקצה</h3>
-                        <p>מנוע ELT חכם שמתחבר אוטומטית למערכות ישראליות וגלובליות (הנה"ח, CRM, קופות, eCommerce), טוען את הנתונים ל-BigQuery ומעדכן אותם באופן שוטף. הכל מנוהל בממשק פשוט.</p>
+                        <span class="icon">🔗</span>
+                        <h3>אינטגרציה חלקה (ELT)</h3>
+                        <p>מנוע ELT שמתחבר בעזרת ממשק Web פשוט למערכות ישראליות וגלובליות. הנתונים נטענים ומעודכנים באופן אוטומטי ומאובטח ל-Data Warehouse ייעודי (BigQuery) לכל ארגון.</p>
                     </div>
                     <div class="feature-card">
-                        <div class="icon">🧠</div>
-                        <h3>ליבת AI אגנוסטית ("הוויזארד")</h3>
-                        <p>מנוע AI מודולרי שיודע להפוך שפה טבעית לשאילתות SQL מורכבות. המערכת תומכת בהחלפה דינמית של מודלי שפה (LLMs) ומאפשרת התאמה מתמדת לטכנולוגיה המתקדמת ביותר.</p>
+                        <span class="icon">🧠</span>
+                        <h3>ליבת AI היברידית (Text-to-SQL + RAG)</h3>
+                        <p>מנוע AI מתקדם המשלב מודלי שפה (LLMs) עם Retrieval-Augmented Generation. הוא מבין שפה טבעית, מתרגם אותה לשאילתות SQL מורכבות ומעשיר את המידע עם ההקשר העסקי מהשכבה הסמנטית.</p>
                     </div>
                     <div class="feature-card">
-                        <div class="icon">📈</div>
-                        <h3>השכבה הסמנטית האוטומטית</h3>
-                        <p>הקסם האמיתי. המערכת ממפה אוטומטית את מבנה הנתונים, מזהה קשרים, ומאפשרת למנהלי הארגון להגדיר בשפה פשוטה מושגים עסקיים ("רווח", "לקוח חוזר"). זה מה שהופך את האייג'נט לחכם באמת.</p>
+                        <span class="icon">📈</span>
+                        <h3>שכבה סמנטית דינמית</h3>
+                        <p>הקסם האמיתי. המערכת ממפה את סכמת הנתונים ומאפשרת למנהלי הארגון להגדיר בשפה פשוטה מדדים ומושגים עסקיים (KPIs) כמו "רווח גולמי", "עלות רכישת לקוח" או "לקוח פעיל".</p>
                     </div>
                     <div class="feature-card">
-                        <div class="icon">🤖</div>
-                        <h3>מנוע פעולות ואוטומציה</h3>
-                        <p>Wizbi.ai הוא לא רק פאסיבי. האייג'נט יכול להפעיל "כלים" - ביצוע פעולות אקטיביות במערכות המקור. לדוגמה: "צרי חשבונית חדשה", "הוסיפי ליד חדש ל-CRM", "שלחי תזכורת תשלום ללקוח".</p>
+                        <span class="icon">🤖</span>
+                        <h3>סוכני AI אוטונומיים (Agents)</h3>
+                        <p>Wizbi הוא סוכן אקטיבי. הוא יכול להשתמש ב"כלים" (Tools) לביצוע פעולות במערכות המקור: "צרי חשבונית חדשה ללקוח X", "העבירי את הליד Y לשלב 'משא ומתן' ב-CRM", "הזמיני לי פגישה עם Z".</p>
                     </div>
                     <div class="feature-card">
-                        <div class="icon">💡</div>
-                        <h3>מנוע תובנות יזומות (שדרוג)</h3>
-                        <p>המערכת לא מחכה לשאלות. היא סורקת את הנתונים באופן קבוע, מזהה אנומליות, מגמות וחריגות, ושולחת למשתמשים הרלוונטיים התראות חכמות בוואטסאפ. "שימי לב, ההוצאות על שיווק החודש גבוהות ב-30% מהממוצע".</p>
+                        <span class="icon">💡</span>
+                        <h3>מנוע התראות פרואקטיבי</h3>
+                        <p>המערכת סורקת את הנתונים 24/7. היא מזהה אנומליות, מגמות וחריגות ושולחת התראות חכמות: "שימי לב, קצב שריפת המזומנים החודש גבוה ב-25% מהממוצע", "לקוח VIP לא ביצע רכישה כבר 90 יום".</p>
                     </div>
                      <div class="feature-card">
-                        <div class="icon">📊</div>
-                        <h3>דשבורדים וויזואליזציה מתקדמת</h3>
-                        <p>כל שאילתה ותשובה ניתנות לשמירה כווידג'ט בדשבורד אישי או ארגוני. המערכת תומכת ביצירת דשבורדים מרהיבים, שיתופם, ואף שליחתם כדיוור יומי/שבועי אוטומטי.</p>
+                        <span class="icon">🌐</span>
+                        <h3>העשרת נתונים חיצוניים</h3>
+                        <p>מעבר לנתוני העסק, Wizbi מתחבר למאגרי מידע חיצוניים (כמו data.gov.il, מדדי ריבית, מכרזים ממשלתיים) כדי לספק תמונה מלאה והקשר רחב יותר לשוק בו העסק פועל.</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="icon">📊</span>
+                        <h3>דשבורדים אינטראקטיביים</h3>
+                        <p>כל שאילתה יכולה להפוך לווידג'ט בדשבורד אישי או ארגוני. בנוסף, ניתן ליצור דשבורדים מתקדמים, לשתף אותם עם הצוות ולקבל סיכום יומי/שבועי אוטומטי למייל או לוואטסאפ.</p>
+                    </div>
+                    <div class="feature-card">
+                        <span class="icon">👥</span>
+                        <h3>שיתוף וניהול הרשאות</h3>
+                        <p>שתף תובנות ודוחות עם חברי צוות אחרים. מערכת ההרשאות המתקדמת מאפשרת לך לקבוע בדיוק לאיזה מידע (טבלאות, עמודות) כל משתמש יכול לגשת, ומבטיחה שמידע רגיש יישאר חסוי.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="connectors">
+                <h2>חיבור לכל המערכות הקריטיות לעסק שלך</h2>
+                <p>אנחנו מתחברים למאות מערכות, ואם חסרה לכם מערכת - נוסיף אותה. הנה טעימה מהמערכות הפופולריות.</p>
+                
+                <h3>הנהלת חשבונות וסליקה</h3>
+                <div class="connectors-grid">
+                    <div class="connector-card"><img src="https://www.greeninvoice.co.il/assets/images/header-logo.svg" alt="Morning (חשבונית ירוקה)"><p>Morning</p></div>
+                    <div class="connector-card"><img src="https://www.rivhit.co.il/images/logo-svg.svg" alt="ריווחית"><p>ריווחית</p></div>
+                    <div class="connector-card"><img src="https://sumit.co.il/images/logo-blue.svg" alt="SUMIT"><p>Sumit</p></div>
+                    <div class="connector-card"><img src="https://static.wixstatic.com/media/db7643_16259048a13d46779313256b38463cac~mv2.png/v1/fill/w_316,h_102,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/iCountLogo.png" alt="iCount"><p>iCount</p></div>
+                    <div class="connector-card"><img src="https://www.tranzila.com/images/logo.svg" alt="טרנזילה"><p>טרנזילה</p></div>
+                    <div class="connector-card"><img src="https://www.cardcom.co.il/wp-content/uploads/2023/11/%D7%9C%D7%95%D7%92%D7%95-%D7%A7%D7%90%D7%A8%D7%93%D7%A7%D7%95%D7%9D-%D7%97%D7%93%D7%A9-2023.svg" alt="קארדקום"><p>קארדקום</p></div>
+                    <div class="connector-card"><img src="https://d2ah2xak1pwbdi.cloudfront.net/prod/1.0.126.0/assets/images/logo.svg" alt="משולם"><p>משולם</p></div>
+                    <div class="connector-card"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/QuickBooks_Logo.svg" alt="QuickBooks"><p>QuickBooks</p></div>
+                </div>
+                
+                <h3>CRM ומכירות</h3>
+                <div class="connectors-grid">
+                     <div class="connector-card"><img src="https://www.powerlink.co.il/wp-content/uploads/2022/10/logo.svg" alt="Powerlink"><p>Powerlink</p></div>
+                    <div class="connector-card"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Salesforce.com_logo.svg/2560px-Salesforce.com_logo.svg.png" alt="Salesforce"><p>Salesforce</p></div>
+                    <div class="connector-card"><img src="https://upload.wikimedia.org/wikipedia/commons/c/c8/Monday_logo.svg" alt="Monday.com"><p>Monday</p></div>
+                    <div class="connector-card"><img src="https://i.imgur.com/L4m0h2P.png" alt="HubSpot" style="height: 40px; filter: none;"><p>HubSpot</p></div>
+                </div>
+
+                <h3>eCommerce ואוטומציה</h3>
+                <div class="connectors-grid">
+                    <div class="connector-card"><img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Shopify_logo.svg" alt="Shopify"><p>Shopify</p></div>
+                    <div class="connector-card"><img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/WooCommerce_logo.svg" alt="WooCommerce"><p>WooCommerce</p></div>
+                    <div class="connector-card"><img src="https://upload.wikimedia.org/wikipedia/commons/3/3b/Zapier_logo.svg" alt="Zapier"><p>Zapier</p></div>
+                    <div class="connector-card"><img src="https://i.imgur.com/UyzfHup.png" alt="Google Analytics" style="height: 40px; filter: none;"><p>Google Analytics</p></div>
+                </div>
+            </section>
+            
+            <section id="demos">
+                <h2>ככה זה עובד: פשוט, חכם, מיידי</h2>
+                
+                <div class="whatsapp-mockup-container">
+                    <div class="mockup">
+                        <h3>שיחה שוטפת ותחקור נתונים</h3>
+                        <div class="whatsapp-mockup">
+                            <div class="chat-bg">
+                                <div class="message received">בוקר טוב! אני Wizbi, מוכן לעזור לך לקבל החלטות טובות יותר.</div>
+                                <div class="message sent">היי וויזבי, מה היו ההכנסות שלי החודש לעומת חודש קודם?</div>
+                                <div class="message agent-thought">המשתמש שואל על השוואת הכנסות חודשית. אני צריך להריץ שאילתה על `raw_morning_documents`, לסכום `document_total` עבור החודש הנוכחי (August 2025) והקודם (July 2025), ולחשב את ההפרש באחוזים.</div>
+                                <div class="message received">בטח. החודש ההכנסות עומדות על <strong>45,200 ₪</strong>. זוהי עלייה של 12% לעומת יולי, בו ההכנסות היו 40,350 ₪. עבודה מצוינת! 🔥</div>
+                                <div class="message sent">מעולה! תוכלי להציג לי את 5 הלקוחות המובילים החודש?</div>
+                                <div class="message received">בוודאי. הלקוחות המובילים באוגוסט הם:
+                                    1. ישראלי ישראלי בע"מ (8,500 ₪)
+                                    2. פיתוח ותשתיות הצפון (6,200 ₪)
+                                    3. עיצוב הפנים של יעל (4,800 ₪)
+                                    4. א.א. שיווק (4,550 ₪)
+                                    5. האחים כהן (4,100 ₪)
+                                האם תרצה שאצור מזה ווידג'ט לדשבורד שלך?</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mockup">
+                        <h3>התראות וביצוע פעולות</h3>
+                        <div class="whatsapp-mockup">
+                            <div class="chat-bg">
+                                <div class="message received proactive-alert">🚨 <strong>התראה חכמה:</strong> שמתי לב שהוצאות הפרסום בגוגל החודש הגיעו ל-7,500 ₪, שזה 40% מעל התקציב שהגדרת (5,000 ₪).</div>
+                                <div class="message sent">אוי, תודה ששמת לב. תעצרי בבקשה את קמפיין 'קידום מבצעי קיץ'.</div>
+                                <div class="message agent-thought">המשתמש מבקש לבצע פעולה (Tool Use): `pause_google_campaign`. הפרמטרים הם: campaign_name = "קידום מבצעי קיץ". אני מתחבר ל-API של גוגל אדס ומבצע את הפעולה.</div>
+                                <div class="message received">בסדר גמור. עצרתי את הקמפיין "קידום מבצעי קיץ" במערכת של גוגל. 👍</div>
+                                <div class="message sent voice-message">
+                                    <span class="play-icon">▶️</span>
+                                    <div class="voice-waveform">▂▃▅▆▅▃▂</div>
+                                    <span class="duration">0:07</span>
+                                </div>
+                                <div class="message agent-thought">המשתמש שלח הקלטה. מבצע Speech-to-Text... תוכן: "מצוין, תודה. תוכלי בבקשה להוציא חשבונית חדשה על סך 2500 ש"ח פלוס מע"מ לחברת 'האחים כהן' על ייעוץ חודשי?"</div>
+                                <div class="message received">קיבלתי. מפיק כעת טיוטת חשבונית לחברת "האחים כהן" על סך 2,500 ₪ + מע"מ. אשלח לך לאישור לפני שליחה ללקוח.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="text-align:center; margin-top: 4rem;">ממשק הניהול והדשבורדים</h3>
+                <div class="mockup">
+                    <div class="web-app-mockup">
+                        <div class="web-app-header">
+                            <div class="web-app-title">הדשבורד הראשי - אוגוסט 2025</div>
+                            <div><button>שתף</button> <button>הוסף ווידג'ט</button></div>
+                        </div>
+                        <div class="web-app-body">
+                             <div class="dashboard-mockup">
+                                <div class="widget"><h4>סה"כ הכנסות</h4><div class="kpi-value">45,200 ₪</div></div>
+                                <div class="widget"><h4>סה"כ הוצאות</h4><div class="kpi-value">22,800 ₪</div></div>
+                                <div class="widget"><h4>רווח נקי (מוערך)</h4><div class="kpi-value">22,400 ₪</div></div>
+                                <div class="widget"><h4>לקוחות חדשים</h4><div class="kpi-value">4</div></div>
+                                <div class="widget" style="grid-column: span 2;"><h4>הכנסות לפי קטגוריה</h4><img src="https://i.imgur.com/uF5g3pX.png" style="width:100%; height:auto;"/></div>
+                                <div class="widget" style="grid-column: span 2;"><h4>לקוחות מובילים (אוגוסט)</h4><p>1. ישראלי ישראלי בע"מ...</p></div>
+                             </div>
+                        </div>
                     </div>
                 </div>
             </section>
             
-            <section id="personas">
-                <h2>פרסונות והרשאות</h2>
-                <div class="personas-grid">
-                    <div class="persona-card">
-                         <div class="icon">👑</div>
-                        <h3>מנהל על (Super Admin)</h3>
-                        <p>המייסד/מנהל הפלטפורמה. בעל שליטה מלאה, מנהל ארגונים, מנטר את בריאות המערכת כולה וקובע את אסטרטגיית המוצר והטכנולוגיה הגלובלית.</p>
-                    </div>
-                    <div class="persona-card">
-                         <div class="icon">🛠️</div>
-                        <h3>מנהל ארגון (Org Admin)</h3>
-                        <p>איש הקשר מטעם הלקוח. אחראי על חיבור מקורות המידע, ניהול משתמשים והרשאות בארגון, ובעיקר - על "אימון" הוויזארדים על ידי העשרת השכבה הסמנטית.</p>
-                    </div>
-                    <div class="persona-card">
-                         <div class="icon">🧑‍💻</div>
-                        <h3>משתמש קצה (End User)</h3>
-                        <p>כל עובד בארגון, מהמנכ"ל ועד איש המכירות. צורך את המידע דרך ממשק פשוט (ווב/וואטסאפ), שואל שאלות, מקבל תובנות ומפעיל כלים הרלוונטיים לתפקידו.</p>
-                    </div>
-                </div>
-            </section>
-
             <section id="architecture">
-                <h2>ארכיטקטורה וטכנולוגיה</h2>
-                <p>הפלטפורמה בנויה על תשתית GCP מודרנית, מבוססת Serverless, המבטיחה תחזוקה מינימלית ויכולת גדילה אינסופית.</p>
-                <div class="mockup">
-                <h3>תרשים ארכיטקטורה כללי</h3>
-                <pre style="text-align: left; direction: ltr; font-size: 0.8rem; line-height: 1.4; background: #f4f4f4; padding: 1em; border-radius: 5px; overflow-x: auto;">
-+----------------------+      +-------------------------+      +-------------------------+
-|   Frontend (Web)     |      |  WhatsApp Interface     |      |   Super Admin UI        |
-| (Next.js on Firebase)|      | (via Twilio/Provider)   |      | (Part of Frontend)      |
-+----------------------+      +-------------------------+      +-------------------------+
-           |                             |                            |
-           v                             v                            v
-+---------------------------------------------------------------------------------------+
-|                                                                                       |
-|   Backend: Cloud Run Service (Python/FastAPI)                                         |
-|   +-----------------------+   +-----------------------+   +-----------------------+   |
-|   |   Authentication      |   |   AI Core (Gemini)    |   |   ELT Engine          |   |
-|   |   (Firebase Auth)     |   |   (Text-to-SQL)       |   |   (Connectors)        |   |
-|   +-----------------------+   +-----------------------+   +-----------------------+   |
-|   |   Operational DB      |   |   Task Queue          |   |   Action Engine       |   |
-|   |   (Firestore Config)  |   |   (Cloud Tasks)       |   |   (Tools)             |   |
-|   +-----------------------+   +-----------------------+   +-----------------------+   |
-|                                                                                       |
-+---------------------------------------------------------------------------------------+
-           |
-           | (Reads/Writes Data)
-           v
-+---------------------------------------------------------------------------------------+
-|                                                                                       |
-|   Data Layer: Google BigQuery                                                         |
-|   +-----------------------+   +-----------------------+   +-----------------------+   |
-|   |   Org A Dataset       |   |   Org B Dataset       |   |   Org C Dataset       |   |
-|   +-----------------------+   +-----------------------+   +-----------------------+   |
-|                                                                                       |
-+---------------------------------------------------------------------------------------+
-                </pre>
-                </div>
-            </section>
-
-            <section id="demos">
-                <h2>הדגמות ומוקאפים</h2>
-                
-                <h3>דוגמת שיחה בוואטסאפ</h3>
-                <div class="mockup">
-                    <div class="whatsapp-mockup">
-                        <div class="chat-bg">
-                            <div class="message received">היי! אני Wizbi, היועץ העסקי שלך. איך אפשר לעזור היום?</div>
-                            <div class="message sent">היי וויזבי, מה היו ההכנסות שלי החודש לעומת חודש קודם?</div>
-                            <div class="message received agent-thought">המשתמש שואל על השוואת הכנסות חודשית. אני צריך להריץ שאילתה על טבלת `raw_morning_documents`, לסכום את `document_total` עבור החודש הנוכחי והקודם, ולחשב את ההפרש באחוזים.</div>
-                            <div class="message received">בטח. החודש (אוגוסט 2025) ההכנסות עומדות על 45,200 ₪. זוהי <strong>עלייה של 12%</strong> לעומת חודש יולי, בו ההכנסות היו 40,350 ₪. עבודה מצוינת!</div>
-                            <div class="message sent">מעולה! תוכלי להציג לי את הלקוחות שהכניסו הכי הרבה החודש?</div>
-                        </div>
+                <h2>ארכיטקטורה מודרנית, סקיילבילית ומאובטחת</h2>
+                <div class="architecture-grid">
+                    <div>
+                        <h3>בנוי על Google Cloud Platform</h3>
+                        <p>הפלטפורמה מבוססת על תשתית GCP מודרנית ו-Serverless, המבטיחה אבטחה ברמה הגבוהה ביותר, גמישות ויכולת גדילה כמעט אינסופית (Scalability) תוך שמירה על עלויות תפעול נמוכות.</p>
+                        <ul>
+                            <li><strong>Multi-Tenancy:</strong> כל ארגון פועל בסביבה מבודדת לחלוטין (Tenant), עם Dataset ייעודי ב-BigQuery ו-Keys הצפנה נפרדים.</li>
+                            <li><strong>ELT Engine:</strong> מבוסס Cloud Functions ו-Cloud Tasks לטעינה אסינכרונית ואמינה של מידע.</li>
+                            <li><strong>AI Core:</strong> שירות Cloud Run המריץ FastAPI (Python) ומתממשק עם Vertex AI (Gemini) של גוגל.</li>
+                            <li><strong>Data Warehouse:</strong> שימוש ב-Google BigQuery כבסיס הנתונים האנליטי להרצת שאילתות מהירות.</li>
+                             <li><strong>Frontend:</strong> אפליקציית Web דינמית הבנויה על Next.js ומאוחסנת ב-Firebase Hosting.</li>
+                        </ul>
                     </div>
-                </div>
-
-                <h3>דוגמת דשבורד</h3>
-                <div class="mockup">
-                    <h4>הדשבורד הראשי - אוגוסט 2025</h4>
-                    <div class="dashboard-mockup">
-                        <div class="widget">
-                            <h4>סה"כ הכנסות</h4>
-                            <div class="kpi-value">45,200 ₪</div>
-                        </div>
-                         <div class="widget">
-                            <h4>סה"כ הוצאות</h4>
-                            <div class="kpi-value">22,800 ₪</div>
-                        </div>
-                         <div class="widget">
-                            <h4>רווח נקי (מוערך)</h4>
-                            <div class="kpi-value">22,400 ₪</div>
-                        </div>
-                         <div class="widget">
-                            <h4>לקוחות חדשים</h4>
-                            <div class="kpi-value">4</div>
-                        </div>
+                    <div class="mockup">
+                        <pre>
++------------------+   +------------------+
+| Frontend (Web)   |   | WhatsApp/Teams   |
+| (Next.js/Firebase) |   | (Twilio/MS Graph)|
++------------------+   +------------------+
+         |                   |
+         v                   v
++------------------------------------------+
+| API Gateway (Cloud Endpoints)            |
++------------------------------------------+
+                     |
+                     v
++------------------------------------------+
+| Backend: Serverless on Cloud Run (Python)|
+| +----------------+ +-------------------+ |
+| | Auth & Tenants | | AI Core (RAG)     | |
+| | (Firebase Auth)| | (Vertex AI)       | |
+| +----------------+ +-------------------+ |
+| | Actions Engine | | ELT Engine        | |
+| | (Tool Calling) | | (Cloud Functions) | |
+| +----------------+ +-------------------+ |
++------------------------------------------+
+                     |
+                     v
++------------------------------------------+
+| Data Layer: BigQuery (Per-Tenant)        |
+| +----------------+ +-------------------+ |
+| | Org A Dataset  | | Org B Dataset     | |
+| | (Encrypted)    | | (Encrypted)       | |
+| +----------------+ +-------------------+ |
++------------------------------------------+
+                        </pre>
                     </div>
                 </div>
             </section>
             
             <section id="roadmap">
-                <h2>מפת דרכים שלבית</h2>
+                <h2>מפת דרכים אסטרטגית</h2>
                 <div class="roadmap">
-                    <div class="roadmap-item">
-                        <h3>שלב 1: הקמת היסודות (חודשים 1-2)</h3>
-                        <p>הקמת תשתית ה-CI/CD עם GitHub ו-Cloud Build. בניית שלד אפליקציית ה-Frontend וה-Backend. מימוש מודל ההרשאות וה-Multi-Tenancy ב-GCP. המטרה: סביבות QA ו-Prod שעובדות אוטומטית.</p>
+                    <div class="roadmap-item" data-phase="1">
+                        <h3>שלב 1: יסודות ו-MVP (חודשים 1-4)</h3>
+                        <p>הקמת תשתית GCP, CI/CD, ומודל ה-Multi-Tenancy. בניית שלד האפליקציה ומימוש תהליך E2E עבור 2 קונקטורים מרכזיים. בניית גרסה ראשונית של אייג'נט הצ'אט ועלייה לפיילוט עם 5 לקוחות עיצוב.</p>
                     </div>
-                    <div class="roadmap-item">
-                        <h3>שלב 2: MVP פונקציונלי (חודשים 3-5)</h3>
-                        <p>מימוש End-to-End של התהליך עבור 2 קונקטורים ראשונים (למשל Morning ו-Sumit). בניית ה-UI לאונבורדינג, ומימוש גרסה ראשונה של האייג'נט בצ'אט. עלייה לאוויר עם 5 לקוחות פיילוט.</p>
+                    <div class="roadmap-item" data-phase="2">
+                        <h3>שלב 2: העשרה וביסוס (חודשים 5-9)</h3>
+                        <p>הרחבת ספריית הקונקטורים. פיתוח השכבה הסמנטית. שדרוג ליבת ה-AI לשילוב RAG. השקת מנוע ההתראות הפרואקטיבי ויכולות הדשבורד. הרחבת הפיילוט ל-20 לקוחות.</p>
                     </div>
-                    <div class="roadmap-item">
-                        <h3>שלב 3: הרחבה וביסוס (חודשים 6-12)</h3>
-                        <p>הוספת קונקטורים נוספים על בסיס דרישה. פיתוח מנוע התובנות היזומות. בניית יכולות הדשבורד והשיתוף. שיפור מתמיד של ליבת ה-AI על בסיס שימוש אמיתי.</p>
+                    <div class="roadmap-item" data-phase="3">
+                        <h3>שלב 3: סקייל ובינה מתקדמת (חודשים 10-15)</h3>
+                        <p>פיתוח מנוע הפעולות (Action Engine). אינטגרציה עם מאגרי מידע חיצוניים. פיתוח ממשק ניהול הרשאות מתקדם. הטמעת יכולות למידה מתקדמות והשקה מסחרית רחבה.</p>
+                    </div>
+                     <div class="roadmap-item" data-phase="4">
+                        <h3>שלב 4: חזון עתידי (16+)</h3>
+                        <p>פיתוח "שוק קונקטורים" (Connector Marketplace). הרחבת יכולות הסוכנים האוטונומיים לתהליכים מורכבים. מודלים לחיזוי מגמות (Predictive Analytics) והפיכת Wizbi.ai למערכת ההפעלה של העסק.</p>
                     </div>
                 </div>
             </section>
@@ -471,8 +823,29 @@
     </main>
     
     <footer>
-        <p>&copy; 2025 Wizbi.ai - The Future of Business Intelligence</p>
+        <p>&copy; 2025 Wizbi.ai - Actionable Intelligence for Every Business</p>
     </footer>
 
+<script>
+    const hamburger = document.getElementById('hamburger');
+    const navMenu = document.getElementById('nav-menu');
+
+    hamburger.addEventListener('click', () => {
+        navMenu.classList.toggle('is-active');
+        if (navMenu.classList.contains('is-active')) {
+            hamburger.textContent = '✕';
+        } else {
+            hamburger.textContent = '☰';
+        }
+    });
+
+    // Close menu when a link is clicked
+    document.querySelectorAll('#nav-menu a').forEach(link => {
+        link.addEventListener('click', () => {
+            navMenu.classList.remove('is-active');
+            hamburger.textContent = '☰';
+        });
+    });
+</script>
 </body>
 </html>
