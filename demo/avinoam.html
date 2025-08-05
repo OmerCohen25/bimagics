@@ -3,490 +3,718 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>אבינועם נעים בע"מ - ציוד ומוצרי צריכה למוסדות</title>
-    
+    <title>אבינועם נעים - שיווק והפצת מוצרי צריכה</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
     <style>
+        /* --- General Styling & Variables --- */
         :root {
-            --primary-color: #005c99; /* כחול ישראלי */
-            --secondary-color: #28a745; /* ירוק לפעולות */
-            --text-color: #333;
-            --light-gray: #f4f6f9;
-            --white: #ffffff;
+            --primary-color: #005f73; /* Deep Teal */
+            --secondary-color: #0a9396; /* Bright Teal */
+            --accent-color: #ee9b00; /* Amber/Gold */
+            --background-color: #f8f9fa;
+            --text-color: #212529;
+            --header-bg: #ffffff;
+            --footer-bg: #001219;
+            --card-bg: #ffffff;
+            --button-hover: #003e4d;
             --border-color: #dee2e6;
         }
 
+        /* --- Animations --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        }
+
+        /* --- Base Styles --- */
         body {
-            font-family: 'Rubik', sans-serif;
+            font-family: 'Assistant', sans-serif;
             margin: 0;
-            background-color: var(--light-gray);
+            background-color: var(--background-color);
             color: var(--text-color);
-            direction: rtl;
+            line-height: 1.7;
+            font-size: 16px;
         }
 
         .container {
-            width: 90%;
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 20px 0;
+            padding: 0 15px;
+        }
+
+        h1, h2, h3 {
+            color: var(--primary-color);
+            font-weight: 700;
         }
 
         /* --- Header --- */
-        .main-header {
-            background-color: var(--white);
-            padding: 15px 5%;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .site-header {
+            background-color: var(--header-bg);
+            padding: 10px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             position: sticky;
             top: 0;
             z-index: 1000;
         }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         .logo {
-            font-size: 1.8rem;
+            font-size: 1.8em;
             font-weight: 700;
             color: var(--primary-color);
         }
-        .main-nav a {
-            margin: 0 15px;
-            text-decoration: none;
-            color: var(--text-color);
-            font-weight: 500;
-            transition: color 0.3s ease;
+
+        .main-nav {
+            display: none; /* Hidden on mobile */
         }
-        .main-nav a:hover {
-            color: var(--primary-color);
-        }
+
         .header-actions {
             display: flex;
             align-items: center;
+            gap: 10px;
         }
-        .header-actions .icon-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.5rem;
-            margin-left: 20px;
-            color: var(--text-color);
-            position: relative;
-        }
-        .cart-count {
-            position: absolute;
-            top: -5px;
-            right: -10px;
-            background-color: var(--secondary-color);
-            color: var(--white);
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 0.8rem;
+
+        .whatsapp-btn-header {
+            background-color: #25D366;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 600;
             display: flex;
-            justify-content: center;
             align-items: center;
-            font-weight: 700;
+            gap: 8px;
+            transition: transform 0.2s;
+        }
+        .whatsapp-btn-header:hover {
+            transform: scale(1.05);
+        }
+        
+        #admin-btn {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        #admin-btn:hover {
+            background-color: #ca8200;
+        }
+        body.edit-mode #admin-btn {
+            background-color: #28a745;
+        }
+        body.edit-mode #admin-btn:hover {
+            background-color: #218838;
         }
 
         /* --- Hero Section --- */
         .hero {
-            background: linear-gradient(rgba(0, 92, 153, 0.7), rgba(0, 92, 153, 0.7)), url('https://placehold.co/1200x400/cccccc/ffffff?text=ציוד+איכותי+לעסק+שלך') center/cover no-repeat;
-            color: var(--white);
+            background: linear-gradient(rgba(0, 30, 36, 0.7), rgba(0, 30, 36, 0.7)), url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgdlI1uDit2mT_qctQw6spjHiyPmDK3csI9w&s') no-repeat center center/cover;
+            color: white;
             text-align: center;
             padding: 80px 20px;
+            animation: fadeIn 1s ease-out;
         }
         .hero h1 {
-            font-size: 3rem;
-            margin: 0 0 10px 0;
+            font-size: 2.5em;
             font-weight: 700;
+            margin-bottom: 15px;
+            color: white;
         }
         .hero p {
-            font-size: 1.2rem;
-            margin-bottom: 30px;
-        }
-        .cta-button {
-            background-color: var(--secondary-color);
-            color: var(--white);
-            padding: 15px 30px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            transition: background-color 0.3s ease;
-        }
-        .cta-button:hover {
-            background-color: #218838;
+            font-size: 1.2em;
+            max-width: 700px;
+            margin: 0 auto;
+            font-weight: 300;
         }
 
-        /* --- Section Title --- */
-        .section-title {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-top: 60px;
-            margin-bottom: 40px;
-            font-weight: 700;
+        /* --- Filters & Search Section --- */
+        .filters-section {
+            padding: 30px 0;
+            background-color: #e9ecef;
+            position: sticky;
+            top: 70px; /* Height of header */
+            z-index: 999;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .search-container {
+            max-width: 700px;
+            margin: 0 auto 25px auto;
+        }
+        #search-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            box-sizing: border-box;
+            transition: box-shadow 0.3s;
+        }
+        #search-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(10, 147, 150, 0.3);
+        }
+        .category-filters-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        .category-btn {
+            padding: 8px 18px;
+            font-size: 1em;
+            font-weight: 600;
+            border: 1px solid transparent;
+            border-radius: 20px;
+            cursor: pointer;
+            background-color: #fff;
             color: var(--primary-color);
+            transition: all 0.3s;
+        }
+        .category-btn:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        .category-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
         }
 
-        /* --- Products Grid --- */
-        .products-grid {
+        /* --- Product Catalog --- */
+        #catalog {
+            padding: 40px 0;
+        }
+        #catalog-title {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.2em;
+        }
+        #product-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 30px;
+            grid-template-columns: 1fr; /* Mobile first: 1 column */
+            gap: 25px;
+            animation: fadeIn 1s ease-out 0.5s;
+            animation-fill-mode: both;
         }
         .product-card {
-            background-color: var(--white);
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.07);
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             overflow: hidden;
+            transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeIn 0.5s ease-out forwards;
         }
         .product-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+        }
+        .product-image-container {
+            width: 100%;
+            height: 250px;
+            background-color: #fff;
+            padding: 10px;
+            box-sizing: border-box;
         }
         .product-card img {
             width: 100%;
-            height: 200px;
-            object-fit: cover;
+            height: 100%;
+            object-fit: contain;
         }
         .product-info {
             padding: 20px;
             flex-grow: 1;
-            display: flex;
-            flex-direction: column;
         }
-        .product-title {
-            font-size: 1.3rem;
-            font-weight: 700;
+        .product-info h3 {
             margin: 0 0 10px 0;
+            font-size: 1.3em;
+            font-weight: 600;
         }
-        .product-price {
-            font-size: 1.6rem;
-            font-weight: 500;
-            color: var(--primary-color);
-            margin-bottom: 15px;
-        }
-        .product-price .currency { font-size: 1.1rem; }
-        .add-to-cart-btn {
-            background-color: var(--secondary-color);
-            color: var(--white);
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 1rem;
+        .product-info .sku {
             font-weight: 700;
-            cursor: pointer;
-            width: 100%;
-            margin-top: auto;
-            transition: background-color 0.3s ease;
-        }
-        .add-to-cart-btn:hover { background-color: #218838; }
-
-        /* --- Quick Order Form --- */
-        .quick-order-form {
-            background-color: var(--white);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.07);
-        }
-        .quick-order-form table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .quick-order-form th, .quick-order-form td {
-            text-align: right;
-            padding: 15px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .quick-order-form th {
-            font-size: 1.1rem;
-            color: #555;
-        }
-        .quantity-selector {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .quantity-btn {
-            background: #f0f0f0;
-            border: 1px solid var(--border-color);
-            font-size: 1.2rem;
-            cursor: pointer;
-            width: 30px;
-            height: 30px;
-            line-height: 28px;
-            color: var(--text-color);
-            transition: background-color 0.3s ease;
-        }
-        .quantity-btn:hover { background-color: #e0e0e0; }
-        .quantity-input {
-            width: 50px;
-            text-align: center;
-            border: 1px solid var(--border-color);
-            border-left: none;
-            border-right: none;
-            height: 28px;
-            font-size: 1rem;
-            font-weight: 500;
-        }
-        .quick-order-form .total-row td {
-            font-weight: 700;
-            font-size: 1.3rem;
-            border-bottom: none;
-        }
-        .submit-order-btn {
+            color: var(--secondary-color);
             display: block;
-            width: 100%;
-            max-width: 300px;
-            margin: 30px auto 0 auto;
-            padding: 15px;
-            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        .product-info p {
+            font-size: 1em;
+            flex-grow: 1;
+            font-weight: 400;
+        }
+
+        /* --- Edit Mode --- */
+        .edit-field {
+            padding: 5px;
+            border: 2px dashed transparent;
+            width: calc(100% - 14px);
+            margin-bottom: 5px;
+            transition: all 0.3s;
+        }
+        body.edit-mode .edit-field {
+            border-color: var(--accent-color);
+            background-color: #fff8e1;
+        }
+        .edit-field:focus {
+            outline: none;
+            border-style: solid;
+            background-color: white;
+        }
+        .edit-url-field {
+            display: none;
+            width: calc(100% - 12px);
+            padding: 5px;
+            border: 1px dashed var(--primary-color);
+            font-size: 0.8em;
+            margin-top: 10px;
+        }
+        body.edit-mode .edit-url-field {
+            display: block;
+        }
+
+        /* --- Info Section (About/Contact) --- */
+        .info-section {
+            background-color: var(--card-bg);
+            padding: 50px 0;
+            text-align: center;
+        }
+        .info-section p {
+            max-width: 800px;
+            margin: 15px auto;
+            font-size: 1.1em;
         }
 
         /* --- Footer --- */
-        .main-footer {
-            background-color: #2c3e50;
-            color: var(--white);
-            padding: 40px 0;
-            margin-top: 60px;
+        .site-footer {
+            background-color: var(--footer-bg);
+            color: #adb5bd;
             text-align: center;
+            padding: 30px 0;
+            margin-top: 40px;
         }
-        .footer-logo {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-        .footer-links { margin-bottom: 20px; }
-        .footer-links a {
-            color: var(--white);
+
+        /* --- Floating WhatsApp Button --- */
+        .whatsapp-float-btn {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            bottom: 20px;
+            left: 20px;
+            background-color: #25D366;
+            color: #FFF;
+            border-radius: 50px;
+            text-align: center;
+            font-size: 30px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             text-decoration: none;
-            margin: 0 10px;
-            transition: opacity 0.3s ease;
+            animation: pulse 2s infinite;
         }
-        .footer-links a:hover { opacity: 0.8; }
-        .footer-copy { font-size: 0.9rem; opacity: 0.7; }
 
-        /* --- Responsive Design --- */
-        .mobile-menu-btn, .mobile-only {
+        /* --- Modal --- */
+        .modal {
             display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
         }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 30% auto;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            border-radius: 12px;
+            animation: fadeIn 0.5s;
+        }
+        .modal-content h2 { margin-top: 0; }
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0 20px 0;
+            box-sizing: border-box;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+        }
+        .modal-buttons button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+        }
+        #confirm-login { background-color: var(--primary-color); color: white; }
+        #cancel-login { background-color: #ccc; }
 
-        @media (max-width: 768px) {
-            .main-nav { display: none; }
-            .mobile-menu-btn { display: block; }
-            .logo { font-size: 1.5rem; }
-            .hero h1 { font-size: 2.2rem; }
-            .hero p { font-size: 1rem; }
-            .section-title { font-size: 2rem; }
-            .quick-order-form table, .quick-order-form thead, .quick-order-form tbody, .quick-order-form th, .quick-order-form td, .quick-order-form tr { 
-                display: block; 
+        /* --- SVG Icons --- */
+        .svg-icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+        
+        /* --- Desktop & Tablet Styles --- */
+        @media (min-width: 768px) {
+            body { font-size: 18px; }
+            .container { padding: 0 30px; }
+            .main-nav { display: block; }
+            .main-nav a {
+                color: var(--text-color);
+                text-decoration: none;
+                margin: 0 15px;
+                font-weight: 600;
+                position: relative;
+                transition: color 0.3s;
             }
-            .quick-order-form thead { display: none; }
-            .quick-order-form tr {
-                border: 1px solid var(--border-color);
-                margin-bottom: 15px;
-                border-radius: 8px;
-                padding: 10px;
+            .main-nav a:hover { color: var(--secondary-color); }
+            .main-nav a::after {
+                content: '';
+                position: absolute;
+                width: 0;
+                height: 2px;
+                display: block;
+                margin-top: 5px;
+                right: 0;
+                background: var(--secondary-color);
+                transition: width 0.3s ease;
             }
-            .quick-order-form td {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 8px 0;
-                border: none;
-            }
-            .quick-order-form td:before {
-                content: attr(data-label);
-                font-weight: 700;
-                margin-left: 10px;
-            }
+            .main-nav a:hover::after { width: 100%; }
+            #product-grid { grid-template-columns: repeat(2, 1fr); }
+            .hero h1 { font-size: 3.5em; }
+            .hero p { font-size: 1.4em; }
+        }
+        
+        @media (min-width: 1024px) {
+            #product-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        
+        @media (min-width: 1300px) {
+            #product-grid { grid-template-columns: repeat(4, 1fr); }
         }
     </style>
 </head>
 <body>
 
-    <header class="main-header">
-        <div class="logo">אבינועם נעים בע"מ</div>
-        <nav class="main-nav">
-            <a href="#">קטלוג מוצרים</a>
-            <a href="#quick-order">הזמנה מהירה</a>
-            <a href="#">אודות</a>
-            <a href="#">צור קשר</a>
-        </nav>
-        <div class="header-actions">
-            <button class="icon-btn" aria-label="חיפוש">🔍</button>
-            <button class="icon-btn" aria-label="אזור אישי">👤</button>
-            <button class="icon-btn" aria-label="סל קניות">
-                🛒
-                <span class="cart-count">3</span>
-            </button>
-            <button class="icon-btn mobile-menu-btn" aria-label="תפריט">☰</button>
+    <header class="site-header">
+        <div class="container header-container">
+            <div class="logo">אבינועם נעים</div>
+            <nav class="main-nav">
+                <a href="#home">ראשי</a>
+                <a href="#catalog">קטלוג</a>
+                <a href="#about">אודות</a>
+                <a href="#contact">צור קשר</a>
+            </nav>
+            <div class="header-actions">
+                <a href="https://wa.me/972527346457?text=שלום%20אבינועם,%20אני%20מעוניין%20בפרטים%20נוספים%20על%20המוצרים." class="whatsapp-btn-header" target="_blank">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.31 20.62C8.75 21.39 10.36 21.82 12.04 21.82C17.5 21.82 21.95 17.37 21.95 11.91C21.95 9.27 20.94 6.8 19.19 4.99C17.44 3.19 14.93 2 12.04 2M12.04 3.67C16.56 3.67 20.28 7.38 20.28 11.91C20.28 16.44 16.56 20.15 12.04 20.15C10.56 20.15 9.14 19.78 7.9 19.09L7.54 18.88L4.42 19.7L5.32 16.65L5.08 16.29C4.32 15 3.8 13.47 3.8 11.91C3.8 7.38 7.52 3.67 12.04 3.67M17.02 14.6C16.76 14.92 15.76 15.46 15.41 15.58C15.06 15.71 14.24 15.91 12.91 15.37C11.31 14.72 10.06 13.2 9.94 13.04C9.82 12.89 8.65 11.53 8.65 10.3C8.65 9.07 9.42 8.35 9.64 8.13C9.86 7.91 10.15 7.81 10.37 7.81C10.5 7.81 10.62 7.81 10.73 7.82C10.9 7.82 11.08 7.85 11.23 8.3C11.39 8.74 11.94 10.24 12 10.37C12.07 10.5 12.1 10.65 12.01 10.8C11.92 10.95 11.89 11.01 11.77 11.14C11.66 11.27 11.53 11.4 11.43 11.5C11.33 11.6 11.19 11.74 11.35 12.04C11.51 12.33 12.07 13.12 12.82 13.77C13.78 14.59 14.59 14.77 14.81 14.87C15.03 14.97 15.4 14.95 15.62 14.72C15.84 14.5 16.22 13.97 16.42 13.68C16.62 13.38 16.82 13.32 17.06 13.41C17.31 13.5 18.41 14.04 18.66 14.16C18.91 14.28 19.06 14.35 19.11 14.44C19.16 14.53 18.98 14.8 18.89 14.92C18.8 15.04 17.91 15.91 17.02 14.6Z" /></svg>
+                    <span>דברו איתנו</span>
+                </a>
+                <button id="admin-btn">ניהול</button>
+            </div>
         </div>
     </header>
 
-    <section class="hero">
-        <h1>כל מה שהעסק שלך צריך, במשלוח מהיר עד אליך</h1>
-        <p>מוצרי צריכה, חד פעמי וציוד משרדי ללקוחות מוסדיים במחירים הטובים בישראל</p>
-        <a href="#" class="cta-button">צפה בקטלוג המלא</a>
-    </section>
+    <main>
+        <section id="home" class="hero">
+            <h1>פתרונות צריכה מתקדמים לעסק שלך</h1>
+            <p>שיווק והפצה של מגוון רחב של מוצרי צריכה איכותיים לספקים, מסעדות, חנויות ומוסדות.</p>
+        </section>
 
-    <main class="container">
+        <section class="filters-section">
+            <div class="container">
+                <div class="search-container">
+                    <input type="search" id="search-input" placeholder="חפשו שם מוצר, מק״ט או תיאור...">
+                </div>
+                <div id="category-filters" class="category-filters-container">
+                    </div>
+            </div>
+        </section>
 
-        <h2 class="section-title">מוצרים פופולריים</h2>
-        <div class="products-grid">
-            <div class="product-card">
-                <img src="https://placehold.co/400x300/E8F5E9/333?text=כוסות+קרטון" alt="כוסות קרטון">
-                <div class="product-info">
-                    <h3 class="product-title">מארז 1000 כוסות קרטון 8oz</h3>
-                    <div class="product-price"><span class="currency">₪</span>129.90</div>
-                    <button class="add-to-cart-btn" onclick="alert('המוצר נוסף לסל!')">הוספה לסל</button>
+        <section id="catalog" class="container">
+            <h2 id="catalog-title">קטלוג המוצרים</h2>
+            <div id="product-grid">
                 </div>
+        </section>
+        
+        <section id="about" class="info-section">
+            <div class="container">
+                <h2>שירות, איכות ומחיר ללא תחרות</h2>
+                <p>אנו באבינועם נעים מתמחים מזה שנים רבות באספקת מוצרי צריכה מעולים לשוק המוסדי והעסקי. אנו מבינים את הצרכים הייחודיים שלכם - מסעדנים, קמעונאים ומנהלי מוסדות - ומחויבים לספק לכם מוצרים באיכות הגבוהה ביותר, שירות אמין ומהיר, ומחירים הוגנים שישפרו את השורה התחתונה שלכם. אנו כאן כדי להיות השותפים שלכם להצלחה.</p>
             </div>
-            <div class="product-card">
-                <img src="https://placehold.co/400x300/E3F2FD/333?text=נייר+טואלט" alt="נייר טואלט">
-                <div class="product-info">
-                    <h3 class="product-title">מארז 48 גלילי נייר טואלט</h3>
-                    <div class="product-price"><span class="currency">₪</span>75.50</div>
-                    <button class="add-to-cart-btn" onclick="alert('המוצר נוסף לסל!')">הוספה לסל</button>
-                </div>
+        </section>
+        
+        <section id="contact" class="info-section" style="background-color: var(--background-color);">
+            <div class="container">
+                 <h2>מוכנים להתחיל?</h2>
+                 <p>צרו קשר עוד היום לקבלת הצעת מחיר מותאמת אישית ולשמוע איך נוכל לעזור לעסק שלכם לצמוח.</p>
+                 <p><strong>אבינועם נעים | טלפון/ווצאפ:</strong> 052-734-6457</p>
             </div>
-            <div class="product-card">
-                <img src="https://placehold.co/400x300/FFF8E1/333?text=שקיות+אשפה" alt="שקיות אשפה">
-                <div class="product-info">
-                    <h3 class="product-title">שקיות אשפה עבות במיוחד (100 יח')</h3>
-                    <div class="product-price"><span class="currency">₪</span>42.00</div>
-                    <button class="add-to-cart-btn" onclick="alert('המוצר נוסף לסל!')">הוספה לסל</button>
-                </div>
-            </div>
-            <div class="product-card">
-                <img src="https://placehold.co/400x300/FBE9E7/333?text=סבון+ידיים" alt="סבון ידיים">
-                <div class="product-info">
-                    <h3 class="product-title">גלון 4 ליטר סבון ידיים אנטיבקטריאלי</h3>
-                    <div class="product-price"><span class="currency">₪</span>59.90</div>
-                    <button class="add-to-cart-btn" onclick="alert('המוצר נוסף לסל!')">הוספה לסל</button>
-                </div>
-            </div>
-        </div>
-
-        <h2 id="quick-order" class="section-title">טופס הזמנה מהירה</h2>
-        <div class="quick-order-form">
-            <table>
-                <thead>
-                    <tr>
-                        <th>מוצר</th>
-                        <th>מק"ט</th>
-                        <th>מחיר ליח'</th>
-                        <th style="text-align: center;">כמות</th>
-                        <th>סה"כ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td data-label="מוצר">מארז 1000 כוסות קרטון 8oz</td>
-                        <td data-label="מק״ט">1001</td>
-                        <td data-label="מחיר">₪129.90</td>
-                        <td data-label="כמות">
-                            <div class="quantity-selector">
-                                <button class="quantity-btn" onclick="updateQuantity(this, -1)">-</button>
-                                <input type="number" class="quantity-input" value="0" min="0">
-                                <button class="quantity-btn" onclick="updateQuantity(this, 1)">+</button>
-                            </div>
-                        </td>
-                        <td data-label="סה״כ">₪0.00</td>
-                    </tr>
-                    <tr>
-                        <td data-label="מוצר">מארז 48 גלילי נייר טואלט</td>
-                        <td data-label="מק״ט">2014</td>
-                        <td data-label="מחיר">₪75.50</td>
-                        <td data-label="כמות">
-                             <div class="quantity-selector">
-                                <button class="quantity-btn" onclick="updateQuantity(this, -1)">-</button>
-                                <input type="number" class="quantity-input" value="0" min="0">
-                                <button class="quantity-btn" onclick="updateQuantity(this, 1)">+</button>
-                            </div>
-                        </td>
-                        <td data-label="סה״כ">₪0.00</td>
-                    </tr>
-                    <tr>
-                        <td data-label="מוצר">שקיות אשפה עבות (100 יח')</td>
-                        <td data-label="מק״ט">3050</td>
-                        <td data-label="מחיר">₪42.00</td>
-                        <td data-label="כמות">
-                             <div class="quantity-selector">
-                                <button class="quantity-btn" onclick="updateQuantity(this, -1)">-</button>
-                                <input type="number" class="quantity-input" value="0" min="0">
-                                <button class="quantity-btn" onclick="updateQuantity(this, 1)">+</button>
-                            </div>
-                        </td>
-                        <td data-label="סה״כ">₪0.00</td>
-                    </tr>
-                    <tr class="total-row">
-                        <td colspan="4" style="text-align: left;"><strong>סך הכל לתשלום:</strong></td>
-                        <td id="total-price"><strong>₪0.00</strong></td>
-                    </tr>
-                </tbody>
-            </table>
-            <button class="cta-button submit-order-btn" onclick="alert('ההזמנה נשלחה בהצלחה!')">הוסף הכל לסל ושלח הזמנה</button>
-        </div>
+        </section>
     </main>
 
-    <footer class="main-footer">
-        <div class="footer-logo">אבינועם נעים בע"מ</div>
-        <div class="footer-links">
-            <a href="#">מדיניות פרטיות</a> |
-            <a href="#">תקנון האתר</a> |
-            <a href="#">שאלות ותשובות</a> |
-            <a href="#">נגישות</a>
-        </div>
-        <div class="footer-copy">
-            © 2025 כל הזכויות שמורות לאבינועם נעים בע"מ | האתר נבנה בעזרת Gemini
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2024 כל הזכויות שמורות | אבינועם נעים - שיווק והפצת מוצרי צריכה</p>
         </div>
     </footer>
+    
+    <a href="https://wa.me/972527346457?text=שלום%20אבינועם,%20אני%20מעוניין%20בפרטים%20נוספים%20על%20המוצרים." class="whatsapp-float-btn" target="_blank">
+       <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.31 20.62C8.75 21.39 10.36 21.82 12.04 21.82C17.5 21.82 21.95 17.37 21.95 11.91C21.95 9.27 20.94 6.8 19.19 4.99C17.44 3.19 14.93 2 12.04 2M12.04 3.67C16.56 3.67 20.28 7.38 20.28 11.91C20.28 16.44 16.56 20.15 12.04 20.15C10.56 20.15 9.14 19.78 7.9 19.09L7.54 18.88L4.42 19.7L5.32 16.65L5.08 16.29C4.32 15 3.8 13.47 3.8 11.91C3.8 7.38 7.52 3.67 12.04 3.67M17.02 14.6C16.76 14.92 15.76 15.46 15.41 15.58C15.06 15.71 14.24 15.91 12.91 15.37C11.31 14.72 10.06 13.2 9.94 13.04C9.82 12.89 8.65 11.53 8.65 10.3C8.65 9.07 9.42 8.35 9.64 8.13C9.86 7.91 10.15 7.81 10.37 7.81C10.5 7.81 10.62 7.81 10.73 7.82C10.9 7.82 11.08 7.85 11.23 8.3C11.39 8.74 11.94 10.24 12 10.37C12.07 10.5 12.1 10.65 12.01 10.8C11.92 10.95 11.89 11.01 11.77 11.14C11.66 11.27 11.53 11.4 11.43 11.5C11.33 11.6 11.19 11.74 11.35 12.04C11.51 12.33 12.07 13.12 12.82 13.77C13.78 14.59 14.59 14.77 14.81 14.87C15.03 14.97 15.4 14.95 15.62 14.72C15.84 14.5 16.22 13.97 16.42 13.68C16.62 13.38 16.82 13.32 17.06 13.41C17.31 13.5 18.41 14.04 18.66 14.16C18.91 14.28 19.06 14.35 19.11 14.44C19.16 14.53 18.98 14.8 18.89 14.92C18.8 15.04 17.91 15.91 17.02 14.6Z" /></svg>
+    </a>
 
-    <script>
-        function updateQuantity(element, change) {
-            const selector = element.closest('.quantity-selector');
-            const input = selector.querySelector('.quantity-input');
-            let currentValue = parseInt(input.value);
-            let newValue = currentValue + change;
-            if (newValue < 0) newValue = 0;
-            input.value = newValue;
-            
-            // Trigger calculation for quick order form
-            if (element.closest('.quick-order-form')) {
-                updateRowTotal(input);
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <h2>כניסת מנהל</h2>
+            <p>הזן סיסמה כדי לעבור למצב עריכה.</p>
+            <input type="password" id="password-input" placeholder="סיסמה">
+            <div id="error-message" style="color:red; margin-bottom:10px; display:none;">סיסמה שגויה! נסה שוב.</div>
+            <div class="modal-buttons">
+                <button id="cancel-login">ביטול</button>
+                <button id="confirm-login">התחבר</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- State and Data ---
+    let products = [];
+    let isEditMode = false;
+    const initialProducts = [
+        { id: 1, name: '9 מטליות רב שימושיות Premium', sku: '0206', description: 'מארז 9 מטליות פרימיום לניקוי כללי. מידה: 38X38 ס"מ. 24 יחידות בשק.', imageUrl: 'https://images.unsplash.com/photo-1583947215259-38e34be8751f?w=600&q=80', category: 'מטליות וספוגים' },
+        { id: 2, name: 'סופר מגבת XL', sku: '0657', description: 'גליל סופר מגבת סופג במיוחד בגודל XL. משקל: כ-700 גרם. 12 יחידות בשק.', imageUrl: 'https://images.unsplash.com/photo-1627906323495-29992794a4c9?w=600&q=80', category: 'נייר וגלילים' },
+        { id: 3, name: '3 מטליות מיקרופייבר לרצפה SWIFT', sku: '0380', description: 'מארז 3 מטליות מיקרופייבר לרצפה נקייה ומבריקה. מידה: 48X68. 36 מארזים בקרטון.', imageUrl: 'https://images.unsplash.com/photo-1596642231262-a2262a3f01b5?w=600&q=80', category: 'מטליות וספוגים' },
+        { id: 4, name: 'מטליות לחות לחיטוי משטחים (50 יח\')', sku: '0466', description: 'משמיד 99.9% מהחיידקים. עומד בתקן ישראלי 1944. בניחוח לימון. 24 יחידות בקרטון.', imageUrl: 'https://images.unsplash.com/photo-1604078370502-613a9f737d2f?w=600&q=80', category: 'ניקיון וחיטוי' },
+        { id: 5, name: '9 כריות יפניות לניקוי וקרצוף כלים', sku: '0931', description: 'מארז ענק של 9 כריות קרצוף עמידות לניקוי כלים יעיל. 24 יחידות בשק.', imageUrl: 'https://images.unsplash.com/photo-1594950346049-5a557d81a403?w=600&q=80', category: 'מטליות וספוגים' },
+        { id: 6, name: '6 ספוגי הפלא לניקיון מושלם', sku: '0896', description: 'מסיר לכלוך קשה מקירות, דלתות, פלסטיק ועוד באמצעות מים בלבד. 24 יחידות בשק.', imageUrl: 'https://images.unsplash.com/photo-1593439407513-46141a0173a1?w=600&q=80', category: 'מטליות וספוגים' },
+        { id: 7, name: 'כפפות ניטריל שחורות 100 יח\'', sku: '0859', description: 'כפפות ניטריל שחורות חזקות ללא אבקה. 10 יחידות בקרטון. זמין במידות S, M, L, XL.', imageUrl: 'https://images.unsplash.com/photo-1599421497960-1181e3b63297?w=600&q=80', category: 'כפפות' },
+        { id: 8, name: 'שקיות אשפה עם שרוך קשירה (20 יח\')', sku: '1402', description: 'שקיות אשפה חזקות במיוחד עם שרוך לקשירה נוחה. גודל 90x75 ס"מ. כ-700 גרם.', imageUrl: 'https://images.unsplash.com/photo-1574716474136-97e3a95c8086?w=600&q=80', category: 'שקיות אשפה' },
+        { id: 9, name: 'מטאטא סיליקון מקצועי', sku: '1609', description: 'מטאטא סיליקון לאיסוף יעיל של אבק, שיער ולכלוך באמצעות חשמל סטטי. פטנט בינלאומי.', imageUrl: 'https://images.unsplash.com/photo-1528740561666-dc2479703592?w=600&q=80', category: 'כלי ניקוי' },
+        { id: 10, name: '8 מפות שולחן מניילון שקוף', sku: '0454', description: 'מפות ניילון חזקות ועמידות לאירוח. מידה: 2.40X1.35. 30 יחידות בקרטון.', imageUrl: 'https://images.unsplash.com/photo-1614741128885-b13136512bad?w=600&q=80', category: 'חד פעמי ואירוח' },
+        { id: 11, name: 'סבון אסלה כחול אקטיבי - שלישייה', sku: '1331', description: 'שלישיית סבוני אסלה לניקוי, חיטוי וריח רענן בכל הדחה. 24 יחידות בקרטון.', imageUrl: 'https://images.unsplash.com/photo-1600609633989-14a72e700405?w=600&q=80', category: 'ניקיון וחיטוי' },
+        { id: 12, name: 'דלי שטיפה 10 ליטר עם פיה', sku: '1564', description: 'דלי שטיפה מפלסטיק איכותי עם פיה למזיגה נוחה. מגיע במגוון צבעים.', imageUrl: 'https://images.unsplash.com/photo-1598214912956-6f8189b14e3b?w=600&q=80', category: 'כלי ניקוי' },
+        { id: 13, name: 'סינרי ניילון חד פעמיים 100 יח\'', sku: '0961', description: 'סינרים חד פעמיים עמידים למטבח המוסדי והביתי. מגיע בדיספנסר נוח לשליפה.', imageUrl: 'https://images.unsplash.com/photo-1601618334057-251c890a8818?w=600&q=80', category: 'חד פעמי ואירוח' },
+        { id: 14, name: 'כפפות ויניל שקופות ללא אבקה 100 יח\'', sku: '0723', description: 'כפפות ויניל לעבודות עדינות הדורשות הגנה. כשר לפסח. 10 יחידות בקרטון.', imageUrl: 'https://images.unsplash.com/photo-1584303828995-a477b7a4884f?w=600&q=80', category: 'כפפות' },
+        { id: 15, name: 'שקיות אשפה לפחים קטנים 80 יח\'', sku: '1415', description: 'שקיות קטנות ונוחות לפחי שירותים ומשרד. גודל: 45x50 ס"מ.', imageUrl: 'https://images.unsplash.com/photo-1610173826450-93a970e3a62f?w=600&q=80', category: 'שקיות אשפה' },
+        { id: 16, name: 'מגב מתכת מקצועי VIVIAN', sku: '1716', description: 'מגב מתכת מקצועי ועמיד במיוחד לניקוי יסודי של רצפות. רוחב: 45 ס"מ.', imageUrl: 'https://images.unsplash.com/photo-1542841414-f44e1530b809?w=600&q=80', category: 'כלי ניקוי' },
+        { id: 17, name: '100 מפיות אירוח חד שכבתיות', sku: '1461', description: 'מפיות נייר לאירוח במגוון צבעים או לבן בלבד. 30 יחידות בקרטון.', imageUrl: 'https://images.unsplash.com/photo-1554924519-cfa04b3a4a08?w=600&q=80', category: 'חד פעמי ואירוח' },
+        { id: 18, name: 'נייר אפייה איכותי 50 יח\'', sku: '0604', description: 'דפי נייר אפייה למניעת הידבקות. גודל 42x37 ס"מ. 24 יחידות בקרטון.', imageUrl: 'https://images.unsplash.com/photo-1596719114755-2d45a90159d3?w=600&q=80', category: 'נייר וגלילים' },
+        { id: 19, name: 'ערכת עזרה ראשונה קומפקטית', sku: '7305', description: 'ערכה קומפקטית לרכב או למשרד הכוללת פלסטרים, פדי גזה, מגבוני אלכוהול ועוד.', imageUrl: 'https://images.unsplash.com/photo-1585060544861-f4922114b09c?w=600&q=80', category: 'עזרה ראשונה' },
+        { id: 20, name: 'פח דוושה 45 ליטר מרובע', sku: '1692', description: 'פח אשפה עם דוושה לפתיחה נוחה והיגיינית. עיצוב מודרני, זמין בלבן או אפור.', imageUrl: 'https://images.unsplash.com/photo-1580741276295-885d38865ab3?w=600&q=80', category: 'פחים ודליים' },
+        { id: 21, name: 'מבשם אוויר בניחוח מלון בוטיק', sku: '0774', description: 'מבשם אוויר נטול גז לבישום עדין ויוקרתי של חללים. 400 מ"ל.', imageUrl: 'https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=600&q=80', category: 'ניקיון וחיטוי' },
+        { id: 22, name: '1000 בוחשני עץ לשתיה חמה', sku: '0682', description: 'בוחשני עץ היגייניים ואקולוגיים למשרד, לבתי קפה ולחדרי אירוח. 10 יחידות בקרטון.', imageUrl: 'https://images.unsplash.com/photo-1511920183353-3c9c63675a59?w=600&q=80', category: 'חד פעמי ואירוח' },
+        { id: 23, name: 'גליל ניילון נצמד עם סכין חיתוך', sku: '0541', description: 'ניילון נצמד איכותי ללא PVC עם סכין חיתוך אינטגרלי לשימוש קל ובטוח. אורך 150 מטר.', imageUrl: 'https://images.unsplash.com/photo-1629231362092-9a3b6f007f30?w=600&q=80', category: 'נייר וגלילים' },
+        { id: 24, name: '150 שקיות סנדוויץ\' נשלפות', sku: '1409', description: 'שקיות אוכל נוחות לשימוש, נשלפות אחת אחת. מארז שלישייה (50 יח\' כל אחת).', imageUrl: 'https://images.unsplash.com/photo-1549487962-e4e7c7a25697?w=600&q=80', category: 'שקיות אשפה' },
+        { id: 25, name: 'פד גזה סטרילי 100 יח\'', sku: '7312', description: 'פדים לא סטריליים לטיפול וחבישה ראשונית. גודל 10x10 ס"מ.', imageUrl: 'https://images.unsplash.com/photo-1606041991038-f6943382c332?w=600&q=80', category: 'עזרה ראשונה' },
+    ];
+
+    // --- DOM Elements ---
+    const productGrid = document.getElementById('product-grid');
+    const searchInput = document.getElementById('search-input');
+    const categoryFiltersContainer = document.getElementById('category-filters');
+    const adminBtn = document.getElementById('admin-btn');
+    const loginModal = document.getElementById('login-modal');
+    const passwordInput = document.getElementById('password-input');
+    const confirmLoginBtn = document.getElementById('confirm-login');
+    const cancelLoginBtn = document.getElementById('cancel-login');
+    const errorMessage = document.getElementById('error-message');
+
+    function loadProducts() {
+        const storedProducts = localStorage.getItem('avinoamNaimProducts');
+        products = storedProducts ? JSON.parse(storedProducts) : initialProducts;
+        renderCategories();
+        renderProducts(products);
+    }
+
+    function renderCategories() {
+        const categories = ['הכל', ...new Set(products.map(p => p.category))];
+        categoryFiltersContainer.innerHTML = '';
+        categories.forEach(category => {
+            const btn = document.createElement('button');
+            btn.className = 'category-btn';
+            btn.textContent = category;
+            if (category === 'הכל') {
+                btn.classList.add('active');
             }
-        }
+            btn.addEventListener('click', () => {
+                // Update active button style
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
 
-        function updateRowTotal(input) {
-            const row = input.closest('tr');
-            const priceCell = row.querySelector('td[data-label="מחיר"]');
-            const totalCell = row.querySelector('td[data-label="סה״כ"]');
-            
-            const price = parseFloat(priceCell.textContent.replace('₪', ''));
-            const quantity = parseInt(input.value);
-            const rowTotal = price * quantity;
-            
-            totalCell.textContent = '₪' + rowTotal.toFixed(2);
-            updateGrandTotal();
-        }
-
-        function updateGrandTotal() {
-            const allRows = document.querySelectorAll('.quick-order-form tbody tr:not(.total-row)');
-            let grandTotal = 0;
-            allRows.forEach(row => {
-                const totalCell = row.querySelector('td[data-label="סה״כ"]');
-                grandTotal += parseFloat(totalCell.textContent.replace('₪', ''));
+                // Filter and render products
+                const productsToRender = category === 'הכל' 
+                    ? products 
+                    : products.filter(p => p.category === category);
+                renderProducts(productsToRender);
             });
-            
-            const grandTotalCell = document.getElementById('total-price');
-            grandTotalCell.innerHTML = '<strong>₪' + grandTotal.toFixed(2) + '</strong>';
+            categoryFiltersContainer.appendChild(btn);
+        });
+    }
+
+    function renderProducts(productsToRender) {
+        productGrid.innerHTML = '';
+        if (productsToRender.length === 0) {
+            productGrid.innerHTML = '<p style="text-align:center; grid-column: 1 / -1;">לא נמצאו מוצרים התואמים את החיפוש.</p>';
+            return;
         }
-    </script>
+
+        productsToRender.forEach(product => {
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            card.dataset.id = product.id;
+            
+            card.innerHTML = `
+                <div class="product-image-container">
+                    <img src="${product.imageUrl}" alt="${product.name}" loading="lazy">
+                </div>
+                <div class="product-info">
+                    <h3 class="edit-field" data-field="name" contenteditable="${isEditMode}">${product.name}</h3>
+                    <span class="sku edit-field" data-field="sku" contenteditable="${isEditMode}">מק״ט: ${product.sku}</span>
+                    <p class="edit-field" data-field="description" contenteditable="${isEditMode}">${product.description}</p>
+                    <input type="text" class="edit-url-field" value="${product.imageUrl}" data-field="imageUrl" placeholder="הדבק קישור חדש לתמונה כאן">
+                </div>
+            `;
+            productGrid.appendChild(card);
+        });
+    }
+
+    function handleSearch() {
+        const searchTerm = searchInput.value;
+        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('.category-btn').classList.add('active'); // Set 'All' to active
+        const filteredProducts = products.filter(p => 
+            p.name.includes(searchTerm) ||
+            p.sku.includes(searchTerm) ||
+            p.description.includes(searchTerm)
+        );
+        renderProducts(filteredProducts);
+    }
+
+    function toggleAdminMode() {
+        if (isEditMode) {
+            saveChanges();
+            isEditMode = false;
+            document.body.classList.remove('edit-mode');
+            adminBtn.textContent = 'ניהול';
+            alert('השינויים נשמרו בהצלחה בדפדפן!');
+            renderProducts(products);
+        } else {
+            loginModal.style.display = 'block';
+            passwordInput.focus();
+        }
+    }
+
+    function login() {
+        if (passwordInput.value === '12345') {
+            isEditMode = true;
+            document.body.classList.add('edit-mode');
+            adminBtn.textContent = 'שמור וצא';
+            loginModal.style.display = 'none';
+            passwordInput.value = '';
+            errorMessage.style.display = 'none';
+            // re-render the active category in edit mode
+            const activeCategoryBtn = document.querySelector('.category-btn.active');
+            const category = activeCategoryBtn ? activeCategoryBtn.textContent : 'הכל';
+            const productsToRender = category === 'הכל' 
+                ? products 
+                : products.filter(p => p.category === category);
+            renderProducts(productsToRender);
+        } else {
+            errorMessage.style.display = 'block';
+        }
+    }
+    
+    function saveChanges() {
+        const cards = document.querySelectorAll('.product-card');
+        let dataChanged = false;
+        cards.forEach(card => {
+            const productId = parseInt(card.dataset.id);
+            const productIndex = products.findIndex(p => p.id === productId);
+
+            if (productIndex > -1) {
+                const updatedProduct = { ...products[productIndex] };
+                updatedProduct.name = card.querySelector('[data-field="name"]').textContent;
+                updatedProduct.sku = card.querySelector('[data-field="sku"]').textContent.replace('מק״ט: ', '');
+                updatedProduct.description = card.querySelector('[data-field="description"]').textContent;
+                updatedProduct.imageUrl = card.querySelector('[data-field="imageUrl"]').value;
+                products[productIndex] = updatedProduct;
+                dataChanged = true;
+            }
+        });
+
+        if(dataChanged) {
+            localStorage.setItem('avinoamNaimProducts', JSON.stringify(products));
+        }
+    }
+    
+    // --- Smooth Scrolling for Nav Links ---
+    document.querySelectorAll('.main-nav a').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetElement = document.querySelector(this.getAttribute('href'));
+            if(targetElement) {
+                const headerOffset = 80; // height of header
+                const elementPosition = targetElement.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth"
+                });
+            }
+        });
+    });
+
+    // --- Event Listeners ---
+    searchInput.addEventListener('input', handleSearch);
+    adminBtn.addEventListener('click', toggleAdminMode);
+    
+    // Modal events
+    cancelLoginBtn.addEventListener('click', () => {
+        loginModal.style.display = 'none';
+        passwordInput.value = '';
+        errorMessage.style.display = 'none';
+    });
+    
+    confirmLoginBtn.addEventListener('click', login);
+    passwordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
+    window.addEventListener('click', (e) => { if (e.target == loginModal) loginModal.style.display = "none"; });
+
+    // --- Initial Load ---
+    loadProducts();
+});
+</script>
+
 </body>
 </html>
