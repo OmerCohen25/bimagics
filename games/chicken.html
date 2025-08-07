@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>מלחמת החלל V4.2 - גרסה יציבה</title>
+    <title>מלחמת החלל V4.3 - תזוזה מתוקנת</title>
     <style>
         body { margin: 0; background-color: #000; color: #fff; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
         canvas { background-color: #0c0c1c; display: block; touch-action: none; }
@@ -16,8 +16,8 @@
 </head>
 <body>
     <div id="startScreen" class="screen">
-        <h1>מלחמת החלל V4.2</h1>
-        <p>גרסה יציבה עם מערכת נשקים משופרת, שדרוגים מתפתחים ושמירת רמות!</p>
+        <h1>מלחמת החלל V4.3</h1>
+        <p>גרסה יציבה עם תיקון תזוזת החללית!</p>
         <button id="startButton">התחל משחק</button>
     </div>
     <div id="gameOverScreen" class="screen" style="display:none;">
@@ -29,7 +29,7 @@
     <canvas id="gameCanvas"></canvas>
 
 <script>
-// V4.2 - גרסה יציבה עם טיפול בשגיאות.
+// V4.3 - תיקון תזוזת החללית.
 try { // מנגנון הגנה לתפוס שגיאות קריטיות
     
     // ==================
@@ -194,6 +194,20 @@ try { // מנגנון הגנה לתפוס שגיאות קריטיות
     // ==================
     const player = new Player();
     const input = { x: canvas.width / 2, y: canvas.height - 60 };
+    
+    // ==================
+    // מאזינים לאירועים (EVENT LISTENERS) - החלק שהיה חסר
+    // ==================
+    window.addEventListener('mousemove', e => {
+        if (gameState === 'playing') input.x = e.clientX;
+    });
+    window.addEventListener('touchmove', e => {
+        e.preventDefault();
+        if (gameState === 'playing' && e.touches.length > 0) {
+            input.x = e.touches[0].clientX;
+        }
+    }, { passive: false });
+
 
     function spawnWave() {
         if (isBossLevel) return;
@@ -311,9 +325,6 @@ try { // מנגנון הגנה לתפוס שגיאות קריטיות
         audioManager.stop('laser'); player.isFiringLaser = false;
     }
     
-    // ==================
-    // לולאת משחק ואירועים
-    // ==================
     function animate() { if (gameState !== 'playing') return; ctx.save(); applyScreenShake(); ctx.clearRect(0, 0, canvas.width, canvas.height); handleGameObjects(stars); handleGameObjects(particles); player.update(input); player.draw(); spawnWave(); handleGameObjects(enemies); handleGameObjects(playerProjectiles); handleGameObjects(powerUps); handleGameObjects(enemyProjectiles); handleGameObjects(explosions); detectCollisions(); drawUI(); ctx.restore(); gameFrame++; requestAnimationFrame(animate); }
     function handleCanvasClick(e) {
         const rect = canvas.getBoundingClientRect();
