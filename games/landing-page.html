@@ -1,512 +1,513 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Wizbi Play — Magical Live Demo: A WhatsApp-Powered Game Experience</title>
-<meta name="description" content="Experience the magic: A live demo showing a WhatsApp chat generating a game inside a mobile mockup, with dynamic effects, animations, and a remix gallery.">
-<meta property="og:title" content="Wizbi Play — A Magical Live Demo" />
-<meta property="og:description" content="Create a game via WhatsApp, get an instant link, and play in a stunning, interactive demo." />
-<meta property="og:image" content="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='630'><rect width='100%' height='100%' fill='%230d1117'/><g transform='translate(600 315)'><path d='M-150 0 L-100 50 L-50 0 L-100 -50 Z' fill='%2300c175'/><text x='0' y='10' font-size='64' fill='white' text-anchor='middle'>Wizbi Play</text></g></svg>">
-<meta name="theme-color" content="#0d1117">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
-<style>
-  /* --- Core Styles, Variables & Magical Background --- */
-  :root {
-    --bg: #0d1117; --panel: rgba(15, 21, 32, 0.75); --card: rgba(22, 27, 34, 0.75);
-    --border: rgba(48, 54, 61, 0.7); --border-light: rgba(60, 68, 78, 0.8);
-    --text: #e6edf3; --muted: #9aa7b1; --accent: #00c175; --accent-2: #7df0c3;
-    --shadow: 0 12px 40px rgba(0,0,0,.45); --shadow-light: 0 4px 15px rgba(0,0,0,.3);
-  }
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    margin: 0; background-color: var(--bg);
-    color: var(--text); font-family: "Inter", system-ui, sans-serif;
-    overflow-x: hidden;
-  }
-  #bg-canvas {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    z-index: -1; opacity: 0.7;
-  }
-  a { color: var(--accent-2); text-decoration: none; }
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 40px 20px; }
-
-  /* --- Glassmorphism & Reveal Animations --- */
-  .card {
-    background-color: var(--card); border: 1px solid var(--border);
-    border-radius: 18px; box-shadow: var(--shadow);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  }
-  .reveal {
-    opacity: 0; transform: translateY(30px);
-    transition: opacity 0.8s ease, transform 0.8s ease;
-  }
-  .reveal.visible { opacity: 1; transform: translateY(0); }
-  
-  /* --- Layout & Typography --- */
-  .hero { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: flex-start; }
-  @media (max-width: 980px) { .hero { grid-template-columns: 1fr; } }
-  
-  .title-block { text-align: center; margin-bottom: 40px; }
-  .title-block h1 { margin: 0; font-size: clamp(32px, 5vw, 50px); letter-spacing: -1px; }
-  .title-block .subtitle { color: var(--muted); font-size: 1.1rem; max-width: 600px; margin: 10px auto 0; }
-  .pill { display: inline-flex; gap: 8px; align-items: center; background: var(--panel); border: 1px solid var(--border); padding: 8px 14px; border-radius: 999px; color: #9ed0b9; font-weight: 700; margin-bottom: 16px; }
-  .stack { display: flex; flex-direction: column; gap: 16px; }
-
-  /* --- Buttons & Interactive Elements --- */
-  .btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    border: 1px solid var(--border-light); background: transparent; color: var(--text); padding: 12px 18px;
-    border-radius: 12px; font-weight: 700; cursor: pointer; transition: all .2s ease;
-  }
-  .btn:hover { transform: translateY(-2px); border-color: var(--accent-2); box-shadow: 0 4px 20px rgba(0, 193, 117, 0.1); }
-  .btn svg { width: 18px; height: 18px; }
-  .btn.prime { background: var(--accent); border-color: var(--accent); color: #042e22; font-weight: 800; }
-  .btn.prime:hover { background: #0acf83; border-color: #0acf83; box-shadow: 0 6px 25px rgba(0, 193, 117, 0.3); }
-  .btn.ghost { color: #bfe9d9; border-color: var(--border); }
-  .btn.ghost:hover { background: rgba(191, 233, 217, 0.1); color: white; border-color: #bfe9d9; }
-  .note { color: var(--muted); font-size: 14px; line-height: 1.5; }
-
-  /* --- WhatsApp Mockup --- */
-  .wa { height: 600px; display: flex; flex-direction: column; overflow: hidden; }
-  .wa-header { background: #094d46; color: #eafff8; padding: 12px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(0,0,0,0.2); }
-  .wa-dot { width: 9px; height: 9px; border-radius: 99px; background: #46ffa6; box-shadow: 0 0 10px #46ffa6; }
-  .wa-name { font-weight: 800; }
-  .wa-body { flex: 1; background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"><circle cx="7" cy="7" r="1" fill="rgba(255,255,255,0.04)"/></svg>'); padding: 12px; overflow: auto; }
-  .wa-msg { max-width: 80%; margin: 8px 0; padding: 10px 14px; border-radius: 16px; line-height: 1.4; box-shadow: var(--shadow-light); }
-  .wa-in { background: #1a2330; }
-  .wa-out { background: #1b3d2e; margin-left: auto; }
-  @keyframes typing-bounce { 0%, 80%, 100% { transform: translateY(0); opacity: .4; } 40% { transform: translateY(-3px); opacity: 1; } }
-  .wa-typing i { width: 6px; height: 6px; background: #9ed0b9; border-radius: 99px; animation: typing-bounce .9s infinite; display: inline-block; margin: 0 1px; } .wa-typing i:nth-child(2) { animation-delay: .15s; } .wa-typing i:nth-child(3) { animation-delay: .3s; }
-  .wa-footer { display: flex; gap: 8px; padding: 10px; background: rgba(12, 18, 24, 0.8); border-top: 1px solid var(--border); }
-  .wa-input { flex: 1; background: #0a1016; border: 1px solid var(--border); border-radius: 999px; color: var(--text); padding: 10px 14px; }
-  .wa-send { background: var(--accent); border: none; border-radius: 50%; width: 44px; height: 44px; font-weight: 800; color: #043122; cursor: pointer; transition: all .2s; }
-  .wa-send:hover { transform: scale(1.1); background: #0acf83; }
-
-  /* --- Mobile Phone Mockup --- */
-  .phone-mockup {
-    background: #111; border-radius: 40px; padding: 12px;
-    box-shadow: var(--shadow), 0 0 0 2px #1a1a1a;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  .phone-mockup.shake { animation: shake-hard .3s; }
-  .phone-inner { background: var(--bg); border-radius: 30px; overflow: hidden; height: 576px; display: flex; flex-direction: column; }
-  .game-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-  .badge { background: var(--panel); color: var(--accent-2); border: 1px solid var(--border-light); padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: 13px; }
-  .game-stage {
-    flex-grow: 1; position: relative; overflow: hidden;
-    background: radial-gradient(circle at 50% 0%, rgba(0,193,117,.15), transparent 60%), #091018;
-  }
-  .game-footer { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-top: 1px solid var(--border); flex-shrink: 0; font-size: 14px; }
-  @keyframes shake-hard { 0%,100% {transform:translateX(0)} 20%,60% {transform:translateX(-4px)} 40%,80% {transform:translateX(4px)} }
-  
-  /* --- Game Elements --- */
-  .game-item {
-    position: absolute; user-select: none; cursor: pointer;
-    font-size: 32px; transition: transform 0.1s ease-out;
-  }
-  .game-item.clicked { transform: scale(0.8) rotate(-15deg) !important; opacity: 0; }
-  .click-pop {
-    position: absolute; width: 60px; height: 60px; border-radius: 50%;
-    border: 3px solid rgba(255,255,255,0.8);
-    transform: translate(-50%, -50%) scale(0); opacity: 1;
-    animation: click-pop-anim 0.3s ease-out forwards;
-  }
-  @keyframes click-pop-anim { to { transform: translate(-50%, -50%) scale(1.5); opacity: 0; } }
-  .game-over-overlay {
-    position: absolute; inset: 0; background: rgba(0,0,0,0.7);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    color: white; text-align: center; opacity: 0;
-    transition: opacity 0.4s ease; backdrop-filter: blur(5px);
-  }
-  .game-over-overlay.show { opacity: 1; }
-  .game-over-overlay h3 { font-size: 28px; margin: 0; }
-  .game-over-overlay .final-score { font-size: 52px; font-weight: 800; color: var(--accent); margin: 10px 0; }
-
-  /* --- Gallery --- */
-  .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  @media (max-width: 980px) { .gallery { grid-template-columns: 1fr 1fr; } }
-  @media (max-width: 560px) { .gallery { grid-template-columns: 1fr; } }
-  .tile { display: flex; flex-direction: column; gap: 10px; padding: 14px; transition: all .2s ease; }
-  .tile:hover { transform: translateY(-5px); box-shadow: 0 8px 30px rgba(0,0,0,.3); border-color: var(--border-light); }
-  .tile .cover { height: 120px; border-radius: 10px; background: #0e1721; display: flex; align-items: center; justify-content: center; font-size: 44px; }
-  .tile h4 { margin: 0; font-size: 1.1rem; }
-  .tile .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; }
-
-  /* --- Utility & Misc --- */
-  .copy-toast { position: fixed; left: 0; right: 0; bottom: 20px; margin: auto; max-width: 320px; background: #0a1c15; border: 1px solid #186a50; color: #aef3da; padding: 12px 16px; border-radius: 12px; text-align: center; opacity: 0; transform: translateY(12px); transition: all .25s ease; z-index: 1000; }
-  .copy-toast.show { opacity: 1; transform: translateY(0); }
-  .footnote { color: #7e8b96; font-size: 13px; text-align: center; margin-top: 50px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CreateOS - יצירת משחקים ואתרים בקליק</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Assistant', sans-serif;
+        }
+        .hero-bg {
+            background-color: #1a1a1a;
+            background-image: radial-gradient(circle at top right, rgba(121, 87, 255, 0.2), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(255, 87, 224, 0.2), transparent 40%);
+        }
+        .whatsapp-chat {
+            background-color: #e5ddd5;
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 400px;
+            margin: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .chat-bubble {
+            padding: 10px 15px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            max-width: 80%;
+            position: relative;
+        }
+        .user-bubble {
+            background-color: #dcf8c6;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+        .ai-bubble {
+            background-color: #ffffff;
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+        .ai-bubble a {
+            color: #007bff;
+            text-decoration: underline;
+            font-weight: bold;
+        }
+        .gallery-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .gallery-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .menu-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 5px 10px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .gallery-card:hover .menu-bar {
+            opacity: 1;
+        }
+    </style>
 </head>
-<body>
-  <canvas id="bg-canvas"></canvas>
+<body class="bg-gray-900 text-white">
 
-  <div class="wrap">
-    <header class="title-block reveal">
-      <span class="pill">🚀 Magical Live Demo</span>
-      <h1>Turn Prompts into Play</h1>
-      <p class="subtitle">This is a live demonstration of Wizbi Play. See how a simple WhatsApp prompt generates a fully playable game, instantly, right inside a mobile experience.</p>
-    </header>
-
-    <div class="hero">
-      <div class="stack reveal">
-        <div class="card wa" id="wa">
-          <div class="wa-header">
-            <div class="wa-dot"></div>
-            <div>
-              <div class="wa-name">Wizbi • AI Game Builder</div>
-              <div style="font-size:12px;opacity:.8">Online</div>
-            </div>
-          </div>
-          <div class="wa-body" id="waBody"></div>
-          <div class="wa-footer">
-            <input class="wa-input" id="waInput" placeholder="Try a prompt...">
-            <button class="wa-send" id="waSend" aria-label="Send">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4l17.4-8.7c.9-.4.9-1.6 0-2L3.4 1.1c-.9-.4-1.8.4-1.4 1.3l3.6 7.3-3.6 7.3c-.4.9.5 1.7 1.4 1.4z"/></svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="stack reveal" style="transition-delay: 0.2s;">
-        <div class="phone-mockup" id="phoneMockup">
-          <div class="phone-inner">
-            <div class="game-head">
-              <span class="badge" id="gameBadge">Live Game</span>
-              <div class="panel">
-                <button class="btn small" id="btnStart">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                  <span>Start</span>
+    <section class="hero-bg">
+        <div class="container mx-auto px-6 text-center py-20 md:py-32">
+            <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-4">הופכים רעיונות למציאות דיגיטלית.</h1>
+            <p class="text-lg md:text-2xl text-gray-300 mb-8">צרו משחקים ואתרים מדהימים פשוט על ידי תיאור שלהם בוואטסאפ או כאן באתר. הבינה המלאכותית שלנו תבנה הכל בשבילכם.</p>
+            <div class="flex justify-center space-x-4">
+                <a href="#demo" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-full transition duration-300">צפו בדמו</a>
+                <button onclick="alert('התחברות עם גוגל תתאפשר בקרוב!')" class="bg-white text-gray-900 font-bold py-3 px-6 rounded-full transition duration-300 flex items-center">
+                    <svg class="w-5 h-5 mr-2" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.42-4.55H24v8.51h12.8c-.57 5.65-5.06 9.47-11.38 9.47-6.9 0-12.5-5.55-12.5-12.42s5.6-12.42 12.5-12.42c3.83 0 6.9 1.62 8.35 3.07l5.96-5.96C38.33 4.19 31.81 1.5 24 1.5c-9.38 0-17.27 6.32-20.14 14.83l8.03 6.2C14.02 16.44 18.57 13 24 13c3.83 0 7.15 1.5 9.42 3.86l-6.92 6.92C25.1 22.95 24.55 23 24 23c-4.97 0-9.09-4.08-9.09-9.14S19.03 4.72 24 4.72c2.72 0 5.17 1.09 6.92 2.84l6.98-6.98C34.36 2.45 29.5 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.06-5.48C30.8 38.21 27.64 39.5 24 39.5c-5.29 0-9.75-3.5-11.35-8.27l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></svg>
+                    התחבר עם גוגל
                 </button>
-              </div>
             </div>
-            <div class="game-stage" id="gameStage">
-              <div class="game-over-overlay" id="gameOverOverlay">
-                <h3>Game Over!</h3>
-                <div id="finalScore" class="final-score">0</div>
-                <div class="note">Try again or Remix below!</div>
-              </div>
-            </div>
-            <div class="game-footer">
-              <div>Score: <b id="score">0</b></div>
-              <div>Time: <b id="time">15</b>s</div>
-            </div>
-          </div>
         </div>
-        <div class="card reveal" style="padding: 16px;">
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-                <p class="note" style="font-size: 15px; margin:0; text-align: center;">The real system enables one-click sharing and instant remixing from any game.</p>
-                <div style="display:flex; flex-wrap:wrap; gap: 8px; justify-content: center;">
-                    <button class="btn prime" id="ctaRemix">✨ Remix this Game</button>
-                    <button class="btn ghost" id="btnCopyLink">🔗 Copy Share Link</button>
+    </section>
+
+    <section id="demo" class="container mx-auto px-6 py-20">
+        <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">ככה זה עובד. פשוט וגאוני.</h2>
+        <div class="flex flex-col md:flex-row items-center justify-center gap-16">
+            <div class="w-full md:w-1/2">
+                <h3 class="text-2xl font-bold text-center mb-6">1. מבקשים בוואטסאפ...</h3>
+                <div class="whatsapp-chat">
+                    <div class="flex flex-col">
+                        <div class="chat-bubble user-bubble">
+                            היי, אני רוצה להכין משחק פשוט של נחש. רקע שחור, הנחש ירוק, והאוכל אדום.
+                        </div>
+                        <div class="chat-bubble ai-bubble flex items-center space-x-2">
+                            <span>טוען...</span>
+                            <svg class="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                        <div id="ai-response" class="chat-bubble ai-bubble hidden">
+                            בטח, הנה קישור למשחק הנחש שלך: <a href="#snake-game" onclick="showGame('snake')">https://createos.ai/snake-game-4f2a</a>
+                            <br><small class="text-gray-500">המשחק נוסף לקטלוג האישי שלך.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full md:w-1/2">
+                <h3 class="text-2xl font-bold text-center mb-6">2. ומקבלים תוצר מוכן!</h3>
+                <div id="snake-game" class="relative w-full h-80 bg-black rounded-lg shadow-2xl hidden border-4 border-indigo-500">
+                    <div class="menu-bar">
+                        <div>משחק הנחש שלי</div>
+                        <div class="flex space-x-2">
+                            <button title="שתף" class="hover:text-indigo-400">🔗</button>
+                            <button title="ערוך" class="hover:text-indigo-400">✏️</button>
+                            <button title="העתק" class="hover:text-indigo-400">📋</button>
+                        </div>
+                    </div>
+                     <iframe id="game-iframe-snake" class="w-full h-full rounded-lg" frameborder="0"></iframe>
+                </div>
+                 <div id="website-placeholder" class="relative w-full h-80 bg-gray-800 rounded-lg shadow-2xl flex items-center justify-center border-4 border-gray-700">
+                     <p class="text-gray-400">התוצר שלך יופיע כאן</p>
                 </div>
             </div>
         </div>
-      </div>
-    </div>
+    </section>
 
-    <div class="stack reveal" style="margin-top:50px">
-      <div class="title-block" style="margin-bottom: 20px;">
-          <h2 style="margin:0; font-size: 2.2rem;">🎮 Sample Game Collection</h2>
-          <p class="subtitle" style="font-size: 1rem;">Load any demo, or use the Remix button to see how the AI could modify it.</p>
-      </div>
-      <div class="gallery" id="galleryContainer"></div>
-    </div>
+    <section class="bg-gray-800 py-20">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">מה אפשר ליצור? הכל.</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="gallery-card bg-gray-900 rounded-lg overflow-hidden shadow-lg" onclick="showGame('snake_gallery')">
+                    <div class="relative h-48 bg-black flex items-center justify-center">
+                         <div class="menu-bar">
+                            <div>משחק הנחש</div>
+                            <div class="flex space-x-2">
+                                <button title="שתף" class="hover:text-indigo-400">🔗</button>
+                                <button title="ערוך" class="hover:text-indigo-400">✏️</button>
+                                <button title="העתק" class="hover:text-indigo-400">📋</button>
+                            </div>
+                        </div>
+                        <span class="text-green-500 text-3xl font-mono">SNAKE</span>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-bold text-xl mb-2">משחק נחש קלאסי</h3>
+                        <p class="text-gray-400 text-base">"תכין לי משחק נחש פשוט עם רקע שחור..."</p>
+                    </div>
+                </div>
 
-    <footer class="footnote reveal">© Wizbi • This is a non-functional demo for illustrative purposes. No personal data is collected.</footer>
-  </div>
+                <div class="gallery-card bg-gray-900 rounded-lg overflow-hidden shadow-lg" onclick="showGame('portfolio_gallery')">
+                    <div class="relative h-48 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1522199755839-a2bacb67c546?q=80&w=2072&auto=format&fit=crop')">
+                        <div class="menu-bar">
+                            <div>אתר תיק עבודות</div>
+                            <div class="flex space-x-2">
+                                <button title="שתף" class="hover:text-indigo-400">🔗</button>
+                                <button title="ערוך" class="hover:text-indigo-400">✏️</button>
+                                <button title="העתק" class="hover:text-indigo-400">📋</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-bold text-xl mb-2">אתר תיק עבודות</h3>
+                        <p class="text-gray-400 text-base">"אני צריך אתר פשוט להציג את העבודות שלי כצלם..."</p>
+                    </div>
+                </div>
 
-  <div id="toast" class="copy-toast">Link copied to clipboard!</div>
-
-<script>
-/**
- * =================================================================
- * WIZBI PLAY - MAGICAL DEMO SCRIPT
- * =================================================================
- * This script is self-contained and manages:
- * 1. BackgroundAnimation: Creates the magical particle background.
- * 2. ScrollAnimator: Fades in elements on scroll.
- * 3. WhatsAppDemo: Simulates a chat conversation.
- * 4. Gallery: Populates the game gallery.
- * 5. GameEngine: A "juiced" up game engine inside the phone mockup.
- * =================================================================
- */
-
-// --- Module 1: Magical Background Animation ---
-(function BackgroundAnimation() {
-    const canvas = document.getElementById('bg-canvas');
-    const ctx = canvas.getContext('2d');
-    let particles = [];
-    let width, height;
-
-    const settings = {
-        count: 40,
-        speed: 0.1,
-        maxSize: 3,
-        minSize: 1,
-        color: 'rgba(0, 193, 117, 0.5)'
-    };
-
-    function resize() {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-    }
-
-    function createParticles() {
-        particles = [];
-        for (let i = 0; i < settings.count; i++) {
-            particles.push({
-                x: Math.random() * width,
-                y: Math.random() * height,
-                vx: (Math.random() - 0.5) * settings.speed,
-                vy: (Math.random() - 0.5) * settings.speed,
-                size: Math.random() * (settings.maxSize - settings.minSize) + settings.minSize
-            });
-        }
-    }
-
-    function animate() {
-        ctx.clearRect(0, 0, width, height);
-        particles.forEach(p => {
-            p.x += p.vx;
-            p.y += p.vy;
-            if (p.x < 0 || p.x > width) p.vx *= -1;
-            if (p.y < 0 || p.y > height) p.vy *= -1;
-
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fillStyle = settings.color;
-            ctx.fill();
-        });
-        requestAnimationFrame(animate);
-    }
-    
-    window.addEventListener('resize', () => {
-        resize();
-        createParticles();
-    });
-
-    resize();
-    createParticles();
-    animate();
-})();
-
-// --- Module 2: Scroll Reveal Animator ---
-(function ScrollAnimator() {
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-            }
-        });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-})();
-
-
-// --- Game & UI Logic (Modules 3, 4, 5) ---
-(function UILogic() {
-    // --- Configuration Object for all Games ---
-    const GamePresets = [
-      { id:'fruits', name:'Fruit Catcher', emoji:["🍎","🍌","🍒","🍇","🍉","🍓","🍍"], seconds:15, color:'#00c175' },
-      { id:'stars', name:'Star Chaser', emoji:["⭐","🌟","✨","💫"], seconds:12, color:'#ffd54f' },
-      { id:'ocean', name:'Ocean Bubbles', emoji:["🫧","💧","🔵","🐠"], seconds:18, color:'#5bd0ff' },
-      { id:'soccer', name:'Goal Frenzy', emoji:["⚽","🥅","🏆","🟢"], seconds:10, color:'#7fff7f' },
-      { id:'spooky', name:'Spooky Tap', emoji:["🎃","👻","🕷️","🦇"], seconds:14, color:'#ff955a' },
-      { id:'emoji', name:'Emoji Jam', emoji:["😺","😎","🤖","🐸","🦄","🐼"], seconds:16, color:'#e879f9' }
-    ];
-
-    // --- DOM Element References ---
-    const waBody = document.getElementById('waBody'), input = document.getElementById('waInput'), sendButton = document.getElementById('waSend');
-    const galleryContainer = document.getElementById('galleryContainer');
-    const phoneMockup = document.getElementById('phoneMockup'), stage = document.getElementById('gameStage'), scoreEl = document.getElementById('score'), timeEl = document.getElementById('time'), badgeEl = document.getElementById('gameBadge'), gameOverOverlay = document.getElementById('gameOverOverlay'), finalScoreEl = document.getElementById('finalScore');
-    const btnStart = document.getElementById('btnStart'), btnCopyLink = document.getElementById('btnCopyLink'), ctaRemixButton = document.getElementById('ctaRemix');
-    const toastEl = document.getElementById('toast');
-
-    // --- Game State ---
-    let currentGame = GamePresets[0];
-    let isRunning = false, score = 0, timeLeft = 0, gameTimer = null, spawner = null;
-
-    /** Shows a temporary toast message. */
-    function showToast(message) {
-        toastEl.textContent = message;
-        toastEl.classList.add('show');
-        setTimeout(() => toastEl.classList.remove('show'), 2000);
-    }
-
-    // --- WhatsApp Simulation ---
-    const samplePrompt = "Build a 15-second fruit catching game with a dark theme.";
-    input.value = samplePrompt;
-    function addMessage(text, side = 'in') {
-        const wrap = document.createElement('div');
-        wrap.className = `wa-msg wa-${side}`;
-        wrap.innerHTML = `<div>${text}</div>`;
-        waBody.appendChild(wrap);
-        waBody.scrollTop = waBody.scrollHeight;
-    }
-    function showTypingIndicator() {
-        const bubble = document.createElement('div');
-        bubble.className = 'wa-msg wa-in';
-        bubble.innerHTML = `<span class="wa-typing"><i></i><i></i><i></i></span>`;
-        waBody.appendChild(bubble);
-        waBody.scrollTop = waBody.scrollHeight;
-        return bubble;
-    }
-    window.simulateBuild = function(userText, isRemix = false) {
-        addMessage(userText, 'out');
-        const typingIndicator1 = showTypingIndicator();
-        setTimeout(() => {
-            typingIndicator1.remove();
-            if (isRemix) {
-                addMessage("Okay, I've loaded that game. You can tell me what to change, like 'make it 20 seconds long' or 'use space emojis 🚀'.");
-            } else {
-                addMessage("Got it. Generating your mobile game now...");
-                const typingIndicator2 = showTypingIndicator();
-                setTimeout(() => {
-                    typingIndicator2.remove();
-                    addMessage("Done! Your game is live in the phone on the right. Press 'Start' to play.");
-                    phoneMockup.classList.add('shake');
-                    setTimeout(() => phoneMockup.classList.remove('shake'), 400);
-                }, 1400);
-            }
-        }, 1200);
-    }
-    sendButton.addEventListener('click', () => simulateBuild(input.value.trim() || samplePrompt));
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); simulateBuild(input.value.trim() || samplePrompt); } });
-    setTimeout(() => simulateBuild(samplePrompt), 800);
-
-    // --- Game Gallery ---
-    galleryContainer.innerHTML = GamePresets.map(preset => `
-        <div class="tile card reveal">
-            <div class="cover" style="background:radial-gradient(circle at 50% 0%, ${preset.color}20, transparent 70%), #0e1721">${preset.emoji[0]}</div>
-            <h4>${preset.name}</h4>
-            <div class="note">${preset.seconds} seconds • ${preset.emoji.length} items</div>
-            <div class="actions">
-                <button class="btn small prime" data-action="load" data-id="${preset.id}">▶ Load</button>
-                <button class="btn small ghost" data-action="remix" data-id="${preset.id}">✨ Remix</button>
+                <div class="gallery-card bg-gray-900 rounded-lg overflow-hidden shadow-lg" onclick="showGame('pong_gallery')">
+                    <div class="relative h-48 bg-black flex items-center justify-between px-4">
+                         <div class="menu-bar">
+                            <div>משחק פונג</div>
+                            <div class="flex space-x-2">
+                                <button title="שתף" class="hover:text-indigo-400">🔗</button>
+                                <button title="ערוך" class="hover:text-indigo-400">✏️</button>
+                                <button title="העתק" class="hover:text-indigo-400">📋</button>
+                            </div>
+                        </div>
+                        <div class="w-2 h-16 bg-white"></div>
+                         <div class="w-4 h-4 bg-white rounded-full"></div>
+                        <div class="w-2 h-16 bg-white"></div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-bold text-xl mb-2">משחק פונג לשניים</h3>
+                        <p class="text-gray-400 text-base">"צור משחק פונג קלאסי לשני שחקנים..."</p>
+                    </div>
+                </div>
             </div>
         </div>
-    `).join('');
-    galleryContainer.addEventListener('click', e => {
-        const button = e.target.closest('button[data-action]');
-        if (!button) return;
-        const preset = GamePresets.find(p => p.id === button.dataset.id);
-        if (!preset) return;
-        if (button.dataset.action === 'load') {
-            loadGame(preset);
-            document.getElementById('phoneMockup').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else if (button.dataset.action === 'remix') {
-            doRemix(preset);
+    </section>
+
+     <section class="container mx-auto px-6 py-20">
+        <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">הקטלוג האישי שלך</h2>
+        <p class="text-center text-gray-400 mb-8">כל היצירות שלך נשמרות אוטומטית בקטלוג אישי, זמין מכל מכשיר.</p>
+        <div class="bg-gray-800 p-8 rounded-lg shadow-2xl">
+             <div class="flex items-center mb-6">
+                 <img src="https://lh3.googleusercontent.com/a/ACg8ocJ_1Z2Y_3Z... (example)" class="w-16 h-16 rounded-full border-2 border-indigo-500" alt="User Avatar">
+                 <div class="mr-4">
+                     <h3 class="text-2xl font-bold">הקטלוג של 'ישראל ישראלי'</h3>
+                     <p class="text-gray-400">3 יצירות</p>
+                 </div>
+             </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="gallery-card bg-gray-900 rounded-lg overflow-hidden">
+                     <div class="relative h-40 bg-black flex items-center justify-center">
+                         <div class="menu-bar">
+                            <div>משחק הנחש שלי</div>
+                            <div class="flex space-x-2">
+                                <button title="שתף" class="hover:text-indigo-400">🔗</button>
+                                <button title="ערוך" class="hover:text-indigo-400">✏️</button>
+                                <button title="העתק" class="hover:text-indigo-400">📋</button>
+                            </div>
+                        </div>
+                        <span class="text-green-500 text-3xl font-mono">SNAKE</span>
+                    </div>
+                    <div class="p-4">
+                        <h4 class="font-bold text-lg">משחק הנחש שלי</h4>
+                        <p class="text-sm text-gray-400">נוצר: 07.08.2025</p>
+                         <p class="text-sm text-gray-400">צפיות: 1,204 | שימושים: 312</p>
+                    </div>
+                </div>
+                 <div class="gallery-card bg-gray-900 rounded-lg overflow-hidden">
+                     <div class="relative h-40 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1522199755839-a2bacb67c546?q=80&w=2072&auto=format&fit=crop')">
+                         <div class="menu-bar">
+                            <div>אתר הצילום שלי</div>
+                            <div class="flex space-x-2">
+                                <button title="שתף" class="hover:text-indigo-400">🔗</button>
+                                <button title="ערוך" class="hover:text-indigo-400">✏️</button>
+                                <button title="העתק" class="hover:text-indigo-400">📋</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h4 class="font-bold text-lg">אתר הצילום שלי</h4>
+                        <p class="text-sm text-gray-400">נוצר: 06.08.2025</p>
+                         <p class="text-sm text-gray-400">צפיות: 8,750 | שימושים: 980</p>
+                    </div>
+                </div>
+                <div class="gallery-card bg-gray-900 rounded-lg overflow-hidden">
+                     <div class="relative h-40 bg-gray-700 flex items-center justify-center">
+                         <div class="menu-bar">
+                            <div>היצירה הבאה שלך</div>
+                        </div>
+                        <span class="text-4xl text-gray-500">+</span>
+                    </div>
+                    <div class="p-4">
+                        <h4 class="font-bold text-lg">צור חדש</h4>
+                        <p class="text-sm text-gray-400">התחל פרויקט חדש מהוואטסאפ או מהווב.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-800">
+        <div class="container mx-auto px-6 py-8 text-center text-gray-400">
+            <p>&copy; 2025 CreateOS. כל הרעיונות שמורים ליוצריהם.</p>
+            <p class="text-sm">מונע בגאווה על ידי Gemini וטכנולוגיות קוד פתוח.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Simulate AI response in WhatsApp chat
+        setTimeout(() => {
+            document.getElementById('ai-response').classList.remove('hidden');
+        }, 2000);
+
+        function getGameCode(gameType) {
+            const games = {
+                snake: `
+                    <style>
+                        body { margin: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; color: white; font-family: monospace; }
+                        canvas { border: 1px solid #333; }
+                        #score { position: absolute; top: 10px; left: 10px; font-size: 20px; }
+                    </style>
+                    <div id="score">Score: 0</div>
+                    <canvas id="gameCanvas" width="280" height="280"></canvas>
+                    <script>
+                        const canvas = document.getElementById('gameCanvas');
+                        const ctx = canvas.getContext('2d');
+                        const scoreEl = document.getElementById('score');
+                        const box = 20;
+                        let snake = [{x: 9 * box, y: 10 * box}];
+                        let food = {
+                            x: Math.floor(Math.random()*14)*box,
+                            y: Math.floor(Math.random()*14)*box
+                        };
+                        let score = 0;
+                        let d;
+                        document.addEventListener("keydown", direction);
+                        function direction(event){
+                            if(event.keyCode == 37 && d != "RIGHT"){ d = "LEFT"; }
+                            else if(event.keyCode == 38 && d != "DOWN"){ d = "UP"; }
+                            else if(event.keyCode == 39 && d != "LEFT"){ d = "RIGHT"; }
+                            else if(event.keyCode == 40 && d != "UP"){ d = "DOWN"; }
+                        }
+                        function collision(head,array){
+                            for(let i = 0; i < array.length; i++){
+                                if(head.x == array[i].x && head.y == array[i].y){ return true; }
+                            }
+                            return false;
+                        }
+                        function draw(){
+                            ctx.fillStyle = "black";
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            for(let i = 0; i < snake.length; i++){
+                                ctx.fillStyle = ( i == 0 )? "green" : "lime";
+                                ctx.fillRect(snake[i].x, snake[i].y, box, box);
+                                ctx.strokeStyle = "darkgreen";
+                                ctx.strokeRect(snake[i].x,snake[i].y,box,box);
+                            }
+                            ctx.fillStyle = "red";
+                            ctx.fillRect(food.x, food.y, box, box);
+
+                            let snakeX = snake[0].x;
+                            let snakeY = snake[0].y;
+
+                            if( d == "LEFT") snakeX -= box;
+                            if( d == "UP") snakeY -= box;
+                            if( d == "RIGHT") snakeX += box;
+                            if( d == "DOWN") snakeY += box;
+
+                            if(snakeX == food.x && snakeY == food.y){
+                                score++;
+                                scoreEl.innerText = "Score: " + score;
+                                food = {
+                                    x: Math.floor(Math.random()*14)*box,
+                                    y: Math.floor(Math.random()*14)*box
+                                };
+                            } else {
+                                snake.pop();
+                            }
+
+                            let newHead = { x : snakeX, y : snakeY };
+
+                            if(snakeX < 0 || snakeY < 0 || snakeX >= canvas.width || snakeY >= canvas.height || collision(newHead,snake)){
+                                clearInterval(game);
+                                scoreEl.innerText = "Game Over! Score: " + score;
+                            }
+                            snake.unshift(newHead);
+                        }
+                        let game = setInterval(draw, 100);
+                    <\/script>
+                `,
+                portfolio: `
+                     <style>
+                        body { font-family: 'Assistant', sans-serif; margin: 0; background-color: #f4f4f9; color: #333;}
+                        .header { background-color: #fff; padding: 2rem; text-align: center; border-bottom: 1px solid #ddd; }
+                        .header h1 { margin: 0; font-size: 2.5rem; }
+                        .header p { margin: 0.5rem 0 0; color: #777; }
+                        .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; padding: 1rem; }
+                        .gallery img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: transform 0.2s; }
+                        .gallery img:hover { transform: scale(1.05); }
+                     </style>
+                     <div class="header">
+                         <h1>גלריית הצילום של אלכס</h1>
+                         <p>לוכד רגעים בזמן</p>
+                     </div>
+                     <div class="gallery">
+                        <img src="https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=2071&auto=format&fit=crop" alt="Image 1">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1964&auto=format&fit=crop" alt="Image 2">
+                        <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=1887&auto=format&fit=crop" alt="Image 3">
+                        <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=1887&auto=format&fit=crop" alt="Image 4">
+                        <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=1961&auto=format&fit=crop" alt="Image 5">
+                        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1888&auto=format&fit=crop" alt="Image 6">
+                     </div>
+                `,
+                pong: `
+                    <style>
+                         body { margin: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; color: white; font-family: monospace; }
+                        canvas { border: 1px solid white; }
+                    </style>
+                    <canvas id="pongCanvas" width="560" height="280"></canvas>
+                    <script>
+                        const canvas = document.getElementById('pongCanvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        const paddleWidth = 10, paddleHeight = 80;
+                        let player = { x: 0, y: canvas.height/2 - paddleHeight/2, width: paddleWidth, height: paddleHeight, score: 0 };
+                        let computer = { x: canvas.width - paddleWidth, y: canvas.height/2 - paddleHeight/2, width: paddleWidth, height: paddleHeight, score: 0 };
+                        let ball = { x: canvas.width/2, y: canvas.height/2, radius: 7, speed: 5, velocityX: 5, velocityY: 5 };
+
+                        function drawRect(x,y,w,h,color) { ctx.fillStyle = color; ctx.fillRect(x,y,w,h); }
+                        function drawCircle(x,y,r,color) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2,false); ctx.closePath(); ctx.fill(); }
+                        function drawText(text,x,y,color) { ctx.fillStyle = color; ctx.font = "30px monospace"; ctx.fillText(text,x,y); }
+
+                        canvas.addEventListener("mousemove", movePaddle);
+                        function movePaddle(evt) {
+                            let rect = canvas.getBoundingClientRect();
+                            player.y = evt.clientY - rect.top - player.height/2;
+                        }
+
+                        function collision(b, p) {
+                            b.top = b.y - b.radius;
+                            b.bottom = b.y + b.radius;
+                            b.left = b.x - b.radius;
+                            b.right = b.x + b.radius;
+
+                            p.top = p.y;
+                            p.bottom = p.y + p.height;
+                            p.left = p.x;
+                            p.right = p.x + p.width;
+
+                            return b.right > p.left && b.bottom > p.top && b.left < p.right && b.top < p.bottom;
+                        }
+
+                        function update() {
+                            ball.x += ball.velocityX;
+                            ball.y += ball.velocityY;
+
+                            computer.y += (ball.y - (computer.y + computer.height/2)) * 0.1;
+
+                            if(ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) { ball.velocityY = -ball.velocityY; }
+                            
+                            let p = (ball.x < canvas.width/2) ? player : computer;
+
+                            if(collision(ball, p)){
+                                let collidePoint = ball.y - (p.y + p.height/2);
+                                collidePoint = collidePoint / (p.height/2);
+                                let angleRad = collidePoint * Math.PI/4;
+                                let direction = (ball.x < canvas.width/2) ? 1 : -1;
+                                ball.velocityX = direction * ball.speed * Math.cos(angleRad);
+                                ball.velocityY = ball.speed * Math.sin(angleRad);
+                                ball.speed += 0.2;
+                            }
+
+                            if(ball.x - ball.radius < 0) {
+                                computer.score++;
+                                resetBall();
+                            } else if (ball.x + ball.radius > canvas.width) {
+                                player.score++;
+                                resetBall();
+                            }
+                        }
+
+                        function resetBall(){
+                            ball.x = canvas.width/2;
+                            ball.y = canvas.height/2;
+                            ball.speed = 5;
+                            ball.velocityX = -ball.velocityX;
+                        }
+
+                        function render() {
+                            drawRect(0,0, canvas.width, canvas.height, "BLACK");
+                            drawText(player.score, canvas.width/4, canvas.height/5, "WHITE");
+                            drawText(computer.score, 3*canvas.width/4, canvas.height/5, "WHITE");
+                            drawRect(player.x, player.y, player.width, player.height, "WHITE");
+                            drawRect(computer.x, computer.y, computer.width, computer.height, "WHITE");
+                            drawCircle(ball.x, ball.y, ball.radius, "WHITE");
+                        }
+
+                        function gameLoop(){
+                            update();
+                            render();
+                        }
+                        setInterval(gameLoop, 1000/60);
+                    <\/script>
+                `
+            };
+            
+            if (gameType.endsWith('_gallery')) {
+                const baseType = gameType.replace('_gallery', '');
+                const iframe = document.createElement('iframe');
+                iframe.srcdoc = games[baseType];
+                iframe.className = "w-full h-full rounded-lg";
+                const containerId = `${baseType}-game`;
+                const container = document.getElementById(containerId);
+                if (container) {
+                    container.innerHTML = '';
+                    container.appendChild(iframe);
+                    container.classList.remove('hidden');
+                    document.getElementById('website-placeholder').classList.add('hidden');
+                     // Scroll to the demo section
+                    document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
+                } else {
+                     const demoContainer = document.getElementById('snake-game');
+                     demoContainer.innerHTML = '';
+                     demoContainer.appendChild(iframe);
+                     demoContainer.classList.remove('hidden');
+                     document.getElementById('website-placeholder').classList.add('hidden');
+                      document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
+                }
+            } else {
+                 const iframeId = `game-iframe-${gameType}`;
+                const iframe = document.getElementById(iframeId);
+                iframe.srcdoc = games[gameType.replace('_gallery', '')];
+            }
         }
-    });
 
-    // --- Core Game Engine ---
-    function spawnItem() {
-        if (!isRunning) return;
-        const item = document.createElement('div');
-        item.className = 'game-item';
-        item.textContent = currentGame.emoji[Math.floor(Math.random() * currentGame.emoji.length)];
-        const rect = stage.getBoundingClientRect();
-        item.style.left = `${Math.random() * (rect.width - 40)}px`;
-        item.style.top = `${Math.random() * (rect.height - 40)}px`;
-        item.addEventListener('pointerdown', (e) => {
-            if (!isRunning) return;
-            score++;
-            scoreEl.textContent = score;
-            item.classList.add('clicked');
-            const pop = document.createElement('div');
-            pop.className = 'click-pop';
-            pop.style.left = `${e.clientX - rect.left}px`;
-            pop.style.top = `${e.clientY - rect.top}px`;
-            stage.appendChild(pop);
-            setTimeout(() => item.remove(), 100);
-            setTimeout(() => pop.remove(), 300);
-        });
-        stage.appendChild(item);
-        setTimeout(() => { if(item) item.remove(); }, 1600);
-    }
-    
-    function tick() {
-        timeLeft--;
-        timeEl.textContent = timeLeft;
-        if (timeLeft <= 0) endGame();
-    }
-
-    function startGame() {
-        if (isRunning) return;
-        isRunning = true;
-        score = 0;
-        scoreEl.textContent = '0';
-        gameOverOverlay.classList.remove('show');
-        stage.innerHTML = '';
-        timeLeft = currentGame.seconds;
-        timeEl.textContent = timeLeft;
-        stage.style.background = `radial-gradient(circle at 50% 0%, ${currentGame.color}25, transparent 70%), #091018`;
-        gameTimer = setInterval(tick, 1000);
-        spawner = setInterval(spawnItem, 350);
-        btnStart.disabled = true;
-    }
-
-    function endGame() {
-        isRunning = false;
-        clearInterval(gameTimer);
-        clearInterval(spawner);
-        finalScoreEl.textContent = score;
-        gameOverOverlay.classList.add('show');
-        btnStart.disabled = false;
-    }
-
-    window.loadGame = function(preset) {
-        if (isRunning) endGame();
-        currentGame = preset;
-        badgeEl.textContent = preset.name;
-        document.title = `Wizbi Demo — ${preset.name}`;
-        scoreEl.textContent = '0';
-        timeEl.textContent = preset.seconds;
-        gameOverOverlay.classList.remove('show');
-        stage.innerHTML = '';
-    }
-    
-    window.doRemix = function(preset) {
-        loadGame(preset);
-        showToast(`Remix ready: ${preset.name}`);
-        document.getElementById('phoneMockup').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        simulateBuild(`Okay, let's remix "${preset.name}".`, true);
-    }
-
-    function copyShareLink() {
-        const url = new URL(window.location.href);
-        url.searchParams.set('game', currentGame.id);
-        if (score > 0 && !isRunning) {
-           url.searchParams.set('score', String(score));
-        } else {
-           url.searchParams.delete('score');
+        function showGame(type) {
+             document.getElementById('snake-game').classList.remove('hidden');
+             document.getElementById('website-placeholder').classList.add('hidden');
+            if (type === 'snake') {
+                getGameCode('snake');
+            } else if (type === 'snake_gallery') {
+                 getGameCode('snake_gallery');
+            } else if (type === 'portfolio_gallery') {
+                getGameCode('portfolio_gallery');
+            } else if (type === 'pong_gallery') {
+                getGameCode('pong_gallery');
+            }
         }
-        navigator.clipboard.writeText(url.toString()).then(() => showToast('Share link copied to clipboard!'));
-    }
 
-    // --- Event Listeners ---
-    btnStart.addEventListener('click', startGame);
-    btnCopyLink.addEventListener('click', copyShareLink);
-    ctaRemixButton.addEventListener('click', () => doRemix(currentGame));
-
-    // Bootstrap with URL params
-    (function bootstrap() {
-        const params = new URLSearchParams(window.location.search);
-        const gameId = params.get('game');
-        if (gameId) {
-            const foundPreset = GamePresets.find(p => p.id === gameId);
-            if (foundPreset) loadGame(foundPreset);
-        } else {
-            loadGame(GamePresets[0]);
-        }
-    })();
-})();
-</script>
+    </script>
 </body>
 </html>
