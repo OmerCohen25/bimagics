@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>מלחמת החלל V3</title>
+    <title>מלחמת החלל V3.1 - מתוקן</title>
     <style>
         body { margin: 0; background-color: #000; color: #fff; font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
         canvas { background-color: #0c0c1c; display: block; touch-action: none; }
@@ -15,7 +15,7 @@
 </head>
 <body>
     <div id="startScreen" class="screen">
-        <h1>מלחמת החלל V3</h1>
+        <h1>מלחמת החלל V3.1</h1>
         <p>עם נשקים חדשים, אויבים מגוונים וקרבות בוס מאתגרים!</p>
         <button id="startButton">התחל משחק</button>
     </div>
@@ -26,424 +26,416 @@
         <button id="restartButton">שחק שוב</button>
     </div>
     <canvas id="gameCanvas"></canvas>
-    <script>
-    // ==================
-    // הגדרות כלליות
-    // ==================
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
 
-    let gameState = 'start', score = 0, level = 1, lives = 3, gameFrame = 0;
-    let isBossLevel = false, boss = null, isMuted = false;
-    let screenShake = { intensity: 0, duration: 0 };
-    let onScreenMessage = { text: '', timer: 0 };
+<script>
+// ==================
+// הגדרות כלליות
+// ==================
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-    // מערכים לאחסון אובייקטים
-    let playerProjectiles = [], enemies = [], powerUps = [], explosions = [], stars = [], enemyProjectiles = [], particles = [];
-    
-    // כפתור סאונד
-    const muteButton = { x: 10, y: canvas.height - 40, width: 30, height: 30 };
-    
-    // ==================
-    // מנהל סאונד
-    // ==================
-    const audioManager = {
-        sounds: {},
-        init() {
-            this.sounds.shoot = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU9vT19JTU5GT0ZGSQAAABwAAABBAAAAQ09ERVJTPTEuMAAATkxpc3RpbmZvbwAAAEBhcnRpc3QAAABqc2Z4cgAAAENPQllSSUdIVAAAADg4bW1tbW1t");
-            this.sounds.explosion = new Audio("data:audio/wav;base64,UklGRkFvT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU5vT19JTU5GT0ZGSQAAABwAAABBAAAAQ09ERVJTPTEuMAAATkxpc3RpbmZvbwAAAEBhcnRpc3QAAABqc2Z4cgAAAENPQllSSUdIVAAAADg4bW1tbW1t");
-            this.sounds.powerup = new Audio("data:audio/wav;base64,UklGRlphV19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUxhV19JTU5GT0ZGSQAAABwAAABBAAAAQ09ERVJTPTEuMAAATkxpc3RpbmZvbwAAAEBhcnRpc3QAAABqc2Z4cgAAAENPQllSSUdIVAAAADg4bW1tbW1t");
-            this.sounds.playerHit = new Audio("data:audio/wav;base64,UklGRkFvT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU5vT19JTU5GT0ZGSQAAABwAAABBAAAAQ09ERVJTPTEuMAAATkxpc3RpbmZvbwAAAEBhcnRpc3QAAABqc2Z4cgAAAENPQllSSUdIVAAAADg4bW1tbW1t");
-            this.sounds.laser = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABgAZGF0YQAAAAA=");
-            this.sounds.missile = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABgAZGF0YQAcAAA=");
-            Object.values(this.sounds).forEach(sound => { sound.volume = 0.5; });
-            this.sounds.shoot.volume = 0.2; this.sounds.laser.loop = true; this.sounds.laser.volume = 0.3;
-        },
-        play(name) { if (!isMuted && this.sounds[name]) { this.sounds[name].currentTime = 0; this.sounds[name].play().catch(e => {}); } },
-        stop(name) { if (this.sounds[name]) { this.sounds[name].pause(); this.sounds[name].currentTime = 0; } }
-    };
-    audioManager.init();
+let gameState = 'start', score = 0, level = 1, lives = 3, gameFrame = 0;
+let isBossLevel = false, boss = null, isMuted = false;
+let screenShake = { intensity: 0, duration: 0 };
+let onScreenMessage = { text: '', timer: 0 };
 
-    // ==================
-    // קלאסים
-    // ==================
+let playerProjectiles = [], enemies = [], powerUps = [], explosions = [], stars = [], enemyProjectiles = [], particles = [];
+const muteButton = { x: 10, y: canvas.height - 40, width: 30, height: 30 };
 
-    class Player {
-        constructor() {
-            this.width = 50; this.height = 50;
-            this.x = canvas.width / 2 - this.width / 2; this.y = canvas.height - this.height - 20;
-            this.weaponType = 'default'; this.powerUpLevel = 1; this.shootCooldown = 0;
-            this.isInvincible = false; this.invincibilityTimer = 0; this.isFiringLaser = false;
-        }
+// ==================
+// מנהל סאונד
+// ==================
+const audioManager = {
+    sounds: {},
+    init() {
+        this.sounds.shoot = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU9vT19JTU5GT0ZGSQAAABwAAABBAAAAQ09ERVJTPTEuMAAATkxpc3RpbmZvbwAAAEBhcnRpc3QAAABqc2Z4cgAAAENPQllSSUdIVAAAADg4bW1tbW1t");
+        this.sounds.explosion = new Audio("data:audio/wav;base64,UklGRkAIAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=");
+        this.sounds.powerup = new Audio("data:audio/wav;base64,UklGRlphV19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUxhV19JTU5GT0ZGSQAAABwAAABBAAAAQ09ERVJTPTEuMAAATkxpc3RpbmZvbwAAAEBhcnRpc3QAAABqc2Z4cgAAAENPQllSSUdIVAAAADg4bW1tbW1t");
+        this.sounds.playerHit = new Audio("data:audio/wav;base64,UklGRkIAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQBIAAA=");
+        this.sounds.laser = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABgAZGF0YQAAAAA=");
+        this.sounds.missile = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABgAZGF0YQAcAAA=");
+        Object.values(this.sounds).forEach(sound => { sound.volume = 0.4; });
+        this.sounds.shoot.volume = 0.2; this.sounds.laser.loop = true; this.sounds.laser.volume = 0.3;
+    },
+    play(name) { if (!isMuted && this.sounds[name]) { this.sounds[name].currentTime = 0; this.sounds[name].play().catch(e => {}); } },
+    stop(name) { if (this.sounds[name]) { this.sounds[name].pause(); this.sounds[name].currentTime = 0; } }
+};
+audioManager.init();
 
-        update(input) {
-            if (input.x) this.x = input.x - this.width / 2;
-            if (this.x < 0) this.x = 0; if (this.x > canvas.width - this.width) this.x = canvas.width - this.width;
-
-            if (this.shootCooldown > 0) this.shootCooldown--;
-            this.shoot();
-
-            if(this.isInvincible) { this.invincibilityTimer--; if(this.invincibilityTimer <= 0) this.isInvincible = false; }
-            
-            if (this.weaponType === 'laser') { if (!this.isFiringLaser) { audioManager.play('laser'); this.isFiringLaser = true; } } 
-            else { if (this.isFiringLaser) { audioManager.stop('laser'); this.isFiringLaser = false; } }
-        }
-
-        draw() {
-            if (this.isInvincible && gameFrame % 10 < 5) return;
-            ctx.font = '40px Arial'; ctx.fillText('🚀', this.x, this.y + this.height - 10);
-            if (this.weaponType === 'laser') this.drawLaser();
-        }
-
-        drawLaser() {
-            const laserWidth = 5 + this.powerUpLevel * 2;
-            ctx.fillStyle = `rgba(255, 255, 255, 0.2)`;
-            ctx.fillRect(this.x + this.width/2 - laserWidth, 0, laserWidth * 2, this.y);
-            ctx.fillStyle = `rgba(100, 200, 255, 0.8)`;
-            ctx.fillRect(this.x + this.width/2 - laserWidth/2, 0, laserWidth, this.y);
-        }
-
-        shoot() {
-            if (this.shootCooldown > 0 || this.weaponType === 'laser') return;
-            switch (this.weaponType) {
-                case 'homing':
-                    playerProjectiles.push(new Projectile(this.x + this.width / 2, this.y, 0, 'homing'));
-                    audioManager.play('missile'); this.shootCooldown = 40 - this.powerUpLevel * 3; break;
-                case 'spread':
-                    for(let i = 0; i < this.powerUpLevel + 2; i++) {
-                         playerProjectiles.push(new Projectile(this.x + this.width / 2 - 5, this.y, i - (this.powerUpLevel+1)/2, 'default'));
-                    }
-                    audioManager.play('shoot'); this.shootCooldown = 20 - this.powerUpLevel; break;
-                case 'default':
-                default:
-                    const bullets = Math.min(3, this.powerUpLevel);
-                    for(let i=0; i<bullets; i++) {
-                       playerProjectiles.push(new Projectile(this.x + this.width/2 - 15 + (i*15), this.y-i*5, 0, 'default'));
-                    }
-                    audioManager.play('shoot'); this.shootCooldown = 15 - this.powerUpLevel; break;
-            }
-        }
-        
-        takeHit() {
-            if (this.isInvincible) return;
-            lives--;
-            audioManager.play('playerHit'); triggerScreenShake(10, 30);
-            this.isInvincible = true; this.invincibilityTimer = 120;
-            if (this.weaponType === 'laser') { audioManager.stop('laser'); this.isFiringLaser = false; }
-            this.powerUpLevel = 1; this.weaponType = 'default';
-            if (lives <= 0) endGame();
-        }
+// ==================
+// קלאסים
+// ==================
+class Player {
+    constructor() {
+        this.width = 50; this.height = 50;
+        this.x = canvas.width / 2 - this.width / 2; this.y = canvas.height - this.height - 20;
+        this.weaponType = 'default'; this.powerUpLevel = 1; this.shootCooldown = 0;
+        this.isInvincible = false; this.invincibilityTimer = 0; this.isFiringLaser = false;
     }
-
-    class Projectile {
-        constructor(x, y, speedX, type) {
-            this.x = x; this.y = y; this.type = type;
-            this.width = 10; this.height = 15;
-            this.speedY = 12; this.speedX = speedX * 2.5; this.damage = 1;
-            this.emoji = '🔥';
-            if(type === 'homing'){
-                this.emoji = '🎯'; this.target = this.findClosestEnemy();
-                this.speedY = 6; this.turnSpeed = 0.1;
-            }
-        }
-        findClosestEnemy(){ return enemies.sort((a,b) => Math.hypot(this.x-a.x, this.y-a.y) - Math.hypot(this.x-b.x, this.y-b.y))[0]; }
-        update() {
-            if(this.type === 'homing' && this.target && enemies.includes(this.target)){
-                const angle = Math.atan2(this.target.y - this.y, this.target.x - this.x);
-                this.x += Math.cos(angle) * this.speedY; this.y += Math.sin(angle) * this.speedY;
-            } else { this.y -= this.speedY; this.x += this.speedX; }
-        }
-        draw() { ctx.font = '20px Arial'; ctx.fillText(this.emoji, this.x, this.y); }
+    update(input) {
+        if (input.x) this.x = input.x - this.width / 2;
+        if (this.x < 0) this.x = 0; if (this.x > canvas.width - this.width) this.x = canvas.width - this.width;
+        if (this.shootCooldown > 0) this.shootCooldown--;
+        this.shoot();
+        if (this.isInvincible) { this.invincibilityTimer--; if (this.invincibilityTimer <= 0) this.isInvincible = false; }
+        if (this.weaponType === 'laser' && !this.isFiringLaser && !isMuted) { audioManager.play('laser'); this.isFiringLaser = true; } 
+        else if (this.weaponType !== 'laser' && this.isFiringLaser) { audioManager.stop('laser'); this.isFiringLaser = false; }
     }
-    
-    class EnemyProjectile { /* ... ללא שינוי ... */ }
-    class Star { /* ... ללא שינוי ... */ }
-
-    const enemyTypes = {
-        normal: { health: 1, size: 40, emoji: '🐔', points: 10, shootCd: 150 },
-        tough: { health: 5, size: 50, emoji: '🐓', points: 50, shootCd: 120 },
-        bomber: { health: 2, size: 45, emoji: '🛸', points: 30, shootCd: 80 },
-        swerving: { health: 2, size: 40, emoji: '🐧', points: 40, shootCd: 100, pattern: 'sine' },
-        tank: { health: 20, size: 60, emoji: '🦉', points: 100, shootCd: 200 },
-        spawner: { health: 10, size: 55, emoji: '👾', points: 80, shootCd: 180, pattern: 'spawn' },
-        boss: { health: 100, size: 120, emoji: '👹', points: 1000, shootCd: 40 }
-    };
-
-    class Enemy {
-        constructor(x, y, type) {
-            const proto = enemyTypes[type];
-            this.x = x; this.y = y; this.type = type; this.pattern = proto.pattern;
-            this.width = proto.size; this.height = proto.size;
-            this.maxHealth = proto.health + Math.floor(level/2);
-            this.health = this.maxHealth;
-            this.emoji = proto.emoji; this.points = proto.points;
-            this.speedY = (this.type === 'tank' ? 0.5 : 1) + Math.random() * 1.5 + level * 0.1;
-            this.shootTimer = Math.random() * proto.shootCd; this.shootCooldown = proto.shootCd;
-            this.spawnTimer = 180;
-        }
-        update() {
-            this.y += this.speedY;
-            if (this.pattern === 'sine') this.x += Math.sin(this.y * 0.05) * 3;
-            if (this.pattern === 'spawn') {
-                this.spawnTimer--;
-                if(this.spawnTimer <= 0){
-                    enemies.push(new Enemy(this.x, this.y, 'normal'));
-                    this.spawnTimer = 240 - level*2;
+    draw() {
+        if (this.isInvincible && gameFrame % 10 < 5) return;
+        ctx.font = '40px Arial'; ctx.fillText('🚀', this.x, this.y + this.height - 10);
+        if (this.weaponType === 'laser') this.drawLaser();
+    }
+    drawLaser() {
+        const laserWidth = 5 + this.powerUpLevel * 2;
+        ctx.fillStyle = `rgba(255, 255, 255, 0.2)`;
+        ctx.fillRect(this.x + this.width/2 - laserWidth, 0, laserWidth * 2, this.y);
+        ctx.fillStyle = `rgba(100, 200, 255, 0.8)`;
+        ctx.fillRect(this.x + this.width/2 - laserWidth/2, 0, laserWidth, this.y);
+    }
+    shoot() {
+        if (this.shootCooldown > 0 || this.weaponType === 'laser') return;
+        switch (this.weaponType) {
+            case 'homing':
+                playerProjectiles.push(new Projectile(this.x + this.width / 2, this.y, 0, 'homing'));
+                audioManager.play('missile'); this.shootCooldown = 40 - this.powerUpLevel * 3; break;
+            case 'spread':
+                for(let i = 0; i < this.powerUpLevel + 2; i++) {
+                    playerProjectiles.push(new Projectile(this.x + this.width / 2 - 5, this.y, i - (this.powerUpLevel+1)/2, 'default'));
                 }
-            }
-
-            this.shootTimer--;
-            if (this.shootTimer <= 0) {
-                if (this.pattern !== 'spawn') this.shoot();
-                this.shootTimer = this.shootCooldown - level * 2;
-            }
-        }
-        draw() {
-            ctx.font = `${this.width}px Arial`; ctx.fillText(this.emoji, this.x, this.y);
-            if(this.maxHealth > 1) {
-                ctx.fillStyle = 'red'; ctx.fillRect(this.x, this.y - 15, this.width, 10);
-                ctx.fillStyle = 'green'; ctx.fillRect(this.x, this.y - 15, this.width * (this.health/this.maxHealth), 10);
-            }
-        }
-        shoot() { /* ... ללא שינוי משמעותי ... */ }
-        takeDamage(amount) {
-            this.health -= amount;
-            if (this.health > 0) {
-                for(let i=0; i<3; i++) particles.push(new Particle(this.x + this.width/2, this.y + this.height/2, 'yellow'));
-            }
-            return this.health <= 0;
-        }
-    }
-    
-    const powerUpTypes = {
-        weapon_spread: { emoji: 'S', color: '#33ff33'}, weapon_laser: { emoji: 'L', color: '#33ccff'},
-        weapon_homing: { emoji: 'H', color: '#ff9933'}, health_up: { emoji: '+', color: '#ff3333'}
-    };
-
-    class PowerUp { /* ... ללא שינוי ... */ }
-    class Explosion {
-        constructor(x, y, size) { this.x = x; this.y = y; this.size = size; this.timer = 0; this.maxTimer = 15; }
-        update() { this.timer++; }
-        draw() {
-            ctx.globalAlpha = 1 - (this.timer / this.maxTimer);
-            ctx.font = `${this.size * (1 + this.timer/this.maxTimer)}px Arial`;
-            ctx.fillText('💥', this.x, this.y);
-            ctx.globalAlpha = 1;
-        }
-    }
-    class Particle {
-        constructor(x, y, color) {
-            this.x = x; this.y = y; this.size = Math.random() * 5 + 2;
-            this.speedX = (Math.random() - 0.5) * 3; this.speedY = (Math.random() - 0.5) * 3;
-            this.color = color; this.lifespan = 20;
-        }
-        update() { this.x += this.speedX; this.y += this.speedY; this.lifespan--; }
-        draw() { ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.size, this.size); }
-    }
-
-
-    // ==================
-    // פונקציות ניהול משחק
-    // ==================
-    const player = new Player();
-
-    function spawnWave() {
-        if (isBossLevel) return;
-        if (level % 5 === 0 && enemies.length === 0) {
-            isBossLevel = true;
-            boss = new Enemy(canvas.width/2 - 60, -150, 'boss');
-            enemies.push(boss);
-            showOnScreenMessage('קרב בוס!', 120);
-            return;
-        }
-        if (gameFrame % (Math.max(15, 80 - level * 3)) === 0) {
-             let x = Math.random() * (canvas.width - 60); let y = -50;
-             let rand = Math.random();
-             let enemyType = 'normal';
-             if (level > 2 && rand < 0.3) enemyType = 'tough';
-             else if (level > 4 && rand < 0.5) enemyType = 'swerving';
-             else if (level > 6 && rand < 0.6) enemyType = 'tank';
-             else if (level > 8 && rand < 0.7) enemyType = 'spawner';
-             if (level > 3 && rand > 0.9) enemyType = 'bomber';
-             enemies.push(new Enemy(x, y, enemyType));
-        }
-    }
-
-    function handleGameObjects(arr) {
-        for (let i = arr.length - 1; i >= 0; i--) {
-            arr[i].update();
-            arr[i].draw();
-            if (arr[i].y > canvas.height + 50 || arr[i].y < -50 || (arr[i].lifespan && arr[i].lifespan <= 0) || (arr[i].timer >= arr[i].maxTimer)) {
-                arr.splice(i, 1);
-            }
-        }
-    }
-
-    function detectCollisions() {
-        // התנגשות קליעי שחקן באויבים
-        for (let i = enemies.length - 1; i >= 0; i--) {
-            const enemy = enemies[i];
-            if (!enemy) continue;
-
-            // בדיקת פגיעת לייזר
-            if (player.weaponType === 'laser') {
-                const laserWidth = 5 + player.powerUpLevel * 2;
-                const laserX = player.x + player.width/2 - laserWidth/2;
-                if(enemy.x < laserX + laserWidth && enemy.x + enemy.width > laserX) {
-                    if(enemy.takeDamage(0.2 + player.powerUpLevel * 0.1)){
-                        killEnemy(enemy, i); continue;
-                    }
+                audioManager.play('shoot'); this.shootCooldown = 20 - this.powerUpLevel; break;
+            case 'default':
+            default:
+                const bullets = Math.min(3, this.powerUpLevel);
+                for(let i=0; i<bullets; i++) {
+                    playerProjectiles.push(new Projectile(this.x + this.width/2 - 15 + (i*15), this.y-i*5, 0, 'default'));
                 }
+                audioManager.play('shoot'); this.shootCooldown = 15 - this.powerUpLevel; break;
+        }
+    }
+    takeHit() {
+        if (this.isInvincible) return;
+        lives--;
+        audioManager.play('playerHit'); triggerScreenShake(10, 30);
+        this.isInvincible = true; this.invincibilityTimer = 120;
+        if (this.weaponType === 'laser') { audioManager.stop('laser'); this.isFiringLaser = false; }
+        this.powerUpLevel = 1; this.weaponType = 'default';
+        if (lives <= 0) endGame();
+    }
+}
+class Projectile {
+    constructor(x, y, speedX, type) {
+        this.x = x; this.y = y; this.type = type;
+        this.width = 10; this.height = 15;
+        this.speedY = 12; this.speedX = speedX * 2.5; this.damage = 1;
+        this.emoji = '🔥';
+        if(type === 'homing'){
+            this.emoji = '🎯'; this.target = this.findClosestEnemy();
+            this.speedY = 6;
+        }
+    }
+    findClosestEnemy(){ return enemies.length > 0 ? enemies.sort((a,b) => Math.hypot(this.x-a.x, this.y-a.y) - Math.hypot(this.x-b.x, this.y-b.y))[0] : null; }
+    update() {
+        if(this.type === 'homing' && this.target && enemies.includes(this.target)){
+            const angle = Math.atan2(this.target.y - this.y, this.target.x - this.x);
+            this.x += Math.cos(angle) * this.speedY; this.y += Math.sin(angle) * this.speedY;
+        } else { this.y -= this.speedY; this.x += this.speedX; }
+    }
+    draw() { ctx.font = '20px Arial'; ctx.fillText(this.emoji, this.x, this.y); }
+}
+class EnemyProjectile {
+    constructor(x, y) { this.x = x; this.y = y; this.width = 25; this.height = 25; this.speedY = 4 + level * 0.1; }
+    update() { this.y += this.speedY; }
+    draw() { ctx.font = '25px Arial'; ctx.fillText('🥚', this.x, this.y); }
+}
+class Star {
+    constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 2 + 1; this.speed = Math.random() * 1 + 0.5; }
+    update() { this.y += this.speed; if (this.y > canvas.height) { this.y = 0; this.x = Math.random() * canvas.width; } }
+    draw() { ctx.fillStyle = 'white'; ctx.fillRect(this.x, this.y, this.size, this.size); }
+}
+const enemyTypes = {
+    normal: { health: 1, size: 40, emoji: '🐔', points: 10, shootCd: 150 },
+    tough: { health: 5, size: 50, emoji: '🐓', points: 50, shootCd: 120 },
+    bomber: { health: 2, size: 45, emoji: '🛸', points: 30, shootCd: 80 },
+    swerving: { health: 2, size: 40, emoji: '🐧', points: 40, shootCd: 100, pattern: 'sine' },
+    tank: { health: 20, size: 60, emoji: '🦉', points: 100, shootCd: 200 },
+    spawner: { health: 10, size: 55, emoji: '👾', points: 80, shootCd: 180, pattern: 'spawn' },
+    boss: { health: 100, size: 120, emoji: '👹', points: 1000, shootCd: 40 }
+};
+class Enemy {
+    constructor(x, y, type) {
+        const proto = enemyTypes[type];
+        this.x = x; this.y = y; this.type = type; this.pattern = proto.pattern;
+        this.width = proto.size; this.height = proto.size;
+        this.maxHealth = proto.health + Math.floor(level/2); this.health = this.maxHealth;
+        this.emoji = proto.emoji; this.points = proto.points;
+        this.speedY = (this.type === 'tank' ? 0.5 : 1) + Math.random() * 1.5 + level * 0.1;
+        this.shootTimer = Math.random() * proto.shootCd; this.shootCooldown = proto.shootCd;
+        this.spawnTimer = 180;
+    }
+    update() {
+        this.y += this.speedY;
+        if (this.pattern === 'sine') this.x += Math.sin(this.y * 0.05) * 3;
+        if (this.pattern === 'spawn') {
+            this.spawnTimer--;
+            if(this.spawnTimer <= 0 && enemies.length < 50){ enemies.push(new Enemy(this.x, this.y, 'normal')); this.spawnTimer = 240 - level*2; }
+        }
+        this.shootTimer--;
+        if (this.shootTimer <= 0) {
+            if (this.pattern !== 'spawn') this.shoot();
+            this.shootTimer = this.shootCooldown - level * 2;
+        }
+    }
+    draw() {
+        ctx.font = `${this.width}px Arial`; ctx.fillText(this.emoji, this.x, this.y);
+        if(this.maxHealth > 1) {
+            ctx.fillStyle = 'red'; ctx.fillRect(this.x, this.y - 15, this.width, 10);
+            ctx.fillStyle = 'green'; ctx.fillRect(this.x, this.y - 15, this.width * (this.health/this.maxHealth), 10);
+        }
+    }
+    shoot() { if (this.y > 0) enemyProjectiles.push(new EnemyProjectile(this.x + this.width/2, this.y + this.height)); }
+    takeDamage(amount) {
+        this.health -= amount;
+        if (this.health > 0) { for(let i=0; i<3; i++) particles.push(new Particle(this.x + this.width/2, this.y + this.height/2, 'yellow')); }
+        return this.health <= 0;
+    }
+}
+const powerUpTypes = {
+    weapon_spread: { emoji: 'S', color: '#33ff33'}, weapon_laser: { emoji: 'L', color: '#33ccff'},
+    weapon_homing: { emoji: 'H', color: '#ff9933'}, health_up: { emoji: '+', color: '#ff3333'}
+};
+class PowerUp {
+    constructor(x, y, type) { this.x = x; this.y = y; this.type = type; this.width = 30; this.height = 30; this.speedY = 2; }
+    update() { this.y += this.speedY; }
+    draw() {
+        const proto = powerUpTypes[this.type];
+        ctx.font = 'bold 30px Arial'; ctx.fillStyle = proto.color; ctx.fillText(proto.emoji, this.x, this.y);
+    }
+}
+class Explosion {
+    constructor(x, y, size) { this.x = x; this.y = y; this.size = size; this.timer = 0; this.maxTimer = 15; }
+    update() { this.timer++; }
+    draw() {
+        ctx.globalAlpha = 1 - (this.timer / this.maxTimer);
+        ctx.font = `${this.size * (1 + this.timer/this.maxTimer)}px Arial`;
+        ctx.fillText('💥', this.x, this.y);
+        ctx.globalAlpha = 1;
+    }
+}
+class Particle {
+    constructor(x, y, color) { this.x = x; this.y = y; this.size = Math.random() * 5 + 2; this.speedX = (Math.random() - 0.5) * 3; this.speedY = (Math.random() - 0.5) * 3; this.color = color; this.lifespan = 20; }
+    update() { this.x += this.speedX; this.y += this.speedY; this.lifespan--; }
+    draw() { ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.size, this.size); }
+}
+
+// ==================
+// מנהל קלט (עכבר ומגע)
+// ==================
+const input = { x: canvas.width / 2, y: canvas.height - 60 };
+window.addEventListener('mousemove', e => { if (gameState === 'playing') input.x = e.clientX; });
+window.addEventListener('touchmove', e => { e.preventDefault(); if (gameState === 'playing' && e.touches.length > 0) input.x = e.touches[0].clientX; }, { passive: false });
+
+// ==================
+// פונקציות ניהול משחק
+// ==================
+const player = new Player();
+
+function spawnWave() {
+    if (isBossLevel) return;
+    if (level % 5 === 0 && enemies.length === 0) {
+        isBossLevel = true;
+        boss = new Enemy(canvas.width/2 - 60, -150, 'boss');
+        enemies.push(boss); showOnScreenMessage('קרב בוס!', 120); return;
+    }
+    if (gameFrame % (Math.max(15, 80 - level * 3)) === 0) {
+        let x = Math.random() * (canvas.width - 60); let y = -50; let rand = Math.random();
+        let enemyType = 'normal';
+        if (level > 2 && rand < 0.3) enemyType = 'tough'; else if (level > 4 && rand < 0.5) enemyType = 'swerving';
+        else if (level > 6 && rand < 0.6) enemyType = 'tank'; else if (level > 8 && rand < 0.7) enemyType = 'spawner';
+        if (level > 3 && rand > 0.9) enemyType = 'bomber';
+        enemies.push(new Enemy(x, y, enemyType));
+    }
+}
+function handleGameObjects(arr) {
+    for (let i = arr.length - 1; i >= 0; i--) {
+        arr[i].update(); arr[i].draw();
+        const obj = arr[i];
+        if (obj.y > canvas.height + 50 || obj.y < -50 || (obj.lifespan && obj.lifespan <= 0) || (obj.maxTimer && obj.timer >= obj.maxTimer)) {
+            arr.splice(i, 1);
+        }
+    }
+}
+function detectCollisions() {
+    // התנגשות קליעי שחקן באויבים
+    for (let i = enemies.length - 1; i >= 0; i--) {
+        const enemy = enemies[i];
+        if (!enemy) continue;
+        if (player.weaponType === 'laser') {
+            const laserWidth = 5 + player.powerUpLevel * 2; const laserX = player.x + player.width/2 - laserWidth/2;
+            if(enemy.x < laserX + laserWidth && enemy.x + enemy.width > laserX && enemy.y > 0) {
+                if(enemy.takeDamage(0.2 + player.powerUpLevel * 0.1)){ killEnemy(enemy, i); continue; }
             }
-
-            // בדיקת פגיעת קליעים רגילים
-            for (let j = playerProjectiles.length - 1; j >= 0; j--) {
-                const projectile = playerProjectiles[j];
-                if (!projectile) continue;
-                if (projectile.x < enemy.x + enemy.width && projectile.x + projectile.width > enemy.x &&
-                    projectile.y < enemy.y + enemy.height && projectile.y + projectile.height > enemy.y) 
-                {
-                    playerProjectiles.splice(j, 1);
-                    if(enemy.takeDamage(projectile.damage)) {
-                        killEnemy(enemy, i); break; // אויב מת, עבור לאויב הבא
-                    }
-                }
+        }
+        for (let j = playerProjectiles.length - 1; j >= 0; j--) {
+            const projectile = playerProjectiles[j];
+            if (!projectile) continue;
+            if (projectile.x < enemy.x + enemy.width && projectile.x + projectile.width > enemy.x &&
+                projectile.y < enemy.y + enemy.height && projectile.y + projectile.height > enemy.y) {
+                playerProjectiles.splice(j, 1);
+                if(enemy.takeDamage(projectile.damage)) { killEnemy(enemy, i); break; }
             }
         }
-        
-        // התנגשות אויבים/ביצים בשחקן
-        /* ... ללא שינוי ... */
-
-        // התנגשות שחקן עם שדרוג
-        /* ... ללא שינוי, למעט הוספת case ל-homing ... */
     }
-
-    function killEnemy(enemy, index) {
-        explosions.push(new Explosion(enemy.x, enemy.y, enemy.width));
-        audioManager.play('explosion'); triggerScreenShake(enemy.width * 0.1, 15);
-        score += enemy.points;
-
-        if (Math.random() < 0.2) { /*... לוגיקת הפלת שדרוגים ...*/ }
-
-        if (isBossLevel && enemy.type === 'boss') {
-            isBossLevel = false; boss = null;
-            level++; showOnScreenMessage(`שלב ${level}`, 90); score += 5000;
-        }
-        
-        enemies.splice(index, 1);
-
-        if (!isBossLevel && score > level * 750) {
-            level++; showOnScreenMessage(`שלב ${level}`, 90);
+    // התנגשות אויבים/ביצים בשחקן
+    const entitiesToTest = [...enemies, ...enemyProjectiles];
+    for (let i = entitiesToTest.length - 1; i >= 0; i--) {
+        const entity = entitiesToTest[i];
+        if (entity && player.x < entity.x + entity.width && player.x + player.width > entity.x &&
+            player.y < entity.y + entity.height && player.y + player.height > entity.y) {
+            player.takeHit();
+            explosions.push(new Explosion(entity.x, entity.y, entity.width));
+            if (entity instanceof EnemyProjectile) {
+                const index = enemyProjectiles.indexOf(entity); if (index > -1) enemyProjectiles.splice(index, 1);
+            } else {
+                const index = enemies.indexOf(entity); if (index > -1) enemies.splice(index, 1);
+            }
         }
     }
-    
-    function drawUI() {
-        ctx.fillStyle = 'white'; ctx.font = '20px Arial';
-        ctx.textAlign = 'left';
-        ctx.fillText(`ניקוד: ${score}`, 10, 30);
-        ctx.fillText(`שלב: ${level}`, 10, 60);
-        let weaponName;
-        switch(player.weaponType){
-            case 'default': weaponName = 'רגיל'; break; case 'spread': weaponName = 'מפוזר'; break;
-            case 'laser': weaponName = 'לייזר'; break; case 'homing': weaponName = 'מתביית'; break;
-        }
-        ctx.fillText(`נשק: ${weaponName} (${player.powerUpLevel})`, 10, 90);
-        ctx.textAlign = 'right';
-        ctx.fillText(`חיים: ${'❤️'.repeat(lives)}`, canvas.width - 10, 30);
-        
-        // כפתור סאונד
-        ctx.font = '30px Arial';
-        ctx.fillText(isMuted ? '🔇' : '🔊', muteButton.x + muteButton.width / 2, muteButton.y + muteButton.height / 2 + 10);
-
-        if(isBossLevel && boss) { /* ... UI של הבוס ... */ }
-        
-        if (onScreenMessage.timer > 0) {
-            ctx.textAlign = 'center';
-            ctx.font = 'bold 50px Arial';
-            ctx.fillStyle = `rgba(255, 255, 100, ${onScreenMessage.timer / 60})`;
-            ctx.fillText(onScreenMessage.text, canvas.width/2, canvas.height/2);
-            onScreenMessage.timer--;
-        }
-        ctx.textAlign = 'center';
-    }
-    
-    function showOnScreenMessage(text, duration) { onScreenMessage.text = text; onScreenMessage.timer = duration; }
-
-    // ==================
-    // לולאת המשחק הראשית
-    // ==================
-    function animate() {
-        if (gameState !== 'playing') return;
-        
-        ctx.save();
-        // applyScreenShake();
-        
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        handleGameObjects(stars);
-        handleGameObjects(particles);
-        
-        player.update(input);
-        player.draw();
-        
-        spawnWave();
-        
-        handleGameObjects(enemies);
-        handleGameObjects(playerProjectiles);
-        handleGameObjects(powerUps);
-        handleGameObjects(enemyProjectiles);
-        handleGameObjects(explosions);
-        
-        detectCollisions();
-        
-        drawUI();
-        
-        ctx.restore();
-        
-        gameFrame++;
-        requestAnimationFrame(animate);
-    }
-    
-    // ==================
-    // טיפול באירועים
-    // ==================
-    function handleCanvasClick(e) {
-        const rect = canvas.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const clickY = e.clientY - rect.top;
-
-        if (clickX >= muteButton.x && clickX <= muteButton.x + muteButton.width &&
-            clickY >= muteButton.y && clickY <= muteButton.y + muteButton.height) {
-            isMuted = !isMuted;
-            if (isMuted) audioManager.stop('laser'); // לעצור לייזר אם מושתק
+    // התנגשות שחקן עם שדרוג
+    for (let i = powerUps.length - 1; i >= 0; i--) {
+        const powerUp = powerUps[i];
+        if (powerUp && player.x < powerUp.x + powerUp.width && player.x + player.width > powerUp.x &&
+            player.y < powerUp.y + powerUp.height && player.y + player.height > powerUp.y) {
+            audioManager.play('powerup');
+            if (powerUp.type === 'health_up') { if (lives < 5) lives++; } 
+            else if (powerUp.type.startsWith('weapon_')) {
+                const newWeapon = powerUp.type.split('_')[1];
+                if (player.weaponType === newWeapon) { if (player.powerUpLevel < 5) player.powerUpLevel++; } 
+                else { player.weaponType = newWeapon; player.powerUpLevel = 1; }
+            }
+            powerUps.splice(i, 1); score += 50;
         }
     }
-    canvas.addEventListener('click', handleCanvasClick);
-
-    // אתחול והפעלת המשחק
-    function init() {
-        // אכלוס מערכים ראשוניים, למשל כוכבים
-        for(let i=0; i<100; i++) stars.push(new Star());
+}
+function killEnemy(enemy, index) {
+    explosions.push(new Explosion(enemy.x, enemy.y, enemy.width));
+    audioManager.play('explosion'); triggerScreenShake(enemy.width * 0.1, 15);
+    score += enemy.points;
+    if (Math.random() < 0.2) {
+        const powerUpKeys = Object.keys(powerUpTypes);
+        const randomType = powerUpKeys[Math.floor(Math.random() * powerUpKeys.length)];
+        powerUps.push(new PowerUp(enemy.x, enemy.y, randomType));
     }
-
-    function startGame() {
-        // resetGame();
-        gameState = 'playing';
-        document.getElementById('startScreen').style.display = 'none';
-        document.getElementById('gameOverScreen').style.display = 'none';
-        animate();
+    if (isBossLevel && enemy.type === 'boss') {
+        isBossLevel = false; boss = null;
+        level++; showOnScreenMessage(`שלב ${level}`, 90); score += 5000;
     }
+    enemies.splice(index, 1);
+    if (!isBossLevel && score > level * 750) {
+        level++; showOnScreenMessage(`שלב ${level}`, 90);
+    }
+}
+function triggerScreenShake(intensity, duration) { screenShake.intensity = intensity; screenShake.duration = duration; }
+function applyScreenShake() {
+    if (screenShake.duration > 0) {
+        ctx.translate((Math.random() - 0.5) * screenShake.intensity, (Math.random() - 0.5) * screenShake.intensity);
+        screenShake.duration--;
+    } else { screenShake.intensity = 0; }
+}
+function drawUI() {
+    ctx.fillStyle = 'white'; ctx.font = '20px Arial'; ctx.textAlign = 'left';
+    ctx.fillText(`ניקוד: ${score}`, 10, 30); ctx.fillText(`שלב: ${level}`, 10, 60);
+    let weaponName;
+    switch(player.weaponType){
+        case 'default': weaponName = 'רגיל'; break; case 'spread': weaponName = 'מפוזר'; break;
+        case 'laser': weaponName = 'לייזר'; break; case 'homing': weaponName = 'מתביית'; break;
+    }
+    ctx.fillText(`נשק: ${weaponName} (${player.powerUpLevel})`, 10, 90);
+    ctx.textAlign = 'right'; ctx.fillText(`חיים: ${'❤️'.repeat(lives)}`, canvas.width - 10, 30);
+    ctx.font = '30px Arial'; ctx.textAlign = 'left'; ctx.fillText(isMuted ? '🔇' : '🔊', muteButton.x, muteButton.y + muteButton.height - 5);
+    if(isBossLevel && boss) {
+        ctx.textAlign = 'center'; ctx.fillText('🚨 בוס 🚨', canvas.width/2, 30);
+        const barWidth = canvas.width * 0.8, barX = canvas.width * 0.1;
+        ctx.fillStyle = 'red'; ctx.fillRect(barX, 50, barWidth, 20);
+        ctx.fillStyle = 'purple'; ctx.fillRect(barX, 50, barWidth * (boss.health / boss.maxHealth), 20);
+    }
+    if (onScreenMessage.timer > 0) {
+        ctx.textAlign = 'center'; ctx.font = 'bold 50px Arial';
+        ctx.fillStyle = `rgba(255, 255, 100, ${onScreenMessage.timer / 60})`;
+        ctx.fillText(onScreenMessage.text, canvas.width/2, canvas.height/2);
+        onScreenMessage.timer--;
+    }
+}
+function showOnScreenMessage(text, duration) { onScreenMessage.text = text; onScreenMessage.timer = duration; }
+function resetGame() {
+    score = 0; level = 1; lives = 3; gameFrame = 0;
+    player.x = canvas.width / 2 - player.width / 2; player.y = canvas.height - player.height - 20;
+    player.weaponType = 'default'; player.powerUpLevel = 1; player.isInvincible = false;
+    enemies = []; playerProjectiles = []; powerUps = []; explosions = []; enemyProjectiles = []; particles = [];
+    isBossLevel = false; boss = null;
+    audioManager.stop('laser'); player.isFiringLaser = false;
+}
+// ==================
+// לולאת המשחק הראשית
+// ==================
+function animate() {
+    if (gameState !== 'playing') return;
+    ctx.save();
+    applyScreenShake();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    handleGameObjects(stars); handleGameObjects(particles);
+    player.update(input); player.draw();
+    spawnWave();
+    handleGameObjects(enemies); handleGameObjects(playerProjectiles);
+    handleGameObjects(powerUps); handleGameObjects(enemyProjectiles);
+    handleGameObjects(explosions);
+    detectCollisions();
+    drawUI();
+    ctx.restore();
+    gameFrame++;
+    requestAnimationFrame(animate);
+}
 
-    document.getElementById('startButton').addEventListener('click', () => {
-        audioManager.init();
-        startGame();
-    });
+// ==================
+// טיפול באירועים ואתחול
+// ==================
+function handleCanvasClick(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clickX = e.clientX - rect.left; const clickY = e.clientY - rect.top;
+    if (clickX >= muteButton.x && clickX <= muteButton.x + muteButton.width && clickY >= muteButton.y && clickY <= muteButton.y + muteButton.height) {
+        isMuted = !isMuted;
+        if (isMuted) { audioManager.stop('laser'); player.isFiringLaser = false; }
+    }
+}
+function startGame() {
+    resetGame();
+    gameState = 'playing';
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('gameOverScreen').style.display = 'none';
+    animate();
+}
+function endGame() {
+    gameState = 'gameOver';
+    document.getElementById('finalScore').innerText = score;
+    document.getElementById('finalLevel').innerText = level;
+    document.getElementById('gameOverScreen').style.display = 'flex';
+    audioManager.stop('laser');
+}
 
-    init(); // קריאה לאתחול הראשוני
+canvas.addEventListener('click', handleCanvasClick);
+document.getElementById('startButton').addEventListener('click', () => { audioManager.init(); startGame(); });
+document.getElementById('restartButton').addEventListener('click', startGame);
+window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    muteButton.y = canvas.height - 40;
+    player.y = canvas.height - player.height - 20;
+});
 
-    </script>
+// אתחול ראשוני
+for(let i=0; i<100; i++) stars.push(new Star());
+
+</script>
 </body>
 </html>
-
