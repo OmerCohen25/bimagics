@@ -1,422 +1,512 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Wizbi Play — דמו חי: צור משחק בוואטסאפ ושחק מיד</title>
-<meta name="description" content="דמו חי: שיחת וואטסאפ שמייצרת משחק מיידית, קישור שיתוף, וגלריית משחקים לרמיקס — הכל בעמוד אחד.">
-<meta property="og:title" content="Wizbi Play — דמו חי" />
-<meta property="og:description" content="צור משחק בוואטסאפ, קבל לינק מיד, ושחק — ויראלי ומהיר." />
-<meta property="og:image" content="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='630'><rect width='100%' height='100%' fill='%2300c175'/><text x='50%' y='50%' font-size='64' fill='white' text-anchor='middle' dominant-baseline='middle'>Wizbi Play</text></svg>">
+<title>Wizbi Play — Magical Live Demo: A WhatsApp-Powered Game Experience</title>
+<meta name="description" content="Experience the magic: A live demo showing a WhatsApp chat generating a game inside a mobile mockup, with dynamic effects, animations, and a remix gallery.">
+<meta property="og:title" content="Wizbi Play — A Magical Live Demo" />
+<meta property="og:description" content="Create a game via WhatsApp, get an instant link, and play in a stunning, interactive demo." />
+<meta property="og:image" content="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='630'><rect width='100%' height='100%' fill='%230d1117'/><g transform='translate(600 315)'><path d='M-150 0 L-100 50 L-50 0 L-100 -50 Z' fill='%2300c175'/><text x='0' y='10' font-size='64' fill='white' text-anchor='middle'>Wizbi Play</text></g></svg>">
 <meta name="theme-color" content="#0d1117">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0d1117; --panel:#0f1520; --card:#161b22; --border:#212938;
-    --text:#e6edf3; --muted:#9aa7b1; --accent:#00c175; --accent-2:#7df0c3;
-    --wa-green:#25D366; --wa-dark:#075E54; --good:#35d07f; --bad:#ff6b6b;
-    --shadow: 0 8px 30px rgba(0,0,0,.35);
+  /* --- Core Styles, Variables & Magical Background --- */
+  :root {
+    --bg: #0d1117; --panel: rgba(15, 21, 32, 0.75); --card: rgba(22, 27, 34, 0.75);
+    --border: rgba(48, 54, 61, 0.7); --border-light: rgba(60, 68, 78, 0.8);
+    --text: #e6edf3; --muted: #9aa7b1; --accent: #00c175; --accent-2: #7df0c3;
+    --shadow: 0 12px 40px rgba(0,0,0,.45); --shadow-light: 0 4px 15px rgba(0,0,0,.3);
   }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;background:linear-gradient(180deg,var(--bg),#0b0f15 40%, #0a0d12);
-       color:var(--text);font-family:Heebo,system-ui,Arial}
-  a{color:var(--accent-2);text-decoration:none}
-  .wrap{max-width:1120px;margin:0 auto;padding:20px}
-  .hero{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;align-items:stretch}
-  @media (max-width:980px){ .hero{grid-template-columns:1fr} }
-  .title{display:flex;align-items:center;gap:12px;margin:8px 0 4px}
-  .title h1{margin:0;font-size:clamp(22px,4.2vw,40px);letter-spacing:.2px}
-  .subtitle{color:var(--muted);margin-bottom:14px}
-  .pill{display:inline-flex;gap:8px;align-items:center;background:#0a121c;border:1px solid var(--border);padding:6px 10px;border-radius:999px;color:#9ed0b9;font-weight:700}
-  .stack{display:flex;flex-direction:column;gap:12px}
-  .card{background:linear-gradient(180deg,#0f1520,#0c121a);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow)}
-  .pad{padding:14px}
-  .cta-row{display:flex;flex-wrap:wrap;gap:8px}
-  .btn{border:1px solid var(--border);background:var(--card);color:var(--text);padding:12px 16px;border-radius:12px;font-weight:800}
-  .btn.prime{background:linear-gradient(180deg,var(--accent),#05a966);border-color:#038d58;color:#042e22}
-  .btn.ghost{background:transparent;color:#bfe9d9}
-  .note{color:var(--muted);font-size:14px}
-  /* WhatsApp mock */
-  .wa{display:flex;flex-direction:column;height:520px;background:linear-gradient(180deg,#111,#0b141a);border-radius:18px;border:1px solid var(--border);overflow:hidden}
-  .wa-header{background:linear-gradient(180deg,var(--wa-dark),#094d46);color:#eafff8;padding:10px 12px;display:flex;align-items:center;gap:10px}
-  .wa-dot{width:8px;height:8px;border-radius:99px;background:#46ffa6;box-shadow:0 0 10px #46ffa6}
-  .wa-name{font-weight:800}
-  .wa-body{flex:1;background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"><circle cx="7" cy="7" r="1" fill="%23212f3c" opacity=".3"/></svg>') ;padding:12px;overflow:auto}
-  .wa-msg{max-width:78%;margin:8px 0;padding:10px 12px;border-radius:14px;line-height:1.35;border:1px solid rgba(255,255,255,.04);box-shadow:0 6px 20px rgba(0,0,0,.18)}
-  .wa-in{background:#1a2330}
-  .wa-out{background:#1b3d2e;border-color:rgba(0,193,117,.35);margin-inline-start:auto}
-  .wa-meta{display:flex;gap:10px;align-items:center;color:#9ed0b9;font-size:12px;margin-top:2px}
-  .wa-typing{display:inline-flex;gap:3px}
-  .wa-typing i{width:6px;height:6px;background:#9ed0b9;border-radius:99px;opacity:.35;animation:b .9s infinite}
-  .wa-typing i:nth-child(2){animation-delay:.15s}.wa-typing i:nth-child(3){animation-delay:.3s}
-  @keyframes b{0%,80%,100%{transform:translateY(0);opacity:.3} 40%{transform:translateY(-3px);opacity:.9}}
-  .wa-footer{display:flex;gap:8px;padding:10px;background:#0c1218;border-top:1px solid var(--border)}
-  .wa-input{flex:1;background:#0a1016;border:1px solid var(--border);border-radius:999px;color:var(--text);padding:10px 14px}
-  .wa-send{background:var(--wa-green);border:none;border-radius:12px;padding:8px 12px;font-weight:800;color:#043122}
-  .link-chip{display:inline-flex;align-items:center;gap:8px;background:#0a1b16;border:1px dashed #1d5e49;color:#aef3da;padding:8px 10px;border-radius:12px;margin-top:6px;cursor:pointer}
-  /* Game area */
-  .live{display:grid;grid-template-columns:1.05fr .95fr;gap:16px}
-  @media (max-width:980px){ .live{grid-template-columns:1fr} }
-  .game-wrap{display:flex;flex-direction:column;gap:10px}
-  .game-head{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border)}
-  .badge{background:#0a1510;color:#80f0c8;border:1px solid #174b3c;padding:6px 10px;border-radius:999px;font-weight:800}
-  .mini{font-size:12px;color:var(--muted)}
-  .panel{display:flex;gap:8px;flex-wrap:wrap}
-  .btn.small{padding:8px 12px;border-radius:10px;font-weight:700}
-  .game-stage{height:520px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:radial-gradient(1100px 400px at 50% -20%,rgba(0,193,117,.16),transparent 55%), #091018}
-  /* Gallery */
-  .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  @media (max-width:980px){ .gallery{grid-template-columns:1fr 1fr} }
-  @media (max-width:560px){ .gallery{grid-template-columns:1fr} }
-  .tile{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:14px;border:1px solid var(--border);background:linear-gradient(180deg,#0f1520,#0b1118)}
-  .tile .cover{height:120px;border-radius:10px;background:#0e1721;display:flex;align-items:center;justify-content:center;font-size:40px}
-  .tile h4{margin:0}
-  .copy-toast{position:fixed;inset-inline:0;bottom:16px;margin:auto;max-width:320px;background:#0a1c15;border:1px solid #186a50;color:#aef3da;padding:10px 12px;border-radius:12px;text-align:center;opacity:0;transform:translateY(12px);transition:all .25s}
-  .copy-toast.show{opacity:1;transform:translateY(0)}
-  .footnote{color:#7e8b96;font-size:12px;text-align:center;margin-top:14px}
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background-color: var(--bg);
+    color: var(--text); font-family: "Inter", system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+  #bg-canvas {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: -1; opacity: 0.7;
+  }
+  a { color: var(--accent-2); text-decoration: none; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 40px 20px; }
+
+  /* --- Glassmorphism & Reveal Animations --- */
+  .card {
+    background-color: var(--card); border: 1px solid var(--border);
+    border-radius: 18px; box-shadow: var(--shadow);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  }
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  
+  /* --- Layout & Typography --- */
+  .hero { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: flex-start; }
+  @media (max-width: 980px) { .hero { grid-template-columns: 1fr; } }
+  
+  .title-block { text-align: center; margin-bottom: 40px; }
+  .title-block h1 { margin: 0; font-size: clamp(32px, 5vw, 50px); letter-spacing: -1px; }
+  .title-block .subtitle { color: var(--muted); font-size: 1.1rem; max-width: 600px; margin: 10px auto 0; }
+  .pill { display: inline-flex; gap: 8px; align-items: center; background: var(--panel); border: 1px solid var(--border); padding: 8px 14px; border-radius: 999px; color: #9ed0b9; font-weight: 700; margin-bottom: 16px; }
+  .stack { display: flex; flex-direction: column; gap: 16px; }
+
+  /* --- Buttons & Interactive Elements --- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border: 1px solid var(--border-light); background: transparent; color: var(--text); padding: 12px 18px;
+    border-radius: 12px; font-weight: 700; cursor: pointer; transition: all .2s ease;
+  }
+  .btn:hover { transform: translateY(-2px); border-color: var(--accent-2); box-shadow: 0 4px 20px rgba(0, 193, 117, 0.1); }
+  .btn svg { width: 18px; height: 18px; }
+  .btn.prime { background: var(--accent); border-color: var(--accent); color: #042e22; font-weight: 800; }
+  .btn.prime:hover { background: #0acf83; border-color: #0acf83; box-shadow: 0 6px 25px rgba(0, 193, 117, 0.3); }
+  .btn.ghost { color: #bfe9d9; border-color: var(--border); }
+  .btn.ghost:hover { background: rgba(191, 233, 217, 0.1); color: white; border-color: #bfe9d9; }
+  .note { color: var(--muted); font-size: 14px; line-height: 1.5; }
+
+  /* --- WhatsApp Mockup --- */
+  .wa { height: 600px; display: flex; flex-direction: column; overflow: hidden; }
+  .wa-header { background: #094d46; color: #eafff8; padding: 12px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(0,0,0,0.2); }
+  .wa-dot { width: 9px; height: 9px; border-radius: 99px; background: #46ffa6; box-shadow: 0 0 10px #46ffa6; }
+  .wa-name { font-weight: 800; }
+  .wa-body { flex: 1; background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"><circle cx="7" cy="7" r="1" fill="rgba(255,255,255,0.04)"/></svg>'); padding: 12px; overflow: auto; }
+  .wa-msg { max-width: 80%; margin: 8px 0; padding: 10px 14px; border-radius: 16px; line-height: 1.4; box-shadow: var(--shadow-light); }
+  .wa-in { background: #1a2330; }
+  .wa-out { background: #1b3d2e; margin-left: auto; }
+  @keyframes typing-bounce { 0%, 80%, 100% { transform: translateY(0); opacity: .4; } 40% { transform: translateY(-3px); opacity: 1; } }
+  .wa-typing i { width: 6px; height: 6px; background: #9ed0b9; border-radius: 99px; animation: typing-bounce .9s infinite; display: inline-block; margin: 0 1px; } .wa-typing i:nth-child(2) { animation-delay: .15s; } .wa-typing i:nth-child(3) { animation-delay: .3s; }
+  .wa-footer { display: flex; gap: 8px; padding: 10px; background: rgba(12, 18, 24, 0.8); border-top: 1px solid var(--border); }
+  .wa-input { flex: 1; background: #0a1016; border: 1px solid var(--border); border-radius: 999px; color: var(--text); padding: 10px 14px; }
+  .wa-send { background: var(--accent); border: none; border-radius: 50%; width: 44px; height: 44px; font-weight: 800; color: #043122; cursor: pointer; transition: all .2s; }
+  .wa-send:hover { transform: scale(1.1); background: #0acf83; }
+
+  /* --- Mobile Phone Mockup --- */
+  .phone-mockup {
+    background: #111; border-radius: 40px; padding: 12px;
+    box-shadow: var(--shadow), 0 0 0 2px #1a1a1a;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .phone-mockup.shake { animation: shake-hard .3s; }
+  .phone-inner { background: var(--bg); border-radius: 30px; overflow: hidden; height: 576px; display: flex; flex-direction: column; }
+  .game-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .badge { background: var(--panel); color: var(--accent-2); border: 1px solid var(--border-light); padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: 13px; }
+  .game-stage {
+    flex-grow: 1; position: relative; overflow: hidden;
+    background: radial-gradient(circle at 50% 0%, rgba(0,193,117,.15), transparent 60%), #091018;
+  }
+  .game-footer { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-top: 1px solid var(--border); flex-shrink: 0; font-size: 14px; }
+  @keyframes shake-hard { 0%,100% {transform:translateX(0)} 20%,60% {transform:translateX(-4px)} 40%,80% {transform:translateX(4px)} }
+  
+  /* --- Game Elements --- */
+  .game-item {
+    position: absolute; user-select: none; cursor: pointer;
+    font-size: 32px; transition: transform 0.1s ease-out;
+  }
+  .game-item.clicked { transform: scale(0.8) rotate(-15deg) !important; opacity: 0; }
+  .click-pop {
+    position: absolute; width: 60px; height: 60px; border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.8);
+    transform: translate(-50%, -50%) scale(0); opacity: 1;
+    animation: click-pop-anim 0.3s ease-out forwards;
+  }
+  @keyframes click-pop-anim { to { transform: translate(-50%, -50%) scale(1.5); opacity: 0; } }
+  .game-over-overlay {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.7);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: white; text-align: center; opacity: 0;
+    transition: opacity 0.4s ease; backdrop-filter: blur(5px);
+  }
+  .game-over-overlay.show { opacity: 1; }
+  .game-over-overlay h3 { font-size: 28px; margin: 0; }
+  .game-over-overlay .final-score { font-size: 52px; font-weight: 800; color: var(--accent); margin: 10px 0; }
+
+  /* --- Gallery --- */
+  .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 980px) { .gallery { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .gallery { grid-template-columns: 1fr; } }
+  .tile { display: flex; flex-direction: column; gap: 10px; padding: 14px; transition: all .2s ease; }
+  .tile:hover { transform: translateY(-5px); box-shadow: 0 8px 30px rgba(0,0,0,.3); border-color: var(--border-light); }
+  .tile .cover { height: 120px; border-radius: 10px; background: #0e1721; display: flex; align-items: center; justify-content: center; font-size: 44px; }
+  .tile h4 { margin: 0; font-size: 1.1rem; }
+  .tile .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; }
+
+  /* --- Utility & Misc --- */
+  .copy-toast { position: fixed; left: 0; right: 0; bottom: 20px; margin: auto; max-width: 320px; background: #0a1c15; border: 1px solid #186a50; color: #aef3da; padding: 12px 16px; border-radius: 12px; text-align: center; opacity: 0; transform: translateY(12px); transition: all .25s ease; z-index: 1000; }
+  .copy-toast.show { opacity: 1; transform: translateY(0); }
+  .footnote { color: #7e8b96; font-size: 13px; text-align: center; margin-top: 50px; }
 </style>
 </head>
 <body>
+  <canvas id="bg-canvas"></canvas>
+
   <div class="wrap">
-    <!-- HERO -->
-    <div class="title">
-      <span class="pill">🚀 דמו חי • וואטסאפ ⇒ לינק ⇒ משחק</span>
-    </div>
-    <h1 class="title"><span>Wizbi Play</span></h1>
-    <div class="subtitle">בנו משחקים ואתרי־מיני בוואטסאפ, קבלו לינק מיידי, שחקו ושתפו—בלי קוד, בלי המתנה.</div>
+    <header class="title-block reveal">
+      <span class="pill">🚀 Magical Live Demo</span>
+      <h1>Turn Prompts into Play</h1>
+      <p class="subtitle">This is a live demonstration of Wizbi Play. See how a simple WhatsApp prompt generates a fully playable game, instantly, right inside a mobile experience.</p>
+    </header>
 
     <div class="hero">
-      <!-- WhatsApp simulation -->
-      <div class="stack">
+      <div class="stack reveal">
         <div class="card wa" id="wa">
           <div class="wa-header">
             <div class="wa-dot"></div>
             <div>
-              <div class="wa-name">Wizbi • Game Builder</div>
-              <div style="font-size:12px;opacity:.8">מחובר עכשיו</div>
+              <div class="wa-name">Wizbi • AI Game Builder</div>
+              <div style="font-size:12px;opacity:.8">Online</div>
             </div>
           </div>
-          <div class="wa-body" id="waBody">
-            <!-- messages injected by JS -->
-          </div>
+          <div class="wa-body" id="waBody"></div>
           <div class="wa-footer">
-            <input class="wa-input" id="waInput" placeholder="כתוב/י: בנה משחק פירות ל-15 שניות…">
-            <button class="wa-send" id="waSend">שליחה</button>
+            <input class="wa-input" id="waInput" placeholder="Try a prompt...">
+            <button class="wa-send" id="waSend" aria-label="Send">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4l17.4-8.7c.9-.4.9-1.6 0-2L3.4 1.1c-.9-.4-1.8.4-1.4 1.3l3.6 7.3-3.6 7.3c-.4.9.5 1.7 1.4 1.4z"/></svg>
+            </button>
           </div>
-        </div>
-
-        <div class="card pad">
-          <div class="cta-row">
-            <button class="btn prime" id="ctaFast">⏱️ הרץ דמו מלא עכשיו</button>
-            <button class="btn ghost" id="ctaRemix">✨ Remix — שפר/י את המשחק שבדמו</button>
-          </div>
-          <div class="note">המערכת האמיתית שומרת משחקים לפי מספר הטלפון/המייל, מאפשרת שיתוף תוצאה בלינק, ורמיקס בלחיצה.</div>
         </div>
       </div>
 
-      <!-- Live Game -->
-      <div class="stack">
-        <div class="card">
-          <div class="game-head">
-            <div style="display:flex;align-items:center;gap:8px">
-              <span class="badge" id="gameBadge">משחק חי</span>
-              <span class="mini" id="gameMeta">פרי טפר • 15s • מובייל־פרסט</span>
+      <div class="stack reveal" style="transition-delay: 0.2s;">
+        <div class="phone-mockup" id="phoneMockup">
+          <div class="phone-inner">
+            <div class="game-head">
+              <span class="badge" id="gameBadge">Live Game</span>
+              <div class="panel">
+                <button class="btn small" id="btnStart">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                  <span>Start</span>
+                </button>
+              </div>
             </div>
-            <div class="panel">
-              <button class="btn small" id="btnStart">▶️ התחל</button>
-              <button class="btn small" id="btnShare">🔗 שתף תוצאה</button>
-              <button class="btn small" id="btnCopyLink">📋 העתק קישור</button>
+            <div class="game-stage" id="gameStage">
+              <div class="game-over-overlay" id="gameOverOverlay">
+                <h3>Game Over!</h3>
+                <div id="finalScore" class="final-score">0</div>
+                <div class="note">Try again or Remix below!</div>
+              </div>
             </div>
-          </div>
-          <div class="game-stage" id="gameStage">
-            <!-- The game canvas is injected here -->
-          </div>
-          <div class="pad" style="display:flex;justify-content:space-between;align-items:center">
-            <div>ניקוד: <b id="score">0</b> • זמן: <b id="time">15</b>s</div>
-            <div id="shareLinkBox" class="note" style="display:none;"></div>
+            <div class="game-footer">
+              <div>Score: <b id="score">0</b></div>
+              <div>Time: <b id="time">15</b>s</div>
+            </div>
           </div>
         </div>
-        <div class="card pad">
-          <div class="subtitle" style="margin:0 0 8px">איך זה עובד?</div>
-          <ol style="margin:0 0 0 18px; padding:0 0 0 18px">
-            <li>כותבים בוואטסאפ מה רוצים (משחק/אתר).</li>
-            <li>מקבלים לינק מיידי—ללא בילד/המתנה.</li>
-            <li>משחקים, משתפים תוצאה, ויוצרים Remix משלכם.</li>
-          </ol>
+        <div class="card reveal" style="padding: 16px;">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <p class="note" style="font-size: 15px; margin:0; text-align: center;">The real system enables one-click sharing and instant remixing from any game.</p>
+                <div style="display:flex; flex-wrap:wrap; gap: 8px; justify-content: center;">
+                    <button class="btn prime" id="ctaRemix">✨ Remix this Game</button>
+                    <button class="btn ghost" id="btnCopyLink">🔗 Copy Share Link</button>
+                </div>
+            </div>
         </div>
       </div>
     </div>
 
-    <!-- Gallery -->
-    <div class="stack" style="margin-top:18px">
-      <div class="title"><h2 style="margin:0">🎮 קולקציית משחקים לדוגמה</h2></div>
-      <div class="gallery" id="gallery"></div>
+    <div class="stack reveal" style="margin-top:50px">
+      <div class="title-block" style="margin-bottom: 20px;">
+          <h2 style="margin:0; font-size: 2.2rem;">🎮 Sample Game Collection</h2>
+          <p class="subtitle" style="font-size: 1rem;">Load any demo, or use the Remix button to see how the AI could modify it.</p>
+      </div>
+      <div class="gallery" id="galleryContainer"></div>
     </div>
 
-    <div class="footnote">© Wizbi • דמו לשימוש הדגמתי. אין כאן איסוף נתונים אישי. המשחקים בדף זה פועלים ללא רשת.</div>
+    <footer class="footnote reveal">© Wizbi • This is a non-functional demo for illustrative purposes. No personal data is collected.</footer>
   </div>
 
-  <div id="toast" class="copy-toast">הקישור הועתק</div>
+  <div id="toast" class="copy-toast">Link copied to clipboard!</div>
 
 <script>
-/* ========= WhatsApp Chat Simulation ========= */
-(function WhatsAppDemo(){
-  const waBody = document.getElementById('waBody');
-  const input = document.getElementById('waInput');
-  const send = document.getElementById('waSend');
+/**
+ * =================================================================
+ * WIZBI PLAY - MAGICAL DEMO SCRIPT
+ * =================================================================
+ * This script is self-contained and manages:
+ * 1. BackgroundAnimation: Creates the magical particle background.
+ * 2. ScrollAnimator: Fades in elements on scroll.
+ * 3. WhatsAppDemo: Simulates a chat conversation.
+ * 4. Gallery: Populates the game gallery.
+ * 5. GameEngine: A "juiced" up game engine inside the phone mockup.
+ * =================================================================
+ */
 
-  const samplePrompt = "בנה משחק תפוס-פירות ל-15 שניות, מתאים למובייל, צבעים ירוק/כהה, ושתף תוצאה בלינק.";
-  input.value = samplePrompt;
+// --- Module 1: Magical Background Animation ---
+(function BackgroundAnimation() {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let width, height;
 
-  const messages = [];
-  function msg(text, side='in', extraHTML=null){
-    const wrap = document.createElement('div');
-    wrap.className = `wa-msg wa-${side}`;
-    wrap.innerHTML = `<div>${text}</div>`;
-    if(extraHTML){ wrap.appendChild(extraHTML); }
-    waBody.appendChild(wrap);
-    waBody.scrollTop = waBody.scrollHeight;
-  }
-  function typing(){
-    const b = document.createElement('div');
-    b.className = 'wa-msg wa-in';
-    const meta = document.createElement('div');
-    meta.className = 'wa-meta';
-    meta.innerHTML = `<span class="wa-typing"><i></i><i></i><i></i></span><span>Wizbi כותב/ת…</span>`;
-    b.appendChild(meta);
-    waBody.appendChild(b); waBody.scrollTop = waBody.scrollHeight;
-    return b;
-  }
+    const settings = {
+        count: 40,
+        speed: 0.1,
+        maxSize: 3,
+        minSize: 1,
+        color: 'rgba(0, 193, 117, 0.5)'
+    };
 
-  function makeLinkChip(url){
-    const chip = document.createElement('div');
-    chip.className = 'link-chip';
-    chip.innerHTML = `🔗 ${url}`;
-    chip.addEventListener('click', ()=>{
-      // גלילה למשחק למטה
-      document.getElementById('btnStart').focus();
-      window.scrollTo({ top: document.getElementById('btnStart').getBoundingClientRect().top + window.scrollY - 40, behavior:'smooth' });
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    }
+
+    function createParticles() {
+        particles = [];
+        for (let i = 0; i < settings.count; i++) {
+            particles.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                vx: (Math.random() - 0.5) * settings.speed,
+                vy: (Math.random() - 0.5) * settings.speed,
+                size: Math.random() * (settings.maxSize - settings.minSize) + settings.minSize
+            });
+        }
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        particles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < 0 || p.x > width) p.vx *= -1;
+            if (p.y < 0 || p.y > height) p.vy *= -1;
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = settings.color;
+            ctx.fill();
+        });
+        requestAnimationFrame(animate);
+    }
+    
+    window.addEventListener('resize', () => {
+        resize();
+        createParticles();
     });
-    return chip;
-  }
 
-  function simulateBuild(userText){
-    msg(userText, 'out');
-    const t = typing();
-    setTimeout(()=>{
-      t.remove();
-      msg("מייצר משחק חד־עמודי מותאם מובייל…");
-      const t2 = typing();
-      setTimeout(()=>{
-        t2.remove();
-        const link = window.location.href.split('#')[0] + "#demo";
-        const chip = makeLinkChip(link);
-        msg("מוכן! זה הקישור שלך — לחץ/י כדי לשחק עכשיו:", 'in', chip);
-        // הצג גם “מדריך קצר”
-        msg("טיפ: בכל סוף משחק אפשר לשתף את התוצאה בלינק ולהעביר הלאה בקלות. רוצה Remix? לחצי על Remix בתחתית המשחק.", 'in');
-      }, 1400);
-    }, 900);
-  }
-
-  send.addEventListener('click', ()=> simulateBuild(input.value.trim() || samplePrompt));
-  input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); simulateBuild(input.value.trim() || samplePrompt); } });
-
-  // הפעלה אוטומטית עדינה בדפדפנים ניידים
-  setTimeout(()=> simulateBuild(samplePrompt), 600);
+    resize();
+    createParticles();
+    animate();
 })();
 
-/* ========= Tiny Game Engine (Self-contained) ========= */
-const GamePresets = [
-  {
-    id:'fruits', name:'תפוס פירות', emoji:["🍎","🍌","🍒","🍇","🍉","🍓","🍍"],
-    seconds:15, color:'#00c175', meta:'פירות • 15s', og:'Fruit Tapper'
-  },
-  {
-    id:'stars', name:'תפוס כוכבים', emoji:["⭐","🌟","✨","💫"], seconds:12, color:'#ffd54f', meta:'כוכבים • 12s', og:'Star Catch'
-  },
-  {
-    id:'ocean', name:'בועות ים', emoji:["🫧","💧","🔵","🟦"], seconds:18, color:'#5bd0ff', meta:'ים • 18s', og:'Aqua Pop'
-  },
-  {
-    id:'soccer', name:'כדורי כדורגל', emoji:["⚽","🟢","⚽","⚽"], seconds:10, color:'#7fff7f', meta:'כדורגל • 10s', og:'Goal Tap'
-  },
-  {
-    id:'spooky', name:'ספוקי', emoji:["🎃","👻","🕷️","🦇"], seconds:14, color:'#ff955a', meta:'ספוקי • 14s', og:'Spooky Tap'
-  },
-  {
-    id:'emoji', name:'אמוג׳י ג׳אם', emoji:["😺","😎","🤖","🐸","🦄","🐼"], seconds:16, color:'#e879f9', meta:'אמוג׳י • 16s', og:'Emoji Jam'
-  }
-];
+// --- Module 2: Scroll Reveal Animator ---
+(function ScrollAnimator() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.1 });
 
-(function Gallery(){
-  const g = document.getElementById('gallery');
-  GamePresets.forEach(p=>{
-    const el = document.createElement('div');
-    el.className='tile';
-    el.innerHTML = `
-      <div class="cover" style="background:radial-gradient(700px 200px at 50% -30%, rgba(255,255,255,.06), transparent 60%), #0e1721">${p.emoji[0]} ${p.emoji[1]||""}</div>
-      <h4>${p.name}</h4>
-      <div class="note">${p.meta}</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn small" data-load="${p.id}">▶️ טען דמו</button>
-        <button class="btn small" data-remix="${p.id}">✨ Remix</button>
-        <button class="btn small" data-share="${p.id}">🔗 שתף לינק</button>
-      </div>
-    `;
-    g.appendChild(el);
-  });
-
-  g.addEventListener('click', (e)=>{
-    const b = e.target.closest('button'); if(!b) return;
-    const id = b.getAttribute('data-load')||b.getAttribute('data-remix')||b.getAttribute('data-share');
-    const preset = GamePresets.find(x=> x.id===id); if(!preset) return;
-    if(b.hasAttribute('data-load')) loadGame(preset);
-    if(b.hasAttribute('data-remix')) doRemix(preset);
-    if(b.hasAttribute('data-share')) copyLinkFor(preset);
-  });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 })();
 
-/* ========= Game Runtime ========= */
-let Current = GamePresets[0];
-const stage = document.getElementById('gameStage');
-const scoreEl = document.getElementById('score');
-const timeEl = document.getElementById('time');
-const badge = document.getElementById('gameBadge');
-const meta = document.getElementById('gameMeta');
-const btnStart = document.getElementById('btnStart');
-const btnShare = document.getElementById('btnShare');
-const btnCopyLink = document.getElementById('btnCopyLink');
-const shareBox = document.getElementById('shareLinkBox');
-const toast = document.getElementById('toast');
 
-let running=false, score=0, t=0, timer=null, spawner=null;
+// --- Game & UI Logic (Modules 3, 4, 5) ---
+(function UILogic() {
+    // --- Configuration Object for all Games ---
+    const GamePresets = [
+      { id:'fruits', name:'Fruit Catcher', emoji:["🍎","🍌","🍒","🍇","🍉","🍓","🍍"], seconds:15, color:'#00c175' },
+      { id:'stars', name:'Star Chaser', emoji:["⭐","🌟","✨","💫"], seconds:12, color:'#ffd54f' },
+      { id:'ocean', name:'Ocean Bubbles', emoji:["🫧","💧","🔵","🐠"], seconds:18, color:'#5bd0ff' },
+      { id:'soccer', name:'Goal Frenzy', emoji:["⚽","🥅","🏆","🟢"], seconds:10, color:'#7fff7f' },
+      { id:'spooky', name:'Spooky Tap', emoji:["🎃","👻","🕷️","🦇"], seconds:14, color:'#ff955a' },
+      { id:'emoji', name:'Emoji Jam', emoji:["😺","😎","🤖","🐸","🦄","🐼"], seconds:16, color:'#e879f9' }
+    ];
 
-function rand(min,max){ return Math.random()*(max-min)+min }
+    // --- DOM Element References ---
+    const waBody = document.getElementById('waBody'), input = document.getElementById('waInput'), sendButton = document.getElementById('waSend');
+    const galleryContainer = document.getElementById('galleryContainer');
+    const phoneMockup = document.getElementById('phoneMockup'), stage = document.getElementById('gameStage'), scoreEl = document.getElementById('score'), timeEl = document.getElementById('time'), badgeEl = document.getElementById('gameBadge'), gameOverOverlay = document.getElementById('gameOverOverlay'), finalScoreEl = document.getElementById('finalScore');
+    const btnStart = document.getElementById('btnStart'), btnCopyLink = document.getElementById('btnCopyLink'), ctaRemixButton = document.getElementById('ctaRemix');
+    const toastEl = document.getElementById('toast');
 
-function clearStage(){ stage.innerHTML=''; }
+    // --- Game State ---
+    let currentGame = GamePresets[0];
+    let isRunning = false, score = 0, timeLeft = 0, gameTimer = null, spawner = null;
 
-function spawnOne(){
-  const f = document.createElement('div');
-  f.textContent = Current.emoji[(Math.random()*Current.emoji.length)|0];
-  f.style.position='absolute';
-  f.style.fontSize = rand(24,38)+'px';
-  f.style.userSelect='none';
-  const rect = stage.getBoundingClientRect();
-  const x = rand(0, rect.width-48), y = rand(0, rect.height-48);
-  f.style.left = x+'px'; f.style.top = y+'px';
-  f.style.transition='transform .08s';
-  f.addEventListener('pointerdown', ()=>{
-    score++; scoreEl.textContent=score;
-    f.style.transform='scale(.7) rotate(-7deg)';
-    setTimeout(()=> f.remove(), 30);
-  }, {passive:true});
-  stage.appendChild(f);
-  setTimeout(()=> f.remove(), 1400);
-}
+    /** Shows a temporary toast message. */
+    function showToast(message) {
+        toastEl.textContent = message;
+        toastEl.classList.add('show');
+        setTimeout(() => toastEl.classList.remove('show'), 2000);
+    }
 
-function tick(){
-  t--; timeEl.textContent=t;
-  if(t<=0){ endGame(); }
-}
+    // --- WhatsApp Simulation ---
+    const samplePrompt = "Build a 15-second fruit catching game with a dark theme.";
+    input.value = samplePrompt;
+    function addMessage(text, side = 'in') {
+        const wrap = document.createElement('div');
+        wrap.className = `wa-msg wa-${side}`;
+        wrap.innerHTML = `<div>${text}</div>`;
+        waBody.appendChild(wrap);
+        waBody.scrollTop = waBody.scrollHeight;
+    }
+    function showTypingIndicator() {
+        const bubble = document.createElement('div');
+        bubble.className = 'wa-msg wa-in';
+        bubble.innerHTML = `<span class="wa-typing"><i></i><i></i><i></i></span>`;
+        waBody.appendChild(bubble);
+        waBody.scrollTop = waBody.scrollHeight;
+        return bubble;
+    }
+    window.simulateBuild = function(userText, isRemix = false) {
+        addMessage(userText, 'out');
+        const typingIndicator1 = showTypingIndicator();
+        setTimeout(() => {
+            typingIndicator1.remove();
+            if (isRemix) {
+                addMessage("Okay, I've loaded that game. You can tell me what to change, like 'make it 20 seconds long' or 'use space emojis 🚀'.");
+            } else {
+                addMessage("Got it. Generating your mobile game now...");
+                const typingIndicator2 = showTypingIndicator();
+                setTimeout(() => {
+                    typingIndicator2.remove();
+                    addMessage("Done! Your game is live in the phone on the right. Press 'Start' to play.");
+                    phoneMockup.classList.add('shake');
+                    setTimeout(() => phoneMockup.classList.remove('shake'), 400);
+                }, 1400);
+            }
+        }, 1200);
+    }
+    sendButton.addEventListener('click', () => simulateBuild(input.value.trim() || samplePrompt));
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); simulateBuild(input.value.trim() || samplePrompt); } });
+    setTimeout(() => simulateBuild(samplePrompt), 800);
 
-function startGame(){
-  if(running) return;
-  running=true; score=0; scoreEl.textContent='0';
-  shareBox.style.display='none';
-  clearStage();
-  t = Current.seconds; timeEl.textContent=t;
-  stage.style.background = `radial-gradient(1100px 400px at 50% -20%, ${hexToRGBA(Current.color, .18)}, transparent 55%), #091018`;
-  timer = setInterval(tick, 1000);
-  spawner = setInterval(spawnOne, 330);
-}
+    // --- Game Gallery ---
+    galleryContainer.innerHTML = GamePresets.map(preset => `
+        <div class="tile card reveal">
+            <div class="cover" style="background:radial-gradient(circle at 50% 0%, ${preset.color}20, transparent 70%), #0e1721">${preset.emoji[0]}</div>
+            <h4>${preset.name}</h4>
+            <div class="note">${preset.seconds} seconds • ${preset.emoji.length} items</div>
+            <div class="actions">
+                <button class="btn small prime" data-action="load" data-id="${preset.id}">▶ Load</button>
+                <button class="btn small ghost" data-action="remix" data-id="${preset.id}">✨ Remix</button>
+            </div>
+        </div>
+    `).join('');
+    galleryContainer.addEventListener('click', e => {
+        const button = e.target.closest('button[data-action]');
+        if (!button) return;
+        const preset = GamePresets.find(p => p.id === button.dataset.id);
+        if (!preset) return;
+        if (button.dataset.action === 'load') {
+            loadGame(preset);
+            document.getElementById('phoneMockup').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (button.dataset.action === 'remix') {
+            doRemix(preset);
+        }
+    });
 
-function endGame(){
-  running=false;
-  clearInterval(timer); clearInterval(spawner);
-  // הצג לינק שיתוף (פרמטרים ב-Query)
-  const url = new URL(window.location.href);
-  url.hash = 'demo';
-  url.searchParams.set('game', Current.id);
-  url.searchParams.set('score', String(score));
-  url.searchParams.set('seed', String((Math.random()*1e6)|0));
-  shareBox.innerHTML = `🔗 תוצאתך: <a href="${url.toString()}">${url.toString()}</a>`;
-  shareBox.style.display='block';
-  // קפיצה קלה כדי שיראו את התוצאה
-  shareBox.scrollIntoView({behavior:'smooth',block:'center'});
-}
+    // --- Core Game Engine ---
+    function spawnItem() {
+        if (!isRunning) return;
+        const item = document.createElement('div');
+        item.className = 'game-item';
+        item.textContent = currentGame.emoji[Math.floor(Math.random() * currentGame.emoji.length)];
+        const rect = stage.getBoundingClientRect();
+        item.style.left = `${Math.random() * (rect.width - 40)}px`;
+        item.style.top = `${Math.random() * (rect.height - 40)}px`;
+        item.addEventListener('pointerdown', (e) => {
+            if (!isRunning) return;
+            score++;
+            scoreEl.textContent = score;
+            item.classList.add('clicked');
+            const pop = document.createElement('div');
+            pop.className = 'click-pop';
+            pop.style.left = `${e.clientX - rect.left}px`;
+            pop.style.top = `${e.clientY - rect.top}px`;
+            stage.appendChild(pop);
+            setTimeout(() => item.remove(), 100);
+            setTimeout(() => pop.remove(), 300);
+        });
+        stage.appendChild(item);
+        setTimeout(() => { if(item) item.remove(); }, 1600);
+    }
+    
+    function tick() {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+        if (timeLeft <= 0) endGame();
+    }
 
-function loadGame(preset){
-  Current = preset;
-  badge.textContent = 'משחק חי';
-  meta.textContent = `${preset.name} • ${preset.seconds}s • מובייל־פרסט`;
-  document.title = `Wizbi Play — ${preset.og}`;
-  // אפקט זעיר לצבע
-  badge.style.background = '#0a1510';
-  stage.style.boxShadow = 'inset 0 0 0 rgba(0,0,0,0)';
-  setTimeout(()=>{ stage.style.boxShadow = 'inset 0 0 220px rgba(0,0,0,.25)'; }, 0);
-  // איפוס ריצה
-  if(running){ endGame(); }
-}
+    function startGame() {
+        if (isRunning) return;
+        isRunning = true;
+        score = 0;
+        scoreEl.textContent = '0';
+        gameOverOverlay.classList.remove('show');
+        stage.innerHTML = '';
+        timeLeft = currentGame.seconds;
+        timeEl.textContent = timeLeft;
+        stage.style.background = `radial-gradient(circle at 50% 0%, ${currentGame.color}25, transparent 70%), #091018`;
+        gameTimer = setInterval(tick, 1000);
+        spawner = setInterval(spawnItem, 350);
+        btnStart.disabled = true;
+    }
 
-function doRemix(preset){
-  // סימולציית רמיקס: נטען את הפריסט ונקפיץ הודעה בוואטסאפ דמה
-  loadGame(preset);
-  toastMsg(`Remix מוכן: ${preset.name}`);
-}
+    function endGame() {
+        isRunning = false;
+        clearInterval(gameTimer);
+        clearInterval(spawner);
+        finalScoreEl.textContent = score;
+        gameOverOverlay.classList.add('show');
+        btnStart.disabled = false;
+    }
 
-function copyLinkFor(preset){
-  const url = new URL(window.location.href);
-  url.hash='demo';
-  url.searchParams.set('game', preset.id);
-  url.searchParams.delete('score');
-  navigator.clipboard.writeText(url.toString()).then(()=> toastMsg('קישור הועתק'));
-}
+    window.loadGame = function(preset) {
+        if (isRunning) endGame();
+        currentGame = preset;
+        badgeEl.textContent = preset.name;
+        document.title = `Wizbi Demo — ${preset.name}`;
+        scoreEl.textContent = '0';
+        timeEl.textContent = preset.seconds;
+        gameOverOverlay.classList.remove('show');
+        stage.innerHTML = '';
+    }
+    
+    window.doRemix = function(preset) {
+        loadGame(preset);
+        showToast(`Remix ready: ${preset.name}`);
+        document.getElementById('phoneMockup').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        simulateBuild(`Okay, let's remix "${preset.name}".`, true);
+    }
 
-function toastMsg(t){
-  toast.textContent = t; toast.classList.add('show');
-  setTimeout(()=> toast.classList.remove('show'), 1300);
-}
+    function copyShareLink() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('game', currentGame.id);
+        if (score > 0 && !isRunning) {
+           url.searchParams.set('score', String(score));
+        } else {
+           url.searchParams.delete('score');
+        }
+        navigator.clipboard.writeText(url.toString()).then(() => showToast('Share link copied to clipboard!'));
+    }
 
-function hexToRGBA(hex, alpha){
-  const h = hex.replace('#',''); const bigint = parseInt(h,16);
-  const r = (bigint>>16)&255, g=(bigint>>8)&255, b=bigint&255;
-  return `rgba(${r},${g},${b},${alpha})`;
-}
+    // --- Event Listeners ---
+    btnStart.addEventListener('click', startGame);
+    btnCopyLink.addEventListener('click', copyShareLink);
+    ctaRemixButton.addEventListener('click', () => doRemix(currentGame));
 
-btnStart.addEventListener('click', startGame);
-btnShare.addEventListener('click', endGame);
-btnCopyLink.addEventListener('click', ()=>{
-  const url = shareBox.textContent && shareBox.querySelector('a') ? shareBox.querySelector('a').href
-            : (new URL(window.location.href)).toString();
-  navigator.clipboard.writeText(url).then(()=> toastMsg('הקישור הועתק'));
-});
-
-// טעינה ראשונית + תמיכה בפרמטרים (score/game)
-(function bootstrap(){
-  loadGame(Current);
-  const p = new URLSearchParams(window.location.search);
-  const g = p.get('game'); const s = p.get('score');
-  if(g){
-    const found = GamePresets.find(x=> x.id===g);
-    if(found) loadGame(found);
-  }
-  if(s){ // מצב "תצוגת תוצאה"
-    const sc = Number(s)||0;
-    score = sc; scoreEl.textContent=String(sc); timeEl.textContent='0';
-    const url = new URL(window.location.href); url.hash='demo';
-    document.getElementById('shareLinkBox').innerHTML = `🔗 תוצאה משותפת: <a href="${url.toString()}">${url.toString()}</a>`;
-    document.getElementById('shareLinkBox').style.display='block';
-  }
+    // Bootstrap with URL params
+    (function bootstrap() {
+        const params = new URLSearchParams(window.location.search);
+        const gameId = params.get('game');
+        if (gameId) {
+            const foundPreset = GamePresets.find(p => p.id === gameId);
+            if (foundPreset) loadGame(foundPreset);
+        } else {
+            loadGame(GamePresets[0]);
+        }
+    })();
 })();
-
-/* ========= CTA shortcuts ========= */
-document.getElementById('ctaFast').addEventListener('click', ()=>{
-  window.location.hash='demo';
-  document.getElementById('btnStart').focus();
-  window.scrollTo({ top: document.getElementById('btnStart').getBoundingClientRect().top + window.scrollY - 40, behavior:'smooth' });
-  startGame();
-});
-document.getElementById('ctaRemix').addEventListener('click', ()=> doRemix(GamePresets[1]));
 </script>
 </body>
 </html>
