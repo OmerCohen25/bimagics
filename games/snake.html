@@ -3,8 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>משחק סנייק</title>
+    <title>סנייק טורבו</title>
     <style>
+        :root {
+            --primary-color: #00ff88;
+            --dark-color: #1a1a1a;
+            --background-color: #111;
+        }
+
         /* --- סגנונות כלליים --- */
         body {
             margin: 0;
@@ -13,14 +19,22 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #1a1a1a;
+            background-color: var(--dark-color);
             color: #ffffff;
             font-family: 'Arial', sans-serif;
             overflow: hidden;
+            touch-action: none; /* מונע התנהגות ברירת מחדל של מגע כמו זום */
+        }
+
+        #gameContainer {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         canvas {
-            background-color: #000;
+            background-color: var(--background-color);
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
         }
@@ -37,37 +51,45 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            background-color: rgba(0, 0, 0, 0.85);
-            z-index: 10;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 100;
             padding: 20px;
             box-sizing: border-box;
         }
 
         .screen h1 {
             font-size: 3rem;
-            margin-bottom: 20px;
-            color: #00ff88;
-            text-shadow: 0 0 10px #00ff88;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            text-shadow: 0 0 10px var(--primary-color);
         }
 
         .screen p {
-            font-size: 1.2rem;
-            max-width: 400px;
-            line-height: 1.5;
-            margin-bottom: 30px;
+            font-size: 1.1rem;
+            max-width: 500px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .instructions {
+            font-size: 1rem;
+            text-align: right;
+            max-width: 300px;
+            margin: 0 auto 25px auto;
         }
 
         .button {
             padding: 15px 30px;
             font-size: 1.5rem;
             font-weight: bold;
-            color: #1a1a1a;
-            background-color: #00ff88;
+            color: var(--dark-color);
+            background-color: var(--primary-color);
             border: none;
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.2s ease;
             box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+            user-select: none;
         }
 
         .button:hover {
@@ -81,11 +103,81 @@
 
         #finalScore, #finalLevel {
             font-weight: bold;
-            color: #00ff88;
+            color: var(--primary-color);
         }
 
         .hidden {
             display: none;
+        }
+
+        /* --- כפתורי שליטה --- */
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 20px;
+            box-sizing: border-box;
+            z-index: 50;
+            pointer-events: none; /* מאפשר לחיצות לעבור דרך הקונטיינר */
+        }
+
+        /* D-Pad */
+        #dpad-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            pointer-events: auto;
+        }
+
+        .dpad-btn {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: white;
+            user-select: none;
+        }
+        .dpad-btn:active {
+            background-color: rgba(0, 255, 136, 0.7);
+        }
+        #dpad-up    { top: 0; left: 50px; }
+        #dpad-down  { bottom: 0; left: 50px; }
+        #dpad-left  { top: 50px; left: 0; }
+        #dpad-right { top: 50px; right: 0; }
+
+        /* Joystick */
+        #joystick-base {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            pointer-events: auto;
+        }
+
+        #joystick-handle {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            top: 30px;
+            left: 30px;
+            cursor: grab;
+            user-select: none;
+        }
+        #joystick-handle:active {
+            cursor: grabbing;
         }
 
         /* --- כפתור סאונד --- */
@@ -95,23 +187,29 @@
             right: 15px;
             font-size: 2rem;
             cursor: pointer;
-            z-index: 20;
+            z-index: 120;
             background: none;
             border: none;
             color: white;
             padding: 5px;
+            user-select: none;
         }
     </style>
 </head>
 <body>
 
     <div id="startScreen" class="screen">
-        <h1>🐍 סנייק אימוג'י 🍎</h1>
-        <p>
-            הנחו את הנחש לאכול כמה שיותר תפוחים.
-            היזהרו לא לפגוע בקירות או בעצמכם!
-        </p>
-        <p><strong>שליטה:</strong> החלקת אצבע (מובייל) או מקשי חצים (מחשב).</p>
+        <h1>סנייק טורבו 🐍⚡️</h1>
+        <p>הגרסה המשודרגת של סנייק! אספו פריטים, התחמקו ממכשולים והשיגו את הניקוד הגבוה ביותר.</p>
+        <div class="instructions">
+            <b>🍎 תפוח:</b> +1 נקודה<br>
+            <b>💰 מטבע:</b> +5 נקודות<br>
+            <b>🌶️ פלפל:</b> בוסט מהירות זמני<br>
+            <b>🛡️ מגן:</b> חסינות זמנית מפגיעות<br>
+            <b>✂️ מספריים:</b> מקצר את הנחש<br>
+            <b>🧊 קרח:</b> מאט אותך! הימנע!<br>
+            <b>🧱 מכשול / 🐌 אויב:</b> פגיעה קטלנית!
+        </div>
         <button id="startButton" class="button">התחל משחק</button>
     </div>
 
@@ -125,14 +223,28 @@
 
     <button id="soundToggle">🔊</button>
 
-    <canvas id="gameCanvas"></canvas>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div class="controls">
+            <div id="dpad-container">
+                <div id="dpad-up" class="dpad-btn">▲</div>
+                <div id="dpad-down" class="dpad-btn">▼</div>
+                <div id="dpad-left" class="dpad-btn">◀</div>
+                <div id="dpad-right" class="dpad-btn">▶</div>
+            </div>
+            <div id="joystick-base">
+                <div id="joystick-handle"></div>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         // ===============================================
         //           אתחול משתנים וקבועים
         // ===============================================
 
-        // הפניות לאלמנטים ב-DOM
+        // הפניות ל-DOM
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const startScreen = document.getElementById('startScreen');
@@ -144,250 +256,333 @@
         const finalLevelDisplay = document.getElementById('finalLevel');
         const soundToggleButton = document.getElementById('soundToggle');
 
-        // הגדרות המשחק
-        const TILE_SIZE = 20; // גודל כל "משבצת" ברשת
-        let tileCountX, tileCountY; // יחושב דינמית
+        // הגדרות משחק
+        const TILE_SIZE = 20;
+        let tileCountX, tileCountY;
 
-        // משתני מצב המשחק
-        let gameState = 'start'; // 'start', 'playing', 'gameOver'
+        // משתני מצב משחק
+        let gameState = 'start';
         let score = 0;
         let level = 1;
         let isMuted = false;
 
         // משתני בקרת המשחק
-        let snake;
-        let food;
+        let snake, items, obstacles, enemies;
         let gameLoopTimeout;
-        let currentSpeed = 150; // מילישניות בין צעדים, יורד ככל שהמשחק מתקדם
+        let baseSpeed = 150;
+        let currentSpeed = baseSpeed;
 
-        // משתנים לשליטה במגע
-        let touchStartX = 0;
-        let touchStartY = 0;
-        let touchEndX = 0;
-        let touchEndY = 0;
-        
+        // טיימרים לכוחות-על
+        let powerUpTimers = {
+            speedBoost: 0,
+            shield: 0
+        };
+
         // ===============================================
         //               סאונד (Base64)
         // ===============================================
-
-        // AudioContext ליצירת סאונד
         let audioContext;
         const sounds = {
-            eat: 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=', // צליל קצר ופשוט
-            gameOver: 'data:audio/wav;base64,UklGRiwaAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YRIWAACAgICAAAAAgIA=' // צליל יורד
+            eat: 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=',
+            powerup: 'data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBAAAAABAAIARKwAAIhYAQACABAAZGF0YSgAAABo/8C/hP+E/4T/hP+E/4T/hP+E/4T/hP+E/4T/hP+E/4T/hP+E/4T/hP+E',
+            hit: 'data:audio/wav;base64,UklGRiwaAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YRIWAACAgICAAAAAgIA='
         };
-
-        // פונקציה לניגון סאונד
         async function playSound(soundName) {
             if (isMuted || !sounds[soundName]) return;
             try {
-                if (!audioContext) {
-                     // AudioContext נוצר רק לאחר אינטראקציה של המשתמש
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                }
+                if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 const response = await fetch(sounds[soundName]);
-                const arrayBuffer = await response.arrayBuffer();
-                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                const audioBuffer = await audioContext.decodeAudioData(await response.arrayBuffer());
                 const source = audioContext.createBufferSource();
                 source.buffer = audioBuffer;
                 source.connect(audioContext.destination);
                 source.start(0);
-            } catch (e) {
-                console.error("שגיאה בניגון סאונד:", e);
-            }
+            } catch (e) { console.error("שגיאה בניגון סאונד:", e); }
         }
         
         // ===============================================
         //             מחלקות המשחק (Classes)
         // ===============================================
 
-        /**
-         * מייצג את הנחש. אחראי על תנועה, גדילה וציור.
-         */
         class Snake {
             constructor() {
-                // מיקום התחלתי במרכז הרשת
-                this.body = [{
-                    x: Math.floor(tileCountX / 2),
-                    y: Math.floor(tileCountY / 2)
-                }];
-                // כיוון תנועה התחלתי
-                this.direction = { x: 1, y: 0 }; // ימינה
+                this.body = [{ x: Math.floor(tileCountX / 2), y: Math.floor(tileCountY / 2) }];
+                this.direction = { x: 1, y: 0 };
                 this.nextDirection = { x: 1, y: 0 };
             }
 
-            // עדכון מיקום הנחש
             move() {
                 this.direction = this.nextDirection;
                 const head = { x: this.body[0].x + this.direction.x, y: this.body[0].y + this.direction.y };
-                this.body.unshift(head); // הוספת ראש חדש בכיוון התנועה
-                
-                // אם הנחש לא אכל, הסרת הזנב (יוצר אשליית תנועה)
-                if (head.x === food.x && head.y === food.y) {
-                    this.grow();
-                } else {
-                    this.body.pop();
+                this.body.unshift(head);
+                this.body.pop();
+            }
+            
+            grow(amount = 1) {
+                 for(let i = 0; i < amount; i++) {
+                    this.body.push({ ...this.body[this.body.length - 1] });
+                 }
+            }
+            
+            shorten() {
+                if (this.body.length > 3) {
+                   this.body.splice(-Math.min(3, this.body.length - 2)); // הסר עד 3 חלקים, השאר לפחות 2
                 }
             }
 
-            // גדילת הנחש (לאחר אכילה)
-            grow() {
-                score++;
-                playSound('eat');
-                food.spawn(this.body); // יצירת אוכל חדש
-                // בדיקה אם הגיע הזמן לעלות שלב
-                if (score % 5 === 0) {
-                    level++;
-                    // הגברת המהירות (הקטנת זמן ההשהייה)
-                    currentSpeed = Math.max(50, currentSpeed - 10);
-                }
-            }
-            
-            // שינוי כיוון הנחש
             changeDirection(x, y) {
-                // מונע מהנחש להפוך כיוון על עצמו
-                if (this.direction.x === -x || this.direction.y === -y) {
-                    return;
-                }
+                if (this.direction.x === -x && this.direction.y === -y) return;
                 this.nextDirection = { x, y };
             }
 
-            // ציור הנחש על הקנבס
             draw(ctx) {
+                // אפקט מגן
+                if (powerUpTimers.shield > 0) {
+                    ctx.fillStyle = 'rgba(0, 150, 255, 0.5)';
+                    ctx.beginPath();
+                    ctx.arc(
+                        this.body[0].x * TILE_SIZE + TILE_SIZE / 2, 
+                        this.body[0].y * TILE_SIZE + TILE_SIZE / 2,
+                        TILE_SIZE * 0.8, 0, 2 * Math.PI
+                    );
+                    ctx.fill();
+                }
+                
+                // ציור הנחש
                 ctx.font = `${TILE_SIZE * 1.2}px Arial`;
-                // ציור הראש
                 ctx.fillText('🐍', this.body[0].x * TILE_SIZE - TILE_SIZE*0.1, this.body[0].y * TILE_SIZE + TILE_SIZE*0.9);
-                // ציור הגוף
-                ctx.fillStyle = '#00dd00';
+                
+                ctx.fillStyle = powerUpTimers.speedBoost > 0 ? '#ffae00' : '#00dd00';
                 for (let i = 1; i < this.body.length; i++) {
                     ctx.beginPath();
                     ctx.arc(
                         this.body[i].x * TILE_SIZE + TILE_SIZE / 2, 
                         this.body[i].y * TILE_SIZE + TILE_SIZE / 2,
-                        TILE_SIZE / 2.5, 0, 2 * Math.PI
+                        TILE_SIZE / 2.5 - (i/this.body.length), 0, 2 * Math.PI
                     );
                     ctx.fill();
                 }
             }
             
-            // בדיקת התנגשויות
-            checkCollision() {
+            checkCollision(obstacles, enemies) {
                 const head = this.body[0];
-                // התנגשות בקירות
-                if (head.x < 0 || head.x >= tileCountX || head.y < 0 || head.y >= tileCountY) {
+                const isShielded = powerUpTimers.shield > 0;
+
+                // התנגשות בקירות (אלא אם יש מגן)
+                if (!isShielded && (head.x < 0 || head.x >= tileCountX || head.y < 0 || head.y >= tileCountY)) {
                     return true;
                 }
-                // התנגשות עצמית
-                for (let i = 1; i < this.body.length; i++) {
-                    if (head.x === this.body[i].x && head.y === this.body[i].y) {
-                        return true;
+                
+                // התנגשות עצמית (אלא אם יש מגן)
+                if (!isShielded) {
+                    for (let i = 1; i < this.body.length; i++) {
+                        if (head.x === this.body[i].x && head.y === this.body[i].y) return true;
                     }
+                }
+                
+                // התנגשות במכשולים (אלא אם יש מגן)
+                if (!isShielded && obstacles.some(ob => ob.x === head.x && ob.y === head.y)) {
+                    return true;
+                }
+                
+                // התנגשות באויבים (אלא אם יש מגן)
+                if (!isShielded && enemies.some(en => en.x === head.x && en.y === head.y)) {
+                    return true;
                 }
                 return false;
             }
         }
         
-        /**
-         * מייצג את האוכל. אחראי על מיקום אקראי וציור.
-         */
-        class Food {
-            constructor() {
-                this.spawn([]);
+        class Item {
+            constructor(type, emoji, effect) {
+                this.type = type;
+                this.emoji = emoji;
+                this.effect = effect;
+                this.spawn();
             }
 
-            // יצירת אוכל במיקום חדש, שאינו על גוף הנחש
-            spawn(snakeBody) {
+            spawn() {
+                const allObjects = [...snake.body, ...items.map(i => ({x:i.x, y:i.y})), ...obstacles, ...enemies];
                 let validPosition = false;
                 while (!validPosition) {
                     this.x = Math.floor(Math.random() * tileCountX);
                     this.y = Math.floor(Math.random() * tileCountY);
-                    
-                    // בדיקה שהמיקום החדש לא נמצא על הנחש
-                    validPosition = !snakeBody.some(segment => segment.x === this.x && segment.y === this.y);
+                    validPosition = !allObjects.some(obj => obj.x === this.x && obj.y === this.y);
                 }
             }
 
-            // ציור האוכל על הקנבס
             draw(ctx) {
                 ctx.font = `${TILE_SIZE}px Arial`;
-                ctx.fillText('🍎', this.x * TILE_SIZE, this.y * TILE_SIZE + TILE_SIZE);
+                ctx.fillText(this.emoji, this.x * TILE_SIZE, this.y * TILE_SIZE + TILE_SIZE);
             }
         }
+
+        class Obstacle {
+             constructor() { this.spawn(); }
+             spawn() {
+                 // זהה ל-Item.spawn
+                 const allObjects = [...snake.body, ...items.map(i => ({x:i.x, y:i.y})), ...obstacles, ...enemies];
+                 let validPosition = false;
+                 while (!validPosition) {
+                     this.x = Math.floor(Math.random() * tileCountX);
+                     this.y = Math.floor(Math.random() * tileCountY);
+                     validPosition = !allObjects.some(obj => obj.x === this.x && obj.y === this.y);
+                 }
+             }
+             draw(ctx) {
+                 ctx.font = `${TILE_SIZE}px Arial`;
+                 ctx.fillText('🧱', this.x * TILE_SIZE, this.y * TILE_SIZE + TILE_SIZE);
+             }
+        }
         
+        class Enemy {
+             constructor() { this.spawn(); }
+             spawn() {
+                 // זהה ל-Item.spawn
+                 const allObjects = [...snake.body, ...items.map(i => ({x:i.x, y:i.y})), ...obstacles, ...enemies];
+                 let validPosition = false;
+                 while (!validPosition) {
+                     this.x = Math.floor(Math.random() * tileCountX);
+                     this.y = Math.floor(Math.random() * tileCountY);
+                     validPosition = !allObjects.some(obj => obj.x === this.x && obj.y === this.y);
+                 }
+             }
+            move() {
+                // תנועה אקראית פשוטה
+                const move = Math.random();
+                if (move < 0.25 && this.x > 0) this.x--;
+                else if (move < 0.5 && this.x < tileCountX - 1) this.x++;
+                else if (move < 0.75 && this.y > 0) this.y--;
+                else if (this.y < tileCountY - 1) this.y++;
+            }
+             draw(ctx) {
+                 ctx.font = `${TILE_SIZE}px Arial`;
+                 ctx.fillText('🐌', this.x * TILE_SIZE, this.y * TILE_SIZE + TILE_SIZE);
+             }
+        }
+
         // ===============================================
         //             פונקציות ליבה של המשחק
         // ===============================================
 
-        // פונקציה לאתחול או איפוס המשחק
         function initGame() {
-            // התאמת גודל הקנבס למסך
-            const size = Math.min(window.innerWidth, window.innerHeight) * 0.9;
-            canvas.width = Math.floor(size / TILE_SIZE) * TILE_SIZE;
-            canvas.height = canvas.width;
+            const size = Math.min(window.innerWidth, window.innerHeight) * 0.95;
+            const canvasSize = Math.floor(size / TILE_SIZE) * TILE_SIZE;
+            canvas.width = canvasSize;
+            canvas.height = canvasSize;
+            
+            // התאמת גודל הקונטיינר הראשי
+            const gameContainer = document.getElementById('gameContainer');
+            gameContainer.style.width = `${canvas.width}px`;
+            gameContainer.style.height = `${canvas.height}px`;
 
             tileCountX = canvas.width / TILE_SIZE;
             tileCountY = canvas.height / TILE_SIZE;
 
-            // איפוס משתני המשחק
             score = 0;
             level = 1;
-            currentSpeed = 150;
+            baseSpeed = 150;
+            powerUpTimers = { speedBoost: 0, shield: 0 };
+            
             snake = new Snake();
-            food = new Food();
-            food.spawn(snake.body); // מיקום ראשוני לאוכל
+            items = [new Item('food', '🍎', () => { score++; snake.grow(); playSound('eat'); })];
+            obstacles = [];
+            enemies = [];
         }
 
-        // לולאת המשחק הראשית
         function gameLoop() {
             if (gameState !== 'playing') return;
 
-            // עדכון מצב המשחק
-            snake.move();
+            updateGame();
+            drawGame();
             
-            // בדיקת התנגשות
-            if (snake.checkCollision()) {
+            // חישוב מהירות
+            let speedModifier = 1;
+            if (powerUpTimers.speedBoost > 0) speedModifier = 0.5;
+            if (powerUpTimers.slowDown > 0) speedModifier = 1.5;
+            currentSpeed = baseSpeed * speedModifier;
+
+            clearTimeout(gameLoopTimeout);
+            gameLoopTimeout = setTimeout(gameLoop, currentSpeed);
+        }
+        
+        function updateGame() {
+            snake.move();
+            enemies.forEach(en => en.move());
+
+            // ניהול טיימרים
+            for (const key in powerUpTimers) {
+                if (powerUpTimers[key] > 0) powerUpTimers[key] -= baseSpeed;
+            }
+
+            // בדיקת התנגשויות
+            if (snake.checkCollision(obstacles, enemies)) {
                 endGame();
                 return;
             }
 
-            // ציור מחדש של כל האלמנטים
-            drawGame();
-            
-            // קריאה חוזרת ללולאה במהירות הנוכחית
-            clearTimeout(gameLoopTimeout);
-            gameLoopTimeout = setTimeout(gameLoop, currentSpeed);
+            // בדיקת אכילת פריטים
+            const head = snake.body[0];
+            for (let i = items.length - 1; i >= 0; i--) {
+                const item = items[i];
+                if (head.x === item.x && head.y === item.y) {
+                    item.effect();
+                    items.splice(i, 1); // הסרת הפריט שנאכל
+                }
+            }
+
+            // ניהול עליית רמות וספאומינג
+            manageLevelAndSpawns();
         }
 
-        // פונקציה לציור כל רכיבי המשחק
+        function manageLevelAndSpawns() {
+             const newLevel = Math.floor(score / 10) + 1;
+             if (newLevel > level) {
+                level = newLevel;
+                baseSpeed = Math.max(60, 150 - (level * 5));
+                // הוספת מכשול חדש בכל עליית שלב (החל משלב 2)
+                if (level > 1 && obstacles.length < level * 2) {
+                    obstacles.push(new Obstacle());
+                }
+                // הוספת אויב חדש כל 2 שלבים (החל משלב 3)
+                if (level > 2 && level % 2 !== 0 && enemies.length < Math.floor(level/2)) {
+                    enemies.push(new Enemy());
+                }
+             }
+             
+             // ספאון פריטים רנדומלי
+             if (Math.random() < 0.015 && items.length < 5) {
+                 spawnRandomItem();
+             }
+             // תמיד לוודא שיש לפחות תפוח אחד
+             if (!items.some(i => i.type === 'food')) {
+                  items.push(new Item('food', '🍎', () => { score++; snake.grow(); playSound('eat'); }));
+             }
+        }
+        
+        function spawnRandomItem() {
+            const itemTypes = [
+                { type: 'gold', emoji: '💰', effect: () => { score += 5; snake.grow(); playSound('powerup'); } },
+                { type: 'speed', emoji: '🌶️', effect: () => { powerUpTimers.speedBoost = 5000; powerUpTimers.slowDown = 0; playSound('powerup'); } },
+                { type: 'shield', emoji: '🛡️', effect: () => { powerUpTimers.shield = 5000; playSound('powerup'); } },
+                { type: 'scissors', emoji: '✂️', effect: () => { snake.shorten(); playSound('powerup'); } },
+                { type: 'ice', emoji: '🧊', effect: () => { powerUpTimers.slowDown = 3000; powerUpTimers.speedBoost = 0; playSound('hit'); } }
+            ];
+            const randomType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+            items.push(new Item(randomType.type, randomType.emoji, randomType.effect));
+        }
+
         function drawGame() {
-            // ניקוי הקנבס
-            ctx.fillStyle = '#111';
+            ctx.fillStyle = var(--background-color);
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // ציור רשת (אופציונלי, לעיצוב)
-            ctx.strokeStyle = '#333';
-            for (let i = 0; i < tileCountX; i++) {
-                ctx.beginPath();
-                ctx.moveTo(i * TILE_SIZE, 0);
-                ctx.lineTo(i * TILE_SIZE, canvas.height);
-                ctx.stroke();
-            }
-             for (let i = 0; i < tileCountY; i++) {
-                ctx.beginPath();
-                ctx.moveTo(0, i * TILE_SIZE);
-                ctx.lineTo(canvas.width, i * TILE_SIZE);
-                ctx.stroke();
-            }
-
-            // ציור הנחש והאוכל
+            
+            items.forEach(item => item.draw(ctx));
+            obstacles.forEach(ob => ob.draw(ctx));
+            enemies.forEach(en => en.draw(ctx));
             snake.draw(ctx);
-            food.draw(ctx);
-
-            // ציור תצוגה עילית (HUD)
             drawHUD();
         }
 
-        // פונקציה לציור ה-HUD (ניקוד, שלב)
         function drawHUD() {
             ctx.fillStyle = 'white';
             ctx.font = '20px Arial';
@@ -395,10 +590,21 @@
             ctx.fillText(`ניקוד: ${score}`, 10, 25);
             ctx.textAlign = 'right';
             ctx.fillText(`שלב: ${level}`, canvas.width - 10, 25);
-            ctx.textAlign = 'center';
+            
+            // ציור טיימרים של כוחות-על
+            let hudY = 50;
+            if (powerUpTimers.shield > 0) {
+                ctx.fillText(`🛡️ ${Math.ceil(powerUpTimers.shield/1000)}s`, canvas.width - 10, hudY);
+                hudY += 25;
+            }
+             if (powerUpTimers.speedBoost > 0) {
+                ctx.fillText(`🌶️ ${Math.ceil(powerUpTimers.speedBoost/1000)}s`, canvas.width - 10, hudY);
+            }
+             if (powerUpTimers.slowDown > 0) {
+                ctx.fillText(`🧊 ${Math.ceil(powerUpTimers.slowDown/1000)}s`, canvas.width - 10, hudY);
+            }
         }
 
-        // פונקציה להתחלת המשחק
         function startGame() {
             gameState = 'playing';
             startScreen.classList.add('hidden');
@@ -407,13 +613,10 @@
             gameLoop();
         }
 
-        // פונקציה לסיום המשחק
         function endGame() {
-            playSound('gameOver');
+            playSound('hit');
             gameState = 'gameOver';
             clearTimeout(gameLoopTimeout);
-            
-            // הצגת מסך הסיום עם הנתונים
             finalScoreDisplay.textContent = score;
             finalLevelDisplay.textContent = level;
             gameOverScreen.classList.remove('hidden');
@@ -422,114 +625,131 @@
         // ===============================================
         //              בקרת משחק (Events)
         // ===============================================
+        
+        function setupControls() {
+            // מקלדת
+            window.addEventListener('keydown', e => {
+                if (gameState !== 'playing') return;
+                switch (e.key) {
+                    case 'ArrowUp': case 'w': snake.changeDirection(0, -1); break;
+                    case 'ArrowDown': case 's': snake.changeDirection(0, 1); break;
+                    case 'ArrowLeft': case 'a': snake.changeDirection(-1, 0); break;
+                    case 'ArrowRight': case 'd': snake.changeDirection(1, 0); break;
+                }
+            });
 
-        // האזנה לאירועי מקלדת
-        function handleKeyDown(e) {
-            if (gameState !== 'playing') return;
-            switch (e.key) {
-                case 'ArrowUp': case 'w': snake.changeDirection(0, -1); break;
-                case 'ArrowDown': case 's': snake.changeDirection(0, 1); break;
-                case 'ArrowLeft': case 'a': snake.changeDirection(-1, 0); break;
-                case 'ArrowRight': case 'd': snake.changeDirection(1, 0); break;
+            // החלקה (Swipe)
+            let touchStartX = 0, touchStartY = 0;
+            canvas.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+                touchStartY = e.changedTouches[0].screenY;
+            }, { passive: true });
+            canvas.addEventListener('touchend', e => {
+                const touchEndX = e.changedTouches[0].screenX;
+                const touchEndY = e.changedTouches[0].screenY;
+                const dx = touchEndX - touchStartX;
+                const dy = touchEndY - touchStartY;
+                if (Math.max(Math.abs(dx), Math.abs(dy)) > 30) {
+                    if (Math.abs(dx) > Math.abs(dy)) snake.changeDirection(dx > 0 ? 1 : -1, 0);
+                    else snake.changeDirection(0, dy > 0 ? 1 : -1);
+                }
+            }, { passive: true });
+            
+            // D-Pad
+            const dpadSetup = (id, x, y) => document.getElementById(id).addEventListener('touchstart', (e) => { e.preventDefault(); snake.changeDirection(x, y); }, { passive: false });
+            dpadSetup('dpad-up', 0, -1);
+            dpadSetup('dpad-down', 0, 1);
+            dpadSetup('dpad-left', -1, 0);
+            dpadSetup('dpad-right', 1, 0);
+
+            // Joystick
+            const joystickHandle = document.getElementById('joystick-handle');
+            const joystickBase = document.getElementById('joystick-base');
+            let isJoystickActive = false;
+            let joystickCenterX, joystickCenterY, joystickRadius;
+            
+            function onJoystickStart(e) {
+                e.preventDefault();
+                isJoystickActive = true;
+                const rect = joystickBase.getBoundingClientRect();
+                joystickCenterX = rect.left + rect.width / 2;
+                joystickCenterY = rect.top + rect.height / 2;
+                joystickRadius = rect.width / 2;
+                joystickHandle.style.transition = 'none';
             }
-        }
-        
-        // האזנה לאירועי מגע (למובייל)
-        function handleTouchStart(e) {
-            e.preventDefault();
-            touchStartX = e.changedTouches[0].screenX;
-            touchStartY = e.changedTouches[0].screenY;
-        }
 
-        function handleTouchEnd(e) {
-            e.preventDefault();
-            touchEndX = e.changedTouches[0].screenX;
-            touchEndY = e.changedTouches[0].screenY;
-            handleSwipe();
-        }
-        
-        // זיהוי כיוון ההחלקה (swipe)
-        function handleSwipe() {
-             if (gameState !== 'playing') return;
-            const dx = touchEndX - touchStartX;
-            const dy = touchEndY - touchStartY;
-            const absDx = Math.abs(dx);
-            const absDy = Math.abs(dy);
+            function onJoystickMove(e) {
+                if (!isJoystickActive) return;
+                e.preventDefault();
+                const touch = e.touches ? e.touches[0] : e;
+                let dx = touch.clientX - joystickCenterX;
+                let dy = touch.clientY - joystickCenterY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
 
-            if (Math.max(absDx, absDy) > 30) { // תנועה מינימלית להחשיב כהחלקה
-                if (absDx > absDy) {
-                    // החלקה אופקית
-                    if (dx > 0) snake.changeDirection(1, 0); // ימינה
-                    else snake.changeDirection(-1, 0); // שמאלה
+                if (distance > joystickRadius) {
+                    dx = (dx / distance) * joystickRadius;
+                    dy = (dy / distance) * joystickRadius;
+                }
+
+                joystickHandle.style.transform = `translate(${dx}px, ${dy}px)`;
+
+                const angle = Math.atan2(dy, dx);
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    snake.changeDirection(dx > 0 ? 1 : -1, 0);
                 } else {
-                    // החלקה אנכית
-                    if (dy > 0) snake.changeDirection(0, 1); // מטה
-                    else snake.changeDirection(0, -1); // מעלה
+                    snake.changeDirection(0, dy > 0 ? 1 : -1);
                 }
             }
-        }
 
+            function onJoystickEnd(e) {
+                if (!isJoystickActive) return;
+                e.preventDefault();
+                isJoystickActive = false;
+                joystickHandle.style.transition = 'transform 0.2s ease';
+                joystickHandle.style.transform = 'translate(0, 0)';
+            }
+            
+            joystickBase.addEventListener('mousedown', onJoystickStart);
+            window.addEventListener('mousemove', onJoystickMove);
+            window.addEventListener('mouseup', onJoystickEnd);
+            joystickBase.addEventListener('touchstart', onJoystickStart, { passive: false });
+            window.addEventListener('touchmove', onJoystickMove, { passive: false });
+            window.addEventListener('touchend', onJoystickEnd, { passive: false });
+        }
+        
         // פונקציית שיתוף
         async function shareScore() {
-            const gameName = "סנייק אימוג'י";
+            const gameName = "סנייק טורבו 🐍⚡️";
             const shareText = `השגתי ניקוד ${score} בשלב ${level} ב${gameName}! נסו לנצח אותי:`;
-            const shareUrl = "https://bimagics.com/games/chicken.html"; // כתובת כפי שהוגדרה
+            const shareUrl = "https://bimagics.com/games/chicken.html";
 
             if (navigator.share) {
-                // שימוש ב-Web Share API (מובייל)
                 try {
-                    await navigator.share({
-                        title: gameName,
-                        text: shareText,
-                        url: shareUrl,
-                    });
-                } catch (err) {
-                    console.error('שגיאה בשיתוף:', err);
-                }
+                    await navigator.share({ title: gameName, text: shareText, url: shareUrl });
+                } catch (err) { console.error('שגיאה בשיתוף:', err); }
             } else {
-                // חלופה (Fallback) לדסקטופ - העתקה ללוח
                 try {
                     await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
-                    alert('התוצאה והקישור הועתקו ללוח! שתפו עם חברים.');
-                } catch (err) {
-                    console.error('שגיאה בהעתקה ללוח:', err);
-                    alert('לא ניתן היה להעתיק את התוצאה.');
-                }
+                    alert('התוצאה והקישור הועתקו ללוח!');
+                } catch (err) { alert('לא ניתן היה להעתיק את התוצאה.'); }
             }
         }
         
-        // חיבור הפונקציות לכפתורים ולאירועים
-        window.addEventListener('keydown', handleKeyDown);
-        canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-        canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
-        
+        // חיבור אירועים ופעולות
         startButton.addEventListener('click', () => {
-             // יצירת AudioContext בפעם הראשונה שהמשתמש לוחץ על משהו
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
+            if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
             startGame();
         });
-        
         restartButton.addEventListener('click', startGame);
         shareButton.addEventListener('click', shareScore);
-
         soundToggleButton.addEventListener('click', () => {
             isMuted = !isMuted;
             soundToggleButton.textContent = isMuted ? '🔇' : '🔊';
         });
-        
-        // התאמת גודל הקנבס בשינוי גודל החלון
-        window.addEventListener('resize', () => {
-            if (gameState !== 'playing') {
-                initGame();
-                // ציור ראשוני של מסך הפתיחה על הקנבס המותאם
-                ctx.fillStyle = '#111';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-        });
+        window.addEventListener('resize', () => { if (gameState !== 'playing') initGame(); });
         
         // אתחול ראשוני
+        setupControls();
         initGame();
 
     </script>
