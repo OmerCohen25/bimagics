@@ -2,8 +2,8 @@
 <html lang="he">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>מלחמת החלל האינסופית</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>מלחמת החלל המשודרגת</title>
     <style>
         body {
             margin: 0;
@@ -15,22 +15,26 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            overflow: hidden; /* מונע גלילה */
+            overflow: hidden;
         }
         canvas {
-            background-color: #0c0c1c; /* רקע חלל כהה */
+            background-color: #0c0c1c;
             display: block;
-            touch-action: none; /* מונע התנהגות ברירת מחדל של הדפדפן למגע */
+            touch-action: none;
         }
-        #startScreen, #gameOverScreen {
+        .screen {
             position: absolute;
             text-align: center;
-            background-color: rgba(0,0,0,0.7);
+            background-color: rgba(0,0,0,0.8);
             padding: 20px;
             border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
-        h1 { font-size: 2.5em; }
-        p { font-size: 1.2em; }
+        h1 { font-size: 2.5em; margin-bottom: 0.5em; }
+        p { font-size: 1.2em; line-height: 1.5; }
         button {
             font-size: 1.5em;
             padding: 10px 20px;
@@ -39,17 +43,21 @@
             color: white;
             border: none;
             border-radius: 5px;
+            margin-top: 1em;
         }
     </style>
 </head>
 <body>
-    <div id="startScreen">
-        <h1>מלחמת החלל האינסופית</h1>
-        <p>גרור את החללית כדי לזוז ולירות.<br>השמד את התרנגולות ואסוף שדרוגים!</p>
+    <div id="startScreen" class="screen">
+        <h1>מלחמת החלל המשודרגת</h1>
+        <p>
+            האויבים חזרו, והם חזקים יותר!<br>
+            השמד אותם, אסוף נשקים חדשים והיזהר מהביצים!
+        </p>
         <button id="startButton">התחל משחק</button>
     </div>
 
-    <div id="gameOverScreen" style="display:none;">
+    <div id="gameOverScreen" class="screen" style="display:none;">
         <h1>המשחק נגמר</h1>
         <p>ניקוד סופי: <span id="finalScore">0</span></p>
         <p>שלב: <span id="finalLevel">0</span></p>
@@ -64,291 +72,392 @@
     // ==================
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
-
-    // התאמת גודל הקנבס למסך
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // משתני מצב משחק
-    let gameState = 'start'; // יכול להיות 'start', 'playing', 'gameOver'
+    let gameState = 'start';
     let score = 0;
     let level = 1;
     let lives = 3;
-    let gameFrame = 0; // מונה פריימים כללי
+    let gameFrame = 0;
+    let isBossLevel = false;
+    let boss = null;
+    let screenShake = { intensity: 0, duration: 0 };
 
-    // מערכים לאחסון אובייקטים במשחק
-    let playerProjectiles = [];
-    let enemies = [];
-    let powerUps = [];
-    let explosions = [];
+    // מערכים לאחסון אובייקטים
+    let playerProjectiles = [], enemies = [], powerUps = [], explosions = [], stars = [], enemyProjectiles = [];
+    
+    // ==================
+    // מנהל סאונד (עם סאונדים מובנים)
+    // ==================
+    const audioManager = {
+        sounds: {},
+        init() {
+            this.sounds.shoot = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU9vT19JTU5GT0ZGSQAAABwAAABBAAAAQ09ERVJTPTEuMAAATkxpc3RpbmZvbwAAAEBhcnRpc3QAAABqc2Z4cgAAAENPQllSSUdIVAAAADg4bW1tbW1t");
+            this.sounds.explosion = new Audio("data:audio/wav;base64,UklGRkAIAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=");
+            this.sounds.powerup = new Audio("data:audio/wav;base64,UklGRlphV19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUxhV19JTU5GT0ZGSQAAABwAAABBAAAAQ09ERVJTPTEuMAAATkxpc3RpbmZvbwAAAEBhcnRpc3QAAABqc2Z4cgAAAENPQllSSUdIVAAAADg4bW1tbW1t");
+            this.sounds.playerHit = new Audio("data:audio/wav;base64,UklGRkIAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQBIAAA=");
+            this.sounds.laser = new Audio("data:audio/wav;base64,UklGRisAAABXQVZFZm10IBAAAAABAAIAIBAAAEEAAAEABAAgZGF0YQEcAAA=");
+            Object.values(this.sounds).forEach(sound => {
+                sound.volume = 0.5;
+            });
+            this.sounds.shoot.volume = 0.3;
+        },
+        play(name) {
+            if (this.sounds[name]) {
+                this.sounds[name].currentTime = 0;
+                this.sounds[name].play().catch(e => {}); // מונע שגיאה אם המשתמש עוד לא לחץ
+            }
+        }
+    };
+    audioManager.init();
 
     // ==================
     // קלאסים (תבניות לאובייקטים)
     // ==================
 
-    // קלאס השחקן (החללית)
     class Player {
         constructor() {
-            this.width = 50;
-            this.height = 50;
+            this.width = 50; this.height = 50;
             this.x = canvas.width / 2 - this.width / 2;
             this.y = canvas.height - this.height - 20;
-            this.speed = 10;
+            this.weaponType = 'default'; // 'default', 'spread', 'laser'
             this.powerUpLevel = 1;
-            this.shootCooldown = 0; // מונה לקירור הירי
+            this.shootCooldown = 0;
+            this.isInvincible = false;
+            this.invincibilityTimer = 0;
         }
 
-        // עדכון מיקום ופעולות
         update(input) {
-            // הזזת החללית לפי קלט (עכבר או אצבע)
-            if (input.x) {
-                this.x = input.x - this.width / 2;
-            }
-            // הגבלת תנועה לגבולות המסך
+            if (input.x) this.x = input.x - this.width / 2;
             if (this.x < 0) this.x = 0;
             if (this.x > canvas.width - this.width) this.x = canvas.width - this.width;
 
-            // טיפול בירי
-            if (this.shootCooldown > 0) {
-                this.shootCooldown--;
-            } else {
-                this.shoot();
-                // קצב הירי משתפר ככל שהשדרוג גבוה יותר
-                this.shootCooldown = Math.max(5, 20 - this.powerUpLevel * 3);
+            if (this.shootCooldown > 0) this.shootCooldown--;
+            this.shoot();
+
+            if(this.isInvincible) {
+                this.invincibilityTimer--;
+                if(this.invincibilityTimer <= 0) this.isInvincible = false;
             }
         }
 
-        // ציור החללית
         draw() {
+            if (this.isInvincible && gameFrame % 10 < 5) return; // אפקט הבהוב
             ctx.font = '40px Arial';
             ctx.fillText('🚀', this.x, this.y + this.height - 10);
         }
 
-        // יצירת קליעים
         shoot() {
-            // רמה 1: קליע אחד
-            if (this.powerUpLevel === 1) {
-                playerProjectiles.push(new Projectile(this.x + this.width / 2 - 2.5, this.y));
+            if (this.shootCooldown > 0) return;
+            switch (this.weaponType) {
+                case 'laser':
+                    playerProjectiles.push(new Projectile(this.x + this.width / 2, this.y, 0, 'laser'));
+                    audioManager.play('laser');
+                    this.shootCooldown = 3; // ירי מהיר מאוד
+                    break;
+                case 'spread':
+                    for(let i = 0; i < this.powerUpLevel + 1; i++) {
+                         playerProjectiles.push(new Projectile(this.x + this.width / 2 - 5, this.y, i - (this.powerUpLevel)/2 , 'default'));
+                    }
+                    audioManager.play('shoot');
+                    this.shootCooldown = 20 - this.powerUpLevel;
+                    break;
+                case 'default':
+                default:
+                    const bullets = Math.min(3, this.powerUpLevel); // עד 3 קליעים
+                    for(let i=0; i<bullets; i++) {
+                       playerProjectiles.push(new Projectile(this.x + this.width/2 - 15 + (i*15), this.y-i*5, 0, 'default'));
+                    }
+                    audioManager.play('shoot');
+                    this.shootCooldown = 15 - this.powerUpLevel;
+                    break;
             }
-            // רמה 2: שני קליעים
-            else if (this.powerUpLevel === 2) {
-                playerProjectiles.push(new Projectile(this.x + this.width / 4, this.y));
-                playerProjectiles.push(new Projectile(this.x + this.width * 3/4 - 5, this.y));
-            }
-            // רמה 3 ומעלה: שלושה קליעים (אחד ישר, שניים בזווית)
-            else {
-                playerProjectiles.push(new Projectile(this.x + this.width / 2 - 2.5, this.y, 0));
-                playerProjectiles.push(new Projectile(this.x + this.width / 2 - 2.5, this.y, -0.5));
-                playerProjectiles.push(new Projectile(this.x + this.width / 2 - 2.5, this.y, 0.5));
-            }
+        }
+        
+        takeHit() {
+            if (this.isInvincible) return;
+            lives--;
+            audioManager.play('playerHit');
+            triggerScreenShake(10, 30);
+            this.isInvincible = true;
+            this.invincibilityTimer = 120; // 2 שניות של חסינות
+            this.powerUpLevel = 1;
+            this.weaponType = 'default';
+            if (lives <= 0) endGame();
         }
     }
 
-    // קלאס קליע
     class Projectile {
-        constructor(x, y, speedX = 0) {
-            this.x = x;
-            this.y = y;
-            this.width = 5;
-            this.height = 15;
-            this.speedY = 10;
-            this.speedX = speedX * 5; // מהירות אופקית לקליעים בזווית
+        constructor(x, y, speedX = 0, type = 'default') {
+            this.x = x; this.y = y; this.type = type;
+            if (type === 'laser') {
+                this.width = 5 + player.powerUpLevel * 2; this.height = y;
+                this.x -= this.width / 2;
+                this.damage = 0.2 + player.powerUpLevel * 0.1;
+                this.lifespan = 2; // נשאר ל-2 פריימים
+            } else {
+                this.width = 10; this.height = 15;
+                this.speedY = 12; this.speedX = speedX * 2;
+                this.damage = 1;
+            }
         }
         update() {
-            this.y -= this.speedY;
-            this.x += this.speedX;
+            if (this.type === 'laser') {
+                this.lifespan--;
+            } else {
+                this.y -= this.speedY; this.x += this.speedX;
+            }
         }
         draw() {
-            ctx.font = '20px Arial';
-            ctx.fillText('🔥', this.x, this.y);
-        }
-    }
-
-    // קלאס אויב (תרנגולת)
-    class Enemy {
-        constructor(x, y) {
-            this.width = 40;
-            this.height = 40;
-            this.x = x;
-            this.y = y;
-            this.speedY = 1 + Math.random() * 2 + level * 0.2; // המהירות עולה עם השלבים
-        }
-        update() {
-            this.y += this.speedY;
-        }
-        draw() {
-            ctx.font = '40px Arial';
-            ctx.fillText('🐔', this.x, this.y);
-        }
-    }
-
-    // קלאס שדרוג
-    class PowerUp {
-        constructor(x, y) {
-            this.x = x;
-            this.y = y;
-            this.width = 30;
-            this.height = 30;
-            this.speedY = 2;
-        }
-        update() {
-            this.y += this.speedY;
-        }
-        draw() {
-            ctx.font = '30px Arial';
-            ctx.fillText('⭐', this.x, this.y);
+            if (this.type === 'laser') {
+                ctx.fillStyle = `rgba(100, 255, 255, ${0.5 + Math.random() * 0.5})`;
+                ctx.fillRect(this.x, 0, this.width, this.y);
+            } else {
+                ctx.font = '20px Arial';
+                ctx.fillText('🔥', this.x, this.y);
+            }
         }
     }
     
-    // קלאס פיצוץ
-    class Explosion {
+    class EnemyProjectile {
         constructor(x, y) {
-            this.x = x;
-            this.y = y;
-            this.size = 50;
-            this.timer = 0; // כמה זמן הפיצוץ נשאר על המסך
-            this.maxTimer = 10; // 10 פריימים
+            this.x = x; this.y = y;
+            this.width = 25; this.height = 25;
+            this.speedY = 4 + level * 0.1;
+        }
+        update() { this.y += this.speedY; }
+        draw() {
+            ctx.font = '25px Arial';
+            ctx.fillText('🥚', this.x, this.y);
+        }
+    }
+
+    const enemyTypes = {
+        normal: { health: 1, size: 40, emoji: '🐔', points: 10, shootCooldown: 150 },
+        tough: { health: 5, size: 50, emoji: '🐓', points: 50, shootCooldown: 120 },
+        bomber: { health: 2, size: 45, emoji: '🛸', points: 30, shootCooldown: 80 },
+        boss: { health: 100, size: 120, emoji: '👹', points: 1000, shootCooldown: 40 }
+    };
+
+    class Enemy {
+        constructor(x, y, type) {
+            const proto = enemyTypes[type];
+            this.x = x; this.y = y; this.type = type;
+            this.width = proto.size; this.height = proto.size;
+            this.maxHealth = proto.health + Math.floor(level/2); // בוסים מתחזקים עם השלבים
+            this.health = this.maxHealth;
+            this.emoji = proto.emoji;
+            this.points = proto.points;
+            this.speedY = 1 + Math.random() * 1.5 + level * 0.1;
+            this.shootTimer = Math.random() * proto.shootCooldown;
+            this.shootCooldown = proto.shootCooldown;
         }
         update() {
-            this.timer++;
+            this.y += this.speedY;
+            this.shootTimer--;
+            if (this.shootTimer <= 0) {
+                this.shoot();
+                this.shootTimer = this.shootCooldown - level;
+            }
         }
         draw() {
-            ctx.font = `${this.size}px Arial`;
+            ctx.font = `${this.width}px Arial`;
+            ctx.fillText(this.emoji, this.x, this.y);
+            // מד חיים לאויבים שדורשים יותר ממכה
+            if(this.maxHealth > 1) {
+                ctx.fillStyle = 'red';
+                ctx.fillRect(this.x, this.y - 15, this.width, 10);
+                ctx.fillStyle = 'green';
+                ctx.fillRect(this.x, this.y - 15, this.width * (this.health/this.maxHealth), 10);
+            }
+        }
+        shoot() {
+            if (this.type === 'boss') {
+                // ירי מפוזר
+                for(let i=-2; i<=2; i++){
+                    enemyProjectiles.push(new EnemyProjectile(this.x + this.width/2 + (i*20), this.y + this.height));
+                }
+            } else {
+               enemyProjectiles.push(new EnemyProjectile(this.x + this.width/2, this.y + this.height));
+            }
+        }
+        takeDamage(amount) {
+            this.health -= amount;
+            return this.health <= 0;
+        }
+    }
+    
+    const powerUpTypes = {
+        weapon_spread: { emoji: 'S', color: '#33ff33'},
+        weapon_laser: { emoji: 'L', color: '#33ccff'},
+        health_up: { emoji: '+', color: '#ff3333'}
+    };
+
+    class PowerUp {
+        constructor(x, y, type) {
+            this.x = x; this.y = y; this.type = type;
+            this.width = 30; this.height = 30;
+            this.speedY = 2;
+        }
+        update() { this.y += this.speedY; }
+        draw() {
+            const proto = powerUpTypes[this.type];
+            ctx.font = 'bold 30px Arial';
+            ctx.fillStyle = proto.color;
+            ctx.fillText(proto.emoji, this.x, this.y);
+        }
+    }
+    
+    class Explosion {
+        constructor(x, y, size) {
+            this.x = x; this.y = y; this.size = size;
+            this.timer = 0; this.maxTimer = 10;
+        }
+        update() { this.timer++; }
+        draw() {
+            ctx.font = `${this.size * (1 - this.timer/this.maxTimer)}px Arial`;
             ctx.fillText('💥', this.x, this.y);
         }
     }
 
+    class Star {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 2 + 1;
+            this.speed = Math.random() * 1 + 0.5;
+        }
+        update() {
+            this.y += this.speed;
+            if (this.y > canvas.height) {
+                this.y = 0;
+                this.x = Math.random() * canvas.width;
+            }
+        }
+        draw() {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(this.x, this.y, this.size, this.size);
+        }
+    }
 
     // ==================
     // מנהל קלט (עכבר ומגע)
     // ==================
     const input = { x: canvas.width / 2, y: canvas.height - 60 };
-
-    window.addEventListener('mousemove', e => {
-        if (gameState === 'playing') {
-            input.x = e.clientX;
-        }
-    });
-
+    window.addEventListener('mousemove', e => { if (gameState === 'playing') input.x = e.clientX; });
     window.addEventListener('touchmove', e => {
-        e.preventDefault(); // מונע גלילה של הדף בזמן משחק
-        if (gameState === 'playing' && e.touches.length > 0) {
-            input.x = e.touches[0].clientX;
-        }
+        e.preventDefault();
+        if (gameState === 'playing' && e.touches.length > 0) input.x = e.touches[0].clientX;
     }, { passive: false });
 
 
     // ==================
-    // פונקציות עזר וניהול משחק
+    // פונקציות ניהול משחק
     // ==================
     const player = new Player();
 
-    function handleProjectiles() {
-        for (let i = playerProjectiles.length - 1; i >= 0; i--) {
-            playerProjectiles[i].update();
-            playerProjectiles[i].draw();
-            if (playerProjectiles[i].y < 0) {
-                playerProjectiles.splice(i, 1);
-            }
-        }
+    function initStars() {
+        for(let i=0; i<100; i++) stars.push(new Star());
     }
 
-    function handleEnemies() {
-        // יצירת אויבים חדשים
-        if (gameFrame % (100 - level * 2) === 0 && enemies.length < level * 5 + 10) {
-             let x = Math.random() * (canvas.width - 40);
+    function handleStars() {
+        stars.forEach(s => { s.update(); s.draw(); });
+    }
+
+    function spawnWave() {
+        if (isBossLevel) return;
+
+        // בדוק אם צריך להתחיל שלב בוס
+        if (level % 5 === 0 && enemies.length === 0) {
+            isBossLevel = true;
+            boss = new Enemy(canvas.width/2 - 60, -150, 'boss');
+            enemies.push(boss);
+            return;
+        }
+        
+        if (gameFrame % (Math.max(20, 100 - level * 3)) === 0) {
+             let x = Math.random() * (canvas.width - 50);
              let y = -50;
-             enemies.push(new Enemy(x, y));
-        }
-
-        // עדכון וציור אויבים
-        for (let i = enemies.length - 1; i >= 0; i--) {
-            enemies[i].update();
-            enemies[i].draw();
-
-            // אם אויב יצא מהמסך, הפחת חיים והסר אותו
-            if (enemies[i].y > canvas.height) {
-                enemies.splice(i, 1);
-                if (gameState === 'playing') {
-                   lives--;
-                   if (lives <= 0) {
-                       endGame();
-                   }
-                }
-            }
-        }
-    }
-    
-    function handlePowerUps() {
-         for (let i = powerUps.length - 1; i >= 0; i--) {
-            powerUps[i].update();
-            powerUps[i].draw();
-            // הסרת שדרוג שיצא מהמסך
-            if (powerUps[i].y > canvas.height) {
-                powerUps.splice(i, 1);
-            }
+             let enemyType = 'normal';
+             let rand = Math.random();
+             if (level > 2 && rand < 0.3) enemyType = 'tough';
+             if (level > 3 && rand < 0.6) enemyType = 'bomber';
+             enemies.push(new Enemy(x, y, enemyType));
         }
     }
 
-    function handleExplosions() {
-        for (let i = explosions.length - 1; i >= 0; i--) {
-            explosions[i].update();
-            explosions[i].draw();
-            if (explosions[i].timer > explosions[i].maxTimer) {
-                explosions.splice(i, 1);
+    function handleGameObjects(arr) {
+        for (let i = arr.length - 1; i >= 0; i--) {
+            arr[i].update();
+            arr[i].draw();
+            // מחיקת אובייקטים שיצאו מהמסך
+            if (arr[i].y > canvas.height + 50 || arr[i].y < -50 || (arr[i].lifespan && arr[i].lifespan <= 0)) {
+                arr.splice(i, 1);
             }
         }
     }
 
     function detectCollisions() {
-        // התנגשות קליעים באויבים
+        // התנגשות קליעי שחקן באויבים
         for (let i = enemies.length - 1; i >= 0; i--) {
             for (let j = playerProjectiles.length - 1; j >= 0; j--) {
                 const enemy = enemies[i];
                 const projectile = playerProjectiles[j];
+                if (!enemy || !projectile) continue;
 
-                if (enemy && projectile &&
-                    projectile.x < enemy.x + enemy.width &&
-                    projectile.x + projectile.width > enemy.x &&
-                    projectile.y < enemy.y + enemy.height &&
-                    projectile.y + projectile.height > enemy.y) 
+                if (projectile.x < enemy.x + enemy.width && projectile.x + projectile.width > enemy.x &&
+                    projectile.y < enemy.y + enemy.height && projectile.y + projectile.height > enemy.y) 
                 {
-                    // התנגשות!
-                    explosions.push(new Explosion(enemy.x, enemy.y));
+                    if (projectile.type !== 'laser') playerProjectiles.splice(j, 1);
                     
-                    // 10% סיכוי להפיל שדרוג
-                    if (Math.random() < 0.1) {
-                        powerUps.push(new PowerUp(enemy.x, enemy.y));
-                    }
-                    
-                    enemies.splice(i, 1);
-                    playerProjectiles.splice(j, 1);
-                    score += 10;
+                    if(enemy.takeDamage(projectile.damage)) {
+                        explosions.push(new Explosion(enemy.x, enemy.y, enemy.width));
+                        audioManager.play('explosion');
+                        triggerScreenShake(enemy.width * 0.1, 15);
+                        score += enemy.points;
 
-                    // בדיקת עליית שלב
-                    if (score > 0 && score % 200 === 0) {
-                        level++;
+                        // סיכוי להפלת שדרוג
+                        if (Math.random() < 0.15) {
+                            const powerUpKeys = Object.keys(powerUpTypes);
+                            const randomType = powerUpKeys[Math.floor(Math.random() * powerUpKeys.length)];
+                            powerUps.push(new PowerUp(enemy.x, enemy.y, randomType));
+                        }
+
+                        if (isBossLevel && enemy.type === 'boss') {
+                            isBossLevel = false;
+                            boss = null;
+                            level++;
+                            score += 5000; // בונוס גדול
+                        }
+                        
+                        enemies.splice(i, 1);
+
+                        // בדיקת עליית שלב (לא בשלב בוס)
+                        if (!isBossLevel && score > level * 500) {
+                            level++;
+                        }
+                        break;
                     }
-                    break; // עבור לקליע הבא
                 }
             }
         }
         
-        // התנגשות אויבים בשחקן
-        for (let i = enemies.length - 1; i >= 0; i--) {
-             const enemy = enemies[i];
-             if (enemy &&
-                 player.x < enemy.x + enemy.width &&
-                 player.x + player.width > enemy.x &&
-                 player.y < enemy.y + enemy.height &&
-                 player.y + player.height > enemy.y)
+        // התנגשות אויבים/ביצים בשחקן
+        const entitiesToTest = [...enemies, ...enemyProjectiles];
+        for (let i = entitiesToTest.length - 1; i >= 0; i--) {
+             const entity = entitiesToTest[i];
+             if (entity &&
+                 player.x < entity.x + entity.width && player.x + player.width > entity.x &&
+                 player.y < entity.y + entity.height && player.y + player.height > entity.y)
              {
-                 explosions.push(new Explosion(player.x, player.y));
-                 enemies.splice(i, 1);
-                 lives--;
-                 player.powerUpLevel = Math.max(1, player.powerUpLevel - 1); // ירידה בדרגת שדרוג
-                 if (lives <= 0) {
-                     endGame();
+                 player.takeHit();
+                 // אם התנגשנו בביצה, נסיר אותה. אם באויב, האויב יושמד גם כן.
+                 if(entity instanceof EnemyProjectile) {
+                    enemyProjectiles.splice(enemyProjectiles.indexOf(entity), 1);
+                 } else {
+                    explosions.push(new Explosion(entity.x, entity.y, entity.width));
+                    enemies.splice(enemies.indexOf(entity), 1);
                  }
              }
         }
@@ -356,44 +465,77 @@
         // התנגשות שחקן עם שדרוג
         for (let i = powerUps.length - 1; i >= 0; i--) {
             const powerUp = powerUps[i];
-            if (powerUp &&
-                player.x < powerUp.x + powerUp.width &&
-                player.x + player.width > powerUp.x &&
-                player.y < powerUp.y + powerUp.height &&
-                player.y + player.height > powerUp.y)
+            if (powerUp && player.x < powerUp.x + powerUp.width && player.x + player.width > powerUp.x &&
+                player.y < powerUp.y + powerUp.height && player.y + player.height > powerUp.y)
             {
-                powerUps.splice(i, 1);
-                if (player.powerUpLevel < 5) { // הגבלת רמת השדרוג
-                    player.powerUpLevel++;
+                audioManager.play('powerup');
+                switch(powerUp.type) {
+                    case 'health_up':
+                        if (lives < 5) lives++;
+                        break;
+                    case 'weapon_spread':
+                    case 'weapon_laser':
+                        player.weaponType = powerUp.type.split('_')[1];
+                        player.powerUpLevel = 1;
+                        break;
                 }
-                score += 50; // בונוס ניקוד על שדרוג
+                if (player.weaponType !== 'default' && powerUp.type.includes(player.weaponType)) {
+                    if (player.powerUpLevel < 5) player.powerUpLevel++;
+                }
+                
+                powerUps.splice(i, 1);
+                score += 50;
             }
+        }
+    }
+    
+    function triggerScreenShake(intensity, duration) {
+        screenShake.intensity = intensity;
+        screenShake.duration = duration;
+    }
+
+    function applyScreenShake() {
+        if (screenShake.duration > 0) {
+            const dx = (Math.random() - 0.5) * screenShake.intensity;
+            const dy = (Math.random() - 0.5) * screenShake.intensity;
+            ctx.translate(dx, dy);
+            screenShake.duration--;
+        } else {
+            screenShake.intensity = 0;
         }
     }
 
     function drawUI() {
-        ctx.fillStyle = 'white';
-        ctx.font = '20px Arial';
+        ctx.fillStyle = 'white'; ctx.font = '20px Arial';
         ctx.textAlign = 'left';
         ctx.fillText(`ניקוד: ${score}`, 10, 30);
         ctx.fillText(`שלב: ${level}`, 10, 60);
+        let weaponName = player.weaponType === 'default' ? 'רגיל' : (player.weaponType === 'spread' ? 'מפוזר' : 'לייזר');
+        ctx.fillText(`נשק: ${weaponName} (רמה ${player.powerUpLevel})`, 10, 90);
         ctx.textAlign = 'right';
         ctx.fillText(`חיים: ${'❤️'.repeat(lives)}`, canvas.width - 10, 30);
+        
+        // מד חיים לבוס
+        if(isBossLevel && boss) {
+            ctx.textAlign = 'center';
+            ctx.fillText('🚨 בוס 🚨', canvas.width/2, 30);
+            const barWidth = canvas.width * 0.8;
+            const barX = canvas.width * 0.1;
+            ctx.fillStyle = 'red';
+            ctx.fillRect(barX, 50, barWidth, 20);
+            ctx.fillStyle = 'purple';
+            ctx.fillRect(barX, 50, barWidth * (boss.health / boss.maxHealth), 20);
+        }
         ctx.textAlign = 'center';
     }
 
     function resetGame() {
-        score = 0;
-        level = 1;
-        lives = 3;
+        score = 0; level = 1; lives = 3; gameFrame = 0;
         player.x = canvas.width / 2 - player.width / 2;
         player.y = canvas.height - player.height - 20;
-        player.powerUpLevel = 1;
-        enemies = [];
-        playerProjectiles = [];
-        powerUps = [];
-        explosions = [];
-        gameFrame = 0;
+        player.weaponType = 'default'; player.powerUpLevel = 1;
+        enemies = []; playerProjectiles = []; powerUps = []; explosions = []; enemyProjectiles = [];
+        isBossLevel = false; boss = null;
     }
 
     function startGame() {
@@ -416,40 +558,54 @@
     // ==================
     function animate() {
         if (gameState !== 'playing') return;
-
-        // ניקוי המסך
+        
+        ctx.save();
+        applyScreenShake();
+        
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // עדכון וציור כל האובייקטים
+        
+        handleStars();
+        
         player.update(input);
         player.draw();
         
-        handleEnemies();
-        handleProjectiles();
-        handlePowerUps();
-        handleExplosions();
-
+        spawnWave();
+        
+        handleGameObjects(enemies);
+        handleGameObjects(playerProjectiles);
+        handleGameObjects(powerUps);
+        handleGameObjects(explosions);
+        handleGameObjects(enemyProjectiles);
+        
         detectCollisions();
-
+        
         drawUI();
-
+        
+        ctx.restore();
+        
         gameFrame++;
         requestAnimationFrame(animate);
     }
     
     // ==================
-    // טיפול באירועי כפתורים
+    // טיפול באירועים
     // ==================
-    document.getElementById('startButton').addEventListener('click', startGame);
+    document.getElementById('startButton').addEventListener('click', () => {
+        // התחלת הסאונד דורשת אינטראקציה ראשונית
+        audioManager.init();
+        startGame();
+    });
     document.getElementById('restartButton').addEventListener('click', startGame);
 
-    // התאמה לשינוי גודל החלון
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        // מיקום מחדש של השחקן אם המשחק רץ
         player.y = canvas.height - player.height - 20;
+        stars = [];
+        initStars();
     });
+    
+    initStars();
 
     </script>
 </body>
