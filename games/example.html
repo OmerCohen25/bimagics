@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>Orbit Rush</title>
+    <style>
+        /* --- 🎨 סגנונות כלליים ועיצוב --- */
+        :root {
+            --bg-color: #0f0f1a;
+            --text-color: #f0f0f0;
+            --primary-color: #00aaff;
+            --danger-color: #ff4d4d;
+            --star-color: #ffd700;
+            --font-family: 'Heebo', sans-serif, system-ui;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f0f0f5;
+                --text-color: #1a1a1a;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent; /* מניעת הבהוב בכחול בלחיצה במובייל */
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            touch-action: none; /* מניעת scroll/zoom בתגובה למגע */
+            background: var(--bg-color); /* רקע התחלתי */
+        }
+
+        /* --- 🖥️ שכבות ממשק (UI Overlays) --- */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 20px;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s 0.3s, opacity 0.3s ease;
+        }
+
+        .screen.active {
+            visibility: visible;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .screen h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5em;
+            text-shadow: 0 0 15px var(--primary-color);
+        }
+
+        .screen h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1em;
+            color: var(--star-color);
+        }
+        
+        .screen p {
+            font-size: 1.1rem;
+            max-width: 350px;
+            line-height: 1.6;
+        }
+
+        .button {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--bg-color);
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px -5px var(--primary-color);
+        }
+
+        .button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px -5px var(--primary-color);
+        }
+        
+        #shareButton {
+            background-color: var(--star-color);
+            box-shadow: 0 4px 15px -5px var(--star-color);
+        }
+        #shareButton:hover {
+            box-shadow: 0 6px 20px -5px var(--star-color);
+        }
+
+        /* --- HUD (Heads-Up Display) --- */
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 5;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 5px rgba(0,0,0,0.7);
+            pointer-events: none; /* מאפשר קליקים "דרך" ה-HUD */
+        }
+
+        /* --- כפתור סאונד --- */
+        #soundToggle {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 15;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        #soundToggle:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="hud">
+        <div id="score">SCORE: 0</div>
+        <div id="level">LEVEL: 1</div>
+    </div>
+
+    <div id="startScreen" class="screen active">
+        <h1>Orbit Rush</h1>
+        <p>הקש/לחץ כדי לשנות כיוון סיבוב 🛰️.<br>אסוף ⭐ והימנע מ-🪨.<br>המהירות עולה עם כל כוכב!</p>
+        <button id="startButton" class="button">התחל משחק</button>
+    </div>
+
+    <div id="gameOverScreen" class="screen">
+        <h1>Game Over</h1>
+        <h2 id="finalScore"></h2>
+        <p>?Can you keep the orbit</p>
+        <div>
+            <button id="restartButton" class="button">שחק שוב</button>
+            <button id="shareButton" class="button">שתף תוצאה 🚀</button>
+        </div>
+    </div>
+    
+    <button id="soundToggle">🔊</button>
+    
+    <script>
+        // --- ⚙️ הגדרות משחק ומשתנים גלובליים ---
+        const GAME_NAME = 'OrbitRush';
+        const userPhone = '972501234567'; // ניתן לשינוי
+
+        // ---  DOM Elements ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const hud = document.getElementById('hud');
+        const scoreDisplay = document.getElementById('score');
+        const levelDisplay = document.getElementById('level');
+        const finalScoreDisplay = document.getElementById('finalScore');
+        const startButton = document.getElementById('startButton');
+        const restartButton = document.getElementById('restartButton');
+        const shareButton = document.getElementById('shareButton');
+        const soundToggle = document.getElementById('soundToggle');
+
+        // --- משתני מצב משחק ---
+        let gameState = 'start'; // 'start', 'playing', 'gameOver'
+        let score = 0;
+        let level = 1;
+        let isMuted = false;
+        let game; // יכיל את אובייקט המשחק הראשי
+
+        // --- 🔊 סאונד (Base64) ---
+        // זוהי טכניקה להטמעת אודיו ישירות בקוד ללא קבצים חיצוניים
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const sounds = {
+            // צליל איסוף כוכב
+            collect: 'data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVd2T19O/v/i/8D/uv+D/zX/cf+B/yL/av+M/zP/ff+e/0H/iv+z/03/of/H/0X/m//L/z3/n//T/z3/of/Z/0H/p//f/z3/r//j/zT/s//p/yv/uv/z/yn/xP//////wP+5/6L/pv+p/6T/of+b/5b/l/+X/5g=',
+            // צליל פגיעה
+            hit: 'data:audio/wav;base64,UklGRjQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSQAAAAAAAAA/v/d/8D/t//I/7//wP/C/7z/uv+1/7T/tf+1/7f/uv/C/8T/yv/S/9b/3P/g/+P/6v/x//r//P8=',
+            // צליל שינוי כיוון
+            swoosh: 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQIAAAD//v8CAPwB/gH+Af4B/gH9AfwB+wH6AfoB9wH2AfYB8wHxAfEB7gHsAewB6QHmAugC5gLkAtsC2QLZAtEC0Q=='
+        };
+        let soundBuffers = {};
+
+        // פונקציה לטעינת הסאונדים
+        async function setupSounds() {
+            for (const key in sounds) {
+                const response = await fetch(sounds[key]);
+                const arrayBuffer = await response.arrayBuffer();
+                soundBuffers[key] = await audioContext.decodeAudioData(arrayBuffer);
+            }
+        }
+        
+        function playSound(name) {
+            if (isMuted || !soundBuffers[name] || audioContext.state === 'suspended') return;
+            const source = audioContext.createBufferSource();
+            source.buffer = soundBuffers[name];
+            source.connect(audioContext.destination);
+            source.start(0);
+        }
+        
+        // אתחול הסאונדים דורש אינטראקצית משתמש ראשונית
+        function initAudio() {
+            if(audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            setupSounds();
+        }
+
+        // --- 📐 כלי עזר ---
+        const distance = (x1, y1, x2, y2) => Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        
+        // --- ✨ אפקטים ויזואליים (חלקיקים) ---
+        class Particle {
+            constructor(x, y, color, size, speed) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.size = Math.random() * size + 2;
+                this.speed = speed;
+                this.angle = Math.random() * Math.PI * 2;
+                this.vx = Math.cos(this.angle) * (Math.random() * this.speed);
+                this.vy = Math.sin(this.angle) * (Math.random() * this.speed);
+                this.life = 100; // אורך חיים בפריימים
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life--;
+                this.size *= 0.98; // מתכווץ
+            }
+
+            draw(ctx) {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, Math.max(0, this.size), 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // --- 🛰️ מחלקת השחקן ---
+        class Player {
+            constructor(game) {
+                this.game = game;
+                this.emoji = '🛰️';
+                this.orbitRadius = this.game.width * 0.2;
+                this.size = 25;
+                this.angle = 0;
+                this.speed = 0.02;
+                this.direction = 1; // 1: נגד כיוון השעון, -1: עם כיוון השעון
+            }
+
+            // עדכון מיקום השחקן
+            update() {
+                this.angle += this.speed * this.direction;
+                if (this.angle > Math.PI * 2) this.angle -= Math.PI * 2;
+                if (this.angle < 0) this.angle += Math.PI * 2;
+            }
+
+            // ציור השחקן על הקנבס
+            draw(ctx) {
+                const x = this.game.centerX + Math.cos(this.angle) * this.orbitRadius;
+                const y = this.game.centerY + Math.sin(this.angle) * this.orbitRadius;
+                ctx.font = `${this.size * 1.5}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.emoji, x, y);
+            }
+
+            // שינוי כיוון הסיבוב
+            switchDirection() {
+                if (gameState !== 'playing') return;
+                this.direction *= -1;
+                playSound('swoosh');
+            }
+            
+            getPosition() {
+                const x = this.game.centerX + Math.cos(this.angle) * this.orbitRadius;
+                const y = this.game.centerY + Math.sin(this.angle) * this.orbitRadius;
+                return { x, y };
+            }
+        }
+
+        // --- 🪨 מחלקת האויב ---
+        class Enemy {
+            constructor(game) {
+                this.game = game;
+                this.emoji = '🪨';
+                // מסלול רנדומלי, אבל לא קרוב מדי למרכז או לשחקן
+                const playerOrbit = this.game.player.orbitRadius;
+                this.orbitRadius = playerOrbit + (Math.random() * 2 - 1) * (this.game.width * 0.15);
+                this.size = 20;
+                this.angle = Math.random() * Math.PI * 2;
+                this.speed = (Math.random() * 0.01 + 0.005) * (1 + game.level * 0.1);
+                this.direction = Math.random() > 0.5 ? 1 : -1;
+            }
+
+            update() {
+                this.angle += this.speed * this.direction;
+            }
+
+            draw(ctx) {
+                const x = this.game.centerX + Math.cos(this.angle) * this.orbitRadius;
+                const y = this.game.centerY + Math.sin(this.angle) * this.orbitRadius;
+                ctx.font = `${this.size * 1.5}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.emoji, x, y);
+            }
+            
+            getPosition() {
+                 const x = this.game.centerX + Math.cos(this.angle) * this.orbitRadius;
+                const y = this.game.centerY + Math.sin(this.angle) * this.orbitRadius;
+                return { x, y };
+            }
+        }
+
+        // --- ⭐ מחלקת הפריט לאיסוף ---
+        class Collectible {
+            constructor(game) {
+                this.game = game;
+                this.emoji = '⭐️';
+                // מסלול רנדומלי
+                this.orbitRadius = Math.random() * (this.game.width * 0.4) + (this.game.width * 0.1);
+                this.size = 20;
+                this.angle = Math.random() * Math.PI * 2;
+                this.collected = false;
+                this.spawnTime = Date.now();
+                this.scale = 0; // מתחיל קטן וגדל
+            }
+
+            update() {
+                // אפקט "פעימה" בעת הופעה
+                if (this.scale < 1) {
+                    this.scale += 0.05;
+                }
+            }
+
+            draw(ctx) {
+                const x = this.game.centerX + Math.cos(this.angle) * this.orbitRadius;
+                const y = this.game.centerY + Math.sin(this.angle) * this.orbitRadius;
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.scale(this.scale, this.scale);
+                ctx.font = `${this.size * 1.5}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.emoji, 0, 0);
+                ctx.restore();
+            }
+
+            getPosition() {
+                const x = this.game.centerX + Math.cos(this.angle) * this.orbitRadius;
+                const y = this.game.centerY + Math.sin(this.angle) * this.orbitRadius;
+                return { x, y };
+            }
+        }
+
+        // --- 🕹️ מחלקת המשחק הראשית ---
+        class Game {
+            constructor(width, height) {
+                this.width = width;
+                this.height = height;
+                this.centerX = width / 2;
+                this.centerY = height / 2;
+                this.planetEmoji = '🌕';
+                this.planetRadius = 40;
+                
+                this.particles = [];
+                this.reset();
+                
+                this.lastDifficultyIncreaseTime = 0;
+                this.difficultyInterval = 15000; // 15 שניות
+            }
+            
+            // איפוס המשחק למצב התחלתי
+            reset() {
+                score = 0;
+                level = 1;
+                this.player = new Player(this);
+                this.enemies = [];
+                this.collectibles = [];
+                this.particles = [];
+                this.enemySpawnTimer = 0;
+                this.enemySpawnInterval = 3000; // מילישניות
+                this.lastDifficultyIncreaseTime = Date.now();
+                
+                this.updateHud();
+                this.spawnCollectible();
+            }
+
+            // עדכון כל אובייקטי המשחק
+            update(deltaTime) {
+                if (gameState !== 'playing') return;
+
+                this.player.update();
+                this.enemies.forEach(e => e.update());
+                this.collectibles.forEach(c => c.update());
+                this.particles.forEach((p, i) => {
+                    p.update();
+                    if (p.life <= 0) this.particles.splice(i, 1);
+                });
+                
+                // טיפול בהתנגשויות
+                this.checkCollisions();
+                
+                // הוספת אויבים
+                this.enemySpawnTimer += deltaTime;
+                if (this.enemySpawnTimer > this.enemySpawnInterval) {
+                    this.spawnEnemy();
+                    this.enemySpawnTimer = 0;
+                }
+                
+                // הגברת רמת הקושי
+                if (Date.now() - this.lastDifficultyIncreaseTime > this.difficultyInterval) {
+                    this.increaseDifficulty();
+                }
+            }
+            
+            // ציור כל אובייקטי המשחק
+            draw(ctx) {
+                // רקע דינאמי
+                const gradient = ctx.createRadialGradient(this.centerX, this.centerY, 10, this.centerX, this.centerY, this.width/1.5);
+                const hue = 220 + (score % 360) / 5; // גוון כחלחל שמשתנה עם הניקוד
+                gradient.addColorStop(0, `hsl(${hue}, 50%, 20%)`);
+                gradient.addColorStop(1, '#0f0f1a');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, this.width, this.height);
+
+                // ציור מסלולים
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(this.centerX, this.centerY, this.player.orbitRadius, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // ציור כוכב הלכת במרכז
+                ctx.font = `${this.planetRadius * 1.5}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.planetEmoji, this.centerX, this.centerY);
+
+                // ציור האובייקטים
+                this.player.draw(ctx);
+                this.enemies.forEach(e => e.draw(ctx));
+                this.collectibles.forEach(c => c.draw(ctx));
+                this.particles.forEach(p => p.draw(ctx));
+            }
+
+            // הוספת אויב חדש
+            spawnEnemy() {
+                this.enemies.push(new Enemy(this));
+            }
+            
+            // הוספת פריט איסוף חדש
+            spawnCollectible() {
+                this.collectibles.push(new Collectible(this));
+            }
+            
+            // בדיקת התנגשויות
+            checkCollisions() {
+                const playerPos = this.player.getPosition();
+                
+                // התנגשות עם אויבים
+                this.enemies.forEach(enemy => {
+                    const enemyPos = enemy.getPosition();
+                    if (distance(playerPos.x, playerPos.y, enemyPos.x, enemyPos.y) < this.player.size + enemy.size - 15) {
+                        this.triggerGameOver();
+                    }
+                });
+                
+                // התנגשות עם פריטי איסוף
+                this.collectibles.forEach((collectible, index) => {
+                    const collectiblePos = collectible.getPosition();
+                     if (distance(playerPos.x, playerPos.y, collectiblePos.x, collectiblePos.y) < this.player.size + collectible.size - 15) {
+                        this.collect(collectible, index);
+                    }
+                });
+            }
+
+            // איסוף פריט
+            collect(collectible, index) {
+                playSound('collect');
+                this.collectibles.splice(index, 1);
+                
+                const pos = collectible.getPosition();
+                // יצירת חלקיקים של כוכבים
+                for (let i = 0; i < 15; i++) {
+                    this.particles.push(new Particle(pos.x, pos.y, 'gold', 10, 3));
+                }
+
+                score += 10 * level;
+                this.player.speed += 0.001;
+                this.updateHud();
+                this.spawnCollectible();
+            }
+            
+            // הגברת רמת הקושי
+            increaseDifficulty() {
+                level++;
+                this.enemySpawnInterval = Math.max(500, this.enemySpawnInterval * 0.9); // מרווח קטן יותר, עד מינימום
+                this.spawnEnemy(); // הוסף אויב מיידי
+                this.lastDifficultyIncreaseTime = Date.now();
+                this.updateHud();
+
+                 // פידבק ויזואלי להעלאת רמה
+                hud.style.transition = 'none';
+                hud.style.transform = 'scale(1.2)';
+                hud.style.color = 'var(--star-color)';
+                setTimeout(() => {
+                    hud.style.transition = 'transform 0.3s ease, color 0.3s ease';
+                    hud.style.transform = 'scale(1)';
+                    hud.style.color = 'white';
+                }, 100);
+            }
+            
+            // עדכון תצוגת הניקוד והשלב
+            updateHud() {
+                scoreDisplay.textContent = `SCORE: ${score}`;
+                levelDisplay.textContent = `LEVEL: ${level}`;
+            }
+
+            // סיום המשחק
+            triggerGameOver() {
+                if (gameState === 'gameOver') return;
+                playSound('hit');
+                gameState = 'gameOver';
+                
+                const playerPos = this.player.getPosition();
+                for (let i = 0; i < 30; i++) {
+                    this.particles.push(new Particle(playerPos.x, playerPos.y, 'orangered', 15, 5));
+                }
+                
+                setTimeout(() => { // השהייה קטנה לאפקט דרמטי
+                    finalScoreDisplay.textContent = `ניקוד: ${score} | שלב: ${level}`;
+                    gameOverScreen.classList.add('active');
+                    setupShareButton();
+                }, 800);
+            }
+        }
+
+        // --- 🔁 לולאת המשחק הראשית ---
+        let lastTime = 0;
+        function gameLoop(timestamp) {
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (game) {
+                game.draw(ctx);
+                game.update(deltaTime);
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- 🚀 פונקציות ניהול מצבי המשחק ---
+        function startGame() {
+            gameState = 'playing';
+            startScreen.classList.remove('active');
+            gameOverScreen.classList.remove('active');
+            
+            game.reset();
+            
+            // אתחול הסאונד בלחיצה הראשונה
+            initAudio();
+        }
+        
+        // --- 🔗 לוגיקת שיתוף ---
+        function setupShareButton() {
+            const uniqueId = Math.random().toString(36).slice(2, 8);
+            const gameUrl = `https://bimagics.com/games/${GAME_NAME}-${uniqueId}-${userPhone}.html`;
+            const shareText = `השגתי ניקוד ${score} בשלב ${level} ב-${GAME_NAME}! נסו לנצח אותי:\n${gameUrl}`;
+            
+            shareButton.onclick = async () => {
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: `אתגר ב-${GAME_NAME}!`,
+                            text: shareText,
+                        });
+                    } catch (err) {
+                        console.warn("שגיאה בפונקציית השיתוף:", err);
+                        copyToClipboard(shareText);
+                    }
+                } else {
+                    copyToClipboard(shareText);
+                }
+            };
+        }
+        
+        function copyToClipboard(text) {
+             navigator.clipboard.writeText(text).then(() => {
+                const originalText = shareButton.textContent;
+                shareButton.textContent = 'הועתק ללוח!';
+                setTimeout(() => {
+                    shareButton.textContent = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('לא ניתן להעתיק:', err);
+                alert('לא ניתן היה להעתיק את הקישור. אנא העתק ידנית.');
+            });
+        }
+        
+        // --- 👂 מאזיני אירועים (Event Listeners) ---
+        function handleInteraction(event) {
+            event.preventDefault();
+            if (gameState === 'playing' && game) {
+                game.player.switchDirection();
+            }
+        }
+        
+        // התאמת גודל הקנבס לחלון
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            if (game) {
+                game.width = canvas.width;
+                game.height = canvas.height;
+                game.centerX = canvas.width / 2;
+                game.centerY = canvas.height / 2;
+            } else {
+                 game = new Game(canvas.width, canvas.height);
+            }
+        }
+
+        // הגדרת מאזינים
+        window.addEventListener('resize', resizeCanvas);
+        
+        startButton.addEventListener('click', startGame);
+        restartButton.addEventListener('click', startGame);
+        
+        soundToggle.addEventListener('click', () => {
+            isMuted = !isMuted;
+            soundToggle.textContent = isMuted ? '🔇' : '🔊';
+            initAudio();
+        });
+
+        // שליטה במחשב ובמובייל
+        canvas.addEventListener('mousedown', handleInteraction);
+        canvas.addEventListener('touchstart', handleInteraction);
+        
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                handleInteraction(e);
+            }
+        });
+        
+        // --- 🚀 אתחול ---
+        document.addEventListener('DOMContentLoaded', () => {
+            resizeCanvas();
+            requestAnimationFrame(gameLoop);
+        });
+    </script>
+
+</body>
+</html>
