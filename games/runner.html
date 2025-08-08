@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Army Runner — משחק ראנר ממכר בעמוד אחד</title>
+<style>
+  :root{
+    --bg1:#0b0f1a; --bg2:#121a2b; --ui:#0fe0a5; --ui2:#69f; --warn:#ff5e6c; --gold:#f9c74f; --muted:#9aa4b2;
+  }
+  html,body{margin:0;height:100%;background:linear-gradient(180deg,var(--bg1),var(--bg2));font-family:system-ui,Segoe UI,Arial;touch-action:none;color:#e6edf3}
+  #wrap{position:fixed;inset:0;display:grid;grid-template-rows:auto 1fr auto}
+  header{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #1e2636;background:#0c1220cc;backdrop-filter:blur(6px)}
+  header .stat{display:flex;gap:6px;align-items:center;font-weight:700}
+  header .pill{border:1px solid #1d304b;background:#0f1630aa;border-radius:999px;padding:6px 10px;display:flex;gap:8px;align-items:center}
+  header .pill .dot{width:10px;height:10px;border-radius:50%}
+  #hud{display:flex;gap:8px;flex-wrap:wrap}
+  #hud .pill .label{opacity:.9}
+  #hud .pill .val{font-variant-numeric:tabular-nums}
+  #game{position:relative;overflow:hidden}
+  canvas{display:block;width:100%;height:100%}
+  #footer{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-top:1px solid #1e2636;background:#0c1220cc}
+  #btnPause,#btnDash{appearance:none;border:1px solid #263552;background:#101a30cc;color:#e6edf3;border-radius:12px;padding:10px 14px;font-weight:700}
+  #btnDash{border-color:#2a3;box-shadow:inset 0 0 0 1px #2a3}
+  #btnPause:active,#btnDash:active{transform:translateY(1px)}
+  /* overlays */
+  .overlay{position:absolute;inset:0;display:none;place-items:center;background:#08101acc}
+  .overlay.show{display:grid}
+  .card{max-width:720px;width:min(92vw,720px);background:#0c1324;border:1px solid #1e2842;border-radius:16px;padding:18px;box-shadow:0 10px 40px #0008}
+  .card h1{margin:6px 0 2px;font-size:26px}
+  .muted{color:var(--muted)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .btn{flex:1 1 160px;cursor:pointer;user-select:none;text-align:center;border-radius:12px;padding:12px 14px;border:1px solid #234; background:#0d1730;color:#e6edf3}
+  .btn:hover{background:#102040}
+  .btn.primary{border-color:#178b70;background:linear-gradient(180deg,#0fe0a522,#0b614f33)}
+  .btn.warn{border-color:#934;border:linear-gradient(180deg,#5a0b0b33,#2a0b0b33)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .kudos{font-size:12px;margin-top:8px;color:#97a3b6}
+  /* gate UI tip */
+  #tip{position:absolute;left:50%;transform:translateX(-50%);bottom:16px;font-size:12px;color:#c6d0e0;opacity:.85;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <header>
+    <div class="stat pill" title="בריאות">
+      <span class="dot" style="background:var(--warn)"></span>
+      <span class="label">HP</span><span id="hp" class="val">100</span>
+    </div>
+    <div id="hud">
+      <div class="pill" title="כמות הצבא">
+        <span class="dot" style="background:var(--ui)"></span>
+        <span class="label">Army</span><span id="army" class="val">10</span>
+      </div>
+      <div class="pill" title="ניקוד">
+        <span class="dot" style="background:var(--ui2)"></span>
+        <span class="label">Score</span><span id="score" class="val">0</span>
+      </div>
+      <div class="pill" title="מטבעות">
+        <span class="dot" style="background:var(--gold)"></span>
+        <span class="label">Coins</span><span id="coins" class="val">0</span>
+      </div>
+      <div class="pill" title="שלב">
+        <span class="dot" style="background:#7d53f3"></span>
+        <span class="label">Stage</span><span id="stage" class="val">1</span>
+      </div>
+    </div>
+    <div class="stat pill" title="קצב ירי">
+      <span class="dot" style="background:#6cf"></span>
+      <span class="label">DPS</span><span id="dps" class="val">1.0</span>
+    </div>
+  </header>
+
+  <main id="game">
+    <canvas id="c"></canvas>
+    <div id="tip">גרור/י את הדמות — השערים מגיעים! ✨</div>
+
+    <!-- Start overlay -->
+    <div id="ovStart" class="overlay show">
+      <div class="card">
+        <h1>Army Runner</h1>
+        <div class="muted">גררו את הגיבור עם האצבע. ירי אוטומטי. היכנסו דרך שערים מתמטיים כדי להגדיל את הצבא, אספו מטבעות, ושדרגו כדי להחזיק כמה שיותר זמן.</div>
+        <div class="row">
+          <div class="btn" id="btnEasy">קל 🟢</div>
+          <div class="btn" id="btnNormal">בינוני 🔵</div>
+          <div class="btn" id="btnHard">קשה 🔴</div>
+        </div>
+        <div class="kudos">הכול רץ מקובץ HTML יחיד. אין נכסים חיצוניים. תהנו 🎮</div>
+      </div>
+    </div>
+
+    <!-- Upgrade overlay -->
+    <div id="ovUp" class="overlay">
+      <div class="card">
+        <h1>שדרוגים</h1>
+        <div class="muted">בחרו שדרוג (עלות במטבעות). השדרוגים מופיעים מדי פעם במהלך הריצה.</div>
+        <div class="grid2" style="margin-top:10px">
+          <div class="btn" id="upFire">🔥 קצב ירי +20% (15)</div>
+          <div class="btn" id="upDmg">💥 נזק ירייה +1 (20)</div>
+          <div class="btn" id="upMagnet">🧲 מגנט איסוף משופר (25)</div>
+          <div class="btn" id="upHeal">💖 ריפוי 25 HP (18)</div>
+        </div>
+        <div class="row">
+          <div class="btn primary" id="upResume">המשך</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game over overlay -->
+    <div id="ovOver" class="overlay">
+      <div class="card">
+        <h1>נגמר החיים 💀</h1>
+        <div class="muted">ניקוד: <b id="finalScore">0</b> • שלב: <b id="finalStage">1</b> • צבא: <b id="finalArmy">0</b></div>
+        <div class="row">
+          <div class="btn primary" id="again">שחקי/שחק שוב</div>
+          <div class="btn" id="share">שיתוף תוצאה</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer id="footer">
+    <button id="btnPause">⏸︎ השהה</button>
+    <div class="muted">טיפ: השערים מציעים פעולות כמו ×2 או +8. בחירה חכמה = המון כדורים 💫</div>
+    <button id="btnDash">⚡ דאש קצר</button>
+  </footer>
+</div>
+
+<script>
+(()=>{
+// ====== Canvas setup ======
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d',{alpha:false});
+const DPR = Math.min(2, window.devicePixelRatio || 1);
+let W=0,H=0; function resize(){W=canvas.clientWidth=canvas.parentElement.clientWidth;H=canvas.clientHeight=canvas.parentElement.clientHeight;canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0)}
+new ResizeObserver(resize).observe(document.getElementById('game'));
+
+// ====== DOM HUD ======
+const hpEl = document.getElementById('hp');
+const armyEl = document.getElementById('army');
+const scoreEl= document.getElementById('score');
+const coinsEl= document.getElementById('coins');
+const stageEl= document.getElementById('stage');
+const dpsEl  = document.getElementById('dps');
+const tipEl  = document.getElementById('tip');
+
+const ovStart = document.getElementById('ovStart');
+const ovOver  = document.getElementById('ovOver');
+const ovUp    = document.getElementById('ovUp');
+const finalScore = document.getElementById('finalScore');
+const finalStage = document.getElementById('finalStage');
+const finalArmy  = document.getElementById('finalArmy');
+
+document.getElementById('btnEasy').onclick = ()=>start(0.8);
+document.getElementById('btnNormal').onclick = ()=>start(1.0);
+document.getElementById('btnHard').onclick = ()=>start(1.25);
+document.getElementById('again').onclick = ()=>{reset(); ovOver.classList.remove('show'); ovStart.classList.add('show');}
+document.getElementById('share').onclick = async ()=>{
+  const txt = `🎮 Army Runner — ניקוד ${state.score}, שלב ${state.stage}, צבא ${state.army}. נסו לעקוף אותי!`;
+  try {
+    if(navigator.share){ await navigator.share({title:'Army Runner',text:txt}); }
+    else { await navigator.clipboard.writeText(txt); alert('העתקתי תוצאה ללוח 👌');}
+  } catch(e){}
+};
+document.getElementById('btnPause').onclick = ()=>{
+  state.paused = !state.paused;
+  document.getElementById('btnPause').textContent = state.paused ? '▶️ המשך' : '⏸︎ השהה';
+};
+document.getElementById('btnDash').onclick = ()=> dash();
+
+document.getElementById('upFire').onclick = ()=>buy(()=>{state.fireDelay*=0.8},15);
+document.getElementById('upDmg').onclick  = ()=>buy(()=>{state.bulletDamage+=1},20);
+document.getElementById('upMagnet').onclick= ()=>buy(()=>{state.magnet= Math.min(280, state.magnet+80)},25);
+document.getElementById('upHeal').onclick  = ()=>buy(()=>{state.hp = Math.min(state.maxHp, state.hp+25)},18);
+document.getElementById('upResume').onclick= ()=>ovUp.classList.remove('show');
+
+// ====== Game State ======
+const state = {
+  t:0, paused:false, running:false,
+  hp:100, maxHp:100, army:10, score:0, coins:0, stage:1,
+  // combat
+  fireDelay:180, fireTimer:0, bulletSpeed:620, bulletDamage:1, magnet:140,
+  // spawn
+  speed:220, laneW: 86, enemyTimer:0, enemyDelay:900, gateTimer:3000, gateGap:3400,
+  upTimer:18000, upGap:[15000,23000],
+  // player & lists
+  player:null, bullets:[], enemies:[], coinsF:[], gates:[], shocks:[],
+  // input
+  inputX:0, inputY:0, dashCd:0,
+};
+
+// ====== Entities ======
+function makePlayer(){
+  return {x:W*0.5, y:H*0.78, r:22, vx:0, vy:0, drag:0.12, inv:0};
+}
+function makeEnemy(){
+  const w = 36 + Math.random()*28;
+  const hp = 6 + Math.floor(state.stage*1.4) + Math.floor(Math.random()*state.stage);
+  return {x: 40+Math.random()*(W-80), y:-50, w, h:w*0.9, hp, t:0, type:Math.random()<0.2?'tank':'mob', hit:0};
+}
+function makeCoin(x,y){
+  return {x,y,r:10,vy:60+Math.random()*60,t:0,grab:false};
+}
+function makeBullet(){
+  const spread = Math.min(6, Math.floor(state.army/25));
+  const bullets = [];
+  const n = 1+spread;
+  for(let i=0;i<n;i++){
+    const ang = (i - (n-1)/2)*0.08;
+    bullets.push({x:state.player.x, y:state.player.y-28, r:4, vy:-state.bulletSpeed, vx:ang*220, dmg:state.bulletDamage + Math.floor(state.army/20), t:0});
+  }
+  return bullets;
+}
+function makeGate(){
+  // two choices like ×2 / +12 / −8 / ÷2
+  const ops = [
+    {txt:'×2', fn:v=>v*2, col:'#2bd',good:true},
+    {txt:'×1.5', fn:v=>Math.floor(v*1.5), col:'#29d',good:true},
+    {txt:'+12', fn:v=>v+12, col:'#2c9',good:true},
+    {txt:'+8', fn:v=>v+8, col:'#2c9',good:true},
+    {txt:'÷2', fn:v=>Math.max(1,Math.floor(v/2)), col:'#e96',good:false},
+    {txt:'−10', fn:v=>Math.max(1,v-10), col:'#e66',good:false},
+    {txt:'−6', fn:v=>Math.max(1,v-6), col:'#e66',good:false},
+    {txt:'÷3', fn:v=>Math.max(1,Math.floor(v/3)), col:'#f77',good:false},
+  ];
+  // ensure at least one "good" option
+  const good = ops.filter(o=>o.good); const bad = ops.filter(o=>!o.good);
+  const a = good[Math.floor(Math.random()*good.length)];
+  const b = (Math.random()<0.6?bad:good)[Math.floor(Math.random()*(Math.random()<0.6?bad.length:good.length))];
+  const y = -140;
+  const w = Math.max(140, Math.min(220, W*0.35));
+  const gap = Math.max(40, W*0.06);
+  return { y, speed: state.speed, choices:[
+    {x: W/2 - w - gap/2, w, h:120, ...a},
+    {x: W/2 + gap/2, w, h:120, ...b}
+  ], chosen:false, passed:false};
+}
+
+// ====== Utilities ======
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function rnd(min,max){return min+Math.random()*(max-min)}
+function circleRectColl(cx,cy,cr, rx,ry,rw,rh){
+  const nx = clamp(cx, rx, rx+rw);
+  const ny = clamp(cy, ry, ry+rh);
+  const dx = cx-nx, dy=cy-ny;
+  return dx*dx+dy*dy < cr*cr;
+}
+
+// ====== Input (drag to move) ======
+const game = document.getElementById('game');
+let touching=false;
+function setInput(e){
+  const rect = canvas.getBoundingClientRect();
+  if (e.touches && e.touches[0]){
+    state.inputX = (e.touches[0].clientX - rect.left);
+    state.inputY = (e.touches[0].clientY - rect.top);
+  } else {
+    state.inputX = (e.clientX - rect.left);
+    state.inputY = (e.clientY - rect.top);
+  }
+}
+game.addEventListener('pointerdown',e=>{touching=true;setInput(e)});
+game.addEventListener('pointermove',e=>{if(touching)setInput(e)});
+game.addEventListener('pointerup',()=>touching=false);
+game.addEventListener('pointercancel',()=>touching=false);
+
+// ====== Core Loop ======
+let last=0, rafId=null;
+function loop(ts){
+  if(!last) last=ts;
+  const dt = Math.min(50, ts-last); last=ts;
+  if(!state.paused && state.running) update(dt/1000);
+  draw();
+  rafId = requestAnimationFrame(loop);
+}
+
+// ====== Update ======
+function update(dt){
+  state.t += dt;
+
+  // difficulty ramp
+  const spd = state.speed * (1 + Math.min(1,(state.t/90))*0.4);
+  const scroll = spd*dt;
+
+  // player movement (seek input)
+  let p = state.player;
+  const targetX = clamp(state.inputX||p.x, 26, W-26);
+  const targetY = clamp(state.inputY||p.y, H*0.35, H-30);
+  p.vx += (targetX - p.x)*p.drag;
+  p.vy += (targetY - p.y)*p.drag;
+  p.x += p.vx*dt; p.y += p.vy*dt;
+  p.vx *= (1 - p.drag*0.6); p.vy *= (1 - p.drag*0.6);
+  if(p.inv>0) p.inv-=dt;
+
+  // fire
+  state.fireTimer -= dt*1000;
+  if (state.fireTimer<=0){
+    state.bullets.push(...makeBullet());
+    state.fireTimer = state.fireDelay;
+  }
+
+  // bullets
+  for (let i=state.bullets.length-1;i>=0;i--){
+    const b=state.bullets[i];
+    b.t+=dt; b.x+=b.vx*dt; b.y+=b.vy*dt;
+    if (b.y<-30 || b.x<-20 || b.x>W+20) state.bullets.splice(i,1);
+  }
+
+  // enemies spawn
+  state.enemyTimer -= dt*1000;
+  if(state.enemyTimer<=0){
+    state.enemies.push(makeEnemy());
+    const base = state.enemyDelay * (0.92 ** state.stage);
+    state.enemyTimer = rnd(base*0.6, base*1.2);
+  }
+  for (let i=state.enemies.length-1;i>=0;i--){
+    const e=state.enemies[i];
+    e.t+=dt; e.y += scroll*(e.type==='tank'?0.7:1.0);
+    // hit by bullets
+    for(let j=state.bullets.length-1;j>=0;j--){
+      const b=state.bullets[j];
+      if (b.x>e.x- e.w/2 && b.x<e.x+e.w/2 && b.y>e.y- e.h/2 && b.y<e.y+e.h/2){
+        e.hp -= b.dmg; e.hit=0.12; state.bullets.splice(j,1);
+        if (e.hp<=0){
+          // coins
+          const drop = 1 + (Math.random()<0.4 ? 1:0) + (Math.random()<0.15?1:0);
+          for(let k=0;k<drop;k++) state.coinsF.push(makeCoin(e.x + rnd(-10,10), e.y));
+          state.score += 5 + Math.floor(state.stage*1.2);
+          state.enemies.splice(i,1);
+          break;
+        }
+      }
+    }
+    if (e.hit>0) e.hit-=dt;
+    // collide with player
+    if (circleRectColl(p.x,p.y,p.r, e.x-e.w/2,e.y-e.h/2,e.w,e.h) && p.inv<=0){
+      const dmg = e.type==='tank'?28:16;
+      takeDamage(dmg);
+      knockback(p, e);
+      state.enemies.splice(i,1);
+    }
+    // out of screen
+    if (e.y>H+40) state.enemies.splice(i,1);
+  }
+
+  // coins
+  for (let i=state.coinsF.length-1;i>=0;i--){
+    const c=state.coinsF[i];
+    c.t+=dt; c.y += c.vy*dt; c.vy = Math.min(c.vy+220*dt, 260);
+    const dx = p.x-c.x, dy=p.y-c.y, d=Math.hypot(dx,dy);
+    if (d<state.magnet){
+      const k = clamp(1800/(d+60), 200, 1400);
+      c.x += (dx/d)*k*dt; c.y += (dy/d)*k*dt;
+    }
+    if (Math.hypot(p.x-c.x, p.y-c.y)<p.r+12){
+      state.coins++; state.score+=2; state.coinsF.splice(i,1);
+    } else if (c.y>H+40){ state.coinsF.splice(i,1); }
+  }
+
+  // gates
+  state.gateTimer -= dt*1000;
+  if (state.gateTimer<=0){
+    state.gates.push(makeGate());
+    state.gateTimer = state.gateGap * rnd(0.85,1.2);
+    tipEl.style.opacity = 0;
+  }
+  for (let i=state.gates.length-1;i>=0;i--){
+    const g=state.gates[i];
+    g.y += scroll;
+    // check pass
+    for(const ch of g.choices){
+      if (!g.chosen && circleRectColl(p.x,p.y,p.r, ch.x, g.y, ch.w, ch.h)){
+        const old = state.army;
+        state.army = Math.max(1, Math.floor(ch.fn(state.army)));
+        // small reward/penalty feedback
+        state.score += (state.army>old? 20: -5);
+        state.bulletDamage = 1 + Math.floor(state.army/20);
+        g.chosen = ch;
+        // stage increase every ~2 good gates
+        if(ch.good) state.stage += Math.random()<0.5?1:0;
+      }
+    }
+    if (g.y>H+40){ state.gates.splice(i,1); }
+  }
+
+  // upgrades popup
+  state.upTimer -= dt*1000;
+  if (state.upTimer<=0){
+    ovUp.classList.add('show');
+    state.upTimer = rnd(state.upGap[0], state.upGap[1]);
+  }
+
+  // progression / dps
+  dpsEl.textContent = ( (1000/state.fireDelay)*(state.bulletDamage) ).toFixed(1);
+
+  // death
+  if (state.hp<=0) gameOver();
+}
+
+function takeDamage(dmg){
+  state.hp -= dmg;
+  hpEl.textContent = Math.max(0,Math.floor(state.hp));
+  flashShock();
+  state.player.inv = 0.8;
+}
+function knockback(p, e){
+  const dx = p.x - e.x, dy = p.y - e.y, d = Math.hypot(dx,dy)||1;
+  p.vx += (dx/d)*260; p.vy += (dy/d)*220;
+}
+function flashShock(){
+  state.shocks.push({t:0});
+}
+function dash(){
+  if (state.dashCd>0) return;
+  state.player.vy -= 560; state.player.vx *= 0.4;
+  state.dashCd = 2.0;
+  // brief invuln
+  state.player.inv = Math.max(state.player.inv, 0.5);
+}
+
+// ====== Draw ======
+function draw(){
+  // clear
+  ctx.fillStyle = '#0a0e19'; ctx.fillRect(0,0,W,H);
+
+  // parallax grid stars
+  const t = state.t || 0;
+  const s1 = 24, s2 = 64;
+  drawStars(0.4, s1, t*60);
+  drawStars(0.18, s2, t*30);
+
+  // lanes glow
+  const lanes = Math.floor(W / state.laneW);
+  for(let i=0;i<=lanes;i++){
+    const x = i*state.laneW + (W - lanes*state.laneW)/2;
+    ctx.fillStyle = 'rgba(255,255,255,0.03)';
+    ctx.fillRect(x,0,2,H);
+  }
+
+  // gates
+  for(const g of state.gates){
+    for(const ch of g.choices){
+      const sel = g.chosen && g.chosen===ch;
+      const grd = ctx.createLinearGradient(0,g.y,0,g.y+ch.h);
+      grd.addColorStop(0, hexA(ch.col,0.25));
+      grd.addColorStop(1, hexA(ch.col,0.07));
+      ctx.fillStyle = grd;
+      roundRect(ch.x, g.y, ch.w, ch.h, 12, true);
+      ctx.lineWidth = sel?4:2;
+      ctx.strokeStyle = sel? hexA('#fff',0.9) : hexA(ch.col,0.8);
+      roundRect(ch.x, g.y, ch.w, ch.h, 12, false);
+
+      ctx.fillStyle = '#e6edf3';
+      ctx.font = 'bold 28px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText(ch.txt, ch.x+ch.w/2, g.y+ch.h/2+10);
+    }
+  }
+
+  // coins
+  for(const c of state.coinsF){
+    coin(c.x,c.y,12);
+  }
+
+  // enemies
+  for(const e of state.enemies){
+    enemy(e);
+  }
+
+  // bullets
+  for(const b of state.bullets){
+    bullet(b);
+  }
+
+  // player
+  if (state.player){
+    player(state.player);
+    // dash cooldown UI
+    if (state.dashCd>0){
+      state.dashCd = Math.max(0, state.dashCd - (state.paused?0:1/60));
+    }
+  }
+
+  // shocks
+  for (let i=state.shocks.length-1;i>=0;i--){
+    const s=state.shocks[i]; s.t+=1/60;
+    const a = Math.max(0, 0.25 - s.t*0.25);
+    if (a<=0){ state.shocks.splice(i,1); continue; }
+    ctx.fillStyle = `rgba(255,94,108,${a})`; ctx.fillRect(0,0,W,H);
+  }
+
+  // HUD text
+  hpEl.textContent = Math.floor(state.hp);
+  armyEl.textContent = state.army;
+  scoreEl.textContent= state.score;
+  coinsEl.textContent= state.coins;
+  stageEl.textContent= state.stage;
+}
+
+function drawStars(alpha, cell, offset){
+  ctx.save();
+  ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+  const rows = Math.ceil(H/cell)+1, cols = Math.ceil(W/cell)+1;
+  for(let y=0;y<rows;y++){
+    for(let x=0;x<cols;x++){
+      const px = (x*cell + (y%2?cell/2:0)) % (W+cell) - cell/2;
+      const py = (y*cell + (offset%cell)) % (H+cell) - cell/2;
+      ctx.fillRect(px, py, 2,2);
+    }
+  }
+  ctx.restore();
+}
+
+function roundRect(x,y,w,h,r,fill=true){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+  fill?ctx.fill():ctx.stroke();
+}
+function hexA(hex, a){
+  // accepts '#abc' / '#aabbcc'
+  if (hex.length===4) hex = '#'+[hex[1],hex[1],hex[2],hex[2],hex[3],hex[3]].join('');
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function player(p){
+  // ring
+  const grd = ctx.createRadialGradient(p.x,p.y,2,p.x,p.y,28);
+  grd.addColorStop(0,'#0fe0a5'); grd.addColorStop(1,'rgba(15,224,165,0.05)');
+  ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(p.x,p.y,28,0,Math.PI*2); ctx.fill();
+  // body
+  ctx.beginPath(); ctx.arc(p.x,p.y,18,0,Math.PI*2); ctx.fillStyle = p.inv>0? 'rgba(230,237,243,0.55)':'#e6edf3'; ctx.fill();
+  // eyes
+  ctx.fillStyle = '#0b0f1a'; ctx.beginPath(); ctx.arc(p.x-5,p.y-3,3,0,7); ctx.arc(p.x+5,p.y-3,3,0,7); ctx.fill();
+}
+function bullet(b){
+  ctx.save();
+  ctx.translate(b.x,b.y);
+  const grd = ctx.createLinearGradient(0,-8,0,8);
+  grd.addColorStop(0,'#9ff'); grd.addColorStop(1,'#3cf');
+  ctx.fillStyle = grd;
+  ctx.beginPath(); ctx.roundRect(-3,-10,6,20,3); ctx.fill();
+  ctx.restore();
+}
+function enemy(e){
+  ctx.save();
+  ctx.translate(e.x,e.y);
+  // body
+  const w=e.w,h=e.h;
+  const base = e.type==='tank' ? '#8a3' : '#d45';
+  const body = e.hit>0? '#fff' : base;
+  ctx.fillStyle = body;
+  ctx.beginPath(); ctx.roundRect(-w/2,-h/2,w,h,8); ctx.fill();
+  // hp bar
+  const maxHp = 6 + Math.floor(state.stage*1.4);
+  const ratio = clamp(e.hp / Math.max(e.hp,maxHp), 0,1);
+  ctx.fillStyle = '#222a'; ctx.fillRect(-w/2,-h/2-8,w,5);
+  ctx.fillStyle = '#6f6'; ctx.fillRect(-w/2,-h/2-8,w*ratio,5);
+  ctx.restore();
+}
+function coin(x,y,r){
+  ctx.save(); ctx.translate(x,y);
+  const grd = ctx.createRadialGradient(0,0,2,0,0,r);
+  grd.addColorStop(0,'#fff7'); grd.addColorStop(1,'#f9c74f');
+  ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(0,0,r,0,7); ctx.fill();
+  ctx.strokeStyle='#9b6b11'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(0,0,r-2,0,7); ctx.stroke();
+  ctx.fillStyle='#9b6b11'; ctx.font='bold 12px system-ui'; ctx.textAlign='center'; ctx.fillText('₵',0,4);
+  ctx.restore();
+}
+
+// ====== Shop / Buy ======
+function buy(apply, cost){
+  if (state.coins>=cost){
+    state.coins -= cost;
+    apply();
+    ovUp.classList.remove('show');
+  } else {
+    // flash
+    ovUp.querySelector('.card').style.boxShadow='0 0 0 2px #ff5e6ccc';
+    setTimeout(()=>ovUp.querySelector('.card').style.boxShadow='0 10px 40px #0008',250);
+  }
+}
+
+// ====== Lifecycle ======
+function start(mult){
+  reset();
+  state.maxHp = Math.floor(100*mult);
+  state.hp = state.maxHp;
+  state.enemyDelay /= mult;
+  state.speed *= mult;
+  ovStart.classList.remove('show');
+  state.running = true; state.paused=false;
+  tipEl.style.opacity = 1;
+}
+function reset(){
+  state.t=0; state.paused=false; state.running=false;
+  state.hp=100; state.maxHp=100; state.army=10; state.score=0; state.coins=0; state.stage=1;
+  state.fireDelay=180; state.bulletDamage=1; state.magnet=140;
+  state.enemyDelay=900; state.gateTimer=2000; state.upTimer=rnd(9000,14000);
+  state.speed=220; state.player=makePlayer();
+  state.bullets.length=0; state.enemies.length=0; state.coinsF.length=0; state.gates.length=0; state.shocks.length=0;
+  last=0;
+}
+function gameOver(){
+  state.running=false;
+  finalScore.textContent = state.score;
+  finalStage.textContent = state.stage;
+  finalArmy.textContent  = state.army;
+  ovOver.classList.add('show');
+}
+
+// ====== Start RAF ======
+resize();
+reset();
+rafId = requestAnimationFrame(loop);
+
+// ====== Interval timers (cooldowns etc.) ======
+setInterval(()=>{ if(!state.paused && state.running){ if(state.dashCd>0) state.dashCd=Math.max(0,state.dashCd-0.25);} },250);
+})();
+</script>
+</body>
+</html>
