@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>מחולל אתרי HTML – Chat → App</title>
+<style>
+  :root { --bg:#0f1220; --panel:#151a2c; --accent:#7ee787; --muted:#9aa4bf; --text:#e6e9f2; --danger:#ff6b6b; }
+  *{box-sizing:border-box} html,body{height:100%} body{margin:0;font-family:Inter,Segoe UI,Roboto,system-ui,sans-serif;background:linear-gradient(180deg,#0a0d1a,#0f1220);}
+  header{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#0c1022;border-bottom:1px solid #1f2740;position:sticky;top:0;z-index:3}
+  header h1{font-size:16px;margin:0;color:var(--text);font-weight:600}
+  header .tag{font-size:12px;color:#c7cff9;background:#1b2240;padding:4px 8px;border-radius:999px}
+  header .sp{flex:1}
+  header button, .btn{background:#1c2442;border:1px solid #2a3763;color:#dbe3ff;border-radius:10px;padding:8px 12px;font-weight:600;cursor:pointer}
+  header button:hover, .btn:hover{filter:brightness(1.1)}
+  #app{display:grid;grid-template-columns: minmax(320px,520px) 1fr; gap:12px; height:calc(100% - 56px); padding:12px}
+  @media (max-width: 960px){ #app{grid-template-columns:1fr; height:auto} #previewCard{height:60vh} }
+  .card{background:var(--panel);border:1px solid #232b4a;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+  .card h2{margin:0;padding:12px 14px;border-bottom:1px solid #1f2740;color:#eaf0ff;font-size:14px}
+  #chat{display:flex;flex-direction:column;height:100%}
+  #log{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+  .msg{display:flex;gap:10px;align-items:flex-start}
+  .msg .bubble{padding:10px 12px;border-radius:12px;max-width:100%;white-space:pre-wrap;word-wrap:anywhere;border:1px solid #283155}
+  .me .bubble{background:#172044;color:#dbe3ff}
+  .ai .bubble{background:#121833;color:#e6e9f2}
+  .sys{font-size:12px;color:var(--muted);text-align:center;margin:6px 0}
+  #composer{display:flex;gap:8px;padding:10px;border-top:1px solid #1f2740}
+  #prompt{flex:1;min-height:48px;max-height:120px;resize:vertical;background:#0e1430;color:#e6e9f2;border:1px solid #2a3763;border-radius:12px;padding:10px}
+  #send{min-width:120px;background:linear-gradient(90deg,#3bb273,#7ee787);color:#0b1020;border:none}
+  #previewCard{position:relative}
+  #iframe{flex:1;border:0;background:#fff;min-height:0}
+  #tools{display:flex;gap:8px;padding:10px;border-top:1px solid #1f2740;flex-wrap:wrap}
+  .pill{font-size:12px;color:#b7c3ff;background:#1b2240;padding:6px 10px;border-radius:999px;border:1px solid #2a3763}
+  .label{color:#9aa4bf;font-size:12px;margin-left:6px}
+  #modelSel{background:#0e1430;color:#e6e9f2;border:1px solid #2a3763;border-radius:10px;padding:6px 8px}
+  .danger{background:#3a1420;border-color:#642a3a;color:#ffd4d4}
+  .ok{color:#98f5b0}
+  /* modal */
+  dialog{background:#121833;color:#e6e9f2;border:1px solid #2a3664;border-radius:14px;width:min(560px,92%);padding:0}
+  dialog::backdrop{background:rgba(2,6,20,.62)}
+  .modal-h{padding:12px 14px;border-bottom:1px solid #1f2740;display:flex;justify-content:space-between;align-items:center}
+  .modal-b{padding:14px;display:grid;gap:10px}
+  input[type="password"], input[type="text"]{background:#0e1430;color:#e6e9f2;border:1px solid #2a3763;border-radius:10px;padding:10px}
+  .help{font-size:12px;color:#9aa4bf}
+  .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#16203c;color:#e6e9f2;border:1px solid #2a3763;padding:10px 14px;border-radius:12px;z-index:9;opacity:0;transition:opacity .2s, transform .2s}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
+  code, pre{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;font-size:12px}
+  .loading-dots::after{content:"";display:inline-block;width:1ch;text-align:left;animation:dots 1.2s steps(4,end) infinite}
+  @keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+</style>
+</head>
+<body>
+  <header>
+    <h1>מחולל אתרים מהצ’אט</h1>
+    <span class="tag">HTML בקובץ אחד</span>
+    <div class="sp"></div>
+    <select id="modelSel" title="Model">
+      <option value="o4-mini" selected>o4-mini</option>
+      <option value="gpt-4.1-mini">gpt-4.1-mini</option>
+      <option value="gpt-4o-mini">gpt-4o-mini</option>
+    </select>
+    <button id="keyBtn">🔑 מפתח API</button>
+  </header>
+
+  <div id="app">
+    <section class="card" id="chatCard">
+      <h2>צ’אט</h2>
+      <div id="chat">
+        <div id="log"></div>
+        <div class="sys">הקלד/י מה לבנות: “דף נחיתה למאפייה” / “משחק ראנר פשוט” / “דאשבורד תיק השקעות”…</div>
+        <div id="composer">
+          <textarea id="prompt" placeholder="מה בונים? אפשר בעברית. Shift+Enter לשורה חדשה"></textarea>
+          <button id="send">בנה אתר</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="previewCard">
+      <h2>תצוגה חיה</h2>
+      <iframe id="iframe" title="תצוגה חיה"></iframe>
+      <div id="tools">
+        <button class="btn" id="openNew">פתח בטאב חדש</button>
+        <button class="btn" id="download">הורד .html</button>
+        <button class="btn" id="copyCode">העתק קוד</button>
+        <span class="pill" id="status">מוכן</span>
+        <span class="label">מפתח: <span id="keyState">לא הוזן</span></span>
+        <div class="sp"></div>
+        <button class="btn danger" id="refineBtn" title="תן שדרוג על התוצר הנוכחי">שפר תוצר</button>
+        <button class="btn danger" id="resetBtn" title="איפוס הצ’אט בלבד">אפס צ’אט</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- API Key Modal -->
+  <dialog id="keyModal">
+    <div class="modal-h">
+      <strong>הזנת מפתח OpenAI (נשמר מקומית)</strong>
+      <button class="btn" id="closeKey">סגור</button>
+    </div>
+    <div class="modal-b">
+      <label>OpenAI API Key</label>
+      <input id="apiKey" type="password" placeholder="sk-..." autocomplete="off"/>
+      <div class="help">המפתח נשמר ב־localStorage של הדפדפן בלבד. מומלץ בייצור לעבוד דרך פרוקסי שרת ולא להציב מפתח בדפדפן.</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap">
+        <button class="btn" id="saveKey">שמור</button>
+        <button class="btn danger" id="clearKey">מחק</button>
+        <input id="peek" type="checkbox"/><label for="peek" class="label">הצג תווים</label>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+/** ====== Minimal “Chat → App” Frontend (no build, one file) ====== **/
+
+const els = {
+  log: document.getElementById('log'),
+  prompt: document.getElementById('prompt'),
+  send: document.getElementById('send'),
+  iframe: document.getElementById('iframe'),
+  download: document.getElementById('download'),
+  copyCode: document.getElementById('copyCode'),
+  openNew: document.getElementById('openNew'),
+  status: document.getElementById('status'),
+  keyBtn: document.getElementById('keyBtn'),
+  keyModal: document.getElementById('keyModal'),
+  closeKey: document.getElementById('closeKey'),
+  apiKey: document.getElementById('apiKey'),
+  saveKey: document.getElementById('saveKey'),
+  clearKey: document.getElementById('clearKey'),
+  peek: document.getElementById('peek'),
+  keyState: document.getElementById('keyState'),
+  resetBtn: document.getElementById('resetBtn'),
+  refineBtn: document.getElementById('refineBtn'),
+  modelSel: document.getElementById('modelSel'),
+  toast: document.getElementById('toast'),
+};
+
+let appHTML = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>תוצר יופיע כאן</title><style>body{font-family:sans-serif;padding:24px}</style></head><body><h1>עדיין אין תוצר</h1><p>צור/י אתר דרך הצ’אט.</p></body></html>';
+renderPreview(appHTML);
+
+const SYS_PROMPT = `
+את/ה מחולל אתרים בקובץ אחד. הפלט שלך חייב להיות *אך ורק* קובץ HTML אחד מושלם עם:
+- <!DOCTYPE html>, <html dir="rtl" lang="he">, <meta viewport>, <title>.
+- CSS ו-JavaScript מוטמעים <style> ו-<script> ללא קבצים חיצוניים.
+- עיצוב Mobile-first, RTL מלא, פונטים מערכתיים בלבד.
+- אין קישורים למשאבים חיצוניים (ללא CDN, ללא תמונות חיצוניות). אם יש תמונות – להשתמש ב-data URL base64.
+- אם מתבקשת אפליקציה אינטראקטיבית/משחק – כל הקוד יהיה בפנים, עם טיפול במגע ונייד.
+- איכות גבוהה, חוויה מרשימה, אנימציות קלות ושמירה על ביצועים טובים.
+
+אין להחזיר הסברים, אין markdown, אין בלוקים של קוד – רק HTML מלא תקין.
+`.trim();
+
+let messages = []; // chat log for the model (user content only; we enforce system each call)
+
+/* ===== Utilities ===== */
+function toast(msg){ els.toast.textContent = msg; els.toast.classList.add('show'); setTimeout(()=>els.toast.classList.remove('show'), 1800); }
+function getKey(){ return localStorage.getItem('openai_key') || ''; }
+function setKey(k){ localStorage.setItem('openai_key', k); }
+function clearKey(){ localStorage.removeItem('openai_key'); }
+function updateKeyState(){ els.keyState.textContent = getKey() ? 'הוזן' : 'לא הוזן'; }
+function renderPreview(html){ appHTML = html; els.iframe.srcdoc = html; }
+function addMsg(role, text){
+  const wrap = document.createElement('div'); wrap.className = `msg ${role==='user'?'me':'ai'}`;
+  const bubble = document.createElement('div'); bubble.className = 'bubble'; bubble.textContent = text;
+  wrap.appendChild(bubble); els.log.appendChild(wrap); els.log.scrollTop = els.log.scrollHeight;
+  return bubble;
+}
+// Try to extract raw HTML from ```html fenced blocks if model returns markdown.
+function extractHTML(raw){
+  const codeFence = raw.match(/```html\s*([\s\S]*?)```/i) || raw.match(/```[\s\S]*?```/);
+  if(codeFence){ return (codeFence[1]||'').trim(); }
+  // If it starts with <!DOCTYPE or <html, accept as-is
+  if(/<!doctype html>|<html[\s>]/i.test(raw)) return raw.trim();
+  // Last resort: wrap inside minimal shell so preview won't be blank.
+  return `<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Generated</title></head><body><pre>${escapeHtml(raw)}</pre></body></html>`;
+}
+function escapeHtml(s){ return s.replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+
+/* ===== OpenAI call (Responses API, streamed) ===== */
+async function generateSite(prompt, refine=false){
+  const apiKey = getKey();
+  if(!apiKey){ els.keyModal.showModal(); toast('יש להזין מפתח API'); return; }
+  const model = els.modelSel.value;
+  els.status.textContent = 'מייצר…'; els.status.classList.add('loading-dots');
+
+  const userMsg = refine
+    ? `שפר/י את האתר הקיים הבא (HTML מלא לאחרונה בתחתית), בהתאם לבקשה: """${prompt}"""\n\n=== התוצר הקודם ===\n${appHTML}`
+    : prompt;
+
+  messages.push({ role:'user', content: userMsg });
+
+  const uiBubble = addMsg('assistant', '⏳ מייצר את האתר…');
+
+  try{
+    const res = await fetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + apiKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model,
+        stream: true,
+        // Build "input" in Responses API style:
+        input: [
+          { role: 'system', content: [{ type:'text', text: SYS_PROMPT }] },
+          ...messages.map(m => ({ role: m.role, content: [{ type:'text', text: m.content }] }))
+        ]
+      })
+    });
+
+    if(!res.ok){
+      const txt = await res.text();
+      throw new Error(`API ${res.status}: ${txt}`);
+    }
+
+    // Stream SSE
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '', fullText = '';
+
+    while(true){
+      const {value, done} = await reader.read();
+      if(done) break;
+      buffer += decoder.decode(value, {stream:true});
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop(); // keep last partial
+
+      for(const chunk of parts){
+        if(!chunk.startsWith('data:')) continue;
+        const data = chunk.slice(5).trim();
+        if(data === '[DONE]') continue;
+        try{
+          const json = JSON.parse(data);
+          // Responses API stream chunk path: json.output_text
+          const delta = json.output_text ?? '';
+          if(delta){
+            fullText += delta;
+            uiBubble.textContent = fullText;
+            els.log.scrollTop = els.log.scrollHeight;
+          }
+        }catch(e){ /* ignore JSON parse errors for keep-alives */ }
+      }
+    }
+
+    const html = extractHTML(fullText);
+    renderPreview(html);
+    uiBubble.textContent = '✅ תוצר מוכן – נטען ב־Preview למטה.';
+    els.status.textContent = 'מוכן'; els.status.classList.remove('loading-dots');
+  }catch(err){
+    console.error(err);
+    uiBubble.textContent = '❌ שגיאה: ' + err.message;
+    els.status.textContent = 'שגיאה'; els.status.classList.remove('loading-dots');
+  }
+}
+
+/* ===== Events ===== */
+els.keyBtn.onclick = ()=> els.keyModal.showModal();
+els.closeKey.onclick = ()=> els.keyModal.close();
+els.saveKey.onclick = ()=>{ if(els.apiKey.value.trim()){ setKey(els.apiKey.value.trim()); updateKeyState(); els.keyModal.close(); toast('המפתח נשמר בדפדפן'); } };
+els.clearKey.onclick = ()=>{ clearKey(); updateKeyState(); els.apiKey.value=''; toast('נמחק'); };
+els.peek.onchange = ()=> els.apiKey.type = els.peek.checked ? 'text' : 'password';
+
+els.send.onclick = ()=> {
+  const q = els.prompt.value.trim();
+  if(!q) return toast('מה בונים?');
+  addMsg('user', q);
+  els.prompt.value = '';
+  generateSite(q, false);
+};
+els.prompt.addEventListener('keydown', (e)=>{
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); els.send.click(); }
+});
+
+els.refineBtn.onclick = ()=>{
+  const q = prompt('מה לשפר בתוצר הנוכחי? למשל: "הוסף אנימציה", "תמיכה במצב כהה", "כפתור שיתוף".');
+  if(!q) return;
+  addMsg('user', '[Refine] ' + q);
+  generateSite(q, true);
+};
+
+els.resetBtn.onclick = ()=>{
+  messages = [];
+  els.log.innerHTML = '';
+  toast('הצ’אט אופס. התוצר נשאר.');
+};
+
+els.download.onclick = ()=>{
+  const blob = new Blob([appHTML], {type:'text/html;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'generated-app.html';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+};
+
+els.copyCode.onclick = async ()=>{
+  try{ await navigator.clipboard.writeText(appHTML); toast('הקוד הועתק'); }
+  catch{ toast('לא הצליח להעתיק'); }
+};
+
+els.openNew.onclick = ()=>{
+  const blob = new Blob([appHTML], {type:'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+};
+
+updateKeyState();
+// If no key yet – prompt once on load
+if(!getKey()){ setTimeout(()=>els.keyModal.showModal(), 300); }
+</script>
+</body>
+</html>
