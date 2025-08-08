@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>החבר הכי לא צפוי של זוהר - גרסת פרימיום</title>
+    <title>מחולל הסיפורים האינטראקטיבי</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,40 +17,119 @@
             --bg-secondary: #f5f7fa;
             --text-primary: #212529;
             --text-secondary: #555;
-            --color-primary: #3f51b5;
-            --color-secondary: #1a237e;
-            --color-accent: #ffeb3b;
+            --color-primary: #007bff;
+            --color-secondary: #0056b3;
+            --color-accent: #ffc107;
             --shadow-color: rgba(0, 0, 0, 0.1);
             --border-color: #e0e0e0;
         }
 
         html[data-theme='dark'] {
-            --bg-primary: #121212;
-            --bg-secondary: #1e1e1e;
+            --bg-primary: #1e1e1e;
+            --bg-secondary: #121212;
             --text-primary: #e0e0e0;
             --text-secondary: #b0b0b0;
-            --color-primary: #7986cb;
-            --color-secondary: #c5cae9;
+            --color-primary: #58a6ff;
+            --color-secondary: #80bfff;
             --color-accent: #fdd835;
             --shadow-color: rgba(255, 255, 255, 0.1);
             --border-color: #424242;
         }
 
         /* --- General Setup & Mobile First --- */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Assistant', sans-serif;
             background-color: var(--bg-secondary);
             color: var(--text-primary);
-            line-height: 1.8;
             transition: background-color 0.3s, color 0.3s;
+            line-height: 1.8;
         }
 
+        /* --- Views --- */
+        #generator-view {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        #book-view { display: none; }
+
+        /* --- Generator View Styling --- */
+        .generator-title {
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+        }
+        .generator-subtitle {
+            font-size: clamp(1rem, 4vw, 1.2rem);
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            max-width: 600px;
+        }
+        #prompt-input {
+            width: 100%;
+            max-width: 600px;
+            padding: 15px;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Assistant', sans-serif;
+            resize: vertical;
+            min-height: 100px;
+            margin-bottom: 1.5rem;
+        }
+        #generate-btn {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 50px;
+            background-color: var(--color-primary);
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #generate-btn:hover {
+            background-color: var(--color-secondary);
+            transform: scale(1.05);
+        }
+
+        /* --- Loader Animation --- */
+        .loader-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+            color: white;
+        }
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid var(--color-primary);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+        .loader-text { margin-top: 20px; font-size: 1.2rem; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- Book View Styling (reused and enhanced) --- */
         .book-container {
             width: 100%;
             max-width: 900px;
@@ -59,8 +138,6 @@
             box-shadow: 0 5px 25px var(--shadow-color);
             transition: background-color 0.3s;
         }
-        
-        /* --- Header with Controls --- */
         .book-header {
             padding: 15px;
             background-color: var(--bg-secondary);
@@ -75,7 +152,6 @@
             z-index: 100;
             transition: background-color 0.3s, border-color 0.3s;
         }
-        
         .control-group {
             display: flex;
             align-items: center;
@@ -85,247 +161,304 @@
             border-radius: 50px;
             box-shadow: 0 2px 5px var(--shadow-color);
         }
-
         .header-btn, .speed-btn {
             background: none;
             border: none;
             color: var(--text-secondary);
             font-size: 1.2rem;
             cursor: pointer;
-            width: 44px;
-            height: 44px;
+            width: 44px; height: 44px;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
             transition: color 0.2s, background-color 0.2s;
         }
-        
         .header-btn:hover, .speed-btn:hover {
             color: var(--color-primary);
             background-color: var(--bg-secondary);
         }
-        
         .speed-btn.active {
             background-color: var(--color-primary);
             color: white;
             font-weight: bold;
         }
-        
-        /* --- Content Styling --- */
-        main {
-            padding: 15px;
-        }
-
-        .page {
-            margin-bottom: 2rem;
-        }
-        
+        .book-main-content { padding: 15px; }
+        .page { margin-bottom: 2rem; }
         .page h1, .page h3 {
-            font-weight: 700;
-            color: var(--color-primary);
-            display: flex;
-            align-items: center;
-            gap: 15px;
+            font-weight: 700; color: var(--color-primary);
+            display: flex; align-items: center; gap: 15px;
             margin-bottom: 1rem;
         }
-        
         .page h1 { font-size: clamp(2rem, 8vw, 2.8rem); }
         .page h3 { font-size: clamp(1.5rem, 6vw, 1.8rem); }
-
         .text-block {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
+            display: flex; align-items: flex-start; gap: 10px;
             margin-bottom: 1rem;
         }
-
         .text-block p {
             font-size: clamp(1.1rem, 4vw, 1.2rem);
             text-align: justify;
             flex-grow: 1;
         }
-        
         .play-audio-btn {
-            background: none;
-            border: none;
+            background: none; border: none;
             color: var(--color-primary);
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 5px;
-            transition: color 0.2s, transform 0.2s;
+            font-size: 1.5rem; cursor: pointer;
+            padding: 5px; transition: color 0.2s, transform 0.2s;
             flex-shrink: 0;
         }
-        
-        .play-audio-btn:hover {
-            transform: scale(1.1);
-        }
-
+        .play-audio-btn:hover { transform: scale(1.1); }
         .illustration {
-            width: 100%;
-            height: auto;
-            border-radius: 12px;
-            margin: 1.5rem 0;
+            width: 100%; height: auto;
+            border-radius: 12px; margin: 1.5rem 0;
             border: 3px solid var(--bg-primary);
             box-shadow: 0 4px 15px var(--shadow-color);
         }
-
         .the-end {
-            text-align: center;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--color-primary);
-            padding: 2rem 0;
+            text-align: center; font-size: 1.5rem; font-weight: 700;
+            color: var(--color-primary); padding: 2rem 0;
+        }
+        #back-btn {
+             background: var(--bg-primary);
+             color: var(--text-secondary);
+             border-radius: 50px;
+             font-weight: bold;
+             padding: 5px 15px;
+             margin: 0 10px;
         }
 
         /* --- Desktop adjustments --- */
         @media (min-width: 768px) {
-            .book-header {
-                justify-content: space-between;
-                padding: 10px 25px;
-            }
-            main {
-                padding: 30px 50px;
-            }
+            .book-header { justify-content: space-between; padding: 10px 25px; }
+            .book-main-content { padding: 30px 50px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="book-container">
-        
-        <header class="book-header">
-            <div class="control-group">
-                <button id="theme-toggle-btn" class="header-btn" title="שנה מצב תצוגה">
-                    <i class="fas fa-moon"></i>
-                </button>
-                <button id="read-all-btn" class="header-btn" title="הקראה רציפה">
-                    <i class="fas fa-play-circle"></i>
-                </button>
-            </div>
-            <div id="speed-controls" class="control-group">
-                <button class="speed-btn" data-speed="0.8" title="מהירות איטית">0.8x</button>
-                <button class="speed-btn active" data-speed="1" title="מהירות רגילה">1x</button>
-                <button class="speed-btn" data-speed="1.2" title="מהירות גבוהה">1.2x</button>
-            </div>
-        </header>
-
-        <main id="book-content">
-            <section class="page">
-                <h1>
-                    <button class="play-audio-btn" aria-label="הקרא כותרת"><i class="fas fa-volume-up"></i></button>
-                    החבר הכי לא צפוי של זוהר
-                </h1>
-                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA0MDAiIHdpZHRoPSI4MDAiIGhlaWdodD0iNDAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwLjUiIHgyPSIwLjUiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMxYTIzN2UiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMzZjUxYjUiLz48L2xpbmVhckdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0iYiIgY3g9IjAiIGN5PSIwIiByPSIxIiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDAgMjYuOTE3MyAtMjYuMjUgMCAxNDkuMzUgMTQ2LjU4KSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1yYWRpdXM9IjAiIHN0b3AtY29sb3I9IiNmZmViM2IiIHN0b3Atb3BhY2l0eT0iMSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1yYWRpdXM9IjEiIHN0b3AtY29sb3I9IiNmZmViM2IiIHN0b3Atb3BhY2l0eT0iMCIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJ1cmwoI2EpIi8+PGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1vcGFjaXR5PSIwLjMiPjxwYXRoIGQ9Ik0zNjAuNSA5Ny44bC0xMS4xIDI0LjQgMzYuMyAxNi41LTEzLjIgMjQuMiAzNi4yIDE2LjYtMTIuMiAyNC44Ii8+PHBhdGggZD0ibTQ4My44IDk4LjggMTEuMSAyNC40LTM2LjMgMTYuNSAxMy4yIDI0LjItMzYuMiAxNi42IDEyLjIgMjQuOCIvPjxwYXRoIGQ9Im0zOTYgMTg2LjIgMzguNy0yMi41IDM4LjYgMjIuNSIvPjxwYXRoIGQ9Ik0zOTUuNSAyNTMuNWwzOS4yLTIyLjYgMzguMiAyMi42Ii8+PHBhdGggZD0ibTQ3My44IDI5MS45LTQwLjMtMzQuOS0zNy44IDM0LjkiLz48cGF0aCBkPSJtMzYxLjIgMjg5LjYgNDAuMy0zNC45IDM3LjggMzQuOSIvPjxwYXRoIGQ9Ik0zMjQuNCAyMjMuNWwxOC44LTMzLjkgMzIuNS0uOCAyMS42IDMxLjkgMTYuNSAzMy4yIi8+PHBhdGggZD0ibTUxOS4xIDIyMy41LTE4LjgtMzMuOS0zMi41LS44LTIxLjYgMzEuOS0xNi41IDMzLjIiLz48L2c+PGNpcmNsZSBjeD0iMTUwIiBjeT0iMTUwIiByPSIzMCIgZmlsbD0idXJsKCNiKSIvPjwvc3ZnPg==" alt="זוהר הגחלילית ורקש העכביש" class="illustration">
-            </section>
-            
-            <section class="page">
-                 <div class="text-block">
-                    <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>עמוק בתוך "יער הפלאות", בין פטריות זוהרות ופרחים שמנגנים לפני השינה, חיה משפחה גדולה של גחליליות. בכל לילה, כשהשמש אמרה שלום והלכה לישון, הן היו יוצאות כולן יחד ל"ריקוד האורות" הגדול.</p>
-                </div>
-                 <div class="text-block">
-                    <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>אבל גחלילית אחת קטנה, בשם זוהר, לא כל כך אהבה את הריקוד. למעשה, זוהר קצת פחד מהחושך. "אבל אתה גחלילית," אמר לו אבא שלו, "האור שלך נועד להאיר את החושך." "אני יודע," לחש זוהר, "אבל כשאני לבד, האור שלי מרגיש קטן... והחושך מרגיש גדול מאוד."</p>
-                </div>
-                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNDAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwLjUiIHgyPSIwLjUiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMyNjMyMzgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM0NTU4NjQiLz48L2xpbmVhckdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0iYiIgY3g9IjAiIGN5PSIwIiByPSIxIiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDAgMjIuMDM1IC0yMS40ODggMCA0MDAgMjAwKSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI2ZmZWJiZCIgc3RvcC1vcGFjaXR5PSIxIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZmVkODM1IiBzdG9wLW9wYWNpdHk9IjAiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0idXJsKCNhKSIvPjxwYXRoIGZpbGw9IiMzNzQ3NGYiIGQ9Ik0tMjAgNDAwaDE2MGMtNDAtMTIwLTgwLTIwMC0xNjAtMjAwcy0xMjAgODAtMTYwIDIwMGgxNjB6Ii8+PHBhdGggZmlsbD0iIzQyNTBiMyIgZD0iTTY0MCA0MDBoMzIwYy04MC0xMjAtMTYwLTIwMC0zMjAtMjAwcy0yNDAgODAtMzIwIDIwMGgzMjB6Ii8+PGNpcmNsZSBjeD0iNDAwIiBjeT0iMjAwIiByPSI0MCIgZmlsbD0idXJsKCNiKSIvPjwvc3ZnPg==" alt="זוהר הקטן לבד ביער חשוך" class="illustration">
-            </section>
-            
-            <article class="page">
-                <h3>
-                    <button class="play-audio-btn" aria-label="הקרא כותרת פרק"><i class="fas fa-volume-up"></i></button>
-                    פרק 2: מפגש דביק
-                </h3>
-                 <div class="text-block">
-                    <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>לפתע, הוא הרגיש שמשהו דביק תפס את רגלו. הוא נמשך אחורה ונתקע! הוא האיר את האור שלו הכי חזק שיכל וראה שהוא נלכד ברשת מבריקה וגדולה, שנראתה כמו תחרה של טיפות טל. "אוי לא," הוא מילמל, "נפלתי על קורי עכביש!"</p>
-                </div>
-                 <div class="text-block">
-                    <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>מתוך הצללים יצאה דמות. זה היה עכביש גדול ואפרורי, עם שמונה רגליים ארוכות ומשקפיים קטנים על קצה אפו. "ובכן, ובכן," אמר העכביש בקול עמוק, "מה יש לנו כאן? פנס קטן ומזמזם."</p>
-                </div>
-                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNDAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwLjUiIHgyPSIwLjUiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiM0NTU4NjQiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM1NTZjN2QiLz48L2xpbmVhckdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0iYiIgY3g9IjAiIGN5PSIwIiByPSIxIiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDAgMjYuOTE3MyAtMjYuMjUgMCAyMDAuMzUgMTU2LjU4KSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1yYWRpdXM9IjAiIHN0b3AtY29sb3I9IiNmZmViM2IiIHN0b3Atb3BhY2l0eT0iMSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1yYWRpdXM9IjEiIHN0b3AtY29sb3I9IiNmZmViM2IiIHN0b3Atb3BhY2l0eT0iMCIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJ1cmwoI2EpIi8+PGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuNSI+PHBhdGggZD0ibTQ4My44IDY4LjggMTEuMSAyNC40LTM2LjMgMTYuNSAxMy4yIDI0LjItMzYuMiAxNi42IDEyLjIgMjQuOCAyOS4yIDE2LjYgMTIgMjQuOCAyOS4yIDE2LjYgMTIgMjQuOCIvPjxwYXRoIGQ9Ik0zNjAuNSA2Ny44bC0xMS4xIDI0LjQgMzYuMyAxNi41LTEzLjIgMjQuMiAzNi4yIDE2LjYtMTIuMiAyNC44LTI5LjIgMTYuNi0xMiAyNC44LTI5LjIgMTYuNi0xMiAyNC44Ii8+PHBhdGggZD0ibTM5NiAxNTYuMiAzOC43LTIyLjUgMzguNiAyMi41Ii8+PHBhdGggZD0ibTM5NS41IDMyMy41IDM5LjItMjIuNiAzOC4yIDIyLjYgNDAgLTIzIDQwLTIzIi8+PHBhdGggZD0ibTQ3My44IDM2MS45LTQwLjMtMzQuOS0zNy44IDM0LjkiLz48cGF0aCBkPSJtMzYxLjIgMzU5LjYgNDAuMy0zNC45IDM3LjggMzQuOSIvPjxwYXRoIGQ9Ik0zMjQuNCAyMjMuNWwxOC44LTMzLjkgMzIuNS0uOCAyMS42IDMxLjkgMTYuNSAzMy4yIDIxLjYtMzEuOSAxNi41IDMzLjIiLz48cGF0aCBkPSJtNTE5LjEgMjIzLjUtMTguOC0zMy45LTMyLjNSMTg4LjhsLTIxLjYgMzEuOS0xNi41IDMzLjItMjEuNi0zMS45LTE2LjUgMzMuMiIvPjwvZz48Y2lyY2xlIGN4PSIyMDAiIGN5PSIxNTYiIHI9IjMwIiBmaWxsPSJ1cmwoI2IpIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTEwIDI1MCkgc2NhbGUoMC44KSI+PHBhdGggZmlsbD0iIzM3MzczNyIgZD0iTTcgODBMMCA0MEwxNCAxM0w2MyA2TDgxIDE4TDc3IDQzTDc0IDgwWiIvPjxwYXRoIGZpbGw9IiMzNzM3MzciIGQ9Ik05MyA4MEwxMDAgNDBMODYgMTNMMzcgNkwxOSAxOEwyMyA0M0wyNiA4MFoiLz48cGF0aCBmaWxsPSIjMjEyMTIxIiBkPSJNODEgMThDNzUgMTMgNzMgMTUgNjMgNkg1NyBMMzcgNmMtNSAwLTggNS0xMyAxMUMxOSAxOCA3IDMyIDE0IDEzbDE2LTEwIDEyIDcgNy0xMiA4IDEyejM1bC0yMC0yMCA1IDUgNS01eiIvPjwvZz48L3N2Zz4=" alt="זוהר פוגש את רקש העכביש על קוריו" class="illustration">
-            </article>
-
-            <article class="page">
-                <h3>
-                    <button class="play-audio-btn" aria-label="הקרא כותרת פרק"><i class="fas fa-volume-up"></i></button>
-                    פרק 4: אור בתוך הסערה
-                </h3>
-                 <div class="text-block">
-                    <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>בדיוק כשהם סיימו לדבר, רוח חזקה החלה לנשוב. עלים התעופפו לכל עבר וענפים התכופפו. "הו לא, סערה מגיעה!" קרא רקש בדאגה. "היא עלולה לקרוע את הבית שלי!"</p>
-                </div>
-                 <div class="text-block">
-                    <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>ברגע הזה, זוהר שכח מהפחד שלו. הוא ראה את חברו החדש בצרה. הוא התמקד, נשם עמוק, והאיר את האור שלו חזק יותר משהאיר אי פעם בחייו! הוא הפך לכדור אור קטן ובוהק. "אני אאיר לך את הדרך, רקש!" הוא צעק מעל רעש הרוח.</p>
-                </div>
-                 <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNDAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwLjUiIHgyPSIwLjUiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMyNjMyMzgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM1MzY4NzIiLz48L2xpbmVhckdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0iYiIgY3g9IjAiIGN5PSIwIiByPSIxIiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDAgNTMuODMzMyAtNTEuODc1IDAgNDAwIDE4MCkiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZmZmZmYiIHN0b3Atb3BhY2l0eT0iMSIvPjxzdG9wIG9mZnNldD0iLjUiIHN0b3AtY29sb3I9IiNmZmViM2IiIHN0b3Atb3BhY2l0eT0iMSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmZWJiZCIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9InVybCgjYSkiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2Utb3BhY2l0eT0iMC42IiBkPSJNMiA1MGMxNTAgNTAgMjAwLTEwMCA0MDAgMHMyNTAgMTUwIDQwMCA1ME0yIDE1MGMxNTAgNTAgMjAwLTEwMCA0MDAgMHMyNTAgMTUwIDQwMCA1ME0yIDI1MGMxNTAgNTAgMjAwLTEwMCA0MDAgMHMyNTAgMTUwIDQwMCA1ME0yIDM1MGMxNTAgNTAgMjAwLTEwMCA0MDAgMHMyNTAgMTUwIDQwMCA1MCIvPjxjaXJjbGUgY3g9IjQwMCIgY3k9IjE4MCIgcj0iMTAwIiBmaWxsPSJ1cmwoI2IpIi8+PC9zdmc+" alt="זוהר מאיר בעוצמה בתוך הסערה" class="illustration">
-            </article>
-
-            <article class="page">
-                <h3>
-                    <button class="play-audio-btn" aria-label="הקרא כותרת פרק"><i class="fas fa-volume-up"></i></button>
-                    פרק 5: שני חברים, אור אחד
-                </h3>
-                 <div class="text-block">
-                    <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>מאותו הלילה, ריקוד האורות של הגחליליות השתנה. הן רקדו מסביב לקורים המרהיבים של רקש, והאור שלהן הפך את יצירותיו למופע מרהיב. וזוהר? הוא כבר לא פחד מהחושך, כי הוא ידע שגם האור הקטן ביותר יכול להאיר את הדרך, ושבלב היער החשוך, הוא מצא את החבר הכי לא צפוי והכי טוב שיכל לבקש.</p>
-                </div>
-                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNDAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwLjUiIHgyPSIwLjUiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZjY3MDAiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNmZjhiMDAiLz48L2xpbmVhckdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0iYiIgY3g9IjAiIGN5PSIwIiByPSIxIiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDAgOS4wMDk3IC04Ljg1MTcgMCAxNDkuMzUgMTQ2LjU4KSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1yYWRpdXM9IjAiIHN0b3AtY29sb3I9IiNmZmVkYjMiIHN0b3Atb3BhY2l0eT0iMSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1yYWRpdXM9IjEiIHN0b3AtY29sb3I9IiNmZmVkYjMiIHN0b3Atb3BhY2l0eT0iMCIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJ1cmwoI2EpIi8+PGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1vcGFjaXR5PSIwLjciPjxwYXRoIGQ9Ik0zNjAuNSA5Ny44bC0xMS4xIDI0LjQgMzYuMyAxNi41LTEzLjIgMjQuMiAzNi4yIDE2LjYtMTIuMiAyNC44Ii8+PHBhdGggZD0ibTQ4My44IDk4LjggMTEuMSAyNC40LTM2LjMgMTYuNSAxMy4yIDI0LjItMzYuMiAxNi42IDEyLjIgMjQuOCIvPjxwYXRoIGQ9Ik0zOTYgMTg2LjIgMzguNy0yMi41IDM4LjYgMjIuNSIvPjxwYXRoIGQ9Ik0zOTUuNSAyNTMuNWwzOS4yLTIyLjYgMzguMiAyMi42Ii8+PHBhdGggZD0ibTQ3My44IDI5MS45LTQwLjMtMzQuOS0zNy44IDM0LjkiLz48cGF0aCBkPSJtMzYxLjIgMjg5LjYgNDAuMy0zNC45IDM3LjggMzQuOSIvPjxwYXRoIGQ9Ik0zMjQuNCAyMjMuNWwxOC44LTMzLjkgMzIuNS0uOCAyMS42IDMxLjkgMTYuNSAzMy4yIi8+PHBhdGggZD0ibTUxOS4xIDIyMy41LTE4LjgtMzMuOS0zMi41LS44LTIxLjYgMzEuOS0xNi41IDMzLjIiLz48L2c+PGNpcmNsZSBjeD0iMTUwIiBjeT0iMTUwIiByPSIxNCIgZmlsbD0idXJsKCNiKSIvPjxjaXJjbGUgY3g9IjY1MCIgY3k9IjI1MCIgcj0iMTQiIGZpbGw9InVybCgjYikiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIyNTAiIHI9IjE0IiBmaWxsPSJ1cmwoI2IpIi8+PGNpcmNsZSBjeD0iNzAwIiBjeT0iMTAwIiByPSIxNCIgZmlsbD0idXJsKCNiKSIvPjxjaXJjbGUgY3g9IjQwMCIgY3k9IjM1MCIgcj0iMTQiIGZpbGw9InVybCgjYikiLz48Y2lyY2xlIGN4PSIyMDAiIGN5PSIzMDAiIHI9IjE0IiBmaWxsPSJ1cmwoI2IpIi8+PC9zdmc+" alt="כל הגחליליות רוקדות סביב קורי העכביש של רקש" class="illustration">
-            </article>
-
-            <div class="the-end">~ הסוף ~</div>
-        </main>
+    <div id="generator-view">
+        <h1 class="generator-title">מחולל הסיפורים</h1>
+        <p class="generator-subtitle">כתוב רעיון, משפט או אפילו מילה אחת, והבינה המלאכותית שלנו תכתוב ותאייר עבורך ספר ילדים אינטראקטיבי שלם.</p>
+        <textarea id="prompt-input" rows="3" placeholder="לדוגמה: פיל קטן שרוצה ללמוד לעוף..."></textarea>
+        <button id="generate-btn">
+            <i class="fas fa-magic"></i>
+            <span>צור לי סיפור!</span>
+        </button>
     </div>
 
+    <div id="book-view">
+        <div class="book-container" id="book-container-for-pdf">
+            <header class="book-header">
+                <button id="back-btn" class="header-btn" title="חזור למחולל">
+                     <i class="fas fa-arrow-right"></i>
+                </button>
+                <div class="control-group">
+                    <button id="theme-toggle-btn" class="header-btn" title="שנה מצב תצוגה"><i class="fas fa-moon"></i></button>
+                    <button id="read-all-btn" class="header-btn" title="הקראה רציפה"><i class="fas fa-play-circle"></i></button>
+                </div>
+                <div id="speed-controls" class="control-group">
+                    <button class="speed-btn" data-speed="0.8" title="מהירות איטית">0.8x</button>
+                    <button class="speed-btn active" data-speed="1" title="מהירות רגילה">1x</button>
+                    <button class="speed-btn" data-speed="1.2" title="מהירות גבוהה">1.2x</button>
+                </div>
+                 <div class="control-group">
+                    <button id="download-pdf-btn" class="header-btn" title="הורד כ-PDF"><i class="fas fa-file-pdf"></i></button>
+                    <button id="share-whatsapp-btn" class="header-btn" title="שתף בווטסאפ"><i class="fab fa-whatsapp"></i></button>
+                </div>
+            </header>
+            <main class="book-main-content" id="book-content-area"></main>
+        </div>
+    </div>
+    
+    <div class="loader-overlay" id="loader-overlay">
+        <div class="loader"></div>
+        <p class="loader-text">כותב סיפור, מאייר תמונות... עוד רגע...</p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- STATE MANAGEMENT ---
-            const state = {
-                playbackRate: 1,
-                isReadingAll: false,
-                currentUtterance: null,
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // --- GLOBAL STATE & DOM ELEMENTS ---
+        const state = { playbackRate: 1, isReadingAll: false, currentUtterance: null };
+        const generatorView = document.getElementById('generator-view');
+        const bookView = document.getElementById('book-view');
+        const loader = document.getElementById('loader-overlay');
+        const promptInput = document.getElementById('prompt-input');
+        const generateBtn = document.getElementById('generate-btn');
+        const backBtn = document.getElementById('back-btn');
+        const bookContentArea = document.getElementById('book-content-area');
+
+        // Book view controls
+        const themeToggleButton = document.getElementById('theme-toggle-btn');
+        const readAllButton = document.getElementById('read-all-btn');
+        const speedControls = document.getElementById('speed-controls');
+        const downloadPdfBtn = document.getElementById('download-pdf-btn');
+        const shareWhatsappBtn = document.getElementById('share-whatsapp-btn');
+        
+        const synth = window.speechSynthesis;
+
+        // ===============================================
+        // === "AI" SIMULATOR: STORY & IMAGE GENERATOR ===
+        // ===============================================
+        
+        // --- 1. Keyword Dictionary ---
+        const keywords = {
+            // Characters
+            'אריה': { type: 'character', name: 'לביא האריה', gender: 'm', image: 'lion' },
+            'פיל': { type: 'character', name: 'פלא הפיל', gender: 'm', image: 'elephant' },
+            'קוף': { type: 'character', name: 'קופיקו הקוף', gender: 'm', image: 'monkey' },
+            'ילדה': { type: 'character', name: 'מאיה', gender: 'f', image: 'girl' },
+            'ילד': { type: 'character', name: 'דני', gender: 'm', image: 'boy' },
+            'רובוט': { type: 'character', name: 'זיפי הרובוט', gender: 'm', image: 'robot' },
+            'דרקון': { type: 'character', name: 'דרקו הדרקון', gender: 'm', image: 'dragon' },
+            // Locations
+            'יער': { type: 'location', name: 'יער הקסמים', image: 'forest' },
+            'כוכבים': { type: 'location', name: 'כוכב לכת רחוק', image: 'space' },
+            'ירח': { type: 'location', name: 'הירח המנצנץ', image: 'space' },
+            'ים': { type: 'location', name: 'מעמקי הים הכחול', image: 'sea' },
+            'עיר': { type: 'location', name: 'העיר הגדולה', image: 'city' },
+            // Themes / Verbs
+            'לעוף': { type: 'theme', name: 'רצה לעוף', challenge: 'לא היו לו כנפיים', resolution: 'בנה כנפיים מחלומות', image: 'flying' },
+            'חבר': { type: 'theme', name: 'חיפש חבר', challenge: 'היה קצת ביישן', resolution: 'גילה שהחבר הכי טוב היה קרוב כל הזמן', image: 'friends' },
+            'אבוד': { type: 'theme', name: 'הלך לאיבוד', challenge: 'השביל נעלם', resolution: 'למד לסמוך על ליבו כדי למצוא את הדרך', image: 'lost' },
+            'אוצר': { type: 'theme', name: 'חיפש אוצר', challenge: 'המפה הייתה מסובכת', resolution: 'גילה שהאוצר האמיתי הוא המסע עצמו', image: 'treasure' },
+        };
+
+        // --- 2. Image Library (Base64 encoded SVGs) ---
+        const images = {
+            default: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNDAwIj48cGF0aCBmaWxsPSIjOUNFMkYyIiBkPSJNMCAwaDgwMHY0MDBIMHoiLz48cGF0aCBmaWxsPSIjQ0NEQ0ZGIiBkPSJNMCAzMDBoODAwvDEwMEgweiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iNTAiIGZpbGw9IiNGRkQwNTkiLz48L3N2Zz4=',
+            lion: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iI2Y5YTgwMCIvPjxwYXRoIGZpbGw9IiNkMzViMDAiIGQ9Ik01MCAxMEE0MCA0MCAwIDAgMCAxMCA1MGMwIDIyLjA5IDM1LjgyIDQwIDQwIDQwaDIwYzQuNDIgMCA4LTMuNTggOC04VjU4YzAtNC40Mi0zLjU4LTgtOC04SDYwYTEwIDEwIDAgMSAxIDEwLTEwaDEwYTQgNCAwIDAgMCA0LTRWMTBhMTIgMTIgMCAwIDAtMTItMTJoLTIwWiIvPjwvZz48L3N2Zz4=',
+            elephant: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iNjAiIHg9IjEwIiB5PSIyMCIgcng9IjEwIiBmaWxsPSIjYzA2YmQiLz48cGF0aCBmaWxsPSIjYmNiZGI4IiBkPSJNNjAgMjBIMzBhMjAgMjAgMCAwIDAgMCA0MGg0MGMxMSAwIDE1LTUgNS0xMFYyMFoiLz48cGF0aCBmaWxsPSIjYzA2YmQiIGQ9Ik0xMCA1MHYyMGE1IDUgMCAwIDAgNSA1aDcwYTUgNSAwIDAgMCA1LTZWNTBaIi8+PC9zdmc+',
+            forest: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzI2YzY5YSIvPjxwYXRoIGZpbGw9IiMxOTg3NzkiIGQ9Ik0wIDEwMGw1MCAzMCA1MC0zMFY3MGwtNTAgMzAtNTAgMzB6Ii8+PHBhdGggZmlsbD0iIzM4OGUzYyIgZD0iTTMwIDk1bDEwLTQwIDEwIDQwWm0zMCAwbDEwLTQwIDEwIDQwWiIvPjwvZz48L3N2Zz4=',
+            space: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzEyMTIxMiIvPjxjaXJjbGUgY3g9IjIwIiBjeT0iMjUiIHI9IjUiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSI4MCIgY3k9IjcwIiByPSIxMCIgZmlsbD0iI2Y5YTgwMCIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iNTUiIHI9IjMiIGZpbGw9IiNmZmYiLz48cGF0aCBzdHJva2U9IiNmZmYiIGQ9Ik03MCAyMEw3NSA0MEw5MCAzMFoiLz48L3N2Zz4=',
+            friends: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSIzNSIgY3k9IjUwIiByPSIyNSIgZmlsbD0iI2ZmMmQ1OCIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNTAiIHI9IjI1IiBmaWxsPSIjMDBiZmY5Ii8+PHBhdGggZD0iTTQ3IDQ1Yy0xMC0xMC0yNSA1LTIwIDE1czEwIDMwIDM1IDAgMTAtMjUtNS0yNXoiIGZpbGw9IiNmZjQwODEiIG9wYWNpdHk9IjAuNSIvPjwvc3ZnPg==',
+        };
+
+        // --- 3. Story Templates ---
+        const templates = [
+            {
+                title: "[CHARACTER_NAME], ה[CHARACTER_TYPE] ש[THEME_NAME]",
+                chapter1: "היה היה, בלב [LOCATION_NAME], [CHARACTER_TYPE] חמוד בשם [CHARACTER_NAME]. יותר מכל דבר אחר, [CHARACTER_NAME] [THEME_NAME]. אבל הייתה בעיה קטנה: [THEME_CHALLENGE].",
+                chapter2: "יום אחד, [CHARACTER_NAME] החליט/ה שדי! '[PRONOUN] יוצא/ת למסע!' הכריז/ה. [PRONOUN] ארז/ה בתיק קטן חלום אחד גדול ויצא/ה לדרך. הדרך הייתה מלאה בהפתעות, אבל [CHARACTER_NAME] לא ויתר/ה.",
+                chapter3: "לבסוף, אחרי הרפתקאות רבות, [CHARACTER_NAME] הבינ/ה דבר מופלא. [PRONOUN] הבינ/ה ש[THEME_RESOLUTION]. עם לב מלא שמחה, [PRONOUN] חזר/ה הביתה, וידע/ה שההרפתקה האמיתית רק התחילה."
+            },
+        ];
+
+        // --- 4. The Generator Function ---
+        const generateStory = (prompt) => {
+            let storyConfig = {
+                character: keywords['ילד'],
+                location: keywords['יער'],
+                theme: keywords['חבר'],
             };
 
-            // --- DOM ELEMENTS ---
-            const themeToggleButton = document.getElementById('theme-toggle-btn');
-            const readAllButton = document.getElementById('read-all-btn');
-            const speedControls = document.getElementById('speed-controls');
-            const individualPlayButtons = document.querySelectorAll('.play-audio-btn');
-            const contentContainer = document.getElementById('book-content');
-
-            // --- SPEECH SYNTHESIS SETUP ---
-            const synth = window.speechSynthesis;
-
-            // --- THEME ---
-            const applyTheme = (theme) => {
-                document.documentElement.setAttribute('data-theme', theme);
-                themeToggleButton.innerHTML = theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-                localStorage.setItem('bookTheme', theme);
-            };
-
-            themeToggleButton.addEventListener('click', () => {
-                const newTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-                applyTheme(newTheme);
-            });
-
-            // --- PLAYBACK SPEED ---
-            speedControls.addEventListener('click', (e) => {
-                if (e.target.classList.contains('speed-btn')) {
-                    state.playbackRate = parseFloat(e.target.dataset.speed);
-                    speedControls.querySelector('.active').classList.remove('active');
-                    e.target.classList.add('active');
+            // Analyze prompt to find keywords
+            for (const key in keywords) {
+                if (prompt.includes(key)) {
+                    const keywordData = keywords[key];
+                    storyConfig[keywordData.type] = keywordData;
                 }
-            });
+            }
+            
+            // Select a template (we only have one for this example)
+            let template = templates[0];
+            
+            const pronoun = storyConfig.character.gender === 'f' ? 'היא' : 'הוא';
 
-            // --- AUDIO PLAYBACK LOGIC ---
+            // Populate story content
+            let title = template.title
+                .replace('[CHARACTER_NAME]', storyConfig.character.name)
+                .replace('[CHARACTER_TYPE]', storyConfig.character.type)
+                .replace('[THEME_NAME]', storyConfig.theme.name);
+
+            let chapters = [
+                template.chapter1,
+                template.chapter2,
+                template.chapter3,
+            ].map(ch => ch
+                .replace(/\[CHARACTER_NAME\]/g, storyConfig.character.name)
+                .replace(/\[CHARACTER_TYPE\]/g, storyConfig.character.type)
+                .replace(/\[LOCATION_NAME\]/g, storyConfig.location.name)
+                .replace(/\[THEME_NAME\]/g, storyConfig.theme.name)
+                .replace(/\[THEME_CHALLENGE\]/g, storyConfig.theme.challenge)
+                .replace(/\[THEME_RESOLUTION\]/g, storyConfig.theme.resolution)
+                .replace(/\[PRONOUN\]/g, pronoun)
+            );
+
+            // Select images
+            const storyImages = [
+                images[storyConfig.character.image] || images.default,
+                images[storyConfig.theme.image] || images.default,
+                images.friends,
+            ];
+
+            return { title, chapters, images: storyImages };
+        };
+
+        // ===============================================
+        // === UI & EVENT LISTENERS =======================
+        // ===============================================
+
+        generateBtn.addEventListener('click', () => {
+            const prompt = promptInput.value;
+            if (!prompt) {
+                alert('אנא כתוב רעיון לספר!');
+                return;
+            }
+
+            loader.style.display = 'flex';
+
+            // Simulate AI generation time
+            setTimeout(() => {
+                const story = generateStory(prompt);
+                
+                // Build the book HTML
+                let html = `<section class="page"><h1><button class="play-audio-btn" aria-label="הקרא כותרת"><i class="fas fa-volume-up"></i></button>${story.title}</h1></section>`;
+                
+                story.chapters.forEach((chapter, index) => {
+                    html += `
+                        <article class="page">
+                            <h3><button class="play-audio-btn" aria-label="הקרא כותרת פרק"><i class="fas fa-volume-up"></i></button>פרק ${index + 1}</h3>
+                            <div class="text-block"><button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button><p>${chapter}</p></div>
+                            <img src="${story.images[index] || images.default}" alt="איור לפרק ${index+1}" class="illustration">
+                        </article>
+                    `;
+                });
+                
+                html += '<div class="the-end">~ הסוף ~</div>';
+                bookContentArea.innerHTML = html;
+
+                // Switch views
+                generatorView.style.display = 'none';
+                bookView.style.display = 'block';
+                loader.style.display = 'none';
+                
+                // Re-initialize event listeners for the new content
+                initializeBookControls();
+
+            }, 2500); // 2.5 seconds delay
+        });
+        
+        backBtn.addEventListener('click', () => {
+             bookView.style.display = 'none';
+             generatorView.style.display = 'flex';
+             stopAllAudio();
+        });
+
+
+        // --- Reusable Book Controls Logic ---
+        const initializeBookControls = () => {
+            // Re-query buttons inside the newly created book
+            const individualPlayButtons = bookContentArea.querySelectorAll('.play-audio-btn');
+
             const stopAllAudio = () => {
-                if (synth.speaking) {
-                    synth.cancel();
-                }
+                if (synth.speaking) synth.cancel();
                 state.isReadingAll = false;
-                readAllButton.innerHTML = '<i class="fas fa-play-circle"></i>';
+                if(readAllButton) readAllButton.innerHTML = '<i class="fas fa-play-circle"></i>';
                 individualPlayButtons.forEach(btn => btn.innerHTML = '<i class="fas fa-volume-up"></i>');
             };
 
@@ -335,70 +468,120 @@
                 utterance.lang = 'he-IL';
                 utterance.rate = state.playbackRate;
                 state.currentUtterance = utterance;
-
                 utterance.onend = () => {
                     state.currentUtterance = null;
                     if (onEndCallback) onEndCallback();
                 };
-                
                 synth.speak(utterance);
             };
-            
-            // "Read Aloud All" Button Logic
-            readAllButton.addEventListener('click', () => {
-                if (state.isReadingAll) {
-                    // It's playing, so pause it
-                    if (synth.speaking) synth.pause();
-                    readAllButton.innerHTML = '<i class="fas fa-play-circle"></i>';
-                    state.isReadingAll = false;
-                } else if (synth.paused && state.currentUtterance) {
-                    // It's paused, so resume it
-                    synth.resume();
-                    readAllButton.innerHTML = '<i class="fas fa-pause-circle"></i>';
-                    state.isReadingAll = true;
-                } else {
-                    // It's stopped, so start from the beginning
-                    const allText = Array.from(contentContainer.querySelectorAll('h1, h3, p'))
-                                         .map(el => el.textContent)
-                                         .join('. ');
-                    
-                    speak(allText, () => {
-                        state.isReadingAll = false;
+
+            if(readAllButton){
+                readAllButton.onclick = () => {
+                    if (state.isReadingAll) {
+                        if (synth.speaking) synth.pause();
                         readAllButton.innerHTML = '<i class="fas fa-play-circle"></i>';
-                    });
+                        state.isReadingAll = false;
+                    } else if (synth.paused && state.currentUtterance) {
+                        synth.resume();
+                        readAllButton.innerHTML = '<i class="fas fa-pause-circle"></i>';
+                        state.isReadingAll = true;
+                    } else {
+                        const allText = Array.from(bookContentArea.querySelectorAll('h1, h3, p')).map(el => el.textContent).join('. ');
+                        speak(allText, () => {
+                            state.isReadingAll = false;
+                            readAllButton.innerHTML = '<i class="fas fa-play-circle"></i>';
+                        });
+                        readAllButton.innerHTML = '<i class="fas fa-pause-circle"></i>';
+                        state.isReadingAll = true;
+                    }
+                };
+            }
 
-                    readAllButton.innerHTML = '<i class="fas fa-pause-circle"></i>';
-                    state.isReadingAll = true;
-                }
-            });
-
-            // Individual Play Buttons Logic
             individualPlayButtons.forEach(button => {
-                button.addEventListener('click', () => {
+                button.onclick = () => {
                     const textElement = button.parentElement.querySelector('h1, h3, p');
                     if (!textElement) return;
-
                     const textToSpeak = textElement.textContent;
-
-                    // If it's already playing this specific part, stop it.
                     if (state.currentUtterance && state.currentUtterance.text === textToSpeak) {
                         stopAllAudio();
                     } else {
                         speak(textToSpeak, () => {
-                             button.innerHTML = '<i class="fas fa-volume-up"></i>';
+                            button.innerHTML = '<i class="fas fa-volume-up"></i>';
                         });
                         button.innerHTML = '<i class="fas fa-stop-circle"></i>';
                     }
-                });
+                };
             });
-
-            // --- INITIALIZATION ---
-            const savedTheme = localStorage.getItem('bookTheme') || 'light';
-            applyTheme(savedTheme);
             
-            // Stop audio if user leaves the page
-            window.addEventListener('beforeunload', stopAllAudio);
+            // Make sure this is defined once for the book view
+            if(downloadPdfBtn) {
+                 downloadPdfBtn.onclick = () => {
+                    loader.style.display = 'flex';
+                    const bookContainer = document.getElementById('book-container-for-pdf');
+                    
+                    html2canvas(bookContainer, {
+                        scale: 2, // Higher scale for better quality
+                        useCORS: true,
+                        backgroundColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#1e1e1e' : '#ffffff'
+                    }).then(canvas => {
+                        const imgData = canvas.toDataURL('image/png');
+                        const { jsPDF } = window.jspdf;
+                        const pdf = new jsPDF({
+                            orientation: 'p',
+                            unit: 'px',
+                            format: [canvas.width, canvas.height]
+                        });
+                        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                        pdf.save('my-story.pdf');
+                        loader.style.display = 'none';
+                    }).catch(err => {
+                        console.error("PDF generation failed", err);
+                        loader.style.display = 'none';
+                        alert("שגיאה ביצירת קובץ ה-PDF.");
+                    });
+                };
+            }
+
+            if(shareWhatsappBtn) {
+                shareWhatsappBtn.onclick = () => {
+                    const bookTitle = bookContentArea.querySelector('h1').textContent;
+                    const message = `הי, יצרתי ספר ילדים מדהים בשם "${bookTitle}"! אתם יכולים ליצור סיפורים משלכם עם מחולל הסיפורים האינטראקטיבי.`;
+                    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+                    window.open(whatsappUrl, '_blank');
+                };
+            }
+        };
+
+        // --- GENERAL CONTROLS INITIALIZATION (for the whole app) ---
+        const applyTheme = (theme) => {
+            document.documentElement.setAttribute('data-theme', theme);
+            themeToggleButton.innerHTML = theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+            localStorage.setItem('storyGeneratorTheme', theme);
+        };
+
+        themeToggleButton.addEventListener('click', () => {
+            const newTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            applyTheme(newTheme);
         });
+
+        speedControls.addEventListener('click', (e) => {
+            if (e.target.classList.contains('speed-btn')) {
+                state.playbackRate = parseFloat(e.target.dataset.speed);
+                if (speedControls.querySelector('.active')) {
+                    speedControls.querySelector('.active').classList.remove('active');
+                }
+                e.target.classList.add('active');
+            }
+        });
+        
+        // Load initial theme
+        const savedTheme = localStorage.getItem('storyGeneratorTheme') || 'light';
+        applyTheme(savedTheme);
+        
+        // Stop audio if user leaves page
+        window.addEventListener('beforeunload', () => synth.cancel());
+
+    });
     </script>
 
 </body>
