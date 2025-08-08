@@ -3,44 +3,93 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>RUN & BLAST: מסלול הקרב</title>
+<title>Wall Street Runner: מסעו של משקיע</title>
 <style>
-  html,body{margin:0;height:100%;background:#000;touch-action:none;overscroll-behavior:none}
-  canvas{display:block;width:100vw;height:100vh;background:#000}
+  html,body{margin:0;height:100%;background:#0a0f18;touch-action:none;overscroll-behavior:none}
+  canvas{display:block;width:100vw;height:100vh;background:transparent;position:fixed;top:0;left:0}
+  #game-container{position:relative;width:100%;height:100%;overflow:hidden}
   #hud{
     position:fixed;top:0;left:0;right:0;pointer-events:none;
-    display:flex;justify-content:space-between;align-items:center;
-    padding:10px 12px;font-family:system-ui,Segoe UI,Arial;color:#e6edf3;mix-blend-mode:screen
+    display:flex;justify-content:space-between;align-items:flex-start;
+    padding:8px 12px;font-family:system-ui,Segoe UI,Arial;color:#e6edf3;
+    text-shadow:0 1px 4px #000;
   }
-  .pill{background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:6px 10px;font-weight:700}
-  #story{position:fixed;top:52px;left:0;right:0;text-align:center;font-weight:800;letter-spacing:.5px;
-    text-shadow:0 2px 12px #0008;color:#eef;opacity:0;transition:opacity .6s}
-  #tips{position:fixed;bottom:10px;left:0;right:0;text-align:center;color:#c8d2e0;font-size:12px;opacity:.8;pointer-events:none}
+  .hud-box{background:rgba(15,25,40,.6);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 12px;text-align:center}
+  .hud-box .label{font-size:11px;opacity:.7;letter-spacing:.5px}
+  .hud-box .value{font-size:18px;font-weight:700}
+  #portfolioValue .value.up{color:#4f4}
+  #portfolioValue .value.down{color:#f44}
+  #event{position:fixed;top:150px;left:0;right:0;text-align:center;font-weight:800;letter-spacing:.5px;
+    text-shadow:0 3px 15px #000;color:#fff;opacity:0;transition:opacity .6s ease-out, transform .6s ease-out;
+    transform:translateY(20px) scale(.95); pointer-events:none; line-height:1.4;}
+  #event.show{opacity:1;transform:translateY(0) scale(1)}
+  #event .event-name{font-size:28px; background:linear-gradient(45deg, #ffc837, #ff8008); -webkit-background-clip:text; -webkit-text-fill-color:transparent;}
+  #event .event-line{font-size:16px;font-weight:500;color:#eee;opacity:.9}
+  #tips{position:fixed;bottom:10px;left:0;right:0;text-align:center;color:#c8d2e0;font-size:13px;opacity:.9;pointer-events:none; font-weight:600;}
+  #lanes-overlay{position:fixed;bottom:0;left:0;right:0;height:25vh;display:flex;pointer-events:none}
+  .lane-label{flex:1;display:flex;justify-content:center;align-items:center;font-size:32px;font-weight:900;opacity:.1;transition:opacity .3s}
+  .lane-label.active{opacity:.6}
+  #sell-label{color:#f55}
+  #hold-label{color:#fff}
+  #buy-label{color:#5f5}
 </style>
 </head>
 <body>
-<canvas id="c"></canvas>
-<div id="hud">
-  <div class="pill" id="hp">❤️ 100</div>
-  <div class="pill" id="score">⭐ 0</div>
-  <div class="pill" id="stage">שלב 1 • 🤺 Basic</div>
+<div id="game-container">
+  <canvas id="bg-canvas"></canvas>
+  <canvas id="main-canvas"></canvas>
+  <div id="hud">
+    <div class="hud-box" id="portfolioValue">
+      <div class="label">שווי תיק</div>
+      <div class="value">$100,000</div>
+    </div>
+    <div class="hud-box" id="currentDate">
+      <div class="label">תאריך</div>
+      <div class="value">ינו׳ 2005</div>
+    </div>
+    <div class="hud-box" id="cash">
+      <div class="label">מזומן</div>
+      <div class="value">$100,000</div>
+    </div>
+  </div>
+  <canvas id="graph-canvas"></canvas>
+  <div id="event"></div>
+  <div id="lanes-overlay">
+    <div class="lane-label" id="sell-label">מכירה</div>
+    <div class="lane-label" id="hold-label">החזקה</div>
+    <div class="lane-label" id="buy-label">קנייה</div>
+  </div>
+  <div id="tips">גרור את המשקיע כדי לקנות, למכור או להחזיק מניות.</div>
 </div>
-<div id="story"></div>
-<div id="tips">גררו את הגיבור ימינה ושמאלה כדי לעבור נתיב. הירי אוטומטי.</div>
 
 <script>
 (() => {
 /* ===================== Canvas & Utils ===================== */
-const canvas = document.getElementById('c');
-const ctx = canvas.getContext('2d', { alpha:false });
-let DPR = Math.min(2.5, window.devicePixelRatio || 1);
-let W=0,H=0;
+const mainCanvas = document.getElementById('main-canvas');
+const mainCtx = mainCanvas.getContext('2d');
+const bgCanvas = document.getElementById('bg-canvas');
+const bgCtx = bgCanvas.getContext('2d', { alpha:false });
+const graphCanvas = document.getElementById('graph-canvas');
+const graphCtx = graphCanvas.getContext('2d');
+
+let DPR = Math.min(2, window.devicePixelRatio || 1);
+let W=0, H=0;
+
 function resize(){
-  W = canvas.clientWidth = window.innerWidth;
-  H = canvas.clientHeight = window.innerHeight;
-  canvas.width = Math.floor(W * DPR);
-  canvas.height= Math.floor(H * DPR);
-  ctx.setTransform(DPR,0,0,DPR,0,0);
+  W = window.innerWidth;
+  H = window.innerHeight;
+  [mainCanvas, bgCanvas, graphCanvas].forEach(c => {
+    c.width = Math.floor(W * DPR);
+    c.height = Math.floor(H * DPR);
+    c.style.width = W + 'px';
+    c.style.height = H + 'px';
+  });
+  mainCtx.setTransform(DPR,0,0,DPR,0,0);
+  bgCtx.setTransform(DPR,0,0,DPR,0,0);
+  graphCtx.setTransform(DPR,0,0,DPR,0,0);
+  
+  graphCanvas.height = Math.floor(120 * DPR);
+  graphCanvas.style.height = '120px';
 }
 new ResizeObserver(resize).observe(document.body);
 resize();
@@ -56,407 +105,417 @@ function initAudio(){
   if (audioCtx) return;
   try {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    master = audioCtx.createGain(); master.gain.value=0.12; master.connect(audioCtx.destination);
+    master = audioCtx.createGain(); master.gain.value=0.15; master.connect(audioCtx.destination);
     canAudio = true;
   } catch(e){ canAudio=false; }
 }
-function beep({type='square',freq=440,dur=0.07,vol=0.3,decay=0.15}={}){
+function playSound(type){
   if(!canAudio) return;
-  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
-  o.type=type; o.frequency.value=freq;
-  g.gain.value=vol; g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+Math.max(dur,0.02)+decay);
-  o.connect(g); g.connect(master); o.start(); o.stop(audioCtx.currentTime+dur+decay);
+  if(type === 'buy'){
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type='sine'; o.frequency.setValueAtTime(800, audioCtx.currentTime); o.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime+0.1);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.1);
+    o.connect(g); g.connect(master); o.start(); o.stop(audioCtx.currentTime+0.1);
+  } else if(type === 'sell'){
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type='sine'; o.frequency.setValueAtTime(600, audioCtx.currentTime); o.frequency.linearRampToValueAtTime(400, audioCtx.currentTime+0.1);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.1);
+    o.connect(g); g.connect(master); o.start(); o.stop(audioCtx.currentTime+0.1);
+  } else if(type === 'crash'){
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type='sawtooth'; o.frequency.value = 120; o.detune.setValueAtTime(-400, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.001, audioCtx.currentTime); g.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime+0.05); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.5);
+    o.connect(g);g.connect(master); o.start(); o.stop(audioCtx.currentTime+1.5);
+  } else if (type === 'event') {
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type='triangle'; o.frequency.value=330;
+    g.gain.setValueAtTime(0.001, audioCtx.currentTime); g.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime+0.1); g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+1.2);
+    o.connect(g);g.connect(master); o.start(); o.stop(audioCtx.currentTime+1.3);
+  }
 }
-function noise({dur=0.15,vol=0.25,lp=1200}={}){
-  if(!canAudio) return;
-  const buff = audioCtx.createBuffer(1, audioCtx.sampleRate*dur, audioCtx.sampleRate);
-  const data = buff.getChannelData(0);
-  for(let i=0;i<data.length;i++) data[i]=(Math.random()*2-1)*(1-i/data.length);
-  const src=audioCtx.createBufferSource(); src.buffer=buff;
-  const g=audioCtx.createGain(); g.gain.value=vol;
-  const f=audioCtx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=lp;
-  src.connect(f); f.connect(g); g.connect(master);
-  src.start(); src.stop(audioCtx.currentTime+dur);
-}
-function stageTone(stage){
-  if(!canAudio) return;
-  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
-  o.type='sine'; o.frequency.value=140 + (stage%6)*30;
-  g.gain.setValueAtTime(0.0001,audioCtx.currentTime);
-  g.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime+0.15);
-  g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+1.0);
-  o.connect(g); g.connect(master); o.start(); o.stop(audioCtx.currentTime+1.05);
-}
-
 /* ===================== Input ===================== */
-// --- שינוי ---: הקלט שולט רק על הנתיב הרצוי, לא על מיקום מדויק
 let inputX = W/2, touching=false;
-canvas.addEventListener('pointerdown',e=>{if(!audioCtx) initAudio(); touching=true; setInput(e);});
-canvas.addEventListener('pointermove',e=>{ if(touching) setInput(e); });
-canvas.addEventListener('pointerup',()=>touching=false);
-canvas.addEventListener('pointercancel',()=>touching=false);
-function setInput(e){
-  const r=canvas.getBoundingClientRect();
-  inputX = clamp(e.clientX - r.left, 0, W);
-}
+document.body.addEventListener('pointerdown',e=>{if(!audioCtx) initAudio(); touching=true; setInput(e);});
+document.body.addEventListener('pointermove',e=>{ if(touching) setInput(e); });
+document.body.addEventListener('pointerup',()=>touching=false);
+document.body.addEventListener('pointercancel',()=>touching=false);
+function setInput(e){ inputX = clamp(e.clientX, 0, W); }
 
-/* ===================== Game State ===================== */
-const hudHP = document.getElementById('hp');
-const hudScore = document.getElementById('score');
-const hudStage = document.getElementById('stage');
-const storyEl = document.getElementById('story');
+/* ===================== Game Data ===================== */
+const hudPortfolio = document.getElementById('portfolioValue').querySelector('.value');
+const hudCash = document.getElementById('cash').querySelector('.value');
+const hudDate = document.getElementById('currentDate').querySelector('.value');
+const eventEl = document.getElementById('event');
 
-// --- שינוי ---: מבנה המצב של המשחק עודכן למכניקה החדשה
-const STATE = {
-  running:true, t:0, dt:0,
-  score:0, stage:1, combo:0, comboTimer:0,
-  lanes: [W*0.25, W*0.5, W*0.75], // --- חדש ---: מיקומי X של שלושת הנתיבים
-  scrollSpeed: 280, // --- חדש ---: מהירות הגלילה של המסלול
-  // player
-  p:{ x:W/2, y:H*0.85, r:22, hp:100, maxHp:100, inv:0, weapon:0, magnet:140, fireDelay:130, fireTimer:0, dmg:6, targetLane:1 },
-  bullets:[], enemies:[], coins:[], pickups:[], fx:[],
-  spawnTimer:0, spawnDelay:550,
-  weaponNames:['Basic','Twin','Spread','Laser','Rocket'],
-  shake:0,
+const MONTH_NAMES = ["ינו׳", "פבר׳", "מרץ", "אפר׳", "מאי", "יוני", "יולי", "אוג׳", "ספט׳", "אוק׳", "נוב׳", "דצמ׳"];
+
+const STOCK_DATA = {
+  'AAPL': { name: 'Apple', sector: 'TECH', base: 6, trend: 1.006, vol: 0.15, color: '#999' },
+  'GOOGL': { name: 'Google', sector: 'TECH', base: 10, trend: 1.005, vol: 0.18, color: '#4285F4' },
+  'MSFT': { name: 'Microsoft', sector: 'TECH', base: 25, trend: 1.004, vol: 0.12, color: '#00A4EF' },
+  'AMZN': { name: 'Amazon', sector: 'ECOMM', base: 40, trend: 1.007, vol: 0.22, color: '#FF9900' },
+  'TSLA': { name: 'Tesla', sector: 'AUTO', base: 5, trend: 1.012, vol: 0.45, color: '#E31937' },
+  'NVDA': { name: 'Nvidia', sector: 'TECH', base: 10, trend: 1.009, vol: 0.35, color: '#76B900' },
+  'JPM': { name: 'JPMorgan', sector: 'FIN', base: 40, trend: 1.002, vol: 0.18, color: '#00589F' },
+  'XOM': { name: 'ExxonMobil', sector: 'OIL', base: 60, trend: 1.001, vol: 0.2, color: '#D81E2A' }
 };
 
-// --- שינוי ---: סיפור מותאם לאווירה החדשה
-const STORY = [
-  {name:'שביל הצללים', line:'האפלה קוראת, מפלצות קדומות חוסמות את דרכך.'},
-  {name:'מדבר העצמות', line:'חולות רותחים, שרצים ארסיים אורבים בכל פינה.'},
-  {name:'מצודת הגיהנום', line:'להבות ושדים שומרים על המבצר הארור.'},
-  {name:'ריק הכוכבים', line:'יצורים קוסמיים מגיחים מהתוהו ובוהו.'},
+const HISTORICAL_EVENTS = [
+  { date: new Date('2007-06-29'), name: "השקת האייפון", line: "אפל משנה את עולם הטכנולוגיה", effect: { type: 'sector_boom', sector: 'TECH', mult: 1.01 } },
+  { date: new Date('2008-09-15'), name: "משבר הסאב-פריים", line: "קריסה פיננסית עולמית", effect: { type: 'market_crash', mult: 0.85 } },
+  { date: new Date('2011-10-05'), name: "מותו של סטיב ג'ובס", line: "אבל בעולם הטכנולוגיה", effect: { type: 'stock_shock', ticker: 'AAPL', mult: 0.9 } },
+  { date: new Date('2014-06-01'), name: "בועת הרכב החשמלי", line: "העניין בטסלה נוסק", effect: { type: 'sector_boom', sector: 'AUTO', mult: 1.02 } },
+  { date: new Date('2015-08-01'), name: "נסיקת המסחר המקוון", line: "אמזון שוברת שיאים", effect: { type: 'sector_boom', sector: 'ECOMM', mult: 1.015 } },
+  { date: new Date('2018-01-01'), name: "בהלת הקריפטו", line: "השוק סוער, הטכנולוגיה מתחזקת", effect: { type: 'sector_boom', sector: 'TECH', mult: 1.005 } },
+  { date: new Date('2020-03-11'), name: "מגפת הקורונה", line: "העולם עוצר, השווקים צונחים", effect: { type: 'market_crash', mult: 0.75 } },
+  { date: new Date('2020-08-01'), name: "הזינוק מהבית", line: "מניות הטכנולוגיה והמסחר בשיא כל הזמנים", effect: { type: 'sector_boom', sectors: ['TECH', 'ECOMM'], mult: 1.03 } },
+  { date: new Date('2022-01-01'), name: "חששות מאינפלציה", line: "הבנקים המרכזיים מעלים ריבית", effect: { type: 'market_dip', mult: 0.95 } },
+  { date: new Date('2023-02-01'), name: "מהפכת ה-AI", line: "העולם מגלה את הבינה המלאכותית", effect: { type: 'sector_boom', stock: 'NVDA', mult: 1.05 } },
 ];
 
-const ENEMY_ICONS = ['👹', '👺', '🕷️', '🦂', '🐍', '🐲', '👻', '💀'];
+/* ===================== Game State ===================== */
+const STATE = {
+  running:true, t:0, dt:0,
+  gameDate: new Date('2005-01-01'),
+  timeScale: 24, // months per minute
+  lanes: [W*0.25, W*0.5, W*0.75],
+  scrollSpeed: 320,
+  
+  // Player / Portfolio
+  p:{ x:W/2, y:H*0.8, r:24, targetLane:1 },
+  cash: 100000,
+  portfolio: {}, // { 'AAPL': { shares: 10, avgCost: 150 } }
+  portfolioValue: 100000,
+  portfolioHistory: [],
+  maxHistoryValue: 100000,
 
-function showStory(){
-  const s = STORY[(STATE.stage-1)%STORY.length];
-  storyEl.innerHTML = `⟡ ${s.name} ⟡<br/><span style="font-weight:600;opacity:.8">${s.line}</span>`;
-  storyEl.style.opacity=1;
-  setTimeout(()=>storyEl.style.opacity=0, 2200);
+  market: {}, // { 'AAPL': 150.25 }
+  activeEvents: [],
+  nextEventIndex: 0,
+  
+  opportunities: [],
+  spawnTimer: 1, // seconds
+  shake: 0,
+  fx:[],
+};
+
+// Initialize market
+for (const ticker in STOCK_DATA) {
+  STATE.market[ticker] = STOCK_DATA[ticker].base;
+  STATE.portfolio[ticker] = { shares: 0, avgCost: 0 };
 }
 
-/* ===================== Entities ===================== */
-// --- שינוי ---: יצירת אויבים מותאמת למערכת הנתיבים
-function spawnEnemy(){
+/* ===================== Game Logic ===================== */
+function updateDate(dt) {
+  const timePassed = dt * (STATE.timeScale / 60); // in months
+  const newDate = new Date(STATE.gameDate);
+  newDate.setMonth(newDate.getMonth() + timePassed);
+  
+  if (newDate.getMonth() !== STATE.gameDate.getMonth()) {
+    updateStockPrices(newDate);
+    updatePortfolioValue();
+    
+    // Record history once per month
+    if(STATE.portfolioHistory.length > W/2) STATE.portfolioHistory.shift();
+    STATE.portfolioHistory.push({date: new Date(newDate), value: STATE.portfolioValue});
+    STATE.maxHistoryValue = Math.max(STATE.maxHistoryValue, STATE.portfolioValue);
+  }
+  
+  STATE.gameDate = newDate;
+
+  if (STATE.gameDate >= new Date('2025-08-01')) {
+    endGame();
+  }
+}
+
+function updateStockPrices(date) {
+  let globalMult = 1.0;
+  STATE.activeEvents.forEach(e => {
+    if (e.effect.type === 'market_crash' || e.effect.type === 'market_dip') {
+      globalMult *= e.effect.mult;
+    }
+  });
+
+  for (const ticker in STOCK_DATA) {
+    const stock = STOCK_DATA[ticker];
+    let price = STATE.market[ticker];
+    let trend = stock.trend;
+    
+    // Apply event effects
+    STATE.activeEvents.forEach(e => {
+        if (e.effect.type === 'sector_boom' && (e.effect.sector === stock.sector || (e.effect.sectors && e.effect.sectors.includes(stock.sector)) || e.effect.stock === ticker)) {
+            trend *= e.effect.mult;
+        }
+        if (e.effect.type === 'stock_shock' && e.effect.ticker === ticker) {
+            price *= e.effect.mult;
+            e.used = true; // one-time shock
+        }
+    });
+
+    // Remove used-up one-time events
+    STATE.activeEvents = STATE.activeEvents.filter(e => !e.used);
+
+    const noise = 1 + (Math.random() - 0.5) * stock.vol;
+    price *= trend * noise * globalMult;
+    STATE.market[ticker] = Math.max(0.01, price);
+  }
+}
+
+function checkEvents() {
+  if (STATE.nextEventIndex < HISTORICAL_EVENTS.length) {
+    const nextEvent = HISTORICAL_EVENTS[STATE.nextEventIndex];
+    if (STATE.gameDate >= nextEvent.date) {
+      eventEl.innerHTML = `<div class="event-name">${nextEvent.name}</div><div class="event-line">${nextEvent.line}</div>`;
+      eventEl.classList.add('show');
+      setTimeout(() => eventEl.classList.remove('show'), 3500);
+
+      STATE.activeEvents.push(nextEvent);
+      if (nextEvent.effect.type === 'market_crash') {
+          STATE.shake = 20;
+          playSound('crash');
+      } else {
+          playSound('event');
+      }
+      STATE.nextEventIndex++;
+    }
+  }
+}
+
+function updatePortfolioValue() {
+  let stockValue = 0;
+  for (const ticker in STATE.portfolio) {
+    stockValue += STATE.portfolio[ticker].shares * STATE.market[ticker];
+  }
+  const newValue = STATE.cash + stockValue;
+  if(newValue > STATE.portfolioValue) hudPortfolio.classList.add('up'); else hudPortfolio.classList.add('down');
+  hudPortfolio.classList.remove(newValue > STATE.portfolioValue ? 'down' : 'up');
+  STATE.portfolioValue = newValue;
+}
+
+function spawnOpportunity() {
+  const ticker = pick(Object.keys(STOCK_DATA));
   const lane = pick([0,1,2]);
   const x = STATE.lanes[lane];
-  const y = -40;
+  const y = 140; // start below graph
   
-  const e = {
-    lane, x, y, r:24,
-    hp: 15 + STATE.stage * 3,
-    icon: pick(ENEMY_ICONS),
-    hit:0
-  };
-  STATE.enemies.push(e);
+  STATE.opportunities.push({ ticker, x, y, r: 35 });
 }
 
-function makeCoin(x,y, lane){
-  STATE.coins.push({x,y, lane, r:8, t:0});
-}
-function makePickup(x,y,kind, lane){
-  STATE.pickups.push({x,y, lane, r:14, kind, t:0});
-}
-
-/* ===================== Weapons & Shooting (ללא שינוי מהותי) ===================== */
-function playerShoot(){
-  const p=STATE.p;
-  if (p.weapon===0){ // basic
-    STATE.bullets.push({x:p.x,y:p.y-24, vx:0, vy:-600, r:4, dmg:p.dmg});
-    beep({type:'square',freq:680,vol:0.18,dur:0.05});
-  } else if (p.weapon===1){ // twin
-    STATE.bullets.push({x:p.x-10,y:p.y-24,vx:0,vy:-620,r:4,dmg:p.dmg-1});
-    STATE.bullets.push({x:p.x+10,y:p.y-24,vx:0,vy:-620,r:4,dmg:p.dmg-1});
-    beep({type:'square',freq:600,vol:0.18,dur:0.05});
-  } else if (p.weapon===2){ // spread
-    for(let a=-0.22;a<=0.22;a+=0.22){
-      STATE.bullets.push({x:p.x,y:p.y-24,vx:Math.sin(a)*220,vy:-600,r:4,dmg:p.dmg-1});
+function executeTrade(op) {
+  const lane = STATE.p.targetLane;
+  const price = STATE.market[op.ticker];
+  const stockPortfolio = STATE.portfolio[op.ticker];
+  
+  if (lane === 2) { // BUY
+    const sharesToBuy = Math.floor((STATE.cash * 0.25) / price); // Buy with 25% of cash
+    if (sharesToBuy > 0) {
+      const cost = sharesToBuy * price;
+      stockPortfolio.avgCost = ((stockPortfolio.avgCost * stockPortfolio.shares) + cost) / (stockPortfolio.shares + sharesToBuy);
+      stockPortfolio.shares += sharesToBuy;
+      STATE.cash -= cost;
+      addFxText(op.x, op.y, `+${sharesToBuy}`, '#5f5');
+      playSound('buy');
     }
-    beep({type:'sawtooth',freq:560,vol:0.16,dur:0.05});
-  } else if (p.weapon===3){ // laser (beam)
-    STATE.bullets.push({laser:true, t:0, x:p.x, y:0, vx:0, vy:0, r:3, dmg:Math.max(1, p.dmg-3)});
-    beep({type:'triangle',freq:420,vol:0.12,dur:0.04});
-  } else if (p.weapon===4){ // rocket
-    STATE.bullets.push({x:p.x,y:p.y-26,vx:0,vy:-400,r:6,dmg:p.dmg+6,rocket:true, turn:0});
-    noise({dur:0.08,vol:0.18,lp:1400});
+  } else if (lane === 0) { // SELL
+    const sharesToSell = Math.floor(stockPortfolio.shares * 0.5); // Sell 50% of holding
+    if (sharesToSell > 0) {
+      const income = sharesToSell * price;
+      stockPortfolio.shares -= sharesToSell;
+      STATE.cash += income;
+      addFxText(op.x, op.y, `-${sharesToSell}`, '#f55');
+      playSound('sell');
+    }
+  } else { // HOLD
+      // no action
+      addFxText(op.x, op.y, 'HOLD', '#ccc');
   }
 }
 
-/* ===================== Background & Path Drawing ===================== */
-// --- שינוי ---: פונקציה חדשה לגמרי שמציירת את המסלול והרקע
-function drawPathAndBackground(t){
-  const theme = (STATE.stage-1)%4;
+function endGame() {
+    STATE.running = false;
+    eventEl.innerHTML = `<div class="event-name">המסע הושלם!</div>
+    <div class="event-line">שווי תיק סופי: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(STATE.portfolioValue)}</div>`;
+    eventEl.classList.add('show');
+}
+
+/* ===================== Drawing & FX ===================== */
+function drawBackground() {
+  let bull = 0, bear = 0;
+  STATE.activeEvents.forEach(e => {
+    if(e.effect.type === 'market_crash') bear = Math.max(bear, 0.8);
+    if(e.effect.type === 'market_dip') bear = Math.max(bear, 0.4);
+    if(e.effect.type === 'sector_boom') bull = Math.max(bull, 0.6);
+  });
   
-  // 1. רקע כללי
-  let bgGrad1, bgGrad2;
-  if (theme===0) { bgGrad1='#021'; bgGrad2='#102844'; } // שביל הצללים
-  else if (theme===1) { bgGrad1='#420'; bgGrad2='#853'; } // מדבר העצמות
-  else if (theme===2) { bgGrad1='#400'; bgGrad2='#622'; } // מצודת הגיהנום
-  else { bgGrad1='#000014'; bgGrad2='#001033'; } // ריק הכוכבים
+  const topColor = lerp(lerp(30, 80, bull), 80, bear); // r for red
+  const botColor = lerp(lerp(60, 120, bull), 120, bear); // g for green
+
+  const g=bgCtx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0, `rgb(${topColor}, ${botColor}, 50)`);
+  g.addColorStop(1, `rgb(10, 15, 24)`);
+  bgCtx.fillStyle=g;
+  bgCtx.fillRect(0,0,W,H);
   
-  const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,bgGrad1); g.addColorStop(1,bgGrad2);
-  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-  
-  // 2. ציור המסלול בפרספקטיבה
-  const pathTopWidth = W * 0.4;
-  const pathBottomWidth = W * 1.2;
-  const pathColor = theme===0 ? '#345' : theme===1 ? '#a86' : theme===2 ? '#644' : '#335';
-  
-  ctx.fillStyle = pathColor;
-  ctx.beginPath();
-  ctx.moveTo(W/2 - pathTopWidth/2, 0);
-  ctx.lineTo(W/2 + pathTopWidth/2, 0);
-  ctx.lineTo(W/2 + pathBottomWidth/2, H);
-  ctx.lineTo(W/2 - pathBottomWidth/2, H);
-  ctx.closePath();
-  ctx.fill();
-  
-  // 3. ציור קווי הפרדה בנתיבים
-  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-  ctx.lineWidth = 4;
-  const lineSpeed = STATE.scrollSpeed * 1.5;
-  for(let i=0; i<10; i++){
-    const y1 = ((t * lineSpeed) + i * H * 0.2) % (H*1.2) - H*0.1;
-    const y2 = y1 + H * 0.1;
-    
-    // פרספקטיבה לקווים
-    const p1 = (y1/H); const p2 = (y2/H);
-    const w1 = lerp(pathTopWidth, pathBottomWidth, p1);
-    const w2 = lerp(pathTopWidth, pathBottomWidth, p2);
-    
-    // קו שמאלי
-    ctx.beginPath();
-    ctx.moveTo(W/2 - w1/3, y1);
-    ctx.lineTo(W/2 - w2/3, y2);
-    ctx.stroke();
-    
-    // קו ימני
-    ctx.beginPath();
-    ctx.moveTo(W/2 + w1/3, y1);
-    ctx.lineTo(W/2 + w2/3, y2);
-    ctx.stroke();
+  // Starfield
+  bgCtx.fillStyle = 'rgba(255,255,255,0.7)';
+  for(let i=0; i<100; i++){
+    const x = ((i*37.34 + STATE.t*5) % W);
+    const y = ((i*217.65) % H);
+    bgCtx.fillRect(x,y,1,1);
   }
 }
 
-/* ===================== FX ===================== */
-function addExplosion(x,y,col='255,200,80'){
-  for(let i=0;i<18;i++){
-    STATE.fx.push({x,y, r:rand(2,5), vx:rand(-160,160), vy:rand(-220,-40), g:320, life:rand(0.4,0.9), col, a:1});
-  }
-  STATE.shake = Math.min(12, STATE.shake+6);
-  noise({dur:0.1,vol:0.22,lp:1800});
+function drawGraph() {
+    graphCtx.clearRect(0,0,W,120);
+    const hist = STATE.portfolioHistory;
+    if (hist.length < 2) return;
+
+    graphCtx.save();
+    graphCtx.setTransform(DPR,0,0,DPR,0,0);
+    graphCtx.strokeStyle = 'rgba(100,200,255,0.7)';
+    graphCtx.lineWidth = 2;
+    graphCtx.beginPath();
+
+    const maxVal = STATE.maxHistoryValue * 1.1;
+    for(let i=0; i<hist.length; i++){
+        const p = hist[i];
+        const x = (i / (hist.length-1)) * W;
+        const y = 110 - (p.value / maxVal) * 100;
+        if(i===0) graphCtx.moveTo(x,y);
+        else graphCtx.lineTo(x,y);
+    }
+    graphCtx.stroke();
+    
+    // Gradient under graph
+    const grad = graphCtx.createLinearGradient(0,0,0,120);
+    grad.addColorStop(0,'rgba(100,200,255,0.2)');
+    grad.addColorStop(1,'rgba(100,200,255,0)');
+    graphCtx.fillStyle = grad;
+    graphCtx.lineTo(W, 120);
+    graphCtx.lineTo(0, 120);
+    graphCtx.closePath();
+    graphCtx.fill();
+
+    graphCtx.restore();
 }
+
+function addFxText(x,y,text,color){
+  STATE.fx.push({x,y,text,color,life:1,alpha:1});
+}
+
 function drawFX(dt){
   for(let i=STATE.fx.length-1;i>=0;i--){
     const f=STATE.fx[i];
-    f.vy += f.g*dt; f.x += f.vx*dt; f.y += f.vy*dt; f.life -= dt; f.a = Math.max(0, f.life*1.5);
-    ctx.fillStyle = `rgba(${f.col},${f.a})`; ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,6.28); ctx.fill();
-    if(f.life<=0 || f.y>H+40) STATE.fx.splice(i,1);
+    f.y -= 40*dt; f.life -= dt; f.alpha = Math.max(0, f.life);
+    mainCtx.font = `bold 20px system-ui`;
+    mainCtx.textAlign = 'center';
+    mainCtx.fillStyle = f.color.replace(')',`, ${f.alpha})`).replace('#','rgba(');
+    if(f.color.startsWith('#')){
+        const r = parseInt(f.color.slice(1,3),16);
+        const g = parseInt(f.color.slice(3,5),16);
+        const b = parseInt(f.color.slice(5,7),16);
+        mainCtx.fillStyle = `rgba(${r},${g},${b},${f.alpha})`;
+    }
+    mainCtx.fillText(f.text, f.x, f.y);
+    if(f.life<=0) STATE.fx.splice(i,1);
   }
 }
-function circleHit(a,b){ const dx=a.x-b.x, dy=a.y-b.y; return dx*dx+dy*dy < (a.r+b.r)*(a.r+b.r) }
 
-/* ===================== Update & Draw ===================== */
+function circleHit(a,b){ const dx=a.x-b.x, dy=a.y-b.y; return dx*dx+dy*dy < (a.r+b.r)*(a.r+b.r) }
+const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
+
+/* ===================== Update & Draw Loop ===================== */
 let last = 0;
 function loop(t){
+  if(!STATE.running) return;
   if(!last) last=t;
-  const dt = Math.min(0.033, (t-last)/1000); last=t;
+  const dt = Math.min(0.033, (t-last)/1000);
+  last=t;
   STATE.t += dt; STATE.dt=dt;
 
-  if (STATE.shake>0) STATE.shake = Math.max(0, STATE.shake - 60*dt);
-  const sx = (Math.random()-0.5)*STATE.shake, sy = (Math.random()-0.5)*STATE.shake;
-  ctx.save(); ctx.translate(sx,sy);
+  if (STATE.shake>0) STATE.shake = Math.max(0, STATE.shake - 40*dt);
+  const sx = (Math.random()-0.5)*STATE.shake;
+  const sy = (Math.random()-0.5)*STATE.shake;
+  mainCtx.save();
+  mainCtx.translate(sx,sy);
+  
+  // ======== UPDATE ========
+  updateDate(dt);
+  checkEvents();
 
-  drawPathAndBackground(STATE.t);
-
-  // --- שינוי ---: לוגיקת תנועת השחקן בנתיבים
+  // Player logic
   const p = STATE.p;
   if (inputX < W * (1/3)) p.targetLane = 0;
   else if (inputX < W * (2/3)) p.targetLane = 1;
   else p.targetLane = 2;
-  p.x = lerp(p.x, STATE.lanes[p.targetLane], 0.25);
-  if(p.inv>0) p.inv-=dt;
+  p.x = lerp(p.x, STATE.lanes[p.targetLane], 0.2);
   
-  // צייר שחקן
-  ctx.font = 'bold 36px system-ui';
-  ctx.textAlign = 'center';
-  ctx.fillText('🤺', p.x, p.y + 12);
+  document.getElementById('sell-label').classList.toggle('active', p.targetLane === 0);
+  document.getElementById('hold-label').classList.toggle('active', p.targetLane === 1);
+  document.getElementById('buy-label').classList.toggle('active', p.targetLane === 2);
   
-  p.fireTimer -= dt*1000;
-  if (p.fireTimer<=0){
-    playerShoot();
-    p.fireTimer = (p.weapon===3 ? 40 : p.fireDelay);
+  // Spawn logic
+  STATE.spawnTimer -= dt;
+  if (STATE.spawnTimer <= 0) {
+    spawnOpportunity();
+    STATE.spawnTimer = rand(2, 3.5);
   }
+
+  // Update opportunities
+  for (let i = STATE.opportunities.length - 1; i >= 0; i--) {
+    const op = STATE.opportunities[i];
+    op.y += STATE.scrollSpeed * dt;
+
+    if (op.y > p.y - 10 && op.y < p.y + 10) {
+      executeTrade(op);
+      STATE.opportunities.splice(i, 1);
+      updatePortfolioValue();
+    } else if (op.y > H + op.r) {
+      STATE.opportunities.splice(i, 1);
+    }
+  }
+
+  // ======== DRAW ========
+  mainCtx.clearRect(0,0,W,H);
+  drawBackground();
+  drawGraph();
+
+  // Draw opportunities
+  STATE.opportunities.forEach(op => {
+    const stock = STOCK_DATA[op.ticker];
+    mainCtx.fillStyle = stock.color;
+    mainCtx.beginPath();
+    mainCtx.arc(op.x, op.y, op.r, 0, 6.28);
+    mainCtx.fill();
+    mainCtx.fillStyle = '#fff';
+    mainCtx.font = 'bold 18px system-ui';
+    mainCtx.textAlign = 'center';
+    mainCtx.textBaseline = 'middle';
+    mainCtx.fillText(op.ticker, op.x, op.y - 8);
+    mainCtx.font = '14px system-ui';
+    mainCtx.fillText(`$${STATE.market[op.ticker].toFixed(2)}`, op.x, op.y + 12);
+  });
   
-  // bullets
-  for(let i=STATE.bullets.length-1;i>=0;i--){
-    const b = STATE.bullets[i];
-    if (b.laser){
-      // (לוגיקת הלייזר נשארה דומה)
-      const maxY = Math.min(p.y-26, H*0.1);
-      ctx.strokeStyle='rgba(120,220,255,0.9)'; ctx.lineWidth=3;
-      ctx.beginPath(); ctx.moveTo(p.x, p.y-26); ctx.lineTo(p.x, maxY); ctx.stroke();
-      for (const e of STATE.enemies){
-        if (Math.abs(e.x - p.x) < e.r+3 && e.y < p.y-10 && e.y>maxY-30){
-          e.hp -= (b.dmg*dt*60);
-          e.hit = 0.1;
-        }
-      }
-      b.t += dt;
-      if (b.t>0.05) STATE.bullets.splice(i,1);
-      continue;
-    }
-    b.x += (b.vx||0)*dt; b.y += b.vy*dt;
-    if (b.rocket){
-        // לוגיקת טיל (ללא שינוי)
-    }
-    ctx.fillStyle='#ffd65a'; ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,6.28); ctx.fill();
-    if (b.y<-30) STATE.bullets.splice(i,1);
-  }
+  // Draw Player
+  mainCtx.font = 'bold 48px system-ui';
+  mainCtx.textAlign = 'center';
+  mainCtx.fillText('🧑‍💼', p.x, p.y + 12);
 
-  // spawn logic
-  STATE.spawnTimer -= dt*1000;
-  if (STATE.spawnTimer<=0){
-    const n = 1 + (STATE.stage%3);
-    for(let i=0;i<n;i++) spawnEnemy();
-    if (Math.random()<0.15) {
-        const lane = pick([0,1,2]);
-        makePickup(STATE.lanes[lane], -20, pick(['weapon','heal','magnet']), lane);
-    }
-    const base = 550 - Math.min(300, STATE.stage*12);
-    STATE.spawnDelay = rand(base*0.8, base*1.2);
-    STATE.spawnTimer = STATE.spawnDelay;
-  }
-
-  // enemies move/draw
-  for (let i=STATE.enemies.length-1;i>=0;i--){
-    const e = STATE.enemies[i];
-    // --- שינוי ---: האויבים רק נעים למטה עם מהירות הגלילה
-    e.y += STATE.scrollSpeed * dt;
-    
-    if (e.hit>0) e.hit-=dt;
-    
-    // --- שינוי ---: ציור האויב כאייקון
-    ctx.save();
-    if(e.hit > 0) ctx.globalAlpha = 0.5 + Math.sin(STATE.t*80)*0.5;
-    ctx.font = 'bold 48px system-ui';
-    ctx.textAlign = 'center';
-    ctx.fillText(e.icon, e.x, e.y + 16);
-    ctx.restore();
-
-    // bullets hit enemy
-    for (let j=STATE.bullets.length-1;j>=0;j--){
-      const b=STATE.bullets[j];
-      if (b.laser) continue;
-      if (circleHit(e,b)){
-        e.hp -= b.dmg; e.hit=0.15; STATE.bullets.splice(j,1);
-        if (e.hp<=0){
-          addExplosion(e.x,e.y);
-          STATE.enemies.splice(i,1);
-          STATE.score += 20 + Math.floor(STATE.combo*1.5);
-          if (Math.random()<0.6){ makeCoin(e.x, e.y, e.lane); }
-          STATE.combo++; STATE.comboTimer = 2.2;
-          // כל 20 הריגות, עליית שלב
-          if (STATE.score > STATE.stage * 150){
-             STATE.stage++; STATE.difficulty += 0.12; STATE.scrollSpeed += 10;
-             showStory(); stageTone(STATE.stage);
-             makePickup(e.x, e.y, pick(['weapon', 'heal']), e.lane);
-          }
-          break;
-        }
-      }
-    }
-
-    // collide with player
-    if (circleHit(e,p) && p.inv<=0){
-      damagePlayer(25);
-      addExplosion(e.x, e.y, '255,80,80');
-      STATE.enemies.splice(i,1);
-    }
-
-    if (e.y>H+60) STATE.enemies.splice(i,1);
-  }
-
-  // --- שינוי ---: הוסר קוד כדורי אויב כי הם לא יורים יותר
-
-  // coins (magnet)
-  for(let i=STATE.coins.length-1;i>=0;i--){
-    const c=STATE.coins[i];
-    c.y += STATE.scrollSpeed * dt;
-    const dx = p.x - c.x, dy=p.y-c.y, d = Math.hypot(dx,dy);
-    if (d < p.magnet){
-      const k = clamp(1400/(d+60), 260, 1400);
-      c.x += (dx/d)*k*dt; c.y += (dy/d)*k*dt;
-    }
-    ctx.font = '24px system-ui'; ctx.fillText('💎', c.x, c.y);
-    if (circleHit(c,p)){ STATE.score += 5; STATE.coins.splice(i,1); beep({freq:820,vol:0.12,dur:0.04}); }
-    else if (c.y>H+40) STATE.coins.splice(i,1);
-  }
-
-  // pickups
-  for(let i=STATE.pickups.length-1;i>=0;i--){
-    const a=STATE.pickups[i];
-    a.y += STATE.scrollSpeed * dt;
-    ctx.font = 'bold 28px system-ui';
-    ctx.fillText(a.kind==='weapon'?'⚙️':a.kind==='heal'?'💖':'🧲', a.x, a.y+4);
-    if (circleHit(a,p)){
-      pickup(a.kind);
-      STATE.pickups.splice(i,1);
-    } else if (a.y>H+40) STATE.pickups.splice(i,1);
-  }
-
+  // Draw FX
   drawFX(dt);
-  ctx.restore();
-
-  if (STATE.comboTimer>0){ STATE.comboTimer -= dt; } else { STATE.combo=Math.max(0,STATE.combo-0.02); }
-  hudHP.textContent = `❤️ ${Math.max(0, Math.floor(p.hp))}`;
-  hudScore.textContent = `⭐ ${STATE.score}${STATE.combo>1?` ×${(1+STATE.combo*0.15).toFixed(1)}`:''}`;
-  hudStage.textContent = `שלב ${STATE.stage} • 🤺 ${STATE.weaponNames[p.weapon]}`;
-
-  if (p.hp<=0){ softReset(); }
-
+  
+  mainCtx.restore();
+  
+  // Update HUD
+  hudPortfolio.textContent = formatCurrency(STATE.portfolioValue);
+  hudCash.textContent = formatCurrency(STATE.cash);
+  hudDate.textContent = `${MONTH_NAMES[STATE.gameDate.getMonth()]} ${STATE.gameDate.getFullYear()}`;
+  
   requestAnimationFrame(loop);
 }
 
-function damagePlayer(d){
-  const p=STATE.p;
-  p.hp -= d; p.inv=1.2; STATE.shake = Math.min(16, STATE.shake+10);
-  noise({dur:0.12,vol:0.28,lp:1200});
-}
-
-function pickup(kind){
-  const p=STATE.p;
-  if (kind==='weapon'){
-    p.weapon = (p.weapon+1) % 5;
-    p.fireDelay = [130,120,150,30,240][p.weapon];
-    p.dmg = [6,5,5,2,12][p.weapon];
-    beep({type:'square',freq:720,vol:0.2}); beep({type:'square',freq:920,vol:0.18});
-  } else if (kind==='heal'){
-    p.hp = Math.min(p.maxHp, p.hp+28);
-    beep({type:'triangle',freq:680,vol:0.18});
-  } else if (kind==='magnet'){
-    p.magnet = Math.min(320, p.magnet+80);
-    beep({type:'sawtooth',freq:580,vol:0.16});
-  }
-}
-
-function softReset(){
-  addExplosion(STATE.p.x, STATE.p.y, '255,120,120');
-  STATE.score = 0; // --- שינוי ---: איפוס מלא יותר, כולל ניקוד
-  STATE.stage = 1;
-  STATE.scrollSpeed = 280;
-  STATE.p.x=W/2; STATE.p.y=H*0.85; STATE.p.targetLane=1;
-  STATE.p.hp=STATE.p.maxHp; STATE.p.inv=2.0; STATE.p.weapon=0; STATE.p.magnet=160;
-  STATE.enemies.length=0; STATE.coins.length=0; STATE.pickups.length=0; STATE.bullets.length=0;
-  STATE.combo=0; STATE.comboTimer=0; STATE.spawnTimer=1500;
-  showStory();
-  stageTone(STATE.stage);
-}
-
-showStory();
+// Initial call
+updatePortfolioValue();
 requestAnimationFrame(loop);
 })();
 </script>
