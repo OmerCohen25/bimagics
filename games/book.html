@@ -1,588 +1,734 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl" data-theme="light">
+<html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מחולל הסיפורים האינטראקטיבי</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>מחולל הסיפורים הקסום</title>
 
-    <style>
-        /* --- CSS Variables for Theming --- */
-        :root {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f5f7fa;
-            --text-primary: #212529;
-            --text-secondary: #555;
-            --color-primary: #007bff;
-            --color-secondary: #0056b3;
-            --color-accent: #ffc107;
-            --shadow-color: rgba(0, 0, 0, 0.1);
-            --border-color: #e0e0e0;
-        }
+<!-- הרשאת רשת מותרת: Google Fonts + Font Awesome בלבד -->
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
 
-        html[data-theme='dark'] {
-            --bg-primary: #1e1e1e;
-            --bg-secondary: #121212;
-            --text-primary: #e0e0e0;
-            --text-secondary: #b0b0b0;
-            --color-primary: #58a6ff;
-            --color-secondary: #80bfff;
-            --color-accent: #fdd835;
-            --shadow-color: rgba(255, 255, 255, 0.1);
-            --border-color: #424242;
-        }
+<style>
+:root{
+  --bg: #0d1117;
+  --card:#151b23;
+  --text:#e6edf3;
+  --muted:#8b949e;
+  --accent:#7c3aed; /* סגול קסום */
+  --accent-2:#10b981; /* ירוק קסם */
+  --ink:#0d1117;
+  --paper:#ffffff;
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+}
 
-        /* --- General Setup & Mobile First --- */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+:root[data-theme="light"]{
+  --bg:#f6f8fa;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#475569;
+  --accent:#7c3aed;
+  --accent-2:#0284c7;
+  --ink:#0f172a;
+  --paper:#ffffff;
+  --shadow: 0 10px 25px rgba(2,6,23,.08);
+}
 
-        body {
-            font-family: 'Assistant', sans-serif;
-            background-color: var(--bg-secondary);
-            color: var(--text-primary);
-            transition: background-color 0.3s, color 0.3s;
-            line-height: 1.8;
-        }
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; font-family:Heebo, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+  background:var(--bg); color:var(--text);
+}
 
-        /* --- Views --- */
-        #generator-view {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            text-align: center;
-        }
-        
-        #book-view { display: none; }
+.header{
+  position:sticky; top:0; z-index:1000; backdrop-filter:saturate(1.2) blur(8px);
+  background:color-mix(in oklab, var(--bg) 80%, transparent);
+  border-bottom:1px solid color-mix(in oklab, var(--text) 15%, transparent);
+}
+.container{max-width:980px; margin:0 auto; padding:12px 16px}
+.header .row{display:flex; align-items:center; gap:10px; justify-content:space-between}
+.brand{display:flex; align-items:center; gap:10px; font-weight:900; letter-spacing:.3px}
+.brand .logo{
+  width:36px; height:36px; border-radius:12px; display:grid; place-items:center;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color:white; box-shadow: var(--shadow); font-size:18px;
+}
 
-        /* --- Generator View Styling --- */
-        .generator-title {
-            font-size: clamp(2rem, 8vw, 3.5rem);
-            color: var(--color-primary);
-            margin-bottom: 1rem;
-        }
-        .generator-subtitle {
-            font-size: clamp(1rem, 4vw, 1.2rem);
-            color: var(--text-secondary);
-            margin-bottom: 2rem;
-            max-width: 600px;
-        }
-        #prompt-input {
-            width: 100%;
-            max-width: 600px;
-            padding: 15px;
-            font-size: 1.1rem;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            font-family: 'Assistant', sans-serif;
-            resize: vertical;
-            min-height: 100px;
-            margin-bottom: 1.5rem;
-        }
-        #generate-btn {
-            padding: 15px 30px;
-            font-size: 1.2rem;
-            font-weight: 700;
-            border: none;
-            border-radius: 50px;
-            background-color: var(--color-primary);
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        #generate-btn:hover {
-            background-color: var(--color-secondary);
-            transform: scale(1.05);
-        }
+.toolbar{display:flex; gap:8px; flex-wrap:wrap}
+.btn{
+  display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:12px;
+  border:1px solid color-mix(in oklab, var(--text) 15%, transparent);
+  background:color-mix(in oklab, var(--card) 90%, transparent);
+  color:var(--text); cursor:pointer; box-shadow: var(--shadow);
+  transition:.2s transform, .2s background, .2s border-color, .2s opacity;
+  text-decoration:none; user-select:none;
+}
+.btn:hover{ transform:translateY(-1px)}
+.btn.primary{ background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-color:transparent; color:#fff; }
+.btn.ghost{ background:transparent }
+.btn.icon{ padding:10px; width:42px; justify-content:center }
 
-        /* --- Loader Animation --- */
-        .loader-overlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            flex-direction: column;
-            color: white;
-        }
-        .loader {
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid var(--color-primary);
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 1s linear infinite;
-        }
-        .loader-text { margin-top: 20px; font-size: 1.2rem; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.main{padding:20px 16px; max-width:980px; margin:0 auto;}
 
-        /* --- Book View Styling (reused and enhanced) --- */
-        .book-container {
-            width: 100%;
-            max-width: 900px;
-            margin: 0 auto;
-            background-color: var(--bg-primary);
-            box-shadow: 0 5px 25px var(--shadow-color);
-            transition: background-color 0.3s;
-        }
-        .book-header {
-            padding: 15px;
-            background-color: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            transition: background-color 0.3s, border-color 0.3s;
-        }
-        .control-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background-color: var(--bg-primary);
-            padding: 5px;
-            border-radius: 50px;
-            box-shadow: 0 2px 5px var(--shadow-color);
-        }
-        .header-btn, .speed-btn {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 1.2rem;
-            cursor: pointer;
-            width: 44px; height: 44px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: color 0.2s, background-color 0.2s;
-        }
-        .header-btn:hover, .speed-btn:hover {
-            color: var(--color-primary);
-            background-color: var(--bg-secondary);
-        }
-        .speed-btn.active {
-            background-color: var(--color-primary);
-            color: white;
-            font-weight: bold;
-        }
-        .book-main-content { padding: 15px; }
-        .page { margin-bottom: 2rem; }
-        .page h1, .page h3 {
-            font-weight: 700; color: var(--color-primary);
-            display: flex; align-items: center; gap: 15px;
-            margin-bottom: 1rem;
-        }
-        .page h1 { font-size: clamp(2rem, 8vw, 2.8rem); }
-        .page h3 { font-size: clamp(1.5rem, 6vw, 1.8rem); }
-        .text-block {
-            display: flex; align-items: flex-start; gap: 10px;
-            margin-bottom: 1rem;
-        }
-        .text-block p {
-            font-size: clamp(1.1rem, 4vw, 1.2rem);
-            text-align: justify;
-            flex-grow: 1;
-        }
-        .play-audio-btn {
-            background: none; border: none;
-            color: var(--color-primary);
-            font-size: 1.5rem; cursor: pointer;
-            padding: 5px; transition: color 0.2s, transform 0.2s;
-            flex-shrink: 0;
-        }
-        .play-audio-btn:hover { transform: scale(1.1); }
-        .illustration {
-            width: 100%; height: auto;
-            border-radius: 12px; margin: 1.5rem 0;
-            border: 3px solid var(--bg-primary);
-            box-shadow: 0 4px 15px var(--shadow-color);
-        }
-        .the-end {
-            text-align: center; font-size: 1.5rem; font-weight: 700;
-            color: var(--color-primary); padding: 2rem 0;
-        }
-        #back-btn {
-             background: var(--bg-primary);
-             color: var(--text-secondary);
-             border-radius: 50px;
-             font-weight: bold;
-             padding: 5px 15px;
-             margin: 0 10px;
-        }
+.card{
+  background:var(--card); border:1px solid color-mix(in oklab, var(--text) 12%, transparent);
+  border-radius:18px; padding:16px; box-shadow:var(--shadow);
+}
 
-        /* --- Desktop adjustments --- */
-        @media (min-width: 768px) {
-            .book-header { justify-content: space-between; padding: 10px 25px; }
-            .book-main-content { padding: 30px 50px; }
-        }
-    </style>
+h1,h2,h3{margin:0 0 12px}
+h1{font-size:clamp(24px, 3vw, 34px);}
+h2{font-size:clamp(20px, 2.4vw, 26px);}
+p{line-height:1.7; color:var(--text); margin:0 0 10px}
+.muted{color:var(--muted)}
+
+textarea{
+  width:100%; min-height:140px; resize:vertical; padding:14px; border-radius:14px;
+  border:1px solid color-mix(in oklab, var(--text) 15%, transparent);
+  background: color-mix(in oklab, var(--card) 92%, transparent);
+  color:var(--text); font-size:16px;
+}
+
+.grid{display:grid; gap:16px}
+@media(min-width:720px){ .grid.cols-2{ grid-template-columns: 1.2fr .8fr } }
+
+.helper{
+  display:flex; gap:10px; align-items:flex-start; color:var(--muted); font-size:14px
+}
+.helper i{ color:var(--accent-2); margin-top:3px }
+
+.center{ display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap }
+
+hr.sep{
+  height:1px; border:0; background: color-mix(in oklab, var(--text) 14%, transparent);
+  margin:14px 0;
+}
+
+/* שני המסכים */
+#generator-view{}
+#book-view{ display:none }
+
+/* ספר */
+.book{
+  display:grid; gap:18px;
+}
+.chapter{
+  padding:16px; border-radius:16px; background: color-mix(in oklab, var(--card) 95%, transparent);
+  border:1px dashed color-mix(in oklab, var(--text) 18%, transparent);
+}
+.chapter .illus{ width:100%; aspect-ratio:16/9; border-radius:12px; overflow:hidden; background:#0b1220; display:grid; place-items:center; }
+.chapter .illus img{ width:100%; height:100%; object-fit:contain; background:transparent }
+.tools-row{ display:flex; gap:8px; flex-wrap:wrap }
+.badge{
+  display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; font-size:13px;
+  background: color-mix(in oklab, var(--accent) 15%, transparent); color:var(--text);
+  border:1px solid color-mix(in oklab, var(--accent) 40%, transparent);
+}
+
+/* Toast */
+.toast{
+  position:fixed; inset-inline:0; bottom:14px; display:grid; place-items:center; pointer-events:none; z-index:2000;
+}
+.toast .pill{
+  pointer-events:auto;
+  background: color-mix(in oklab, var(--ink) 30%, var(--paper) 70%);
+  color: var(--ink);
+  border-radius:999px; padding:10px 14px; box-shadow: var(--shadow); border:1px solid #0001;
+}
+
+/* Overlay טעינה */
+#loading-overlay{
+  position:fixed; inset:0; display:none; z-index:1500;
+  background:
+    radial-gradient(1200px 1200px at 10% 10%, color-mix(in oklab, var(--accent) 20%, transparent), transparent 60%),
+    radial-gradient(1000px 1000px at 90% 10%, color-mix(in oklab, var(--accent-2) 18%, transparent), transparent 60%),
+    linear-gradient(180deg, color-mix(in oklab, var(--bg) 92%, transparent), var(--bg));
+  color:#fff;
+}
+#loading-overlay .inner{
+  height:100%; display:grid; place-items:center; text-align:center; padding:24px;
+}
+.loader{
+  width:72px; height:72px; border-radius:50%; border:6px solid #ffffff30; border-top-color:#fff; animation:spin 1s linear infinite; margin:0 auto 16px;
+}
+@keyframes spin{ to{ transform:rotate(360deg) } }
+
+/* Print */
+@media print{
+  .header, #generator-view .card:first-of-type, .toolbar { display:none !important }
+  body{ background:var(--paper); color:var(--ink) }
+  .card, .chapter{ border-color:#0003; background:var(--paper); box-shadow:none }
+  .illus{ background:#fff }
+}
+</style>
 </head>
 <body>
 
-    <div id="generator-view">
-        <h1 class="generator-title">מחולל הסיפורים</h1>
-        <p class="generator-subtitle">כתוב רעיון, משפט או אפילו מילה אחת, והבינה המלאכותית שלנו תכתוב ותאייר עבורך ספר ילדים אינטראקטיבי שלם.</p>
-        <textarea id="prompt-input" rows="3" placeholder="לדוגמה: פיל קטן שרוצה ללמוד לעוף..."></textarea>
-        <button id="generate-btn">
-            <i class="fas fa-magic"></i>
-            <span>צור לי סיפור!</span>
-        </button>
+<header class="header">
+  <div class="container">
+    <div class="row">
+      <div class="brand">
+        <div class="logo"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+        <div>מחולל הסיפורים הקסום</div>
+      </div>
+      <div class="toolbar">
+        <button id="themeToggle" class="btn icon" title="מצב יום/לילה"><i class="fa-solid fa-circle-half-stroke"></i></button>
+        <a id="shareWhatsApp" class="btn" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> שיתוף</a>
+        <button id="exportPdfBtn" class="btn"><i class="fa-solid fa-file-arrow-down"></i> הורדה כ-PDF</button>
+        <button id="playAllBtn" class="btn"><i class="fa-solid fa-play"></i> נגן הכל</button>
+        <button id="newStoryBtn" class="btn ghost"><i class="fa-solid fa-plus"></i> התחל סיפור חדש</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+  <!-- מסך 1: המחולל -->
+  <section id="generator-view" class="grid cols-2">
+    <div class="card">
+      <h1>מחולל הסיפורים הקסום</h1>
+      <p class="muted">כתבו רעיון קצר, ואנו נהפוך אותו לספר דיגיטלי שלם – פרקים, איורים, קריינות, והורדה כ-PDF.</p>
+      <hr class="sep">
+      <label for="storyPrompt"><strong>השראה לסיפור</strong></label>
+      <textarea id="storyPrompt" placeholder="לדוגמה: דרקון ביישן שרוצה להכין עוגת שוקולד על הירח, עם רובוט מצחיק שמפחד מחתולים."></textarea>
+      <div style="height:10px"></div>
+      <div class="center">
+        <button id="generateBtn" class="btn primary"><i class="fa-solid fa-sparkles"></i> צור לי סיפור קסום!</button>
+      </div>
+      <div style="height:8px"></div>
+      <div class="helper">
+        <i class="fa-solid fa-lightbulb"></i>
+        <div>טיפ: השתמשו במילים כמו <em>פיראט</em>, <em>חלל</em>, <em>אמיץ</em>, <em>עצוב</em>, <em>יער</em>, <em>ירח</em> – והאיורים יותאמו אוטומטית.</div>
+      </div>
     </div>
 
-    <div id="book-view">
-        <div class="book-container" id="book-container-for-pdf">
-            <header class="book-header">
-                <button id="back-btn" class="header-btn" title="חזור למחולל">
-                     <i class="fas fa-arrow-right"></i>
-                </button>
-                <div class="control-group">
-                    <button id="theme-toggle-btn" class="header-btn" title="שנה מצב תצוגה"><i class="fas fa-moon"></i></button>
-                    <button id="read-all-btn" class="header-btn" title="הקראה רציפה"><i class="fas fa-play-circle"></i></button>
-                </div>
-                <div id="speed-controls" class="control-group">
-                    <button class="speed-btn" data-speed="0.8" title="מהירות איטית">0.8x</button>
-                    <button class="speed-btn active" data-speed="1" title="מהירות רגילה">1x</button>
-                    <button class="speed-btn" data-speed="1.2" title="מהירות גבוהה">1.2x</button>
-                </div>
-                 <div class="control-group">
-                    <button id="download-pdf-btn" class="header-btn" title="הורד כ-PDF"><i class="fas fa-file-pdf"></i></button>
-                    <button id="share-whatsapp-btn" class="header-btn" title="שתף בווטסאפ"><i class="fab fa-whatsapp"></i></button>
-                </div>
-            </header>
-            <main class="book-main-content" id="book-content-area"></main>
-        </div>
+    <div class="card">
+      <h2>איך זה עובד?</h2>
+      <p class="muted">האפליקציה מדמה “בינה מלאכותית” בצד הלקוח בלבד: מפענחת מילות מפתח, בוחרת תבנית סיפור, ממלאת דמויות ואתגרים, ומתאימה צבעים באיורי SVG לפי מצב-רוח.</p>
+      <ul class="muted">
+        <li>מובייל-פרסט, RTL, מצב יום/לילה ושמירה אוטומטית.</li>
+        <li>קריינות לכל פסקה ולכל הספר (pause/resume + מהירות).</li>
+        <li>הדפסה/שמירה ל-PDF מהדפדפן (ועוגן להטמעת jsPDF+html2canvas).</li>
+        <li>שיתוף קל בווטסאפ.</li>
+      </ul>
+      <div class="badge"><i class="fa-solid fa-lock"></i> עובד 100% בדפדפן – ללא שרת</div>
     </div>
-    
-    <div class="loader-overlay" id="loader-overlay">
-        <div class="loader"></div>
-        <p class="loader-text">כותב סיפור, מאייר תמונות... עוד רגע...</p>
+  </section>
+
+  <!-- מסך 2: הספר -->
+  <section id="book-view" class="book">
+    <div class="card">
+      <h2 id="bookTitle">—</h2>
+      <p id="bookSubtitle" class="muted">—</p>
+      <div class="tools-row">
+        <span class="badge"><i class="fa-solid fa-feather"></i> נכתב אוטומטית</span>
+        <span id="createdAtBadge" class="badge"><i class="fa-regular fa-clock"></i> —</span>
+      </div>
     </div>
+    <div id="chapters"></div>
+  </section>
+</main>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!-- Overlay טעינה -->
+<div id="loading-overlay">
+  <div class="inner">
+    <div>
+      <div class="loader"></div>
+      <h2>רוקם מילים, מצייר כוכבים...</h2>
+      <p class="muted">הסיפור שלך נוצר…</p>
+    </div>
+  </div>
+</div>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
+<!-- Toast -->
+<div class="toast" id="toast" aria-live="polite"></div>
 
-        // --- GLOBAL STATE & DOM ELEMENTS ---
-        const state = { playbackRate: 1, isReadingAll: false, currentUtterance: null };
-        const generatorView = document.getElementById('generator-view');
-        const bookView = document.getElementById('book-view');
-        const loader = document.getElementById('loader-overlay');
-        const promptInput = document.getElementById('prompt-input');
-        const generateBtn = document.getElementById('generate-btn');
-        const backBtn = document.getElementById('back-btn');
-        const bookContentArea = document.getElementById('book-content-area');
+<script>
+(function(){
+  // ===============================
+  // מצב יום/לילה + שמירה
+  // ===============================
+  const root = document.documentElement;
+  const THEME_KEY = 'story.theme';
+  function applyTheme(theme){
+    root.setAttribute('data-theme', theme);
+    localStorage.setItem(THEME_KEY, theme);
+  }
+  const savedTheme = localStorage.getItem(THEME_KEY) || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  applyTheme(savedTheme);
+  document.getElementById('themeToggle').addEventListener('click', ()=>{
+    applyTheme(root.getAttribute('data-theme')==='light' ? 'dark' : 'light');
+    ping('החלפנו מצב תצוגה');
+  });
 
-        // Book view controls
-        const themeToggleButton = document.getElementById('theme-toggle-btn');
-        const readAllButton = document.getElementById('read-all-btn');
-        const speedControls = document.getElementById('speed-controls');
-        const downloadPdfBtn = document.getElementById('download-pdf-btn');
-        const shareWhatsappBtn = document.getElementById('share-whatsapp-btn');
-        
-        const synth = window.speechSynthesis;
+  // ===============================
+  // UI refs
+  // ===============================
+  const generatorView = document.getElementById('generator-view');
+  const bookView = document.getElementById('book-view');
+  const storyPrompt = document.getElementById('storyPrompt');
+  const generateBtn = document.getElementById('generateBtn');
+  const loadingOverlay = document.getElementById('loading-overlay');
+  const bookTitleEl = document.getElementById('bookTitle');
+  const bookSubtitleEl = document.getElementById('bookSubtitle');
+  const createdAtBadge = document.getElementById('createdAtBadge');
+  const chaptersEl = document.getElementById('chapters');
+  const shareBtn = document.getElementById('shareWhatsApp');
+  const exportPdfBtn = document.getElementById('exportPdfBtn');
+  const playAllBtn = document.getElementById('playAllBtn');
+  const newStoryBtn = document.getElementById('newStoryBtn');
 
-        // ===============================================
-        // === "AI" SIMULATOR: STORY & IMAGE GENERATOR ===
-        // ===============================================
-        
-        // --- 1. Keyword Dictionary ---
-        const keywords = {
-            // Characters
-            'אריה': { type: 'character', name: 'לביא האריה', gender: 'm', image: 'lion' },
-            'פיל': { type: 'character', name: 'פלא הפיל', gender: 'm', image: 'elephant' },
-            'קוף': { type: 'character', name: 'קופיקו הקוף', gender: 'm', image: 'monkey' },
-            'ילדה': { type: 'character', name: 'מאיה', gender: 'f', image: 'girl' },
-            'ילד': { type: 'character', name: 'דני', gender: 'm', image: 'boy' },
-            'רובוט': { type: 'character', name: 'זיפי הרובוט', gender: 'm', image: 'robot' },
-            'דרקון': { type: 'character', name: 'דרקו הדרקון', gender: 'm', image: 'dragon' },
-            // Locations
-            'יער': { type: 'location', name: 'יער הקסמים', image: 'forest' },
-            'כוכבים': { type: 'location', name: 'כוכב לכת רחוק', image: 'space' },
-            'ירח': { type: 'location', name: 'הירח המנצנץ', image: 'space' },
-            'ים': { type: 'location', name: 'מעמקי הים הכחול', image: 'sea' },
-            'עיר': { type: 'location', name: 'העיר הגדולה', image: 'city' },
-            // Themes / Verbs
-            'לעוף': { type: 'theme', name: 'רצה לעוף', challenge: 'לא היו לו כנפיים', resolution: 'בנה כנפיים מחלומות', image: 'flying' },
-            'חבר': { type: 'theme', name: 'חיפש חבר', challenge: 'היה קצת ביישן', resolution: 'גילה שהחבר הכי טוב היה קרוב כל הזמן', image: 'friends' },
-            'אבוד': { type: 'theme', name: 'הלך לאיבוד', challenge: 'השביל נעלם', resolution: 'למד לסמוך על ליבו כדי למצוא את הדרך', image: 'lost' },
-            'אוצר': { type: 'theme', name: 'חיפש אוצר', challenge: 'המפה הייתה מסובכת', resolution: 'גילה שהאוצר האמיתי הוא המסע עצמו', image: 'treasure' },
-        };
+  // ===============================
+  // שמירה/טעינה
+  // ===============================
+  const SAVE_KEY = 'story.last';
+  function saveState(state){
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+  }
+  function loadState(){
+    try{
+      const s = JSON.parse(localStorage.getItem(SAVE_KEY)||'null');
+      return s;
+    }catch{ return null }
+  }
 
-        // --- 2. Image Library (Base64 encoded SVGs) ---
-        const images = {
-            default: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNDAwIj48cGF0aCBmaWxsPSIjOUNFMkYyIiBkPSJNMCAwaDgwMHY0MDBIMHoiLz48cGF0aCBmaWxsPSIjQ0NEQ0ZGIiBkPSJNMCAzMDBoODAwvDEwMEgweiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iNTAiIGZpbGw9IiNGRkQwNTkiLz48L3N2Zz4=',
-            lion: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iI2Y5YTgwMCIvPjxwYXRoIGZpbGw9IiNkMzViMDAiIGQ9Ik01MCAxMEE0MCA0MCAwIDAgMCAxMCA1MGMwIDIyLjA5IDM1LjgyIDQwIDQwIDQwaDIwYzQuNDIgMCA4LTMuNTggOC04VjU4YzAtNC40Mi0zLjU4LTgtOC04SDYwYTEwIDEwIDAgMSAxIDEwLTEwaDEwYTQgNCAwIDAgMCA0LTRWMTBhMTIgMTIgMCAwIDAtMTItMTJoLTIwWiIvPjwvZz48L3N2Zz4=',
-            elephant: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iNjAiIHg9IjEwIiB5PSIyMCIgcng9IjEwIiBmaWxsPSIjYzA2YmQiLz48cGF0aCBmaWxsPSIjYmNiZGI4IiBkPSJNNjAgMjBIMzBhMjAgMjAgMCAwIDAgMCA0MGg0MGMxMSAwIDE1LTUgNS0xMFYyMFoiLz48cGF0aCBmaWxsPSIjYzA2YmQiIGQ9Ik0xMCA1MHYyMGE1IDUgMCAwIDAgNSA1aDcwYTUgNSAwIDAgMCA1LTZWNTBaIi8+PC9zdmc+',
-            forest: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzI2YzY5YSIvPjxwYXRoIGZpbGw9IiMxOTg3NzkiIGQ9Ik0wIDEwMGw1MCAzMCA1MC0zMFY3MGwtNTAgMzAtNTAgMzB6Ii8+PHBhdGggZmlsbD0iIzM4OGUzYyIgZD0iTTMwIDk1bDEwLTQwIDEwIDQwWm0zMCAwbDEwLTQwIDEwIDQwWiIvPjwvZz48L3N2Zz4=',
-            space: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzEyMTIxMiIvPjxjaXJjbGUgY3g9IjIwIiBjeT0iMjUiIHI9IjUiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSI4MCIgY3k9IjcwIiByPSIxMCIgZmlsbD0iI2Y5YTgwMCIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iNTUiIHI9IjMiIGZpbGw9IiNmZmYiLz48cGF0aCBzdHJva2U9IiNmZmYiIGQ9Ik03MCAyMEw3NSA0MEw5MCAzMFoiLz48L3N2Zz4=',
-            friends: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSIzNSIgY3k9IjUwIiByPSIyNSIgZmlsbD0iI2ZmMmQ1OCIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iNTAiIHI9IjI1IiBmaWxsPSIjMDBiZmY5Ii8+PHBhdGggZD0iTTQ3IDQ1Yy0xMC0xMC0yNSA1LTIwIDE1czEwIDMwIDM1IDAgMTAtMjUtNS0yNXoiIGZpbGw9IiNmZjQwODEiIG9wYWNpdHk9IjAuNSIvPjwvc3ZnPg==',
-        };
+  // טעינה אוטומטית של ספר אחרון
+  const last = loadState();
+  if(last && last.title){
+    renderBook(last);
+    switchTo('book');
+  } else {
+    switchTo('generator');
+  }
 
-        // --- 3. Story Templates ---
-        const templates = [
-            {
-                title: "[CHARACTER_NAME], ה[CHARACTER_TYPE] ש[THEME_NAME]",
-                chapter1: "היה היה, בלב [LOCATION_NAME], [CHARACTER_TYPE] חמוד בשם [CHARACTER_NAME]. יותר מכל דבר אחר, [CHARACTER_NAME] [THEME_NAME]. אבל הייתה בעיה קטנה: [THEME_CHALLENGE].",
-                chapter2: "יום אחד, [CHARACTER_NAME] החליט/ה שדי! '[PRONOUN] יוצא/ת למסע!' הכריז/ה. [PRONOUN] ארז/ה בתיק קטן חלום אחד גדול ויצא/ה לדרך. הדרך הייתה מלאה בהפתעות, אבל [CHARACTER_NAME] לא ויתר/ה.",
-                chapter3: "לבסוף, אחרי הרפתקאות רבות, [CHARACTER_NAME] הבינ/ה דבר מופלא. [PRONOUN] הבינ/ה ש[THEME_RESOLUTION]. עם לב מלא שמחה, [PRONOUN] חזר/ה הביתה, וידע/ה שההרפתקה האמיתית רק התחילה."
-            },
-        ];
+  // ===============================
+  // “AI” סימולטיבי: תבניות ומילון
+  // ===============================
+  const keywordMap = {
+    'פיראט': { hero:'שודד הים חד-העין', place:'אי סודי', challenge:'סערה אימתנית', solution:'אומץ וחברות' },
+    'דרקון': { hero:'דרקון ביישן', place:'הר ערפילי', challenge:'למצוא חבר', solution:'עוגת שוקולד משותפת' },
+    'חלל': { hero:'אסטרונאוט צעיר', place:'תחנת חלל', challenge:'מכשיר שהתקלקל', solution:'חשיבה יצירתית' },
+    'יער': { hero:'שומרת היער', place:'יער עתיק', challenge:'שביל שאבד', solution:'רוח טובה ומצפן' },
+    'ירח': { hero:'אופה ירחי', place:'הירח', challenge:'כבידה מוזרה', solution:'קמח כוכבים' },
+    'רובוט': { hero:'רובוט מצחיק', place:'מעבדה צבעונית', challenge:'רעש מפחיד', solution:'לצחוק על הפחד' },
+    'אמיץ': { tone:'brave' },
+    'עצוב': { tone:'sad' },
+    'מצחיק': { tone:'funny' },
+    'קסם': { tone:'magic' }
+  };
 
-        // --- 4. The Generator Function ---
-        const generateStory = (prompt) => {
-            let storyConfig = {
-                character: keywords['ילד'],
-                location: keywords['יער'],
-                theme: keywords['חבר'],
-            };
+  const templates = [
+`[כותרת]: [דמות_ראשית] ב[מיקום]
+[פתיח]: פעם במקום שנקרא [מיקום], חי/ה [דמות_ראשית]. 
+[פרק]: יום אחד הופיע [אתגר], וכולם דאגו.
+[המשך]: אבל [דמות_ראשית] אסף/ה את הכוחות, וביחד עם חברים מצאו [פתרון].
+[סיום]: מאז, ב[מיקום] לומדים שכל אתגר קטן יותר כשניגשים אליו יחד.`,
 
-            // Analyze prompt to find keywords
-            for (const key in keywords) {
-                if (prompt.includes(key)) {
-                    const keywordData = keywords[key];
-                    storyConfig[keywordData.type] = keywordData;
-                }
-            }
-            
-            // Select a template (we only have one for this example)
-            let template = templates[0];
-            
-            const pronoun = storyConfig.character.gender === 'f' ? 'היא' : 'הוא';
+`[כותרת]: ההבטחה של [דמות_ראשית]
+[פתיח]: ל[דמות_ראשית] תמיד היה חלום מיוחד ב[מיקום].
+[פרק]: כשהגיע [אתגר], החלום נראה רחוק מתמיד.
+[המשך]: אז ניסו דרך אחרת – קסם, דמיון, וקצת סבלנות – עד שהגיע [פתרון].
+[סיום]: החלום התגשם, ואור חדש מילא את [מיקום].`,
 
-            // Populate story content
-            let title = template.title
-                .replace('[CHARACTER_NAME]', storyConfig.character.name)
-                .replace('[CHARACTER_TYPE]', storyConfig.character.type)
-                .replace('[THEME_NAME]', storyConfig.theme.name);
+`[כותרת]: תעלומת [מיקום]
+[פתיח]: בוקר אחד קם/ה [דמות_ראשית] וגילה/תה משהו מסתורי.
+[פרק]: [אתגר] התגלגל לפתח הבית.
+[המשך]: אחרי חקירה מצחיקה ומלאת הפתעות, נמצא [פתרון].
+[סיום]: וכך נפתרה התעלומה, והלב התמלא בשקט ורוגע.`
+  ];
 
-            let chapters = [
-                template.chapter1,
-                template.chapter2,
-                template.chapter3,
-            ].map(ch => ch
-                .replace(/\[CHARACTER_NAME\]/g, storyConfig.character.name)
-                .replace(/\[CHARACTER_TYPE\]/g, storyConfig.character.type)
-                .replace(/\[LOCATION_NAME\]/g, storyConfig.location.name)
-                .replace(/\[THEME_NAME\]/g, storyConfig.theme.name)
-                .replace(/\[THEME_CHALLENGE\]/g, storyConfig.theme.challenge)
-                .replace(/\[THEME_RESOLUTION\]/g, storyConfig.theme.resolution)
-                .replace(/\[PRONOUN\]/g, pronoun)
-            );
+  // ===============================
+  // ספריית איורי SVG (נבנה dataURL Base64 בזמן ריצה)
+  // כל איור עובר מניפולציה צבעונית לפי טון (למשל "עצוב" → כחול).
+  // ===============================
+  const baseSvgs = {
+    dragon: (color='#E11D48') => `
+      <svg xmlns='http://www.w3.org/2000/svg' width='1024' height='576' viewBox='0 0 1024 576'>
+        <defs>
+          <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+            <stop offset='0%' stop-color='${color}' stop-opacity='.85'/>
+            <stop offset='100%' stop-color='#111827' stop-opacity='.95'/>
+          </linearGradient>
+        </defs>
+        <rect width='100%' height='100%' fill='url(#g)'/>
+        <g transform='translate(180,120)'>
+          <path d='M0,200 C60,60 220,40 300,140 C360,210 540,160 580,240 C590,260 520,300 500,280 C440,230 350,260 300,230 C240,195 120,210 0,200' fill='#11182780'/>
+          <g transform='translate(160,40)'>
+            <circle cx='0' cy='0' r='60' fill='${color}'/>
+            <circle cx='-15' cy='-10' r='8' fill='#fff'/>
+            <circle cx='-15' cy='-10' r='3' fill='#111827'/>
+            <path d='M-40,30 Q0,60 40,30' stroke='#fff' stroke-width='6' fill='none' stroke-linecap='round'/>
+            <path d='M-65,-20 L-85,-60 L-45,-40 Z' fill='${color}' opacity='.8'/>
+          </g>
+        </g>
+        <text x='28' y='550' fill='#ffffffaa' font-family='Heebo' font-size='22'>דרקון ביישן</text>
+      </svg>`,
+    pirate: (color='#F59E0B') => `
+      <svg xmlns='http://www.w3.org/2000/svg' width='1024' height='576' viewBox='0 0 1024 576'>
+        <rect width='100%' height='100%' fill='#0f172a'/>
+        <circle cx='180' cy='420' r='160' fill='#1e293b'/>
+        <rect x='0' y='360' width='1024' height='216' fill='#0ea5a8'/>
+        <g transform='translate(340,140)'>
+          <rect x='-60' y='-30' width='120' height='60' fill='${color}' rx='12'/>
+          <circle cx='-15' cy='-5' r='8' fill='#000'/>
+          <rect x='-80' y='-90' width='160' height='40' fill='#111' rx='6'/>
+          <rect x='-80' y='-90' width='70' height='40' fill='#111' rx='6' />
+          <path d='M-70,-90 Q-65,-120 0,-120 Q65,-120 70,-90' fill='#111'/>
+        </g>
+        <text x='24' y='48' fill='#93c5fd' font-family='Heebo' font-size='24'>פיראט אמיץ</text>
+      </svg>`,
+    space: (color='#22d3ee') => `
+      <svg xmlns='http://www.w3.org/2000/svg' width='1024' height='576' viewBox='0 0 1024 576'>
+        <rect width='100%' height='100%' fill='#0b1020'/>
+        <g fill='#fff'>
+          <circle cx='50' cy='50' r='1'/><circle cx='120' cy='90' r='1'/><circle cx='240' cy='60' r='1'/>
+          <circle cx='380' cy='40' r='1'/><circle cx='700' cy='80' r='1'/><circle cx='900' cy='30' r='1'/>
+        </g>
+        <circle cx='860' cy='130' r='68' fill='${color}'/>
+        <g transform='translate(320,180)'>
+          <circle cx='0' cy='0' r='36' fill='#e5e7eb'/>
+          <rect x='-18' y='-60' width='36' height='30' rx='8' fill='#94a3b8'/>
+          <rect x='-22' y='-16' width='44' height='18' rx='6' fill='#94a3b8'/>
+        </g>
+        <text x='30' y='540' fill='#ffffffcc' font-family='Heebo' font-size='22'>מסע בחלל</text>
+      </svg>`,
+    forest: (color='#10b981') => `
+      <svg xmlns='http://www.w3.org/2000/svg' width='1024' height='576' viewBox='0 0 1024 576'>
+        <rect width='100%' height='100%' fill='#052e2b'/>
+        <g fill='${color}'>
+          <path d='M120,460 L180,340 L240,460 Z'/><rect x='160' y='460' width='40' height='80' fill='#0b3b39'/>
+          <path d='M360,460 L420,330 L480,460 Z'/><rect x='400' y='460' width='40' height='80' fill='#0b3b39'/>
+          <path d='M620,460 L680,320 L740,460 Z'/><rect x='660' y='460' width='40' height='80' fill='#0b3b39'/>
+        </g>
+        <rect x='0' y='520' width='1024' height='56' fill='#083c3a'/>
+        <text x='24' y='48' fill='#a7f3d0' font-family='Heebo' font-size='24'>יער עתיק</text>
+      </svg>`,
+    moon: (color='#cbd5e1') => `
+      <svg xmlns='http://www.w3.org/2000/svg' width='1024' height='576' viewBox='0 0 1024 576'>
+        <rect width='100%' height='100%' fill='#0b1020'/>
+        <circle cx='780' cy='180' r='100' fill='${color}'/>
+        <circle cx='750' cy='170' r='10' fill='#94a3b8'/><circle cx='820' cy='195' r='14' fill='#94a3b8'/>
+        <rect x='0' y='460' width='1024' height='116' fill='#475569'/>
+        <text x='28' y='540' fill='#e2e8f0' font-family='Heebo' font-size='22'>על הירח</text>
+      </svg>`,
+    robot: (color='#38bdf8') => `
+      <svg xmlns='http://www.w3.org/2000/svg' width='1024' height='576' viewBox='0 0 1024 576'>
+        <rect width='100%' height='100%' fill='#0b1220'/>
+        <g transform='translate(360,160)'>
+          <rect x='0' y='0' width='300' height='180' rx='16' fill='${color}'/>
+          <circle cx='90' cy='70' r='18' fill='#0b1220'/><circle cx='200' cy='70' r='18' fill='#0b1220'/>
+          <rect x='120' y='120' width='60' height='20' rx='8' fill='#0b1220'/>
+        </g>
+        <text x='28' y='48' fill='#bae6fd' font-family='Heebo' font-size='24'>רובוט מצחיק</text>
+      </svg>`
+  };
 
-            // Select images
-            const storyImages = [
-                images[storyConfig.character.image] || images.default,
-                images[storyConfig.theme.image] || images.default,
-                images.friends,
-            ];
+  function svgToDataUrl(svgString){
+    return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+  }
 
-            return { title, chapters, images: storyImages };
-        };
+  // בחירת איור לפי מילת מפתח + טון צבעוני
+  function pickIllustration(keywords, tone){
+    // מיפוי גס: עדיפות לפי מילת מפתח שנמצאה
+    if(keywords.includes('דרקון')) return svgToDataUrl(baseSvgs.dragon(colorByTone(tone,'#E11D48')));
+    if(keywords.includes('פיראט')) return svgToDataUrl(baseSvgs.pirate(colorByTone(tone,'#F59E0B')));
+    if(keywords.includes('חלל')) return svgToDataUrl(baseSvgs.space(colorByTone(tone,'#22d3ee')));
+    if(keywords.includes('יער')) return svgToDataUrl(baseSvgs.forest(colorByTone(tone,'#10b981')));
+    if(keywords.includes('ירח')) return svgToDataUrl(baseSvgs.moon(colorByTone(tone,'#cbd5e1')));
+    if(keywords.includes('רובוט')) return svgToDataUrl(baseSvgs.robot(colorByTone(tone,'#38bdf8')));
+    // ברירת מחדל
+    return svgToDataUrl(baseSvgs.forest(colorByTone(tone,'#10b981')));
+  }
 
-        // ===============================================
-        // === UI & EVENT LISTENERS =======================
-        // ===============================================
+  function colorByTone(tone, base){
+    if(tone==='sad') return '#3b82f6';
+    if(tone==='brave') return '#ef4444';
+    if(tone==='funny') return '#f59e0b';
+    if(tone==='magic') return '#a855f7';
+    return base;
+  }
 
-        generateBtn.addEventListener('click', () => {
-            const prompt = promptInput.value;
-            if (!prompt) {
-                alert('אנא כתוב רעיון לספר!');
-                return;
-            }
+  // ===============================
+  // מחולל סיפור מתוך פרומפט
+  // ===============================
+  function generateStoryFromPrompt(prompt){
+    const text = (prompt||'').trim();
+    const found = [];
+    let tone = null;
 
-            loader.style.display = 'flex';
+    for(const k of Object.keys(keywordMap)){
+      if(text.includes(k)){
+        found.push(k);
+        if(keywordMap[k].tone) tone = keywordMap[k].tone;
+      }
+    }
 
-            // Simulate AI generation time
-            setTimeout(() => {
-                const story = generateStory(prompt);
-                
-                // Build the book HTML
-                let html = `<section class="page"><h1><button class="play-audio-btn" aria-label="הקרא כותרת"><i class="fas fa-volume-up"></i></button>${story.title}</h1></section>`;
-                
-                story.chapters.forEach((chapter, index) => {
-                    html += `
-                        <article class="page">
-                            <h3><button class="play-audio-btn" aria-label="הקרא כותרת פרק"><i class="fas fa-volume-up"></i></button>פרק ${index + 1}</h3>
-                            <div class="text-block"><button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button><p>${chapter}</p></div>
-                            <img src="${story.images[index] || images.default}" alt="איור לפרק ${index+1}" class="illustration">
-                        </article>
-                    `;
-                });
-                
-                html += '<div class="the-end">~ הסוף ~</div>';
-                bookContentArea.innerHTML = html;
+    // יצירת "משתני מילוי"
+    const base = found[0] && keywordMap[found[0]] || {};
+    const vars = {
+      דמות_ראשית: base.hero || 'ילד/ה סקרנ/ית',
+      מיקום: base.place || 'כפר רחוק',
+      אתגר: base.challenge || 'סוד לא פתור',
+      פתרון: base.solution || 'שיתוף פעולה'
+    };
 
-                // Switch views
-                generatorView.style.display = 'none';
-                bookView.style.display = 'block';
-                loader.style.display = 'none';
-                
-                // Re-initialize event listeners for the new content
-                initializeBookControls();
+    // בחר תבנית ופצל לשורות
+    const tpl = templates[Math.floor(Math.random()*templates.length)];
+    const filled = tpl
+      .replaceAll('[דמות_ראשית]', vars.דמות_ראשית)
+      .replaceAll('[מיקום]', vars.מיקום)
+      .replaceAll('[אתגר]', vars.אתגר)
+      .replaceAll('[פתרון]', vars.פתרון);
 
-            }, 2500); // 2.5 seconds delay
-        });
-        
-        backBtn.addEventListener('click', () => {
-             bookView.style.display = 'none';
-             generatorView.style.display = 'flex';
-             stopAllAudio();
-        });
+    // נחלץ פרקים
+    const lines = filled.split('\n').map(s=>s.trim()).filter(Boolean);
+    const titleLine = lines.find(l=>l.startsWith('[כותרת]:')) || '';
+    const title = titleLine.replace('[כותרת]:','').trim() || 'סיפור קסום';
 
-
-        // --- Reusable Book Controls Logic ---
-        const initializeBookControls = () => {
-            // Re-query buttons inside the newly created book
-            const individualPlayButtons = bookContentArea.querySelectorAll('.play-audio-btn');
-
-            const stopAllAudio = () => {
-                if (synth.speaking) synth.cancel();
-                state.isReadingAll = false;
-                if(readAllButton) readAllButton.innerHTML = '<i class="fas fa-play-circle"></i>';
-                individualPlayButtons.forEach(btn => btn.innerHTML = '<i class="fas fa-volume-up"></i>');
-            };
-
-            const speak = (text, onEndCallback) => {
-                stopAllAudio();
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'he-IL';
-                utterance.rate = state.playbackRate;
-                state.currentUtterance = utterance;
-                utterance.onend = () => {
-                    state.currentUtterance = null;
-                    if (onEndCallback) onEndCallback();
-                };
-                synth.speak(utterance);
-            };
-
-            if(readAllButton){
-                readAllButton.onclick = () => {
-                    if (state.isReadingAll) {
-                        if (synth.speaking) synth.pause();
-                        readAllButton.innerHTML = '<i class="fas fa-play-circle"></i>';
-                        state.isReadingAll = false;
-                    } else if (synth.paused && state.currentUtterance) {
-                        synth.resume();
-                        readAllButton.innerHTML = '<i class="fas fa-pause-circle"></i>';
-                        state.isReadingAll = true;
-                    } else {
-                        const allText = Array.from(bookContentArea.querySelectorAll('h1, h3, p')).map(el => el.textContent).join('. ');
-                        speak(allText, () => {
-                            state.isReadingAll = false;
-                            readAllButton.innerHTML = '<i class="fas fa-play-circle"></i>';
-                        });
-                        readAllButton.innerHTML = '<i class="fas fa-pause-circle"></i>';
-                        state.isReadingAll = true;
-                    }
-                };
-            }
-
-            individualPlayButtons.forEach(button => {
-                button.onclick = () => {
-                    const textElement = button.parentElement.querySelector('h1, h3, p');
-                    if (!textElement) return;
-                    const textToSpeak = textElement.textContent;
-                    if (state.currentUtterance && state.currentUtterance.text === textToSpeak) {
-                        stopAllAudio();
-                    } else {
-                        speak(textToSpeak, () => {
-                            button.innerHTML = '<i class="fas fa-volume-up"></i>';
-                        });
-                        button.innerHTML = '<i class="fas fa-stop-circle"></i>';
-                    }
-                };
-            });
-            
-            // Make sure this is defined once for the book view
-            if(downloadPdfBtn) {
-                 downloadPdfBtn.onclick = () => {
-                    loader.style.display = 'flex';
-                    const bookContainer = document.getElementById('book-container-for-pdf');
-                    
-                    html2canvas(bookContainer, {
-                        scale: 2, // Higher scale for better quality
-                        useCORS: true,
-                        backgroundColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#1e1e1e' : '#ffffff'
-                    }).then(canvas => {
-                        const imgData = canvas.toDataURL('image/png');
-                        const { jsPDF } = window.jspdf;
-                        const pdf = new jsPDF({
-                            orientation: 'p',
-                            unit: 'px',
-                            format: [canvas.width, canvas.height]
-                        });
-                        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-                        pdf.save('my-story.pdf');
-                        loader.style.display = 'none';
-                    }).catch(err => {
-                        console.error("PDF generation failed", err);
-                        loader.style.display = 'none';
-                        alert("שגיאה ביצירת קובץ ה-PDF.");
-                    });
-                };
-            }
-
-            if(shareWhatsappBtn) {
-                shareWhatsappBtn.onclick = () => {
-                    const bookTitle = bookContentArea.querySelector('h1').textContent;
-                    const message = `הי, יצרתי ספר ילדים מדהים בשם "${bookTitle}"! אתם יכולים ליצור סיפורים משלכם עם מחולל הסיפורים האינטראקטיבי.`;
-                    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
-                    window.open(whatsappUrl, '_blank');
-                };
-            }
-        };
-
-        // --- GENERAL CONTROLS INITIALIZATION (for the whole app) ---
-        const applyTheme = (theme) => {
-            document.documentElement.setAttribute('data-theme', theme);
-            themeToggleButton.innerHTML = theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-            localStorage.setItem('storyGeneratorTheme', theme);
-        };
-
-        themeToggleButton.addEventListener('click', () => {
-            const newTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-            applyTheme(newTheme);
-        });
-
-        speedControls.addEventListener('click', (e) => {
-            if (e.target.classList.contains('speed-btn')) {
-                state.playbackRate = parseFloat(e.target.dataset.speed);
-                if (speedControls.querySelector('.active')) {
-                    speedControls.querySelector('.active').classList.remove('active');
-                }
-                e.target.classList.add('active');
-            }
-        });
-        
-        // Load initial theme
-        const savedTheme = localStorage.getItem('storyGeneratorTheme') || 'light';
-        applyTheme(savedTheme);
-        
-        // Stop audio if user leaves page
-        window.addEventListener('beforeunload', () => synth.cancel());
-
+    // נייצר 3-4 “פרקים” מתוך חלקי התבנית
+    const bodies = lines.filter(l=>!l.startsWith('[כותרת]:')).map(l=>{
+      return l.replace(/^\[(.*?)\]:\s*/,'');
     });
-    </script>
+    const chapters = (bodies.length>=4 ? bodies.slice(0,4) : bodies).map((t,i)=>({
+      heading: `פרק ${i+1}`,
+      text: prettifyText(t)
+    }));
 
+    // כותרת משנה
+    const subtitle = text || 'סיפור שנוצר ממחשבה אחת קטנה';
+
+    // איורים (אחד לכל פרק)
+    const illusUrl = pickIllustration(found, tone);
+    const illusAlt = 'איור נוצר';
+
+    return {
+      title,
+      subtitle,
+      createdAt: new Date().toISOString(),
+      tone: tone || 'neutral',
+      keywords: found,
+      chapters: chapters.map(ch => ({
+        ...ch,
+        illu: illusUrl,
+        illuAlt
+      }))
+    };
+  }
+
+  function prettifyText(t){
+    // פיסוק עדין לילדים
+    let s = t;
+    if(!/[.!?]$/.test(s)) s += '…';
+    return s;
+  }
+
+  // ===============================
+  // רינדור ספר למסך
+  // ===============================
+  function renderBook(data){
+    bookTitleEl.textContent = data.title;
+    bookSubtitleEl.textContent = data.subtitle;
+    createdAtBadge.innerHTML = `<i class="fa-regular fa-clock"></i> נוצר ב-${new Date(data.createdAt).toLocaleString('he-IL')}`;
+    chaptersEl.innerHTML = '';
+
+    data.chapters.forEach((ch, idx)=>{
+      const sec = document.createElement('section');
+      sec.className = 'chapter';
+
+      const h = document.createElement('h3');
+      h.textContent = ch.heading;
+      sec.appendChild(h);
+
+      const ill = document.createElement('div');
+      ill.className = 'illus';
+      ill.innerHTML = `<img alt="${ch.illuAlt||''}" loading="lazy" src="${ch.illu}">`;
+      sec.appendChild(ill);
+
+      const p = document.createElement('p');
+      p.textContent = ch.text;
+      sec.appendChild(p);
+
+      // כפתורי קריינות לפסקה/כותרת
+      const row = document.createElement('div'); row.className='tools-row';
+      const playBtn = document.createElement('button'); playBtn.className='btn icon'; playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; playBtn.title='קריינות לפסקה';
+      const pauseBtn = document.createElement('button'); pauseBtn.className='btn icon'; pauseBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; pauseBtn.title='הפסקה';
+      const speedSlow = document.createElement('button'); speedSlow.className='btn'; speedSlow.textContent='איטי';
+      const speedNorm = document.createElement('button'); speedNorm.className='btn'; speedNorm.textContent='רגיל';
+      const speedFast = document.createElement('button'); speedFast.className='btn'; speedFast.textContent='מהיר';
+
+      let rate = 1.0;
+      speedSlow.addEventListener('click', ()=>{ rate=0.85; ping('מהירות: איטי') });
+      speedNorm.addEventListener('click', ()=>{ rate=1.0; ping('מהירות: רגיל') });
+      speedFast.addEventListener('click', ()=>{ rate=1.25; ping('מהירות: מהיר') });
+
+      let utter = null;
+      playBtn.addEventListener('click', ()=>{
+        if(window.speechSynthesis){
+          if(utter) window.speechSynthesis.cancel();
+          utter = new SpeechSynthesisUtterance(`${h.textContent}. ${p.textContent}`);
+          utter.lang = 'he-IL'; utter.rate = rate;
+          speechSynthesis.speak(utter);
+        }
+      });
+      pauseBtn.addEventListener('click', ()=>{
+        if(speechSynthesis.speaking) speechSynthesis.pause();
+        else if(speechSynthesis.paused) speechSynthesis.resume();
+      });
+
+      row.append(playBtn, pauseBtn, speedSlow, speedNorm, speedFast);
+      sec.appendChild(row);
+
+      chaptersEl.appendChild(sec);
+    });
+
+    // שיתוף ווטסאפ
+    shareBtn.href = buildWhatsAppShareUrl(data);
+  }
+
+  // ===============================
+  // מעבר מסכים
+  // ===============================
+  function switchTo(which){
+    if(which==='book'){ generatorView.style.display='none'; bookView.style.display='grid'; }
+    else { bookView.style.display='none'; generatorView.style.display='grid'; }
+  }
+
+  // ===============================
+  // יצירת סיפור (כפתור)
+  // ===============================
+  generateBtn.addEventListener('click', async ()=>{
+    const prompt = storyPrompt.value.trim() || 'דרקון ביישן שרוצה להכין עוגת שוקולד על הירח';
+    showLoading(true);
+    await sleep(1300 + Math.random()*800);
+    const story = generateStoryFromPrompt(prompt);
+    saveState(story);
+    renderBook(story);
+    switchTo('book');
+    showLoading(false);
+    ping('הסיפור מוכן ✨');
+  });
+
+  newStoryBtn.addEventListener('click', ()=>{
+    switchTo('generator');
+    ping('חזרה למחולל');
+  });
+
+  function showLoading(flag){
+    loadingOverlay.style.display = flag ? 'block' : 'none';
+  }
+  function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+  // ===============================
+  // שיתוף ווטסאפ
+  // ===============================
+  function buildWhatsAppShareUrl(data){
+    const t = `📖 "${data.title}" – נוצר במחולל הסיפורים הקסום!\nנסה גם אתה/את: מחולל סיפורים דיגיטליים עם איורים וקריינות.`;
+    return `https://wa.me/?text=${encodeURIComponent(t)}`;
+  }
+
+  // ===============================
+  // נגן הכל (TTS) + pause/resume
+  // ===============================
+  let allQueue = [];
+  let allRate = 1.0;
+  playAllBtn.addEventListener('click', ()=>{
+    if(!window.speechSynthesis) return;
+    if(speechSynthesis.speaking && !speechSynthesis.paused){ speechSynthesis.pause(); ping('הושעה'); return; }
+    if(speechSynthesis.paused){ speechSynthesis.resume(); ping('המשך'); return; }
+
+    const parts = [];
+    parts.push(bookTitleEl.textContent);
+    parts.push(bookSubtitleEl.textContent);
+    chaptersEl.querySelectorAll('.chapter').forEach(ch=>{
+      const h = ch.querySelector('h3')?.textContent || '';
+      const p = ch.querySelector('p')?.textContent || '';
+      parts.push(`${h}. ${p}`);
+    });
+
+    allQueue = parts;
+    speechSynthesis.cancel();
+    speakNextInQueue();
+  });
+
+  function speakNextInQueue(){
+    if(allQueue.length===0) { ping('הסתיים'); return; }
+    const text = allQueue.shift();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='he-IL'; u.rate = allRate;
+    u.onend = ()=> speakNextInQueue();
+    speechSynthesis.speak(u);
+  }
+
+  // ===============================
+  // יצוא PDF
+  // ברירת מחדל: פתיחת חלון הדפסה (שמירה ל-PDF). 
+  // עוגן לשילוב jsPDF+html2canvas מובנים – ראה מקטע הספריות בהמשך.
+  // ===============================
+  exportPdfBtn.addEventListener('click', async ()=>{
+    // גרסת fallback: Print to PDF
+    ping('פותח הדפסה… בחרו "שמור כ-PDF" לשמירה.');
+    window.print();
+  });
+
+  // ===============================
+  // Toast
+  // ===============================
+  const toast = document.getElementById('toast');
+  let toastTimer = null;
+  function ping(msg){
+    clearTimeout(toastTimer);
+    toast.innerHTML = `<div class="pill">${msg}</div>`;
+    toastTimer = setTimeout(()=> toast.innerHTML='', 1800);
+  }
+
+  // מיקוד בשדה
+  storyPrompt.focus();
+
+  // ===============================
+  // ======  ספריות מוטמעות (עוגנים)  ======
+  // כדי לעמוד באילוץ "קובץ יחיד עם ספריות בקוד", אפשר להדביק כאן את קוד jsPDF ו-html2canvas (minified).
+  // לאחר ההדבקה, ניתן להחליף את fallback של window.print() ביצוא PDF איכותי:
+  //
+  //   1) המרצפים את אזור הספר ל-canvas עם html2canvas.
+  //   2) ממירים את ה-canvas לתמונה (PNG/JPEG).
+  //   3) משבצים למסמך PDF חדש של jsPDF, כולל עמוד שער מעוצב.
+  //
+  // דוגמת שימוש אחרי ההטמעה:
+  //
+  // async function exportWithLibs(){
+  //   const bookNode = document.querySelector('#book-view');
+  //   const canvas = await html2canvas(bookNode,{scale:2});
+  //   const imgData = canvas.toDataURL('image/jpeg', 0.92);
+  //   const pdf = new jspdf.jsPDF({orientation:'p', unit:'pt', format:'a4'});
+  //   // עמוד שער:
+  //   pdf.setFillColor(124,58,237);
+  //   pdf.rect(0,0,595,842,'F');
+  //   pdf.setTextColor(255,255,255);
+  //   pdf.setFontSize(28);
+  //   pdf.text(bookTitleEl.textContent, 40, 80);
+  //   pdf.setFontSize(12);
+  //   pdf.text(new Date().toLocaleString('he-IL'), 40, 110);
+  //   // עמוד תוכן:
+  //   pdf.addPage();
+  //   const pageW=595, pageH=842, margin=20;
+  //   const imgW = pageW - margin*2;
+  //   const imgH = canvas.height * imgW / canvas.width;
+  //   pdf.addImage(imgData, 'JPEG', margin, margin, imgW, imgH);
+  //   pdf.save(`${bookTitleEl.textContent}.pdf`);
+  // }
+  //
+  // ואז להחליף ב-exportPdfBtn: exportWithLibs();
+  //
+  // ====== מקומות להדבקה: ======
+  // /*** BEGIN html2canvas ***/
+  // // ... html2canvas.min.js ...
+  // /*** END html2canvas ***/
+  //
+  // /*** BEGIN jsPDF ***/
+  // // ... jspdf.umd.min.js ...
+  // /*** END jsPDF ***/
+
+})();
+</script>
 </body>
 </html>
