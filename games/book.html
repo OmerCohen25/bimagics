@@ -1,198 +1,193 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="he" dir="rtl" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>החבר הכי לא צפוי של זוהר (גרסה משופרת)</title>
+    <title>החבר הכי לא צפוי של זוהר - גרסת פרימיום</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <style>
+        /* --- CSS Variables for Theming --- */
         :root {
-            --primary-color: #3f51b5;
-            --secondary-color: #1a237e;
-            --accent-color: #ffeb3b;
-            --background-color: #f5f7fa;
-            --page-bg-color: #ffffff;
-            --text-color: #333;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f7fa;
+            --text-primary: #212529;
+            --text-secondary: #555;
+            --color-primary: #3f51b5;
+            --color-secondary: #1a237e;
+            --color-accent: #ffeb3b;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-color: #e0e0e0;
+        }
+
+        html[data-theme='dark'] {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --color-primary: #7986cb;
+            --color-secondary: #c5cae9;
+            --color-accent: #fdd835;
+            --shadow-color: rgba(255, 255, 255, 0.1);
+            --border-color: #424242;
+        }
+
+        /* --- General Setup & Mobile First --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             font-family: 'Assistant', sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            line-height: 1.9;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.8;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .book-container {
             width: 100%;
             max-width: 900px;
-            background-color: var(--page-bg-color);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            border-radius: 15px;
-            overflow: hidden;
-            border: 1px solid #ddd;
-        }
-
-        .book-header {
-            padding: 20px 30px;
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .book-header h2 {
-            margin: 0;
-            font-size: 1.2em;
-            color: var(--primary-color);
-        }
-
-        #share-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 50px;
-            font-size: 1em;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        #share-btn:hover {
-            background-color: var(--secondary-color);
-            transform: scale(1.05);
+            margin: 0 auto;
+            background-color: var(--bg-primary);
+            box-shadow: 0 5px 25px var(--shadow-color);
+            transition: background-color 0.3s;
         }
         
-        #share-btn .fa-share-alt {
-            font-size: 1.1em;
+        /* --- Header with Controls --- */
+        .book-header {
+            padding: 15px;
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: var(--bg-primary);
+            padding: 5px;
+            border-radius: 50px;
+            box-shadow: 0 2px 5px var(--shadow-color);
+        }
+
+        .header-btn, .speed-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: color 0.2s, background-color 0.2s;
+        }
+        
+        .header-btn:hover, .speed-btn:hover {
+            color: var(--color-primary);
+            background-color: var(--bg-secondary);
+        }
+        
+        .speed-btn.active {
+            background-color: var(--color-primary);
+            color: white;
+            font-weight: bold;
+        }
+        
+        /* --- Content Styling --- */
+        main {
+            padding: 15px;
         }
 
         .page {
-            padding: 30px 40px;
+            margin-bottom: 2rem;
         }
         
-        .cover-page {
-            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-            color: white;
-            text-align: center;
-        }
-
-        .cover-page h1, .cover-page h2 {
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
-        }
-        
-        .cover-page h1 {
-            font-size: 3.5em;
-            margin-bottom: 10px;
-        }
-
-        .cover-page h2 {
-            font-size: 1.5em;
-            font-weight: 400;
-            opacity: 0.9;
-        }
-
-        .dedication {
-            text-align: center;
-            font-style: italic;
-            color: #666;
-        }
-
-        .content-page h3 {
-            font-size: 2.2em;
+        .page h1, .page h3 {
             font-weight: 700;
-            color: var(--primary-color);
-            border-bottom: 3px solid var(--accent-color);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+            color: var(--color-primary);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 1rem;
         }
         
+        .page h1 { font-size: clamp(2rem, 8vw, 2.8rem); }
+        .page h3 { font-size: clamp(1.5rem, 6vw, 1.8rem); }
+
         .text-block {
             display: flex;
             align-items: flex-start;
-            gap: 15px;
-            font-size: 1.25em;
-            margin-bottom: 1em;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .text-block p {
+            font-size: clamp(1.1rem, 4vw, 1.2rem);
             text-align: justify;
+            flex-grow: 1;
         }
         
         .play-audio-btn {
             background: none;
             border: none;
-            color: var(--primary-color);
-            font-size: 1.5em; /* Larger icon */
+            color: var(--color-primary);
+            font-size: 1.5rem;
             cursor: pointer;
             padding: 5px;
-            margin-top: 2px;
-            transition: color 0.3s, transform 0.2s;
-            flex-shrink: 0; /* Prevents button from shrinking */
+            transition: color 0.2s, transform 0.2s;
+            flex-shrink: 0;
         }
         
         .play-audio-btn:hover {
-            color: var(--secondary-color);
-            transform: scale(1.2);
-        }
-        
-        .play-audio-btn.playing {
-            color: #ff4081; /* Pink color when playing */
-        }
-        
-        .text-block p {
-            margin: 0;
-            flex-grow: 1; /* Allows text to take available space */
+            transform: scale(1.1);
         }
 
         .illustration {
             width: 100%;
             height: auto;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin: 25px 0;
-            border: 5px solid white;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            border: 3px solid var(--bg-primary);
+            box-shadow: 0 4px 15px var(--shadow-color);
         }
 
         .the-end {
             text-align: center;
-            font-size: 2em;
+            font-size: 1.5rem;
             font-weight: 700;
-            color: var(--primary-color);
-            padding: 40px;
-        }
-        
-        /* Toast notification for copy link */
-        #toast {
-            position: fixed;
-            bottom: -100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #333;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 50px;
-            font-size: 1em;
-            z-index: 1000;
-            transition: bottom 0.5s ease-in-out;
+            color: var(--color-primary);
+            padding: 2rem 0;
         }
 
-        #toast.show {
-            bottom: 30px;
+        /* --- Desktop adjustments --- */
+        @media (min-width: 768px) {
+            .book-header {
+                justify-content: space-between;
+                padding: 10px 25px;
+            }
+            main {
+                padding: 30px 50px;
+            }
         }
-
     </style>
 </head>
 <body>
@@ -200,237 +195,209 @@
     <div class="book-container">
         
         <header class="book-header">
-            <h2>הספר האינטראקטיבי שלך</h2>
-            <button id="share-btn">
-                <i class="fas fa-share-alt"></i>
-                <span>שתף את הספר</span>
-            </button>
+            <div class="control-group">
+                <button id="theme-toggle-btn" class="header-btn" title="שנה מצב תצוגה">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button id="read-all-btn" class="header-btn" title="הקראה רציפה">
+                    <i class="fas fa-play-circle"></i>
+                </button>
+            </div>
+            <div id="speed-controls" class="control-group">
+                <button class="speed-btn" data-speed="0.8" title="מהירות איטית">0.8x</button>
+                <button class="speed-btn active" data-speed="1" title="מהירות רגילה">1x</button>
+                <button class="speed-btn" data-speed="1.2" title="מהירות גבוהה">1.2x</button>
+            </div>
         </header>
 
-        <main>
-            <section class="page cover-page">
-                <div class="text-block">
+        <main id="book-content">
+            <section class="page">
+                <h1>
                     <button class="play-audio-btn" aria-label="הקרא כותרת"><i class="fas fa-volume-up"></i></button>
-                    <h1>החבר הכי לא צפוי של זוהר</h1>
-                </div>
-                <div class="text-block">
-                     <button class="play-audio-btn" aria-label="הקרא שם מחבר"><i class="fas fa-volume-up"></i></button>
-                     <h2>מאת: ג'מיני</h2>
-                </div>
-                <img src="https://placehold.co/700x400/3f51b5/ffffff?text=%D7%96%D7%95%D7%94%D7%A8+%D7%94%D7%92%D7%97%D7%9C%D7%99%D7%9C%D7%99%D7%AA+%D7%95%D7%A8%D7%A7%D7%A9+%D7%94%D7%A2%D7%9B%D7%91%D7%99%D7%A9" alt="זוהר הגחלילית ורקש העכביש על קור עכביש זוהר" class="illustration">
+                    החבר הכי לא צפוי של זוהר
+                </h1>
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA0MDAiIHdpZHRoPSI4MDAiIGhlaWdodD0iNDAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwLjUiIHgyPSIwLjUiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMxYTIzN2UiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMzZjUxYjUiLz48L2xpbmVhckdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0iYiIgY3g9IjAiIGN5PSIwIiByPSIxIiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDAgMjYuOTE3MyAtMjYuMjUgMCAxNDkuMzUgMTQ2LjU4KSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1yYWRpdXM9IjAiIHN0b3AtY29sb3I9IiNmZmViM2IiIHN0b3Atb3BhY2l0eT0iMSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1yYWRpdXM9IjEiIHN0b3AtY29sb3I9IiNmZmViM2IiIHN0b3Atb3BhY2l0eT0iMCIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJ1cmwoI2EpIi8+PGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1vcGFjaXR5PSIwLjMiPjxwYXRoIGQ9Ik0zNjAuNSA5Ny44bC0xMS4xIDI0LjQgMzYuMyAxNi41LTEzLjIgMjQuMiAzNi4yIDE2LjYtMTIuMiAyNC44Ii8+PHBhdGggZD0ibTQ4My44IDk4LjggMTEuMSAyNC40LTM2LjMgMTYuNSAxMy4yIDI0LjItMzYuMiAxNi42IDEyLjIgMjQuOCIvPjxwYXRoIGQ9Im0zOTYgMTg2LjIgMzguNy0yMi41IDM4LjYgMjIuNSIvPjxwYXRoIGQ9Ik0zOTUuNSAyNTMuNWwzOS4yLTIyLjYgMzguMiAyMi42Ii8+PHBhdGggZD0ibTQ3My44IDI5MS45LTQwLjMtMzQuOS0zNy44IDM0LjkiLz48cGF0aCBkPSJtMzYxLjIgMjg5LjYgNDAuMy0zNC45IDM3LjggMzQuOSIvPjxwYXRoIGQ9Ik0zMjQuNCAyMjMuNWwxOC44LTMzLjkgMzIuNS0uOCAyMS42IDMxLjkgMTYuNSAzMy4yIi8+PHBhdGggZD0ibTUxOS4xIDIyMy41LTE4LjgtMzMuOS0zMi41LS44LTIxLjYgMzEuOS0xNi41IDMzLjIiLz48L2c+PGNpcmNsZSBjeD0iMTUwIiBjeT0iMTUwIiByPSIzMCIgZmlsbD0idXJsKCNiKSIvPjwvc3ZnPg==" alt="זוהר הגחלילית ורקש העכביש" class="illustration">
             </section>
             
-            <section class="page dedication">
-                <div class="text-block">
-                    <button class="play-audio-btn" aria-label="הקרא הקדשה"><i class="fas fa-volume-up"></i></button>
-                    <p>מוקדש לכל הילדים האמיצים שמגלים שאור קטן יכול לעשות שינוי גדול,<br>ושחברות יכולה להסתתר במקומות הכי לא צפויים.</p>
-                </div>
-            </section>
-            
-            <article class="page content-page">
-                <div class="text-block">
-                    <button class="play-audio-btn" aria-label="הקרא כותרת פרק"><i class="fas fa-volume-up"></i></button>
-                    <h3>פרק 1: גחלילית שלא אוהבת את החושך</h3>
-                </div>
-                <div class="text-block">
+            <section class="page">
+                 <div class="text-block">
                     <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>עמוק בתוך "יער הפלאות", בין פטריות זוהרות ופרחים שמנגנים לפני השינה, חיה משפחה גדולה של גחליליות. בכל לילה, כשהשמש אמרה שלום והלכה לישון, הן היו יוצאות כולן יחד ל"ריקוד האורות" הגדול. הן היו מרחפות מעלה ומטה, מציירות שבילים של זהב באוויר החשוך.</p>
+                    <p>עמוק בתוך "יער הפלאות", בין פטריות זוהרות ופרחים שמנגנים לפני השינה, חיה משפחה גדולה של גחליליות. בכל לילה, כשהשמש אמרה שלום והלכה לישון, הן היו יוצאות כולן יחד ל"ריקוד האורות" הגדול.</p>
                 </div>
-                <div class="text-block">
+                 <div class="text-block">
                     <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
                     <p>אבל גחלילית אחת קטנה, בשם זוהר, לא כל כך אהבה את הריקוד. למעשה, זוהר קצת פחד מהחושך. "אבל אתה גחלילית," אמר לו אבא שלו, "האור שלך נועד להאיר את החושך." "אני יודע," לחש זוהר, "אבל כשאני לבד, האור שלי מרגיש קטן... והחושך מרגיש גדול מאוד."</p>
                 </div>
-                <div class="text-block">
-                    <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>ערב אחד, בזמן ריקוד האורות, משב רוח שובב הפריד את זוהר ממשפחתו. הוא התגלגל והסתחרר, עד שנחת לבדו על עלה גדול ורטוב. הוא הדליק את האור הקטן שלו וכיבה אותו. הדליק וכיבה. מסביבו, היער היה שקט וחשוך. הוא היה לבד לגמרי.</p>
-                </div>
-                <img src="https://placehold.co/700x350/5d4037/f5f5f5?text=%D7%96%D7%95%D7%94%D7%A8+%D7%9C%D7%91%D7%93+%D7%A2%D7%9C+%D7%A2%D7%9C%D7%94+%D7%91%D7%99%D7%A2%D7%A8" alt="זוהר הקטן יושב לבדו על עלה גדול ביער חשוך" class="illustration">
-            </article>
-
-            <article class="page content-page">
-                 <div class="text-block">
-                    <button class="play-audio-btn" aria-label="הקרא כותרת פרק"><i class="fas fa-volume-up"></i></button>
-                    <h3>פרק 2: מפגש דביק</h3>
-                </div>
-                <div class="text-block">
-                    <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>זוהר אזר אומץ והחליט לחפש את משפחתו. הוא עף לאט ובזהירות בין העצים, כשהאור הקטן שלו מהבהב בפחד. "הלו?" הוא קרא בקול רועד, "אמא? אבא?" אבל רק הד קולו ענה לו.</p>
-                </div>
-                <div class="text-block">
-                    <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>לפתע, הוא הרגיש שמשהו דביק תפס את רגלו. הוא נמשך אחורה ונתקע! הוא ניסה למשוך, אבל נתקע חזק יותר. הוא האיר את האור שלו הכי חזק שיכל וראה שהוא נלכד ברשת מבריקה וגדולה, שנראתה כמו תחרה של טיפות טל. "אוי לא," הוא מילמל, "נפלתי על קורי עכביש!"</p>
-                </div>
-                <img src="https://placehold.co/700x400/78909c/ffffff?text=%D7%96%D7%95%D7%94%D7%A8+%D7%AA%D7%A7%D7%95%D7%A2+%D7%91%D7%A7%D7%95%D7%A8%D7%99+%D7%A2%D7%9B%D7%91%D7%99%D7%A9" alt="זוהר לכוד בקור עכביש מבריק" class="illustration">
-                 <div class="text-block">
-                    <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>מתוך הצללים יצאה דמות. זה היה עכביש גדול ואפרורי, עם שמונה רגליים ארוכות ומשקפיים קטנים על קצה אפו. "ובכן, ובכן," אמר העכביש בקול עמוק וקצת צרוד, "מה יש לנו כאן? פנס קטן ומזמזם." זוהר רעד כולו. "בבקשה, אדון עכביש, אל תאכל אותי! הלכתי לאיבוד!"</p>
-                </div>
-            </article>
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNDAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwLjUiIHgyPSIwLjUiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMyNjMyMzgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM0NTU4NjQiLz48L2xpbmVhckdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0iYiIgY3g9IjAiIGN5PSIwIiByPSIxIiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDAgMjIuMDM1IC0yMS40ODggMCA0MDAgMjAwKSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI2ZmZWJiZCIgc3RvcC1vcGFjaXR5PSIxIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZmVkODM1IiBzdG9wLW9wYWNpdHk9IjAiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0idXJsKCNhKSIvPjxwYXRoIGZpbGw9IiMzNzQ3NGYiIGQ9Ik0tMjAgNDAwaDE2MGMtNDAtMTIwLTgwLTIwMC0xNjAtMjAwcy0xMjAgODAtMTYwIDIwMGgxNjB6Ii8+PHBhdGggZmlsbD0iIzQyNTBiMyIgZD0iTTY0MCA0MDBoMzIwYy04MC0xMjAtMTYwLTIwMC0zMjAtMjAwcy0yNDAgODAtMzIwIDIwMGgzMjB6Ii8+PGNpcmNsZSBjeD0iNDAwIiBjeT0iMjAwIiByPSI0MCIgZmlsbD0idXJsKCNiKSIvPjwvc3ZnPg==" alt="זוהר הקטן לבד ביער חשוך" class="illustration">
+            </section>
             
-            <article class="page content-page">
-                <div class="text-block">
+            <article class="page">
+                <h3>
                     <button class="play-audio-btn" aria-label="הקרא כותרת פרק"><i class="fas fa-volume-up"></i></button>
-                    <h3>פרק 3: רקש האורג</h3>
+                    פרק 2: מפגש דביק
+                </h3>
+                 <div class="text-block">
+                    <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
+                    <p>לפתע, הוא הרגיש שמשהו דביק תפס את רגלו. הוא נמשך אחורה ונתקע! הוא האיר את האור שלו הכי חזק שיכל וראה שהוא נלכד ברשת מבריקה וגדולה, שנראתה כמו תחרה של טיפות טל. "אוי לא," הוא מילמל, "נפלתי על קורי עכביש!"</p>
                 </div>
                  <div class="text-block">
                     <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>העכביש גיחך. "לאכול אותך? ילד קטן, אני צמחוני. חוץ מזה, אתה כל כך קטן, בקושי תספיק לקינוח." הוא התקרב בזהירות. "שמי רקש, ואת הקורים האלה אני אורג כבר שנים. הם יצירת האמנות שלי."</p>
+                    <p>מתוך הצללים יצאה דמות. זה היה עכביש גדול ואפרורי, עם שמונה רגליים ארוכות ומשקפיים קטנים על קצה אפו. "ובכן, ובכן," אמר העכביש בקול עמוק, "מה יש לנו כאן? פנס קטן ומזמזם."</p>
                 </div>
-                 <div class="text-block">
-                    <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>זוהר הביט סביבו. עכשיו, כשהפחד קצת התפוגג, הוא ראה שהקורים היו יפהפיים. האור שלו נשבר עליהם לאלפי יהלומים זוהרים. "וואו," אמר זוהר, "זה... יפהפה." רקש נראה מופתע ושמח. "אתה חושב? רוב היצורים ביער מפחדים מהקורים שלי. הם בורחים ממני." הוא נאנח. "זה קצת בודד להיות אמן שאף אחד לא רוצה לראות את עבודתו."</p>
-                </div>
-                <img src="https://placehold.co/700x400/81c784/1b5e20?text=%D7%A8%D7%A7%D7%A9+%D7%95%D7%96%D7%95%D7%94%D7%A8+%D7%9E%D7%A9%D7%95%D7%97%D7%97%D7%99%D7%9D" alt="רקש העכביש וזוהר הגחלילית מדברים על קור העכביש" class="illustration">
-                 <div class="text-block">
-                    <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>זוהר הרגיש קצת עצוב בשביל העכביש. "אני לא פוחד," הוא אמר, והתכוון לזה. רקש חייך בעדינות ושחרר את רגלו של זוהר. "אתה גחלילית אמיצה," אמר. "אבל למה אתה לבד בחושך? גחליליות לא אמורות לאהוב את החושך?" "אני לא," הודה זוהר במבוכה. "אני מפחד ממנו."</p>
-                </div>
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNDAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwLjUiIHgyPSIwLjUiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiM0NTU4NjQiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM1NTZjN2QiLz48L2xpbmVhckdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0iYiIgY3g9IjAiIGN5PSIwIiByPSIxIiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDAgMjYuOTE3MyAtMjYuMjUgMCAyMDAuMzUgMTU2LjU4KSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1yYWRpdXM9IjAiIHN0b3AtY29sb3I9IiNmZmViM2IiIHN0b3Atb3BhY2l0eT0iMSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1yYWRpdXM9IjEiIHN0b3AtY29sb3I9IiNmZmViM2IiIHN0b3Atb3BhY2l0eT0iMCIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJ1cmwoI2EpIi8+PGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLW9wYWNpdHk9IjAuNSI+PHBhdGggZD0ibTQ4My44IDY4LjggMTEuMSAyNC40LTM2LjMgMTYuNSAxMy4yIDI0LjItMzYuMiAxNi42IDEyLjIgMjQuOCAyOS4yIDE2LjYgMTIgMjQuOCAyOS4yIDE2LjYgMTIgMjQuOCIvPjxwYXRoIGQ9Ik0zNjAuNSA2Ny44bC0xMS4xIDI0LjQgMzYuMyAxNi41LTEzLjIgMjQuMiAzNi4yIDE2LjYtMTIuMiAyNC44LTI5LjIgMTYuNi0xMiAyNC44LTI5LjIgMTYuNi0xMiAyNC44Ii8+PHBhdGggZD0ibTM5NiAxNTYuMiAzOC43LTIyLjUgMzguNiAyMi41Ii8+PHBhdGggZD0ibTM5NS41IDMyMy41IDM5LjItMjIuNiAzOC4yIDIyLjYgNDAgLTIzIDQwLTIzIi8+PHBhdGggZD0ibTQ3My44IDM2MS45LTQwLjMtMzQuOS0zNy44IDM0LjkiLz48cGF0aCBkPSJtMzYxLjIgMzU5LjYgNDAuMy0zNC45IDM3LjggMzQuOSIvPjxwYXRoIGQ9Ik0zMjQuNCAyMjMuNWwxOC44LTMzLjkgMzIuNS0uOCAyMS42IDMxLjkgMTYuNSAzMy4yIDIxLjYtMzEuOSAxNi41IDMzLjIiLz48cGF0aCBkPSJtNTE5LjEgMjIzLjUtMTguOC0zMy45LTMyLjNSMTg4LjhsLTIxLjYgMzEuOS0xNi41IDMzLjItMjEuNi0zMS45LTE2LjUgMzMuMiIvPjwvZz48Y2lyY2xlIGN4PSIyMDAiIGN5PSIxNTYiIHI9IjMwIiBmaWxsPSJ1cmwoI2IpIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTEwIDI1MCkgc2NhbGUoMC44KSI+PHBhdGggZmlsbD0iIzM3MzczNyIgZD0iTTcgODBMMCA0MEwxNCAxM0w2MyA2TDgxIDE4TDc3IDQzTDc0IDgwWiIvPjxwYXRoIGZpbGw9IiMzNzM3MzciIGQ9Ik05MyA4MEwxMDAgNDBMODYgMTNMMzcgNkwxOSAxOEwyMyA0M0wyNiA4MFoiLz48cGF0aCBmaWxsPSIjMjEyMTIxIiBkPSJNODEgMThDNzUgMTMgNzMgMTUgNjMgNkg1NyBMMzcgNmMtNSAwLTggNS0xMyAxMUMxOSAxOCA3IDMyIDE0IDEzbDE2LTEwIDEyIDcgNy0xMiA4IDEyejM1bC0yMC0yMCA1IDUgNS01eiIvPjwvZz48L3N2Zz4=" alt="זוהר פוגש את רקש העכביש על קוריו" class="illustration">
             </article>
 
-            <article class="page content-page">
-                <div class="text-block">
+            <article class="page">
+                <h3>
                     <button class="play-audio-btn" aria-label="הקרא כותרת פרק"><i class="fas fa-volume-up"></i></button>
-                    <h3>פרק 4: אור בתוך הסערה</h3>
-                </div>
-                <div class="text-block">
+                    פרק 4: אור בתוך הסערה
+                </h3>
+                 <div class="text-block">
                     <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>בדיוק כשהם סיימו לדבר, רוח חזקה החלה לנשוב. עלים התעופפו לכל עבר וענפים התכופפו. "הו לא, סערה מגיעה!" קרא רקש בדאגה. "היא עלולה לקרוע את הבית שלי!" הרוח התחזקה, ואחד החוטים המרכזיים של הקור נקרע! כל הרשת החלה לרעוד בעוצמה.</p>
-                </div>
-                <img src="https://placehold.co/700x450/263238/ffeb3b?text=%D7%96%D7%95%D7%94%D7%A8+%D7%9E%D7%90%D7%99%D7%A8+%D7%91%D7%A2%D7%95%D7%A6%D7%9E%D7%94+%D7%91%D7%A1%D7%A2%D7%A8%D7%94" alt="זוהר מאיר כמו שמש קטנה כדי לעזור לרקש בסערה" class="illustration">
-                <div class="text-block">
-                    <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>"אני לא רואה כלום!" צעק רקש וניסה לאחוז בחוטים הרופפים. ברגע הזה, זוהר שכח מהפחד שלו. הוא ראה את חברו החדש בצרה. הוא התמקד, נשם עמוק, והאיר את האור שלו חזק יותר משהאיר אי פעם בחייו! הוא הפך לכדור אור קטן ובוהק. "אני אאיר לך את הדרך, רקש!" הוא צעק מעל רעש הרוח.</p>
+                    <p>בדיוק כשהם סיימו לדבר, רוח חזקה החלה לנשוב. עלים התעופפו לכל עבר וענפים התכופפו. "הו לא, סערה מגיעה!" קרא רקש בדאגה. "היא עלולה לקרוע את הבית שלי!"</p>
                 </div>
                  <div class="text-block">
                     <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>האור הבהיר של זוהר האיר את כל הקור. עכשיו רקש יכול היה לראות בדיוק לאן לרוץ ואיזה חוט לחבר. בזריזות מדהימה, הוא טווה חוטים חדשים, חיזק את הקשרים, וקשר את כל הקור לענף חזק ויציב יותר. כשהרוח נרגעה, הקור עמד איתן וחזק, מבריק באורו של זוהר.</p>
+                    <p>ברגע הזה, זוהר שכח מהפחד שלו. הוא ראה את חברו החדש בצרה. הוא התמקד, נשם עמוק, והאיר את האור שלו חזק יותר משהאיר אי פעם בחייו! הוא הפך לכדור אור קטן ובוהק. "אני אאיר לך את הדרך, רקש!" הוא צעק מעל רעש הרוח.</p>
                 </div>
+                 <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNDAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwLjUiIHgyPSIwLjUiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMyNjMyMzgiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM1MzY4NzIiLz48L2xpbmVhckdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0iYiIgY3g9IjAiIGN5PSIwIiByPSIxIiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDAgNTMuODMzMyAtNTEuODc1IDAgNDAwIDE4MCkiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZmZmZmYiIHN0b3Atb3BhY2l0eT0iMSIvPjxzdG9wIG9mZnNldD0iLjUiIHN0b3AtY29sb3I9IiNmZmViM2IiIHN0b3Atb3BhY2l0eT0iMSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmZWJiZCIgc3RvcC1vcGFjaXR5PSIwIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9InVybCgjYSkiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2Utb3BhY2l0eT0iMC42IiBkPSJNMiA1MGMxNTAgNTAgMjAwLTEwMCA0MDAgMHMyNTAgMTUwIDQwMCA1ME0yIDE1MGMxNTAgNTAgMjAwLTEwMCA0MDAgMHMyNTAgMTUwIDQwMCA1ME0yIDI1MGMxNTAgNTAgMjAwLTEwMCA0MDAgMHMyNTAgMTUwIDQwMCA1ME0yIDM1MGMxNTAgNTAgMjAwLTEwMCA0MDAgMHMyNTAgMTUwIDQwMCA1MCIvPjxjaXJjbGUgY3g9IjQwMCIgY3k9IjE4MCIgcj0iMTAwIiBmaWxsPSJ1cmwoI2IpIi8+PC9zdmc+" alt="זוהר מאיר בעוצמה בתוך הסערה" class="illustration">
             </article>
 
-            <article class="page content-page">
-                <div class="text-block">
+            <article class="page">
+                <h3>
                     <button class="play-audio-btn" aria-label="הקרא כותרת פרק"><i class="fas fa-volume-up"></i></button>
-                    <h3>פרק 5: שני חברים, אור אחד</h3>
-                </div>
-                <div class="text-block">
-                    <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>רקש נשם לרווחה. הוא הסתכל על זוהר בהערצה. "הצלת את הבית שלי," אמר בהתרגשות. "האור הקטן שלך היה חזק יותר מכל הסערה." זוהר חייך. הוא הביט סביבו בחושך, שכבר לא נראה כל כך מפחיד. "והאומץ שלך הראה לי איך להשתמש בו," ענה. הוא הבין שהאור שלו לא היה קטן כשהיה לו חבר לחלוק אותו איתו.</p>
-                </div>
-                 <div class="text-block">
-                    <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
-                    <p>"בוא," אמר רקש, "בתור תודה, אני אראה לך את הדרך הקצרה ביותר חזרה למשפחה שלך. אני מכיר כל שביל ביער הזה." רקש הוביל את הדרך על הקרקע, וזוהר ריחף מעליו, מאיר להם את השביל כמו פנס פרטי. במהרה, הם ראו מרחוק נקודות אור מרקדות. משפחתו של זוהר!</p>
-                </div>
+                    פרק 5: שני חברים, אור אחד
+                </h3>
                  <div class="text-block">
                     <button class="play-audio-btn" aria-label="הקרא פסקה"><i class="fas fa-volume-up"></i></button>
                     <p>מאותו הלילה, ריקוד האורות של הגחליליות השתנה. הן רקדו מסביב לקורים המרהיבים של רקש, והאור שלהן הפך את יצירותיו למופע מרהיב. וזוהר? הוא כבר לא פחד מהחושך, כי הוא ידע שגם האור הקטן ביותר יכול להאיר את הדרך, ושבלב היער החשוך, הוא מצא את החבר הכי לא צפוי והכי טוב שיכל לבקש.</p>
                 </div>
-                <img src="https://placehold.co/700x400/ffb74d/d84315?text=%D7%9B%D7%9C+%D7%94%D7%97%D7%91%D7%A8%D7%99%D7%9D+%D7%99%D7%97%D7%93+%D7%95%D7%9E%D7%90%D7%95%D7%A9%D7%A8%D7%99%D7%9D" alt="כל הגחליליות רוקדות סביב הקורים של רקש העכביש המאושר" class="illustration">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNDAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwLjUiIHgyPSIwLjUiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZjY3MDAiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNmZjhiMDAiLz48L2xpbmVhckdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0iYiIgY3g9IjAiIGN5PSIwIiByPSIxIiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDAgOS4wMDk3IC04Ljg1MTcgMCAxNDkuMzUgMTQ2LjU4KSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1yYWRpdXM9IjAiIHN0b3AtY29sb3I9IiNmZmVkYjMiIHN0b3Atb3BhY2l0eT0iMSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1yYWRpdXM9IjEiIHN0b3AtY29sb3I9IiNmZmVkYjMiIHN0b3Atb3BhY2l0eT0iMCIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJ1cmwoI2EpIi8+PGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1vcGFjaXR5PSIwLjciPjxwYXRoIGQ9Ik0zNjAuNSA5Ny44bC0xMS4xIDI0LjQgMzYuMyAxNi41LTEzLjIgMjQuMiAzNi4yIDE2LjYtMTIuMiAyNC44Ii8+PHBhdGggZD0ibTQ4My44IDk4LjggMTEuMSAyNC40LTM2LjMgMTYuNSAxMy4yIDI0LjItMzYuMiAxNi42IDEyLjIgMjQuOCIvPjxwYXRoIGQ9Ik0zOTYgMTg2LjIgMzguNy0yMi41IDM4LjYgMjIuNSIvPjxwYXRoIGQ9Ik0zOTUuNSAyNTMuNWwzOS4yLTIyLjYgMzguMiAyMi42Ii8+PHBhdGggZD0ibTQ3My44IDI5MS45LTQwLjMtMzQuOS0zNy44IDM0LjkiLz48cGF0aCBkPSJtMzYxLjIgMjg5LjYgNDAuMy0zNC45IDM3LjggMzQuOSIvPjxwYXRoIGQ9Ik0zMjQuNCAyMjMuNWwxOC44LTMzLjkgMzIuNS0uOCAyMS42IDMxLjkgMTYuNSAzMy4yIi8+PHBhdGggZD0ibTUxOS4xIDIyMy41LTE4LjgtMzMuOS0zMi41LS44LTIxLjYgMzEuOS0xNi41IDMzLjIiLz48L2c+PGNpcmNsZSBjeD0iMTUwIiBjeT0iMTUwIiByPSIxNCIgZmlsbD0idXJsKCNiKSIvPjxjaXJjbGUgY3g9IjY1MCIgY3k9IjI1MCIgcj0iMTQiIGZpbGw9InVybCgjYikiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIyNTAiIHI9IjE0IiBmaWxsPSJ1cmwoI2IpIi8+PGNpcmNsZSBjeD0iNzAwIiBjeT0iMTAwIiByPSIxNCIgZmlsbD0idXJsKCNiKSIvPjxjaXJjbGUgY3g9IjQwMCIgY3k9IjM1MCIgcj0iMTQiIGZpbGw9InVybCgjYikiLz48Y2lyY2xlIGN4PSIyMDAiIGN5PSIzMDAiIHI9IjE0IiBmaWxsPSJ1cmwoI2IpIi8+PC9zdmc+" alt="כל הגחליליות רוקדות סביב קורי העכביש של רקש" class="illustration">
             </article>
 
-            <div class="the-end">
-                ~ הסוף ~
-            </div>
+            <div class="the-end">~ הסוף ~</div>
         </main>
-        
-        <div id="toast"></div>
-
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const audioButtons = document.querySelectorAll('.play-audio-btn');
-            const shareButton = document.getElementById('share-btn');
-            const toast = document.getElementById('toast');
-            let currentlyPlayingButton = null;
+            // --- STATE MANAGEMENT ---
+            const state = {
+                playbackRate: 1,
+                isReadingAll: false,
+                currentUtterance: null,
+            };
 
-            // --- Text-to-Speech Functionality ---
+            // --- DOM ELEMENTS ---
+            const themeToggleButton = document.getElementById('theme-toggle-btn');
+            const readAllButton = document.getElementById('read-all-btn');
+            const speedControls = document.getElementById('speed-controls');
+            const individualPlayButtons = document.querySelectorAll('.play-audio-btn');
+            const contentContainer = document.getElementById('book-content');
+
+            // --- SPEECH SYNTHESIS SETUP ---
             const synth = window.speechSynthesis;
 
-            // Function to stop any currently playing speech
-            const stopSpeech = () => {
+            // --- THEME ---
+            const applyTheme = (theme) => {
+                document.documentElement.setAttribute('data-theme', theme);
+                themeToggleButton.innerHTML = theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+                localStorage.setItem('bookTheme', theme);
+            };
+
+            themeToggleButton.addEventListener('click', () => {
+                const newTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+                applyTheme(newTheme);
+            });
+
+            // --- PLAYBACK SPEED ---
+            speedControls.addEventListener('click', (e) => {
+                if (e.target.classList.contains('speed-btn')) {
+                    state.playbackRate = parseFloat(e.target.dataset.speed);
+                    speedControls.querySelector('.active').classList.remove('active');
+                    e.target.classList.add('active');
+                }
+            });
+
+            // --- AUDIO PLAYBACK LOGIC ---
+            const stopAllAudio = () => {
                 if (synth.speaking) {
                     synth.cancel();
                 }
-                if(currentlyPlayingButton) {
-                    currentlyPlayingButton.classList.remove('playing');
-                    currentlyPlayingButton.innerHTML = '<i class="fas fa-volume-up"></i>';
-                }
+                state.isReadingAll = false;
+                readAllButton.innerHTML = '<i class="fas fa-play-circle"></i>';
+                individualPlayButtons.forEach(btn => btn.innerHTML = '<i class="fas fa-volume-up"></i>');
             };
 
-            // Event listener for all audio buttons
-            audioButtons.forEach(button => {
+            const speak = (text, onEndCallback) => {
+                stopAllAudio();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'he-IL';
+                utterance.rate = state.playbackRate;
+                state.currentUtterance = utterance;
+
+                utterance.onend = () => {
+                    state.currentUtterance = null;
+                    if (onEndCallback) onEndCallback();
+                };
+                
+                synth.speak(utterance);
+            };
+            
+            // "Read Aloud All" Button Logic
+            readAllButton.addEventListener('click', () => {
+                if (state.isReadingAll) {
+                    // It's playing, so pause it
+                    if (synth.speaking) synth.pause();
+                    readAllButton.innerHTML = '<i class="fas fa-play-circle"></i>';
+                    state.isReadingAll = false;
+                } else if (synth.paused && state.currentUtterance) {
+                    // It's paused, so resume it
+                    synth.resume();
+                    readAllButton.innerHTML = '<i class="fas fa-pause-circle"></i>';
+                    state.isReadingAll = true;
+                } else {
+                    // It's stopped, so start from the beginning
+                    const allText = Array.from(contentContainer.querySelectorAll('h1, h3, p'))
+                                         .map(el => el.textContent)
+                                         .join('. ');
+                    
+                    speak(allText, () => {
+                        state.isReadingAll = false;
+                        readAllButton.innerHTML = '<i class="fas fa-play-circle"></i>';
+                    });
+
+                    readAllButton.innerHTML = '<i class="fas fa-pause-circle"></i>';
+                    state.isReadingAll = true;
+                }
+            });
+
+            // Individual Play Buttons Logic
+            individualPlayButtons.forEach(button => {
                 button.addEventListener('click', () => {
-                    const textElement = button.parentElement.querySelector('h1, h2, h3, p');
+                    const textElement = button.parentElement.querySelector('h1, h3, p');
                     if (!textElement) return;
 
                     const textToSpeak = textElement.textContent;
 
-                    // If this button is already playing, stop it.
-                    if (button.classList.contains('playing')) {
-                        stopSpeech();
-                        return;
-                    }
-
-                    // Stop any other speech before starting a new one
-                    stopSpeech();
-
-                    const utterance = new SpeechSynthesisUtterance(textToSpeak);
-                    utterance.lang = 'he-IL'; // Crucial for Hebrew speech
-                    utterance.rate = 0.9;
-                    utterance.pitch = 1.1;
-
-                    utterance.onstart = () => {
-                        button.classList.add('playing');
+                    // If it's already playing this specific part, stop it.
+                    if (state.currentUtterance && state.currentUtterance.text === textToSpeak) {
+                        stopAllAudio();
+                    } else {
+                        speak(textToSpeak, () => {
+                             button.innerHTML = '<i class="fas fa-volume-up"></i>';
+                        });
                         button.innerHTML = '<i class="fas fa-stop-circle"></i>';
-                        currentlyPlayingButton = button;
-                    };
-
-                    utterance.onend = () => {
-                        button.classList.remove('playing');
-                        button.innerHTML = '<i class="fas fa-volume-up"></i>';
-                        currentlyPlayingButton = null;
-                    };
-
-                    synth.speak(utterance);
+                    }
                 });
             });
 
-            // --- Share Functionality ---
-            shareButton.addEventListener('click', async () => {
-                const shareData = {
-                    title: 'החבר הכי לא צפוי של זוהר',
-                    text: 'קראו את ספר הילדים האינטראקטיבי המקסים הזה!',
-                    url: window.location.href // This works if the file is on a server
-                };
-
-                // Use Web Share API if available
-                if (navigator.share) {
-                    try {
-                        await navigator.share(shareData);
-                        console.log('Book shared successfully');
-                    } catch (err) {
-                        console.error('Share failed:', err.message);
-                    }
-                } else {
-                    // Fallback: Copy link to clipboard
-                    try {
-                        await navigator.clipboard.writeText(shareData.url);
-                        showToast('הקישור לספר הועתק!');
-                    } catch (err) {
-                        console.error('Failed to copy: ', err);
-                        showToast('שגיאה בהעתקת הקישור');
-                    }
-                }
-            });
+            // --- INITIALIZATION ---
+            const savedTheme = localStorage.getItem('bookTheme') || 'light';
+            applyTheme(savedTheme);
             
-            // --- Toast Notification ---
-            function showToast(message) {
-                toast.textContent = message;
-                toast.classList.add('show');
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                }, 3000);
-            }
+            // Stop audio if user leaves the page
+            window.addEventListener('beforeunload', stopAllAudio);
         });
     </script>
 
