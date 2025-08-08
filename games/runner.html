@@ -1,33 +1,36 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Wall Street Runner: מסעו של משקיע</title>
+<title>Wall Street Runner: An Investor's Journey</title>
 <style>
-  html,body{margin:0;height:100%;background:#0a0f18;touch-action:none;overscroll-behavior:none}
+  html,body{margin:0;height:100%;background:#0a0f18;touch-action:none;overscroll-behavior:none; font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', system-ui, sans-serif;}
   canvas{display:block;width:100vw;height:100vh;background:transparent;position:fixed;top:0;left:0}
   #game-container{position:relative;width:100%;height:100%;overflow:hidden}
   #hud{
     position:fixed;top:0;left:0;right:0;pointer-events:none;
     display:flex;justify-content:space-between;align-items:flex-start;
-    padding:8px 12px;font-family:system-ui,Segoe UI,Arial;color:#e6edf3;
+    padding:8px 12px;
     text-shadow:0 1px 4px #000;
   }
-  .hud-box{background:rgba(15,25,40,.6);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 12px;text-align:center}
-  .hud-box .label{font-size:11px;opacity:.7;letter-spacing:.5px}
-  .hud-box .value{font-size:18px;font-weight:700}
+  .hud-box{background:rgba(15,25,40,.6);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:5px 10px;text-align:center; min-width:85px;}
+  .hud-box .label{font-size:10px;opacity:.7;letter-spacing:.5px; text-transform:uppercase;}
+  .hud-box .value{font-size:16px;font-weight:700; color:#fff;}
   #portfolioValue .value.up{color:#4f4}
   #portfolioValue .value.down{color:#f44}
-  #event{position:fixed;top:150px;left:0;right:0;text-align:center;font-weight:800;letter-spacing:.5px;
+
+  #event{position:fixed;top:140px;left:10px;right:10px;text-align:center;font-weight:800;letter-spacing:.5px;
     text-shadow:0 3px 15px #000;color:#fff;opacity:0;transition:opacity .6s ease-out, transform .6s ease-out;
     transform:translateY(20px) scale(.95); pointer-events:none; line-height:1.4;}
   #event.show{opacity:1;transform:translateY(0) scale(1)}
-  #event .event-name{font-size:28px; background:linear-gradient(45deg, #ffc837, #ff8008); -webkit-background-clip:text; -webkit-text-fill-color:transparent;}
-  #event .event-line{font-size:16px;font-weight:500;color:#eee;opacity:.9}
+  #event .event-name{font-size:24px; background:linear-gradient(45deg, #ffc837, #ff8008); -webkit-background-clip:text; -webkit-text-fill-color:transparent;}
+  #event .event-line{font-size:14px;font-weight:500;color:#eee;opacity:.9}
+
   #tips{position:fixed;bottom:10px;left:0;right:0;text-align:center;color:#c8d2e0;font-size:13px;opacity:.9;pointer-events:none; font-weight:600;}
+
   #lanes-overlay{position:fixed;bottom:0;left:0;right:0;height:25vh;display:flex;pointer-events:none}
-  .lane-label{flex:1;display:flex;justify-content:center;align-items:center;font-size:32px;font-weight:900;opacity:.1;transition:opacity .3s}
+  .lane-label{flex:1;display:flex;justify-content:center;align-items:center;font-size:28px;font-weight:900;opacity:.1;transition:opacity .3s; text-transform: uppercase;}
   .lane-label.active{opacity:.6}
   #sell-label{color:#f55}
   #hold-label{color:#fff}
@@ -40,26 +43,26 @@
   <canvas id="main-canvas"></canvas>
   <div id="hud">
     <div class="hud-box" id="portfolioValue">
-      <div class="label">שווי תיק</div>
+      <div class="label">Net Worth</div>
       <div class="value">$100,000</div>
     </div>
     <div class="hud-box" id="currentDate">
-      <div class="label">תאריך</div>
-      <div class="value">ינו׳ 2005</div>
+      <div class="label">Date</div>
+      <div class="value">Jan 2005</div>
     </div>
     <div class="hud-box" id="cash">
-      <div class="label">מזומן</div>
+      <div class="label">Cash</div>
       <div class="value">$100,000</div>
     </div>
   </div>
   <canvas id="graph-canvas"></canvas>
   <div id="event"></div>
   <div id="lanes-overlay">
-    <div class="lane-label" id="sell-label">מכירה</div>
-    <div class="lane-label" id="hold-label">החזקה</div>
-    <div class="lane-label" id="buy-label">קנייה</div>
+    <div class="lane-label" id="sell-label">Sell</div>
+    <div class="lane-label" id="hold-label">Hold</div>
+    <div class="lane-label" id="buy-label">Buy</div>
   </div>
-  <div id="tips">גרור את המשקיע כדי לקנות, למכור או להחזיק מניות.</div>
+  <div id="tips">Drag the investor to Buy, Sell, or Hold stocks.</div>
 </div>
 
 <script>
@@ -147,7 +150,7 @@ const hudCash = document.getElementById('cash').querySelector('.value');
 const hudDate = document.getElementById('currentDate').querySelector('.value');
 const eventEl = document.getElementById('event');
 
-const MONTH_NAMES = ["ינו׳", "פבר׳", "מרץ", "אפר׳", "מאי", "יוני", "יולי", "אוג׳", "ספט׳", "אוק׳", "נוב׳", "דצמ׳"];
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 const STOCK_DATA = {
   'AAPL': { name: 'Apple', sector: 'TECH', base: 6, trend: 1.006, vol: 0.15, color: '#999' },
@@ -161,23 +164,24 @@ const STOCK_DATA = {
 };
 
 const HISTORICAL_EVENTS = [
-  { date: new Date('2007-06-29'), name: "השקת האייפון", line: "אפל משנה את עולם הטכנולוגיה", effect: { type: 'sector_boom', sector: 'TECH', mult: 1.01 } },
-  { date: new Date('2008-09-15'), name: "משבר הסאב-פריים", line: "קריסה פיננסית עולמית", effect: { type: 'market_crash', mult: 0.85 } },
-  { date: new Date('2011-10-05'), name: "מותו של סטיב ג'ובס", line: "אבל בעולם הטכנולוגיה", effect: { type: 'stock_shock', ticker: 'AAPL', mult: 0.9 } },
-  { date: new Date('2014-06-01'), name: "בועת הרכב החשמלי", line: "העניין בטסלה נוסק", effect: { type: 'sector_boom', sector: 'AUTO', mult: 1.02 } },
-  { date: new Date('2015-08-01'), name: "נסיקת המסחר המקוון", line: "אמזון שוברת שיאים", effect: { type: 'sector_boom', sector: 'ECOMM', mult: 1.015 } },
-  { date: new Date('2018-01-01'), name: "בהלת הקריפטו", line: "השוק סוער, הטכנולוגיה מתחזקת", effect: { type: 'sector_boom', sector: 'TECH', mult: 1.005 } },
-  { date: new Date('2020-03-11'), name: "מגפת הקורונה", line: "העולם עוצר, השווקים צונחים", effect: { type: 'market_crash', mult: 0.75 } },
-  { date: new Date('2020-08-01'), name: "הזינוק מהבית", line: "מניות הטכנולוגיה והמסחר בשיא כל הזמנים", effect: { type: 'sector_boom', sectors: ['TECH', 'ECOMM'], mult: 1.03 } },
-  { date: new Date('2022-01-01'), name: "חששות מאינפלציה", line: "הבנקים המרכזיים מעלים ריבית", effect: { type: 'market_dip', mult: 0.95 } },
-  { date: new Date('2023-02-01'), name: "מהפכת ה-AI", line: "העולם מגלה את הבינה המלאכותית", effect: { type: 'sector_boom', stock: 'NVDA', mult: 1.05 } },
+  { date: new Date('2007-06-29'), name: "iPhone Launches", line: "Apple changes the world of technology.", effect: { type: 'sector_boom', sector: 'TECH', mult: 1.01 } },
+  { date: new Date('2008-09-15'), name: "Financial Crisis", line: "A global financial meltdown begins.", effect: { type: 'market_crash', mult: 0.85 } },
+  { date: new Date('2011-10-05'), name: "Passing of Steve Jobs", line: "Mourning in the tech world.", effect: { type: 'stock_shock', ticker: 'AAPL', mult: 0.9 } },
+  { date: new Date('2014-06-01'), name: "EV Bubble Begins", line: "Interest in Tesla soars.", effect: { type: 'sector_boom', sector: 'AUTO', mult: 1.02 } },
+  { date: new Date('2015-08-01'), name: "E-Commerce Soars", line: "Amazon breaks new records.", effect: { type: 'sector_boom', sector: 'ECOMM', mult: 1.015 } },
+  { date: new Date('2018-01-01'), name: "Crypto Craze", line: "Market is volatile, tech sector strengthens.", effect: { type: 'sector_boom', sector: 'TECH', mult: 1.005 } },
+  { date: new Date('2020-03-11'), name: "COVID-19 Pandemic", line: "The world shuts down, markets plummet.", effect: { type: 'market_crash', mult: 0.75 } },
+  { date: new Date('2020-08-01'), name: "The 'Stay-at-Home' Boom", line: "Tech and e-commerce stocks hit all-time highs.", effect: { type: 'sector_boom', sectors: ['TECH', 'ECOMM'], mult: 1.03 } },
+  { date: new Date('2022-01-01'), name: "Inflation Fears", line: "Central banks begin to raise interest rates.", effect: { type: 'market_dip', mult: 0.95 } },
+  { date: new Date('2023-02-01'), name: "The AI Revolution", line: "The world discovers generative AI.", effect: { type: 'sector_boom', stock: 'NVDA', mult: 1.05 } },
 ];
 
 /* ===================== Game State ===================== */
 const STATE = {
   running:true, t:0, dt:0,
   gameDate: new Date('2005-01-01'),
-  timeScale: 24, // months per minute
+  endDate: new Date('2025-08-01'),
+  timeScale: 150, // months per minute (e.g., 120 means a year passes in 1 minute)
   lanes: [W*0.25, W*0.5, W*0.75],
   scrollSpeed: 320,
   
@@ -209,9 +213,11 @@ for (const ticker in STOCK_DATA) {
 function updateDate(dt) {
   const timePassed = dt * (STATE.timeScale / 60); // in months
   const newDate = new Date(STATE.gameDate);
+  const currentMonth = newDate.getMonth();
+  
   newDate.setMonth(newDate.getMonth() + timePassed);
   
-  if (newDate.getMonth() !== STATE.gameDate.getMonth()) {
+  if (newDate.getMonth() !== currentMonth) {
     updateStockPrices(newDate);
     updatePortfolioValue();
     
@@ -223,7 +229,7 @@ function updateDate(dt) {
   
   STATE.gameDate = newDate;
 
-  if (STATE.gameDate >= new Date('2025-08-01')) {
+  if (STATE.gameDate >= STATE.endDate) {
     endGame();
   }
 }
@@ -294,8 +300,7 @@ function updatePortfolioValue() {
 
 function spawnOpportunity() {
   const ticker = pick(Object.keys(STOCK_DATA));
-  const lane = pick([0,1,2]);
-  const x = STATE.lanes[lane];
+  const x = rand(W*0.2, W*0.8); // Appear at random horizontal positions
   const y = 140; // start below graph
   
   STATE.opportunities.push({ ticker, x, y, r: 35 });
@@ -326,16 +331,16 @@ function executeTrade(op) {
       playSound('sell');
     }
   } else { // HOLD
-      // no action
       addFxText(op.x, op.y, 'HOLD', '#ccc');
   }
 }
 
 function endGame() {
     STATE.running = false;
-    eventEl.innerHTML = `<div class="event-name">המסע הושלם!</div>
-    <div class="event-line">שווי תיק סופי: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(STATE.portfolioValue)}</div>`;
+    eventEl.innerHTML = `<div class="event-name">The Journey is Complete!</div>
+    <div class="event-line">Final Net Worth: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(STATE.portfolioValue)}</div>`;
     eventEl.classList.add('show');
+    document.getElementById('tips').style.display = 'none';
 }
 
 /* ===================== Drawing & FX ===================== */
@@ -347,20 +352,22 @@ function drawBackground() {
     if(e.effect.type === 'sector_boom') bull = Math.max(bull, 0.6);
   });
   
-  const topColor = lerp(lerp(30, 80, bull), 80, bear); // r for red
-  const botColor = lerp(lerp(60, 120, bull), 120, bear); // g for green
+  const topColorR = lerp(lerp(30, 30, bull), 80, bear);
+  const topColorG = lerp(lerp(30, 80, bull), 30, bear);
+  const botColorR = 10;
+  const botColorG = 15;
 
   const g=bgCtx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0, `rgb(${topColor}, ${botColor}, 50)`);
-  g.addColorStop(1, `rgb(10, 15, 24)`);
+  g.addColorStop(0, `rgb(${topColorR}, ${topColorG}, 50)`);
+  g.addColorStop(1, `rgb(${botColorR}, ${botColorG}, 24)`);
   bgCtx.fillStyle=g;
   bgCtx.fillRect(0,0,W,H);
   
   // Starfield
   bgCtx.fillStyle = 'rgba(255,255,255,0.7)';
   for(let i=0; i<100; i++){
-    const x = ((i*37.34 + STATE.t*5) % W);
-    const y = ((i*217.65) % H);
+    const x = ((i*37.34 + STATE.t*15) % W);
+    const y = ((i*217.65 + STATE.t*15) % H);
     bgCtx.fillRect(x,y,1,1);
   }
 }
@@ -386,7 +393,6 @@ function drawGraph() {
     }
     graphCtx.stroke();
     
-    // Gradient under graph
     const grad = graphCtx.createLinearGradient(0,0,0,120);
     grad.addColorStop(0,'rgba(100,200,255,0.2)');
     grad.addColorStop(1,'rgba(100,200,255,0)');
@@ -407,9 +413,8 @@ function drawFX(dt){
   for(let i=STATE.fx.length-1;i>=0;i--){
     const f=STATE.fx[i];
     f.y -= 40*dt; f.life -= dt; f.alpha = Math.max(0, f.life);
-    mainCtx.font = `bold 20px system-ui`;
+    mainCtx.font = `bold 18px sans-serif`;
     mainCtx.textAlign = 'center';
-    mainCtx.fillStyle = f.color.replace(')',`, ${f.alpha})`).replace('#','rgba(');
     if(f.color.startsWith('#')){
         const r = parseInt(f.color.slice(1,3),16);
         const g = parseInt(f.color.slice(3,5),16);
@@ -421,7 +426,6 @@ function drawFX(dt){
   }
 }
 
-function circleHit(a,b){ const dx=a.x-b.x, dy=a.y-b.y; return dx*dx+dy*dy < (a.r+b.r)*(a.r+b.r) }
 const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
 
 /* ===================== Update & Draw Loop ===================== */
@@ -439,11 +443,9 @@ function loop(t){
   mainCtx.save();
   mainCtx.translate(sx,sy);
   
-  // ======== UPDATE ========
   updateDate(dt);
   checkEvents();
 
-  // Player logic
   const p = STATE.p;
   if (inputX < W * (1/3)) p.targetLane = 0;
   else if (inputX < W * (2/3)) p.targetLane = 1;
@@ -454,33 +456,31 @@ function loop(t){
   document.getElementById('hold-label').classList.toggle('active', p.targetLane === 1);
   document.getElementById('buy-label').classList.toggle('active', p.targetLane === 2);
   
-  // Spawn logic
   STATE.spawnTimer -= dt;
   if (STATE.spawnTimer <= 0) {
     spawnOpportunity();
-    STATE.spawnTimer = rand(2, 3.5);
+    STATE.spawnTimer = rand(1.5, 2.5);
   }
 
-  // Update opportunities
   for (let i = STATE.opportunities.length - 1; i >= 0; i--) {
     const op = STATE.opportunities[i];
     op.y += STATE.scrollSpeed * dt;
-
-    if (op.y > p.y - 10 && op.y < p.y + 10) {
-      executeTrade(op);
-      STATE.opportunities.splice(i, 1);
-      updatePortfolioValue();
+    const hitZoneY = p.y;
+    if (op.y > hitZoneY && op.y < hitZoneY + STATE.scrollSpeed * dt) {
+        if(Math.abs(op.x - p.x) < op.r + p.r) {
+            executeTrade(op);
+            STATE.opportunities.splice(i, 1);
+            updatePortfolioValue();
+        }
     } else if (op.y > H + op.r) {
       STATE.opportunities.splice(i, 1);
     }
   }
 
-  // ======== DRAW ========
   mainCtx.clearRect(0,0,W,H);
   drawBackground();
   drawGraph();
 
-  // Draw opportunities
   STATE.opportunities.forEach(op => {
     const stock = STOCK_DATA[op.ticker];
     mainCtx.fillStyle = stock.color;
@@ -488,25 +488,21 @@ function loop(t){
     mainCtx.arc(op.x, op.y, op.r, 0, 6.28);
     mainCtx.fill();
     mainCtx.fillStyle = '#fff';
-    mainCtx.font = 'bold 18px system-ui';
+    mainCtx.font = 'bold 16px sans-serif';
     mainCtx.textAlign = 'center';
     mainCtx.textBaseline = 'middle';
     mainCtx.fillText(op.ticker, op.x, op.y - 8);
-    mainCtx.font = '14px system-ui';
+    mainCtx.font = '12px sans-serif';
     mainCtx.fillText(`$${STATE.market[op.ticker].toFixed(2)}`, op.x, op.y + 12);
   });
   
-  // Draw Player
-  mainCtx.font = 'bold 48px system-ui';
+  mainCtx.font = '42px sans-serif';
   mainCtx.textAlign = 'center';
   mainCtx.fillText('🧑‍💼', p.x, p.y + 12);
 
-  // Draw FX
   drawFX(dt);
-  
   mainCtx.restore();
   
-  // Update HUD
   hudPortfolio.textContent = formatCurrency(STATE.portfolioValue);
   hudCash.textContent = formatCurrency(STATE.cash);
   hudDate.textContent = `${MONTH_NAMES[STATE.gameDate.getMonth()]} ${STATE.gameDate.getFullYear()}`;
@@ -514,7 +510,6 @@ function loop(t){
   requestAnimationFrame(loop);
 }
 
-// Initial call
 updatePortfolioValue();
 requestAnimationFrame(loop);
 })();
