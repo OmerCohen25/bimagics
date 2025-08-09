@@ -1,46 +1,441 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Abstract Art Animation</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Neon Tunnel Runner — Single-File Web Mobile</title>
 <style>
-  body {
-    margin: 0;
-    height: 100vh;
-    background: black;
-    overflow: hidden;
-  }
-  .circle {
-    position: absolute;
-    border-radius: 50%;
-    animation: move 10s linear infinite;
-    opacity: 0.6;
-  }
-  @keyframes move {
-    0%   { transform: translateY(0) rotate(0deg) scale(1); }
-    50%  { transform: translateY(50vh) rotate(180deg) scale(1.5); }
-    100% { transform: translateY(0) rotate(360deg) scale(1); }
-  }
+  :root{--bg:#06080f;--fg:#eaf2ff;--accent:#00ffcc;--warn:#ff3b6b;--ok:#7dff6a}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto}
+  #wrap{position:fixed;inset:0;overflow:hidden}
+  canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+  #hud{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between}
+  .topbar,.bottombar{display:flex;justify-content:space-between;gap:8px;padding:10px;pointer-events:auto}
+  .topbar{align-items:flex-start}
+  .bottombar{align-items:flex-end}
+  .pill{background:rgba(18,26,40,.55);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.12);
+        border-radius:16px;padding:8px 12px;box-shadow:0 4px 18px rgba(0,0,0,.4);display:flex;align-items:center;gap:10px}
+  .btn{cursor:pointer;user-select:none;transition:transform .08s ease;white-space:nowrap}
+  .btn:active{transform:scale(.96)}
+  .btn.primary{background:linear-gradient(135deg,#00ffd0,#3f9cff);border:0;color:#001018;font-weight:700}
+  .icon{font-size:18px;opacity:.9}
+  #stats{gap:12px}
+  #stats .metric{font-weight:700}
+  #stats .val{font-family:ui-monospace,Menlo,Consolas}
+  #centerMsg{position:absolute;left:50%;top:50%;transform:translate(-50%,-55%);text-align:center;pointer-events:none}
+  #title{font-size:28px;font-weight:900;letter-spacing:.5px;text-shadow:0 6px 24px rgba(0,255,200,.35)}
+  #subtitle{opacity:.85;margin-top:6px}
+  #tapHint{margin-top:14px;opacity:.85}
+  #flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+  #touchpad{position:absolute;inset:0;pointer-events:auto}
+  #laneDots{position:absolute;left:50%;bottom:88px;transform:translateX(-50%);display:flex;gap:10px;pointer-events:none}
+  .dot{width:10px;height:10px;border-radius:50%;
+       background:rgba(255,255,255,.25);box-shadow:0 0 10px rgba(0,0,0,.4)}
+  .dot.active{background:var(--accent)}
+  @media (min-width:900px){#title{font-size:32px}}
 </style>
-<script>
-  function randomColor() {
-    return `hsl(${Math.random() * 360}, 80%, 60%)`;
-  }
-  function createCircle() {
-    const circle = document.createElement("div");
-    const size = Math.random() * 150 + 30;
-    circle.classList.add("circle");
-    circle.style.width = size + "px";
-    circle.style.height = size + "px";
-    circle.style.background = randomColor();
-    circle.style.left = Math.random() * window.innerWidth + "px";
-    circle.style.top = Math.random() * window.innerHeight + "px";
-    circle.style.animationDuration = (Math.random() * 10 + 5) + "s";
-    document.body.appendChild(circle);
-  }
-  for (let i = 0; i < 40; i++) createCircle();
-</script>
 </head>
-<body></body>
+<body>
+<div id="wrap">
+  <canvas id="gl"></canvas>
+  <div id="flash"></div>
+
+  <div id="hud">
+    <div class="topbar">
+      <div id="stats" class="pill">
+        <div class="metric">נק׳ <span id="score" class="val">0</span></div>
+        <div class="metric">מהירות <span id="spd" class="val">1.0x</span></div>
+        <div class="metric">חיים <span id="lives" class="val">3</span></div>
+      </div>
+      <div class="pill" style="gap:8px">
+        <div id="btnStart" class="btn primary pill"><span class="icon">▶</span>&nbsp;התחל</div>
+        <div id="btnPerf" class="btn pill"><span class="icon">⚡</span>&nbsp;Performance</div>
+        <div id="btnVibe" class="btn pill"><span class="icon">♪</span>&nbsp;Vibe</div>
+        <div id="btnShare" class="btn pill"><span class="icon">🔗</span>&nbsp;Share</div>
+      </div>
+    </div>
+    <div class="bottombar">
+      <div class="pill" style="opacity:.9">החלק/הטה כדי לזוז בין הנתיבים • הימנע ממחסומי הניאון • צבור נקודות</div>
+    </div>
+  </div>
+
+  <div id="laneDots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+  <div id="centerMsg">
+    <div id="title">NEON TUNNEL RUNNER</div>
+    <div id="subtitle">רוץ במנהרת ניאון פסיכדלית. הימנע ממחסומים. תפוס את הזרימה.</div>
+    <div id="tapHint">טפיחה להתחלה • הטה/גרור כדי לזוז</div>
+  </div>
+
+  <div id="touchpad"></div>
+</div>
+
+<script>
+(() => {
+  const glCanvas = document.getElementById('gl');
+  const flash = document.getElementById('flash');
+  const touchpad = document.getElementById('touchpad');
+  const dots = [...document.querySelectorAll('.dot')];
+  const scoreEl = document.getElementById('score');
+  const spdEl = document.getElementById('spd');
+  const livesEl = document.getElementById('lives');
+  const btnStart = document.getElementById('btnStart');
+  const btnPerf  = document.getElementById('btnPerf');
+  const btnShare = document.getElementById('btnShare');
+  const btnVibe  = document.getElementById('btnVibe');
+  const centerMsg= document.getElementById('centerMsg');
+
+  // ---------- WebGL setup ----------
+  const gl = glCanvas.getContext('webgl', { antialias:false, alpha:false, preserveDrawingBuffer:false });
+  if(!gl){ alert('WebGL לא נתמך במכשיר.'); return; }
+
+  const vertSrc = `
+    attribute vec2 p;
+    void main(){ gl_Position = vec4(p,0.0,1.0); }
+  `;
+  const fragSrc = `
+    precision highp float;
+    uniform vec2  uRes;
+    uniform float uTime;
+    uniform float uSpeed;
+    uniform float uPlayerAngle; // radians
+    uniform float uHitFlash;
+    uniform float uPerf; // 0=hi,1=low perf
+    // hash & noise
+    float hash(float n){ return fract(sin(n)*43758.5453123); }
+    float noise(vec2 x){
+      vec2 p=floor(x),f=fract(x); f=f*f*(3.0-2.0*f);
+      float n=p.x+p.y*57.0;
+      return mix(mix(hash(n+0.0),hash(n+1.0),f.x),
+                 mix(hash(n+57.0),hash(n+58.0),f.x),f.y);
+    }
+    // pseudo RNG based on segment index
+    float segRand(float i){ return hash(i*12.9898+78.233); }
+
+    // sdf helpers
+    float sdCappedTorus(vec3 p, float r1, float r2, float cap){ // decorative rings
+      float qx = length(p.xz)-r1;
+      float d = length(vec2(qx,p.y))-r2;
+      return max(d, abs(p.y)-cap);
+    }
+    // neon palette
+    vec3 neon(float t){
+      return 0.5 + 0.5*cos(vec3(0.0,0.35,0.7)*6.28318 + t);
+    }
+    // main
+    void main(){
+      vec2 uv = (gl_FragCoord.xy/uRes - 0.5);
+      uv.x *= uRes.x/uRes.y;
+
+      // dynamic resolution for perf
+      float q = mix(1.0, 1.4, uPerf); // blurrier on low perf
+      uv *= q;
+
+      // camera in a tunnel
+      float t = uTime * uSpeed;
+      float camZ = t*12.0;
+      float swirl = sin(t*0.6)*0.5;
+
+      // rotate space by player angle (3 lanes -> angle snap visual)
+      float ang = uPlayerAngle + swirl*0.2;
+      float ca=cos(ang), sa=sin(ang);
+      vec3 ro = vec3(0.0, 0.0, camZ);
+      vec3 rd = normalize(vec3(uv.x, uv.y, 1.7));
+      // twist
+      float tw = (gl_FragCoord.y/uRes.y-0.5)*0.6;
+      mat2 R = mat2(ca, -sa, sa, ca);
+      rd.xz = R*rd.xz;
+      // raymarch
+      float d=0.0, total=0.0; vec3 p;
+      float g=0.0; // glow
+      for(int i=0;i<80;i++){
+        p = ro + rd*total;
+        // map to tunnel coords (wrap around Z)
+        float z = p.z*0.05;
+        float r = length(p.xy);
+        float tunnel = r - (2.2 + 0.15*sin(z*6.0)); // hollow cylinder
+        float ring = sdCappedTorus(p*vec3(0.6,0.7,0.6)+vec3(0.,0.,sin(z)*8.0), 2.0, 0.03, 0.2);
+        float dist = min(tunnel, ring);
+        g += max(0.0, 0.008/(0.01+dist*dist));
+        d = dist;
+        total += clamp(d, 0.01, 0.5);
+        if(total>60.0) break;
+      }
+      // Obstacles visual: 3 sector gates that appear over time deterministically
+      float seg = floor((uTime*uSpeed)*2.0 + gl_FragCoord.y/uRes.y);
+      float r1 = segRand(seg);
+      float gateZ = fract((uTime*uSpeed)*2.0);
+      // angle sectors for lanes
+      float sector = atan(p.y,p.x); // [-PI,PI]
+      float a = mod(sector + 6.28318, 6.28318);
+      // which lane is blocked? 0/1/2:
+      int blocked = int(floor(r1*3.0));
+      float laneWidth = 2.094395; // 2π/3
+      float maskBlocked = smoothstep(0.06,0.0, abs(a - (float(blocked)*laneWidth+laneWidth*0.5)));
+      // color
+      vec3 col = vec3(0.03,0.05,0.09);
+      col += neon(3.0+uTime*0.7)*g*1.2;
+      // add moving grid glow lines
+      float radial = abs(sin(atan(p.y,p.x)*8.0))*0.05;
+      float axial  = smoothstep(0.02,0.0, abs(fract(p.z*0.08 - uTime*uSpeed*0.8)-0.5));
+      col += vec3(0.0,1.0,0.8)*(radial+axial)*0.25;
+
+      // visualize upcoming blocked sector as a bright band near horizon
+      float horizon = smoothstep(0.0, 0.7, 1.0/(1.0+abs(uv.y*5.0)));
+      col = mix(col, vec3(1.2,0.1,0.4), horizon * maskBlocked * (1.0-gateZ));
+
+      // hit flash
+      col = mix(col, vec3(1.0), uHitFlash);
+
+      // vignette
+      float vig = smoothstep(1.2, 0.2, length(uv));
+      col *= vig;
+
+      gl_FragColor = vec4(col,1.0);
+    }
+  `;
+
+  function compile(type, src){
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)){
+      throw new Error(gl.getShaderInfoLog(s));
+    }
+    return s;
+  }
+  const vs = compile(gl.VERTEX_SHADER, vertSrc);
+  const fs = compile(gl.FRAGMENT_SHADER, fragSrc);
+  const prog = gl.createProgram();
+  gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+  gl.useProgram(prog);
+
+  // full-screen tri
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog,'p'); gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+  // uniforms
+  const U = name => gl.getUniformLocation(prog, name);
+  const uRes = U('uRes'), uTime = U('uTime'), uSpeed = U('uSpeed'),
+        uPlayerAngle = U('uPlayerAngle'), uHitFlash = U('uHitFlash'),
+        uPerf = U('uPerf');
+
+  // ---------- Game state ----------
+  let running=false, started=false;
+  let lives=3, score=0, speed=1.0, perfLow=false;
+  let lane=1; // 0,1,2
+  let playerAngle=0; // radians; mapped from lane
+  let lastTime=performance.now(), time=0, hitFlash=0;
+  let DPR = Math.min(window.devicePixelRatio||1, 1.5);
+
+  function laneToAngle(l){ // 3 sectors around circle
+    return (l-1) * (2*Math.PI/3); // center lane=0 rad
+  }
+  function updateDots(){
+    dots.forEach((d,i)=>d.classList.toggle('active', i===lane));
+  }
+  updateDots();
+
+  function resize(){
+    const w = Math.floor(glCanvas.clientWidth * DPR);
+    const h = Math.floor(glCanvas.clientHeight* DPR);
+    if(glCanvas.width!==w || glCanvas.height!==h){
+      glCanvas.width=w; glCanvas.height=h;
+      gl.viewport(0,0,w,h);
+    }
+  }
+  window.addEventListener('resize', resize, {passive:true});
+  resize();
+
+  // ---------- Controls ----------
+  // touch/drag
+  let dragging=false, sx=0;
+  touchpad.addEventListener('pointerdown', e=>{ dragging=true; sx=e.clientX; });
+  touchpad.addEventListener('pointerup',   e=>{ dragging=false; });
+  touchpad.addEventListener('pointercancel',()=>dragging=false);
+  touchpad.addEventListener('pointermove', e=>{
+    if(!dragging) return;
+    const dx = e.clientX - sx;
+    if(Math.abs(dx)>30){
+      sx = e.clientX;
+      lane = Math.max(0, Math.min(2, lane + (dx>0 ? 1 : -1)));
+      playerAngle = laneToAngle(lane);
+      updateDots();
+    }
+  }, {passive:true});
+
+  // device tilt (optional)
+  window.addEventListener('deviceorientation', (ev)=>{
+    if(typeof ev.gamma === 'number'){
+      const g = ev.gamma; // -90..90 (left/right)
+      if(Math.abs(g)>5){
+        const t = (g+30)/60; // map -30..30 -> 0..1
+        const target = Math.max(0,Math.min(2, Math.round(t*2)));
+        if(target!==lane){ lane=target; playerAngle=laneToAngle(lane); updateDots(); }
+      }
+    }
+  });
+
+  // buttons
+  function resetGame(){
+    lives=3; score=0; speed=1.0; time=0; hitFlash=0; lane=1; playerAngle=laneToAngle(1);
+    scoreEl.textContent='0'; livesEl.textContent='3'; spdEl.textContent='1.0x';
+  }
+  function start(){
+    if(!started){ resetGame(); }
+    running=true; started=true; centerMsg.style.display='none';
+    btnStart.innerHTML='⏸︎&nbsp;הפסק';
+  }
+  function pause(){
+    running=false;
+    btnStart.innerHTML='▶&nbsp;המשך';
+    centerMsg.style.display='';
+    centerMsg.querySelector('#title').textContent='PAUSED';
+    centerMsg.querySelector('#subtitle').textContent='החלק או הטה כדי לבחור נתיב • הקש המשך';
+    centerMsg.querySelector('#tapHint').textContent='';
+  }
+  btnStart.addEventListener('click', ()=>{ running ? pause() : start(); });
+
+  btnPerf.addEventListener('click', ()=>{
+    perfLow=!perfLow;
+    DPR = perfLow ? 1.0 : Math.min(window.devicePixelRatio||1, 1.5);
+    resize();
+    btnPerf.style.borderColor = perfLow ? 'var(--accent)' : 'rgba(255,255,255,.12)';
+  });
+
+  btnShare.addEventListener('click', async ()=>{
+    const text = `שברתי ${score} נק׳ ב-Neon Tunnel Runner!`;
+    const url = location.href;
+    try{
+      if(navigator.share){ await navigator.share({title:document.title, text, url}); }
+      else { await navigator.clipboard.writeText(url); alert('הקישור הועתק!'); }
+    }catch(e){}
+  });
+
+  // ---------- Audio (Vibe) ----------
+  let audioCtx, gain, osc, bass, onBeat=false;
+  function setupAudio(){
+    if(audioCtx) return;
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    gain = audioCtx.createGain(); gain.gain.value=0.0; gain.connect(audioCtx.destination);
+    // lead
+    osc = audioCtx.createOscillator(); osc.type='sawtooth';
+    const oscGain = audioCtx.createGain(); oscGain.gain.value=0.03; osc.connect(oscGain).connect(gain);
+    osc.frequency.value=220; osc.start();
+    // bass
+    bass = audioCtx.createOscillator(); bass.type='square';
+    const bpf = audioCtx.createBiquadFilter(); bpf.type='lowpass'; bpf.frequency.value=240;
+    const bassGain = audioCtx.createGain(); bassGain.gain.value=0.05;
+    bass.connect(bpf).connect(bassGain).connect(gain);
+    bass.frequency.value=55; bass.start();
+  }
+  btnVibe.addEventListener('click', async ()=>{
+    setupAudio();
+    if(audioCtx.state==='suspended') await audioCtx.resume();
+    const v = gain.gain.value>0 ? 0 : 0.8;
+    gain.gain.linearRampToValueAtTime(v, audioCtx.currentTime+0.1);
+    btnVibe.style.borderColor = v>0 ? 'var(--accent)' : 'rgba(255,255,255,.12)';
+  });
+
+  // ---------- Collision model (deterministic with shader) ----------
+  // same random per segment function
+  const segRand = (i)=> ( (Math.sin(i*12.9898+78.233)*43758.5453123)%1 + 1)%1;
+  // we divide time into segments of length S (matches shader 2.0 factor)
+  const SEG_PER_S = 2.0;
+
+  function checkCollision(dt){
+    // Estimate segment now (near player)
+    const seg = Math.floor(time*speed*SEG_PER_S + 0.2); // ahead a touch
+    const blocked = Math.floor(segRand(seg)*3);
+    if(blocked===lane){
+      // “gateZ” (shader) close to 0 means gate just appeared => increase danger near this window
+      const gateZ = (time*speed*SEG_PER_S) % 1;
+      if(gateZ<0.25){ // small active window
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // ---------- Game loop ----------
+  function vibrate(ms){ if(navigator.vibrate) navigator.vibrate(ms); }
+  function flashHit(){ flash.style.transition='none'; flash.style.opacity='0.6';
+                       requestAnimationFrame(()=>{ flash.style.transition='opacity .25s'; flash.style.opacity='0'; }); }
+
+  function step(){
+    const now = performance.now();
+    const dt = Math.min(0.05, (now-lastTime)/1000); // clamp
+    lastTime = now;
+
+    if(running){ time += dt; score += Math.floor(dt*100*speed); speed = Math.min(3.0, speed + dt*0.02); }
+    hitFlash = Math.max(0, hitFlash - dt*2.5);
+
+    // collide?
+    if(running && checkCollision(dt)){
+      lives--; hitFlash=0.55; flashHit(); vibrate(60);
+      if(lives<=0){
+        running=false;
+        centerMsg.style.display='';
+        centerMsg.querySelector('#title').textContent='GAME OVER';
+        centerMsg.querySelector('#subtitle').textContent=`עשית ${score} נק׳ • הקש התחלה כדי לשחק שוב`;
+        centerMsg.querySelector('#tapHint').textContent='';
+        btnStart.innerHTML='▶&nbsp;התחל מחדש';
+      }
+    }
+
+    // UI
+    scoreEl.textContent = String(score);
+    spdEl.textContent   = (speed.toFixed(1))+'x';
+    livesEl.textContent = String(lives);
+  }
+
+  function render(){
+    // uniforms
+    gl.uniform2f(uRes, glCanvas.width, glCanvas.height);
+    gl.uniform1f(uTime, time);
+    gl.uniform1f(uSpeed, speed);
+    gl.uniform1f(uPlayerAngle, playerAngle);
+    gl.uniform1f(uHitFlash, hitFlash);
+    gl.uniform1f(uPerf, perfLow ? 1.0 : 0.0);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+
+  function loop(){
+    resize();
+    step();
+    render();
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  // tap to start
+  ['click','touchstart'].forEach(ev=>{
+    document.addEventListener(ev, ()=>{
+      if(!started){ start(); }
+    }, {once:true,passive:true});
+  });
+
+  // also start/pause by tapping center
+  centerMsg.addEventListener('click', ()=>{ started ? start() : start(); });
+
+  // ---------- Minimal offline cache via inlined Service Worker (optional) ----------
+  if('serviceWorker' in navigator){
+    const swCode = `
+      self.addEventListener('install', e=>{ self.skipWaiting(); });
+      self.addEventListener('activate', e=>{ self.clients.claim(); });
+      self.addEventListener('fetch', e=>{
+        // network first, fallback to cache (no external assets anyway)
+        e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));
+      });
+    `;
+    const blob = new Blob([swCode], {type:'text/javascript'});
+    const swURL = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swURL).catch(()=>{});
+  }
+})();
+</script>
+</body>
 </html>
