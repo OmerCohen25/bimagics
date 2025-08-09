@@ -1,105 +1,417 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="he">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Three.js Demo - ללא התקנה</title>
-<style>
-  html,body { margin:0; padding:0; height:100%; overflow:hidden; background:#000; }
-  canvas { display:block; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>כדורתן קוסמי</title>
+    <style>
+        :root {
+            --glow-green: #00ff96;
+            --glow-magenta: #ff00ff;
+            --glow-blue: #00aeff;
+            --glow-purple: #a450e0;
+            --text-color: #ffffff;
+            --bg-color: #000000;
+            --canvas-bg: #0c0014;
+        }
+        
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            height: 100%;
+            width: 100%;
+            touch-action: none; /* Disables pinch-zoom, double-tap etc. */
+        }
+
+        #game-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            background-color: var(--canvas-bg);
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+        }
+        
+        .top-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .ui-text {
+            font-size: clamp(1.5rem, 5vw, 2.2rem);
+            font-weight: bold;
+            text-shadow: 0 0 10px var(--text-color);
+        }
+
+        .modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 500px;
+            background-color: rgba(0, 0, 0, 0.75);
+            padding: 25px;
+            border-radius: 20px;
+            border: 2px solid var(--glow-purple);
+            box-shadow: 0 0 20px var(--glow-purple);
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            pointer-events: all;
+        }
+        
+        .modal.visible {
+            display: flex;
+        }
+
+        .modal h1 {
+            font-size: clamp(2.5rem, 10vw, 4rem);
+            margin: 0 0 15px 0;
+            text-shadow: 0 0 20px var(--glow-magenta);
+        }
+
+        .modal p {
+            font-size: clamp(1rem, 4vw, 1.4rem);
+            margin: 0 0 25px 0;
+            line-height: 1.5;
+        }
+
+        .modal button {
+            font-size: clamp(1.2rem, 5vw, 1.8rem);
+            padding: 15px 30px;
+            border: 2px solid var(--text-color);
+            background-color: transparent;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 300px;
+        }
+        .modal button:active {
+            background-color: var(--text-color);
+            color: var(--bg-color);
+            transform: scale(0.95);
+        }
+    </style>
 </head>
 <body>
-<script type="module">
-import * as THREE from 'https://unpkg.com/three@0.159.0/build/three.module.js';
-import { OrbitControls } from 'https://unpkg.com/three@0.159.0/examples/jsm/controls/OrbitControls.js';
-import { RGBELoader } from 'https://unpkg.com/three@0.159.0/examples/jsm/loaders/RGBELoader.js';
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div class="ui-overlay">
+            <div class="top-bar">
+                <div id="score" class="ui-text">ניקוד: 0</div>
+                <div id="lives" class="ui-text">חיים: 3</div>
+            </div>
+        </div>
 
-// Renderer
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.shadowMap.enabled = true;
-document.body.appendChild(renderer.domElement);
+        <div id="start-screen" class="modal visible">
+            <h1>כדורתן קוסמי</h1>
+            <p>גרור את האצבע כדי לסובב את המגן.<br>אסוף את הירוקים, התחמק מהסגולים.</p>
+            <button id="startButton">התחל</button>
+        </div>
 
-// Scene
-const scene = new THREE.Scene();
+        <div id="game-over" class="modal">
+            <h1>המשחק נגמר</h1>
+            <p id="finalScore"></p>
+            <button id="restartButton">שחק שוב</button>
+        </div>
+    </div>
 
-// Camera
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100);
-camera.position.set(3, 2, 5);
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
 
-// Controls
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
+// --- UI Elements ---
+const scoreEl = document.getElementById('score');
+const livesEl = document.getElementById('lives');
+const gameOverEl = document.getElementById('game-over');
+const finalScoreEl = document.getElementById('finalScore');
+const startScreenEl = document.getElementById('start-screen');
+const startButton = document.getElementById('startButton');
+const restartButton = document.getElementById('restartButton');
 
-// HDR Environment
-new RGBELoader()
-.setPath('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/equirectangular/')
-.load('royal_esplanade_1k.hdr', function(texture) {
-  texture.mapping = THREE.EquirectangularReflectionMapping;
-  scene.environment = texture;
-  scene.background = texture;
-});
+// --- Game State ---
+let W, H;
+let touch = { x: 0, y: 0, angle: 0 };
+let core, shield;
+let orbs = [], particles = [], stars = [];
+let score = 0, lives = 3;
+let gameState = 'start'; // 'start', 'playing', 'over'
+let spawnRate, frameCount;
 
-// Lights
-const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-dirLight.position.set(5, 5, 5);
-dirLight.castShadow = true;
-scene.add(dirLight);
-
-scene.add(new THREE.AmbientLight(0xffffff, 0.3));
-
-// Ground
-const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(20, 20),
-  new THREE.MeshStandardMaterial({ color: 0x222222 })
-);
-ground.rotation.x = -Math.PI / 2;
-ground.receiveShadow = true;
-scene.add(ground);
-
-// Objects
-const cube = new THREE.Mesh(
-  new THREE.BoxGeometry(1, 1, 1),
-  new THREE.MeshStandardMaterial({ metalness: 0.7, roughness: 0.2, color: 0xff4444 })
-);
-cube.castShadow = true;
-cube.position.x = -2;
-scene.add(cube);
-
-const sphere = new THREE.Mesh(
-  new THREE.SphereGeometry(0.7, 32, 32),
-  new THREE.MeshStandardMaterial({ metalness: 0.1, roughness: 0.8, color: 0x44aaff })
-);
-sphere.castShadow = true;
-scene.add(sphere);
-
-const torus = new THREE.Mesh(
-  new THREE.TorusKnotGeometry(0.5, 0.2, 100, 16),
-  new THREE.MeshStandardMaterial({ metalness: 1, roughness: 0, color: 0xffff00 })
-);
-torus.castShadow = true;
-torus.position.x = 2;
-scene.add(torus);
-
-// Resize
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth/window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-// Animation Loop
-function animate() {
-  requestAnimationFrame(animate);
-  cube.rotation.y += 0.01;
-  sphere.rotation.y += 0.01;
-  torus.rotation.y += 0.01;
-  controls.update();
-  renderer.render(scene, camera);
+function setupGameConfig() {
+    core = { x: W / 2, y: H / 2, radius: W * 0.05, pulse: 0 };
+    shield = { angle: 0, radius: W * 0.18, width: W * 0.04, length: Math.PI / 4, active: true, disabledUntil: 0 };
 }
-animate();
+
+function resizeCanvas() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    setupGameConfig();
+    createStars();
+}
+
+function createStars() {
+    stars = [];
+    for (let i = 0; i < 100; i++) {
+        stars.push({
+            x: Math.random() * W,
+            y: Math.random() * H,
+            radius: Math.random() * 1.2,
+            alpha: Math.random()
+        });
+    }
+}
+
+// --- Game Objects (Classes) ---
+class Orb {
+    constructor(type) {
+        const angle = Math.random() * Math.PI * 2;
+        const spawnRadius = Math.max(W, H) / 2 + 50;
+        this.x = core.x + Math.cos(angle) * spawnRadius;
+        this.y = core.y + Math.sin(angle) * spawnRadius;
+        this.radius = W * (type === 'energy' ? 0.02 : 0.025);
+        this.type = type; // 'energy' or 'mine'
+        const speedMultiplier = Math.min(2, 1 + score / 4000);
+        this.speed = (Math.random() * 1 + 1) * speedMultiplier;
+        const targetAngle = Math.atan2(core.y - this.y, core.x - this.x);
+        this.vx = Math.cos(targetAngle) * this.speed;
+        this.vy = Math.sin(targetAngle) * this.speed;
+    }
+
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+    }
+
+    draw() {
+        ctx.beginPath();
+        const color = this.type === 'energy' ? 'var(--glow-green)' : 'var(--glow-magenta)';
+        ctx.fillStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 15;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+class Particle {
+    constructor(x, y, color) {
+        this.x = x; this.y = y; this.color = color;
+        this.radius = Math.random() * 3 + 1;
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 4 + 1;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.life = 60;
+    }
+
+    update() {
+        this.x += this.vx; this.y += this.vy; this.life--;
+    }
+
+    draw() {
+        ctx.globalAlpha = this.life / 60;
+        ctx.beginPath();
+        ctx.fillStyle = this.color;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+    }
+}
+
+function createExplosion(x, y, color, count = 20) {
+    for (let i = 0; i < count; i++) particles.push(new Particle(x, y, color));
+}
+
+// --- Game Logic ---
+function init() {
+    resizeCanvas();
+    score = 0;
+    lives = 3;
+    orbs = [];
+    particles = [];
+    shield.active = true;
+    shield.disabledUntil = 0;
+    spawnRate = 100;
+    frameCount = 0;
+    gameState = 'playing';
+    
+    scoreEl.textContent = 'ניקוד: 0';
+    livesEl.textContent = '❤️'.repeat(3);
+    gameOverEl.classList.remove('visible');
+    startScreenEl.classList.remove('visible');
+    
+    loop();
+}
+
+function update() {
+    if (gameState !== 'playing') return;
+
+    shield.angle += (touch.angle - shield.angle) * 0.2; // Smooth rotation
+
+    if (Date.now() < shield.disabledUntil) shield.active = false;
+    else shield.active = true;
+
+    frameCount++;
+    if (frameCount % Math.floor(spawnRate) === 0) {
+        orbs.push(new Orb(Math.random() > 0.4 ? 'energy' : 'mine'));
+        if (spawnRate > 35) spawnRate *= 0.995;
+    }
+
+    for (let i = orbs.length - 1; i >= 0; i--) {
+        const orb = orbs[i];
+        orb.update();
+        const distToCore = Math.hypot(orb.x - core.x, orb.y - core.y);
+
+        if (shield.active && distToCore < shield.radius + orb.radius && distToCore > shield.radius - shield.width) {
+            let angleToOrb = Math.atan2(orb.y - core.y, orb.x - core.x);
+            let diff = Math.abs(angleToOrb - shield.angle);
+            if (diff > Math.PI) diff = 2 * Math.PI - diff;
+
+            if (diff < shield.length / 2) {
+                if (orb.type === 'energy') {
+                    score += 100;
+                    createExplosion(orb.x, orb.y, 'var(--glow-green)');
+                } else {
+                    lives--;
+                    shield.disabledUntil = Date.now() + 1500;
+                    createExplosion(orb.x, orb.y, 'var(--glow-magenta)', 30);
+                }
+                orbs.splice(i, 1);
+                continue;
+            }
+        }
+        if (distToCore < core.radius + orb.radius) {
+            lives--;
+            createExplosion(orb.x, orb.y, '#ff5500', 40);
+            orbs.splice(i, 1);
+        }
+    }
+    
+    particles.forEach((p, i) => {
+        p.update();
+        if (p.life <= 0) particles.splice(i, 1);
+    });
+
+    scoreEl.textContent = `ניקוד: ${score}`;
+    livesEl.textContent = lives > 0 ? '❤️'.repeat(lives) : '💔';
+
+    if (lives <= 0) {
+        gameState = 'over';
+        gameOverEl.classList.add('visible');
+        finalScoreEl.textContent = `הניקוד הסופי שלך: ${score}`;
+    }
+}
+
+function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    stars.forEach(s => {
+        ctx.fillStyle = `rgba(255, 255, 255, ${s.alpha * Math.abs(Math.sin(frameCount * 0.01 + s.y))})`;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    core.pulse = Math.sin(frameCount * 0.05) * (W * 0.01);
+    ctx.beginPath();
+    ctx.fillStyle = '#4f0278';
+    ctx.strokeStyle = 'var(--glow-purple)';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = 'var(--glow-purple)';
+    ctx.shadowBlur = 25;
+    ctx.arc(core.x, core.y, core.radius + core.pulse, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    if (shield.active) {
+        ctx.beginPath();
+        ctx.strokeStyle = 'var(--glow-blue)';
+        ctx.lineWidth = shield.width;
+        ctx.shadowColor = 'var(--glow-blue)';
+        ctx.shadowBlur = 20;
+        ctx.arc(core.x, core.y, shield.radius, shield.angle - shield.length / 2, shield.angle + shield.length / 2);
+        ctx.stroke();
+    } else {
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(255, 0, 0, ${0.4 + Math.sin(frameCount * 0.5) * 0.4})`;
+        ctx.lineWidth = shield.width;
+        ctx.setLineDash([15, 10]);
+        ctx.arc(core.x, core.y, shield.radius, shield.angle - shield.length / 2, shield.angle + shield.length / 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+    
+    ctx.shadowBlur = 0;
+    particles.forEach(p => p.draw());
+    orbs.forEach(orb => orb.draw());
+}
+
+function loop() {
+    if (gameState === 'over') return;
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+// --- Event Listeners ---
+function handleTouch(e) {
+    e.preventDefault();
+    const t = e.touches[0];
+    touch.x = t.clientX;
+    touch.y = t.clientY;
+    touch.angle = Math.atan2(touch.y - core.y, touch.x - core.x);
+}
+
+window.addEventListener('resize', resizeCanvas);
+canvas.addEventListener('touchstart', handleTouch, { passive: false });
+canvas.addEventListener('touchmove', handleTouch, { passive: false });
+
+startButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    init();
+});
+
+restartButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    init();
+});
+
+// --- Initial Setup ---
+resizeCanvas();
 </script>
 </body>
 </html>
