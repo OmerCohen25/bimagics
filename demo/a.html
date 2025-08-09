@@ -2,209 +2,104 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>3D Web Mobile – Advanced Rendering Showcase (Single File)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Three.js Demo - ללא התקנה</title>
 <style>
-  html,body{height:100%;margin:0;background:#0b0f16;overflow:hidden;font-family:system-ui,Segoe UI,Roboto}
-  #c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
-  #legend{
-    position:fixed;left:10px;top:10px;color:#eaf2ff;background:rgba(14,20,30,.45);
-    border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(6px);border-radius:12px;
-    padding:8px 10px;line-height:1.35;font-size:12px;pointer-events:none
-  }
-  #legend b{color:#78ffd9}
+  html,body { margin:0; padding:0; height:100%; overflow:hidden; background:#000; }
+  canvas { display:block; }
 </style>
 </head>
 <body>
-<canvas id="c"></canvas>
-<div id="legend">
-  <b>Three.js</b> • PBR (glass/metal/clearcoat) • PMREM env • Shadows<br>
-  Instanced neon • GPU particles (shader) • Bloom • OrbitControls (מגע)<br>
-  מותאם מובייל (DPR מוגבל), בלי UI — רק רנדר.
-</div>
-
 <script type="module">
-import * as THREE from "https://unpkg.com/three@0.159.0/build/three.module.js";
-import { OrbitControls } from "https://unpkg.com/three@0.159.0/examples/jsm/controls/OrbitControls.js";
-import { RoomEnvironment } from "https://unpkg.com/three@0.159.0/examples/jsm/environments/RoomEnvironment.js";
-import { EffectComposer } from "https://unpkg.com/three@0.159.0/examples/jsm/postprocessing/EffectComposer.js";
-import { RenderPass } from "https://unpkg.com/three@0.159.0/examples/jsm/postprocessing/RenderPass.js";
-import { UnrealBloomPass } from "https://unpkg.com/three@0.159.0/examples/jsm/postprocessing/UnrealBloomPass.js";
+import * as THREE from 'https://unpkg.com/three@0.159.0/build/three.module.js';
+import { OrbitControls } from 'https://unpkg.com/three@0.159.0/examples/jsm/controls/OrbitControls.js';
+import { RGBELoader } from 'https://unpkg.com/three@0.159.0/examples/jsm/loaders/RGBELoader.js';
 
-// ---------- Renderer ----------
-const canvas = document.getElementById('c');
-const renderer = new THREE.WebGLRenderer({canvas, antialias:true, powerPreference:'high-performance'});
-const MAX_DPR = Math.min(window.devicePixelRatio || 1, 1.5); // חשוב למובייל
-renderer.setPixelRatio(MAX_DPR);
+// Renderer
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
 
-// ---------- Scene / Camera ----------
+// Scene
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 200);
-camera.position.set(6, 3.2, 9);
-camera.lookAt(0, 1, 0);
 
-// Env (PMREM from procedural room)
-const pmrem = new THREE.PMREMGenerator(renderer);
-scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.02).texture;
-scene.background = new THREE.Color(0x0b0f16);
+// Camera
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100);
+camera.position.set(3, 2, 5);
 
-// Controls (מגע/גרירה)
+// Controls
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.dampingFactor = 0.05;
-controls.target.set(0,1,0);
 
-// ---------- Lights & Shadows ----------
-const dir = new THREE.DirectionalLight(0xffffff, 2.2);
-dir.position.set(5, 8, 3);
-dir.castShadow = true;
-dir.shadow.mapSize.set(2048, 2048);
-dir.shadow.camera.near = 1;
-dir.shadow.camera.far = 30;
-dir.shadow.radius = 2;
-scene.add(dir);
+// HDR Environment
+new RGBELoader()
+.setPath('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/equirectangular/')
+.load('royal_esplanade_1k.hdr', function(texture) {
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  scene.environment = texture;
+  scene.background = texture;
+});
 
-const fill = new THREE.PointLight(0x44ddff, 1, 30); fill.position.set(-6,3,-4); scene.add(fill);
-const rim  = new THREE.PointLight(0xff4aa2, 0.8, 30); rim.position.set(6,2,-2); scene.add(rim);
+// Lights
+const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+dirLight.position.set(5, 5, 5);
+dirLight.castShadow = true;
+scene.add(dirLight);
 
-// ---------- Ground ----------
+scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+
+// Ground
 const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(80,80),
-  new THREE.MeshStandardMaterial({ color:0x0e1420, roughness:0.9, metalness:0.0 })
+  new THREE.PlaneGeometry(20, 20),
+  new THREE.MeshStandardMaterial({ color: 0x222222 })
 );
-ground.rotation.x = -Math.PI/2;
+ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
 
-// ---------- Hero Objects (PBR) ----------
-const metal = new THREE.MeshStandardMaterial({
-  metalness: 1.0, roughness: 0.2, envMapIntensity: 1.0, color: 0x8bb7ff
-});
-const knot = new THREE.Mesh(new THREE.TorusKnotGeometry(0.8,0.26,256,32), metal);
-knot.position.set(-1.6, 1.2, 0);
-knot.castShadow = true; knot.receiveShadow = true;
-scene.add(knot);
+// Objects
+const cube = new THREE.Mesh(
+  new THREE.BoxGeometry(1, 1, 1),
+  new THREE.MeshStandardMaterial({ metalness: 0.7, roughness: 0.2, color: 0xff4444 })
+);
+cube.castShadow = true;
+cube.position.x = -2;
+scene.add(cube);
 
-const glass = new THREE.MeshPhysicalMaterial({
-  transmission: 1.0, thickness: 0.6, roughness: 0.05, metalness: 0.0,
-  clearcoat: 1.0, clearcoatRoughness: 0.1, envMapIntensity: 1.2, ior: 1.5, color: 0xffffff
-});
-const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.9, 128, 128), glass);
-sphere.position.set(1.6, 1.1, 0);
-sphere.castShadow = true; sphere.receiveShadow = true;
+const sphere = new THREE.Mesh(
+  new THREE.SphereGeometry(0.7, 32, 32),
+  new THREE.MeshStandardMaterial({ metalness: 0.1, roughness: 0.8, color: 0x44aaff })
+);
+sphere.castShadow = true;
 scene.add(sphere);
 
-// ---------- Instanced Neon Grid (GPU) ----------
-const COUNT = 18*12; // ~216
-const instGeom = new THREE.BoxGeometry(0.12, 0.12, 0.12);
-const instMat = new THREE.MeshStandardMaterial({
-  color: 0x0ce6ff, emissive: 0x0ce6ff, emissiveIntensity: 1.5, metalness: 0.6, roughness: 0.4
+const torus = new THREE.Mesh(
+  new THREE.TorusKnotGeometry(0.5, 0.2, 100, 16),
+  new THREE.MeshStandardMaterial({ metalness: 1, roughness: 0, color: 0xffff00 })
+);
+torus.castShadow = true;
+torus.position.x = 2;
+scene.add(torus);
+
+// Resize
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
 });
-const inst = new THREE.InstancedMesh(instGeom, instMat, COUNT);
-inst.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-inst.castShadow = true;
-scene.add(inst);
 
-// Arrange in helix ring
-const tmp = new THREE.Object3D();
-for(let i=0;i<COUNT;i++){
-  const r = 3.6 + (i%12)*0.02;
-  const a = (i/18) * Math.PI*2;
-  tmp.position.set(Math.cos(a)*r, 0.5 + Math.sin(i*0.3)*0.25, Math.sin(a)*r);
-  tmp.rotation.set(0, a, 0);
-  tmp.updateMatrix();
-  inst.setMatrixAt(i, tmp.matrix);
-}
-
-// ---------- GPU Particles (ShaderMaterial) ----------
-const PCOUNT = 1000;
-const pGeom = new THREE.BufferGeometry();
-const pPos = new Float32Array(PCOUNT*3);
-const pSeed = new Float32Array(PCOUNT);
-for(let i=0;i<PCOUNT;i++){
-  pPos[i*3+0] = (Math.random()*2-1)*0.5;
-  pPos[i*3+1] = (Math.random()*2-1)*0.5 + 1.0;
-  pPos[i*3+2] = (Math.random()*2-1)*0.5;
-  pSeed[i] = Math.random()*100;
-}
-pGeom.setAttribute('position', new THREE.BufferAttribute(pPos,3));
-pGeom.setAttribute('seed', new THREE.BufferAttribute(pSeed,1));
-
-const pVert = `
-  uniform float uTime;
-  attribute float seed;
-  varying float vLife;
-  void main(){
-    vec3 pos = position;
-    float t = uTime*0.6 + seed;
-    pos.x += sin(t*2.0)*0.6;
-    pos.y += fract(t*0.2)*6.0;         // עולה למעלה בלולאה
-    pos.z += cos(t*1.8)*0.6;
-    vLife = 1.0 - fract(t*0.2);
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos,1.0);
-    gl_PointSize = 2.0 + 2.0*vLife;
-  }
-`;
-const pFrag = `
-  precision highp float;
-  varying float vLife;
-  void main(){
-    float d = length(gl_PointCoord - vec2(0.5));
-    float alpha = smoothstep(0.5, 0.0, d) * vLife;
-    vec3 col = mix(vec3(0.1,0.5,1.2), vec3(1.0,0.3,0.7), vLife);
-    gl_FragColor = vec4(col, alpha);
-  }
-`;
-const pMat = new THREE.ShaderMaterial({
-  uniforms: { uTime: { value: 0 } },
-  vertexShader: pVert, fragmentShader: pFrag, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending
-});
-const particles = new THREE.Points(pGeom, pMat);
-particles.position.y = 0.2;
-scene.add(particles);
-
-// ---------- Postprocessing (Bloom) ----------
-const composer = new EffectComposer(renderer);
-composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.8, 0.8, 0.85);
-composer.addPass(bloom);
-
-// ---------- Resize ----------
-function onResize(){
-  const w = window.innerWidth, h = window.innerHeight;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, MAX_DPR));
-  renderer.setSize(w, h, false);
-  composer.setSize(w, h);
-  camera.aspect = w/h; camera.updateProjectionMatrix();
-}
-addEventListener('resize', onResize, {passive:true});
-
-// ---------- Animate ----------
-let t = 0;
-renderer.setAnimationLoop((timeMS)=>{
-  const dt = Math.min(0.033, (timeMS - t)/1000 || 0.016);
-  t = timeMS;
-  // Animate hero objects
-  knot.rotation.x += 0.4*dt; knot.rotation.y += 0.2*dt;
-  sphere.rotation.y -= 0.15*dt;
-  // Pulse emissive
-  instMat.emissiveIntensity = 1.2 + Math.sin(timeMS*0.002)*0.6;
-  // Rotate instanced ring slowly
-  inst.rotation.y += 0.15*dt;
-
-  // Update particle time
-  pMat.uniforms.uTime.value = timeMS/1000;
-
-  // Light subtle motion
-  rim.position.x = Math.sin(timeMS*0.0015)*6.0;
-  fill.position.z = Math.cos(timeMS*0.0012)*-5.5;
-
+// Animation Loop
+function animate() {
+  requestAnimationFrame(animate);
+  cube.rotation.y += 0.01;
+  sphere.rotation.y += 0.01;
+  torus.rotation.y += 0.01;
   controls.update();
-  composer.render();
-});
+  renderer.render(scene, camera);
+}
+animate();
 </script>
 </body>
 </html>
