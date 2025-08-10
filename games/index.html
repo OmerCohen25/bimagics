@@ -1,22 +1,23 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Gemini GameCrafter - The Future of Instant Gaming</title>
     <style>
         :root {
             --primary-color: #4f46e5;
-            --primary-glow: rgba(79, 70, 229, 0.5);
+            --primary-glow: rgba(79, 70, 229, 0.4);
             --secondary-color: #10b981;
             --background-color: #0f172a;
             --card-background: #1e293b;
             --text-color: #e2e8f0;
             --text-muted: #94a3b8;
             --border-color: #334155;
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
-        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
         
         html {
             scroll-behavior: smooth;
@@ -24,10 +25,12 @@
 
         body {
             margin: 0;
-            font-family: 'Assistant', sans-serif;
+            font-family: var(--font-family);
             background-color: var(--background-color);
             color: var(--text-color);
             line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .container {
@@ -36,17 +39,14 @@
             padding: 0 20px;
         }
 
-        header {
-            background: linear-gradient(180deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0) 100%);
-            padding: 20px 0;
-        }
-        
+        /* --- Navigation --- */
         nav {
             position: sticky;
             top: 0;
             background-color: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(10px);
-            z-index: 100;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 1000;
             padding: 15px 0;
             border-bottom: 1px solid var(--border-color);
         }
@@ -57,35 +57,99 @@
             align-items: center;
         }
         
-        nav a {
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-color);
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: none;
+        }
+        
+        .nav-links a {
             color: var(--text-muted);
             text-decoration: none;
-            padding: 8px 12px;
+            padding: 8px 15px;
             font-weight: 600;
             transition: color 0.3s;
         }
 
-        nav a:hover, nav a.active {
+        .nav-links a:hover, .nav-links a.active {
             color: var(--text-color);
         }
 
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
+        .hamburger-menu {
+            display: block;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .hamburger-menu .bar {
+            display: block;
+            width: 25px;
+            height: 3px;
+            margin: 5px auto;
+            background-color: var(--text-color);
+            transition: all 0.3s ease-in-out;
+        }
+
+        .mobile-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--background-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .mobile-nav.is-open {
+            transform: translateX(0);
+        }
+
+        .mobile-nav a {
+            color: var(--text-color);
+            font-size: 2rem;
+            text-decoration: none;
+            margin: 20px 0;
+        }
+
+        .close-menu {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            font-size: 2.5rem;
+            background: none;
+            border: none;
             color: var(--text-color);
         }
 
+        @media (min-width: 992px) {
+            .nav-links { display: block; }
+            .hamburger-menu { display: none; }
+        }
+
+        /* --- Hero Section --- */
         .hero {
             text-align: center;
-            padding: 120px 0;
-            background-image: radial-gradient(circle at 50% 30%, var(--primary-glow) 0%, transparent 40%);
+            padding: 100px 0 120px;
+            background-image: radial-gradient(circle at 50% 20%, var(--primary-glow) 0%, transparent 40%);
         }
 
         .hero h1 {
-            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-size: clamp(2.8rem, 7vw, 5rem);
             margin: 0 0 20px;
-            font-weight: 700;
-            letter-spacing: -2px;
+            font-weight: 800;
+            letter-spacing: -3px;
         }
 
         .hero p {
@@ -98,20 +162,22 @@
         .cta-button {
             background-color: var(--primary-color);
             color: white;
-            padding: 15px 35px;
+            padding: 16px 40px;
             font-size: 1.2rem;
             text-decoration: none;
             border-radius: 50px;
             font-weight: 600;
             transition: transform 0.2s, box-shadow 0.2s;
             box-shadow: 0 0 25px var(--primary-glow);
+            display: inline-block;
         }
         
         .cta-button:hover {
             transform: translateY(-3px);
-            box-shadow: 0 0 35px var(--primary-glow);
+            box-shadow: 0 0 40px var(--primary-glow);
         }
 
+        /* --- General Section Styling --- */
         section {
             padding: 100px 0;
             border-bottom: 1px solid var(--border-color);
@@ -123,9 +189,9 @@
         }
 
         .section-header h2 {
-            font-size: 3rem;
+            font-size: clamp(2.2rem, 5vw, 3rem);
             margin: 0;
-            font-weight: 700;
+            font-weight: 800;
         }
 
         .section-header p {
@@ -156,41 +222,49 @@
 
         .card h3 {
             font-size: 1.5rem;
-            margin-top: 0;
-            color: var(--primary-color);
+            margin: 0 0 15px;
+            color: var(--text-color);
             display: flex;
             align-items: center;
         }
 
         .card .icon {
             margin-right: 15px;
-            background-color: rgba(79, 70, 229, 0.1);
-            color: var(--primary-color);
-            border-radius: 50%;
+            background: linear-gradient(145deg, var(--primary-color), #6d28d9);
+            color: white;
+            border-radius: 12px;
             width: 50px;
             height: 50px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
         
+        /* --- Interactive Demo --- */
         .demo-box {
             background-color: var(--card-background);
-            padding: 40px;
+            padding: clamp(20px, 5vw, 40px);
             border-radius: 16px;
             border: 1px solid var(--border-color);
             text-align: center;
         }
         
         #prompt-input {
-            width: 80%;
-            padding: 15px;
+            width: calc(100% - 34px);
+            padding: 15px 15px;
             font-size: 1.1rem;
+            font-family: var(--font-family);
             background-color: var(--background-color);
             border: 1px solid var(--border-color);
             color: var(--text-color);
             border-radius: 8px;
             margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+        #prompt-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
         }
         
         #generate-btn {
@@ -202,6 +276,11 @@
             font-size: 1.1rem;
             cursor: pointer;
             font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        #generate-btn:disabled {
+            background-color: #555;
+            cursor: not-allowed;
         }
         
         #game-container {
@@ -209,7 +288,7 @@
             background-color: black;
             border-radius: 12px;
             aspect-ratio: 9 / 16;
-            width: 320px;
+            max-width: 320px;
             margin-left: auto;
             margin-right: auto;
             border: 5px solid var(--border-color);
@@ -221,6 +300,7 @@
             width: 100%;
             height: 100%;
             border: none;
+            background: #0b0f16;
         }
 
         #loader {
@@ -238,83 +318,108 @@
             height: 40px;
             animation: spin 1s linear infinite;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        /* --- WhatsApp Demo --- */
+        .whatsapp-demo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .phone-bezel {
+            width: 340px;
+            height: 680px;
+            background: #111;
+            border-radius: 40px;
+            padding: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: #0e1e2a;
+            border-radius: 25px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chat-header {
+            background: #1f2c34;
+            padding: 10px 15px;
+            color: white;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .chat-header img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .chat-body {
+            flex-grow: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+        }
+        .message {
+            padding: 8px 12px;
+            border-radius: 8px;
+            max-width: 80%;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.5s forwards;
+        }
+        .message.sent {
+            background: #005c4b;
+            align-self: flex-end;
+            border-top-right-radius: 0;
+        }
+        .message.received {
+            background: #202c33;
+            align-self: flex-start;
+            border-top-left-radius: 0;
+        }
+        .message.typing {
+            font-style: italic;
+            color: var(--text-muted);
+        }
+        .message a {
+            color: #58b4c5;
+            text-decoration: underline;
+        }
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* --- Misc --- */
         .viral-loop {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 20px;
+            gap: 10px;
             flex-wrap: wrap;
         }
         .step {
             background-color: var(--card-background);
-            padding: 20px;
+            padding: 15px;
             border-radius: 12px;
             text-align: center;
             font-weight: 600;
-            font-size: 1.2rem;
-            min-width: 150px;
+            font-size: 1.1rem;
         }
-        .arrow {
-            font-size: 2rem;
-            color: var(--primary-color);
-        }
-
-        .tech-stack {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .tech-item {
-            background-color: var(--card-background);
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-        }
-
-        .architecture-diagram {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 20px;
-            align-items: center;
-            text-align: center;
-            background-color: var(--card-background);
-            padding: 40px;
-            border-radius: 16px;
-        }
-        .arch-box {
-            padding: 20px;
-            border: 2px dashed var(--border-color);
-            border-radius: 8px;
-        }
-        .arch-box h4 { margin: 0; }
-
-        .roadmap {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        .roadmap-stage {
-            background: var(--card-background);
-            padding: 20px;
-            border-left: 4px solid var(--primary-color);
-            border-radius: 0 8px 8px 0;
-        }
+        .arrow { font-size: 2rem; color: var(--primary-color); }
+        .tech-item { background-color: var(--card-background); padding: 10px 20px; border-radius: 8px; font-weight: 600; }
+        .roadmap-stage { background: var(--card-background); padding: 20px; border-right: 4px solid var(--primary-color); border-radius: 8px 0 0 8px; }
         .roadmap-stage h4 { margin: 0 0 10px; }
-        .roadmap-stage ul { padding-right: 20px; margin: 0; }
-
-        footer {
-            text-align: center;
-            padding: 50px 20px;
-            background-color: var(--card-background);
-        }
-        footer h2 { font-size: 2.5rem; }
+        .roadmap-stage ul { padding-left: 20px; margin: 0; }
+        footer { text-align: center; padding: 50px 20px; margin-top: 50px; background-color: var(--card-background); }
 
     </style>
 </head>
@@ -322,23 +427,36 @@
 
     <nav id="navbar">
         <div class="container">
-            <a href="#" class="logo">Gemini GameCrafter</a>
-            <div>
-                <a href="#vision">החזון</a>
-                <a href="#demo">דמו</a>
-                <a href="#features">יכולות</a>
-                <a href="#tech">טכנולוגיה</a>
-                <a href="#business">הזדמנות</a>
-                <a href="#contact">צור קשר</a>
+            <a href="#" class="logo">GameCrafter</a>
+            <div class="nav-links">
+                <a href="#vision">The Vision</a>
+                <a href="#demo">Live Demo</a>
+                <a href="#features">Features</a>
+                <a href="#tech">Technology</a>
+                <a href="#roadmap">Roadmap</a>
+                <a href="#contact">Contact</a>
             </div>
+            <button class="hamburger-menu" id="hamburger">
+                <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+            </button>
         </div>
     </nav>
 
+    <div class="mobile-nav" id="mobile-menu">
+        <button class="close-menu" id="close-btn">&times;</button>
+        <a href="#vision">The Vision</a>
+        <a href="#demo">Live Demo</a>
+        <a href="#features">Features</a>
+        <a href="#tech">Technology</a>
+        <a href="#roadmap">Roadmap</a>
+        <a href="#contact">Contact</a>
+    </div>
+
     <header class="hero">
         <div class="container">
-            <h1>העתיד של משחקים מיידיים</h1>
-            <p>צרו, שתפו ושחקו במשחקי מובייל מבוססי AI תוך שניות. בלי קוד, בלי התקנות, רק רעיון.</p>
-            <a href="#demo" class="cta-button">נסה את הדמו החי</a>
+            <h1>The Future of Instant Gaming.</h1>
+            <p>Create, share, and play AI-generated mobile games in seconds. No code, no installs, just your idea.</p>
+            <a href="#demo" class="cta-button">Try the Live Demo</a>
         </div>
     </header>
 
@@ -346,22 +464,13 @@
         <section id="vision">
             <div class="container">
                 <div class="section-header">
-                    <h2>הבעיה והחזון</h2>
-                    <p>יצירת משחקים היא תהליך מורכב, יקר ואיטי. עולם משחקי המובייל נשלט על ידי אולפנים גדולים, וליוצר העצמאי אין כמעט דריסת רגל. אנחנו משנים את זה.</p>
+                    <h2>The Problem & The Vision</h2>
+                    <p>Game development is complex, expensive, and slow. The mobile gaming world is dominated by large studios, leaving little room for the individual creator. We are changing that.</p>
                 </div>
                 <div class="grid">
-                    <div class="card">
-                        <h3><span class="icon">⚡️</span>יצירה מיידית</h3>
-                        <p>החזון שלנו הוא לאפשר לכל אדם להפוך רעיון למשחק פועל וניתן לשיתוף תוך פחות מדקה. אנחנו מורידים את כל החסמים הטכניים והכלכליים ומאפשרים ליצירתיות לפרוח.</p>
-                    </div>
-                    <div class="card">
-                        <h3><span class="icon">📱</span>חווית מובייל טהורה</h3>
-                        <p>הכל קורה בדפדפן, ללא צורך בהתקנה. המשחקים קלילים, מהירים ומותאמים למגע. חוויה חלקה ונקייה שמעודדת שיתוף ומשחק ספונטני.</p>
-                    </div>
-                    <div class="card">
-                        <h3><span class="icon">🌍</span>קהילה ויראלית</h3>
-                        <p>אנחנו בונים רשת חברתית של יוצרים ושחקנים. כל משחק הוא תוכן שניתן לגלות, לשבט (clone), ולשתף. המטרה היא ליצור אקוסיסטם שבו התוכן הטוב ביותר צף למעלה ומניע צמיחה אורגנית.</p>
-                    </div>
+                    <div class="card"><h3><span class="icon">⚡️</span>Instant Creation</h3><p>Our vision is to empower anyone to turn an idea into a playable, shareable game in under a minute. We're removing all technical and financial barriers to unlock creativity.</p></div>
+                    <div class="card"><h3><span class="icon">📱</span>Pure Mobile Experience</h3><p>Everything happens in the browser with zero installations. Games are lightweight, fast, and touch-first, encouraging spontaneous play and sharing.</p></div>
+                    <div class="card"><h3><span class="icon">🌍</span>A Viral Community</h3><p>We're building a social network for creators and players. Every game is discoverable, clone-able, and shareable content. The goal is an ecosystem where the best content rises to the top organically.</p></div>
                 </div>
             </div>
         </section>
@@ -369,15 +478,15 @@
         <section id="demo">
             <div class="container">
                 <div class="section-header">
-                    <h2>דמו חי ואינטראקטיבי</h2>
-                    <p>ראו בעצמכם כמה זה פשוט. כתבו רעיון למשחק ולחצו "צור משחק".</p>
+                    <h2>Live Interactive Demo</h2>
+                    <p>See the magic for yourself. Describe a simple game and click "Generate Game". The AI will build it for you, right here, right now.</p>
                 </div>
                 <div class="demo-box">
-                    <input type="text" id="prompt-input" placeholder="לדוגמה: משחק שבו חתול אוסף כדורי צמר ומתחמק מכלבים">
-                    <button id="generate-btn">🚀 צור משחק</button>
+                    <input type="text" id="prompt-input" placeholder="e.g., A robot collecting stars and avoiding aliens">
+                    <button id="generate-btn">🚀 Generate Game</button>
                     <div id="game-container">
                         <div id="loader"><div class="spinner"></div></div>
-                        <iframe id="game-iframe" src="about:blank"></iframe>
+                        <iframe id="game-iframe" title="Generated Game" src="about:blank"></iframe>
                     </div>
                 </div>
             </div>
@@ -386,36 +495,40 @@
         <section id="features">
             <div class="container">
                 <div class="section-header">
-                    <h2>יכולות מרכזיות</h2>
-                    <p>הפלטפורמה שלנו מציעה סט כלים שלם ליצירה, ניהול, הפצה וגילוי.</p>
+                    <h2>Core Features</h2>
+                    <p>Our platform offers a complete suite of tools for creation, management, distribution, and discovery.</p>
                 </div>
                 <div class="grid">
-                    <div class="card"><h3>יצירה מבוססת AI</h3><p>תרגום אוטומטי של פרומפט טקסטואלי למשחק HTML5 מלא, כולל לוגיקה, גרפיקה ופיזיקה בסיסית.</p></div>
-                    <div class="card"><h3>אינטגרציית WhatsApp</h3><p>יצירת משחקים ישירות דרך שליחת הודעה בוואטסאפ, מה שמאיץ את הוויראליות ומקל על הכניסה לפלטפורמה.</p></div>
-                    <div class="card"><h3>מרקטפלייס חברתי</h3><p>גלריה מרכזית לחיפוש וגילוי משחקים, עם יכולות מיון וסינון לפי פופולריות, יוצרים ועוד.</p></div>
-                    <div class="card"><h3>שיתוף ושיבוט (Clone)</h3><p>כל משחק ניתן לשיתוף בקלות. בנוסף, כל משתמש רשום יכול "לשבט" משחק קיים, לערוך את הפרומפט וליצור גרסה משלו.</p></div>
-                    <div class="card"><h3>דשבורד ליוצרים</h3><p>כל יוצר מקבל דשבורד אישי עם אנליטיקות על המשחקים שלו: כמה שיחקו, כמה שיתפו, זמן משחק ממוצע ועוד.</p></div>
-                    <div class="card"><h3>מנוע משחק קל ומהיר</h3><p>כל משחק נוצר כקובץ HTML יחיד, ללא תלויות, מה שמבטיח טעינה מהירה במיוחד בכל רשת ועל כל מכשיר.</p></div>
+                    <div class="card"><h3><span class="icon">🤖</span>AI-Powered Generation</h3><p>Automatically translate a text prompt into a complete HTML5 game, including logic, graphics, and basic physics.</p></div>
+                    <div class="card"><h3><span class="icon">💬</span>WhatsApp Integration</h3><p>Create games just by sending a message to our WhatsApp bot, accelerating virality and user onboarding.</p></div>
+                    <div class="card"><h3><span class="icon">🏪</span>Social Marketplace</h3><p>A central hub for searching and discovering games, with sorting and filtering by popularity, creators, and more.</p></div>
+                    <div class="card"><h3><span class="icon">✨</span>Share & Clone</h3><p>Every game is easily shareable. Registered users can also "clone" any existing game, tweak the prompt, and create their own version.</p></div>
+                    <div class="card"><h3><span class="icon">📊</span>Creator Dashboard</h3><p>A personal dashboard for every creator with analytics on their games: play count, shares, average playtime, and more.</p></div>
+                    <div class="card"><h3><span class="icon">🚀</span>Lightweight Engine</h3><p>Each game is a single, dependency-free HTML file, ensuring blazing-fast load times on any network and any device.</p></div>
                 </div>
             </div>
         </section>
-
-        <section id="virality">
+        
+        <section id="whatsapp-demo">
             <div class="container">
                 <div class="section-header">
-                    <h2>המנוע הוויראלי</h2>
-                    <p>הצמיחה שלנו מבוססת על לולאת משוב חיובית פשוטה אך עוצמתית.</p>
+                    <h2>Create from Anywhere</h2>
+                    <p>Our WhatsApp bot makes game creation as easy as sending a text.</p>
                 </div>
-                <div class="viral-loop">
-                    <div class="step">1. יצירה</div>
-                    <div class="arrow">➡️</div>
-                    <div class="step">2. שיתוף</div>
-                    <div class="arrow">➡️</div>
-                    <div class="step">3. משחק</div>
-                    <div class="arrow">➡️</div>
-                    <div class="step">4. גילוי</div>
-                    <div class="arrow">➡️</div>
-                    <div class="step">5. יצירה חדשה</div>
+                <div class="whatsapp-demo-container">
+                    <div class="phone-bezel">
+                        <div class="phone-screen">
+                            <div class="chat-header">
+                                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iMjAiIGZpbGw9IiM0ZjQ2ZTUiLz4KPHBhdGggZD0iTTIwIDI5QzE4LjkgMjkgMTcuODU4MyAyOC43OTE3IDE2Ljg3NSAyOC4zNzVMMTIuMzU4MyAzMEwxMi43NzUgMjUuNjI1QzExLjU1IDI0LjI0MTcgMTEgMjIuNjY2NyAxMSAyMUMxMSAxNi41ODMzIDE1LjA0MTcgMTMgMjAgMTNDMjQuOTU4MyAxMyAyOSAxNi41ODMzIDI5IDIxQzI5IDI1LjQxNjcgMjQuOTU4MyAyOSAyMCAyOVpNMTguMTI1IDE5Ljc1SDE2LjM3NVYxOC4xMjVIMTguMTI1VjE5Ljc1Wk0yMy42MjUgMTkuNzVIMjEuODc1VjE4LjEyNUgyMy42MjVWMjAuNUwyMi43NSAyMS44NzVIMTcuMjVMMTYuMzc1IDIwLjVWMjIuNjI1SDE4LjEyNVYyMS44NzVIMjEuODc1VjIyLjYyNUgyMy42MjVWMjAuNUwyMy42MjUgMTkuNzVaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K" alt="Bot Avatar">
+                                <div>
+                                    <div style="font-weight: 600;">GameCrafter Bot</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);">online</div>
+                                </div>
+                            </div>
+                            <div class="chat-body" id="chat-body">
+                                </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -424,65 +537,13 @@
         <section id="tech">
             <div class="container">
                 <div class="section-header">
-                    <h2>טכנולוגיה וארכיטקטורה</h2>
-                    <p>בנינו מערכת מודרנית, סקיילבילית ומאובטחת המבוססת על הכלים המתקדמים ביותר.</p>
-                </div>
-                <h3>Tech Stack</h3>
-                <div class="tech-stack">
-                    <div class="tech-item">Google Gemini</div>
-                    <div class="tech-item">Node.js + Express</div>
-                    <div class="tech-item">React + Vite</div>
-                    <div class="tech-item">Google Cloud Run</div>
-                    <div class="tech-item">Firebase</div>
-                    <div class="tech-item">Meta API (WhatsApp)</div>
-                    <div class="tech-item">GitHub Actions CI/CD</div>
-                </div>
-                <h3 style="text-align:center; margin-top: 50px;">מבנה המערכת</h3>
-                <div class="architecture-diagram">
-                    <div class="arch-box">
-                        <h4>Frontend & User</h4>
-                        <p>React App (Web)<br>WhatsApp</p>
-                    </div>
-                    <div style="font-size:2rem; color: var(--primary-color);">➡️</div>
-                    <div class="arch-box">
-                        <h4>Backend Server</h4>
-                        <p>Cloud Run (Node.js)<br>API Endpoints</p>
-                    </div>
-                    <div></div>
-                    <div style="font-size:2rem; color: var(--primary-color); transform: rotate(90deg);">⬇️</div>
-                    <div></div>
-                    <div class="arch-box">
-                        <h4>Generated Game</h4>
-                        <p>Single HTML File<br>Cloud Storage</p>
-                    </div>
-                     <div style="font-size:2rem; color: var(--primary-color); transform: rotate(180deg);">⬅️</div>
-                    <div class="arch-box">
-                        <h4>Core Services</h4>
-                        <p>Gemini AI<br>Firestore DB<br>Firebase Auth</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <section id="business">
-            <div class="container">
-                <div class="section-header">
-                    <h2>ההזדמנות העסקית</h2>
-                    <p>אנו פועלים בצומת של שוקי ענק: משחקי המובייל, כלכלת היוצרים ובינה מלאכותית.</p>
+                    <h2>Technology & Architecture</h2>
+                    <p>Built on a modern, scalable, and secure stack using industry-leading tools.</p>
                 </div>
                 <div class="grid">
-                    <div class="card">
-                        <h3>גודל השוק</h3>
-                        <p>שוק משחקי המובייל מוערך במאות מיליארדי דולרים, וכלכלת היוצרים צומחת בקצב מסחרר. GameCrafter ממצב את עצמו ככלי חיוני בשני השווקים הללו.</p>
-                    </div>
-                    <div class="card">
-                        <h3>מודל עסקי (פוטנציאלי)</h3>
-                        <p>הפלטפורמה תפעל במודל Freemium. יצירה בסיסית תהיה בחינם, עם אפשרויות פרימיום ליוצרים רציניים (יכולות מתקדמות, אנליטיקות עומק, מיתוג אישי), וכן מודלים של חסויות ושותפויות מותגים במרקטפלייס.</p>
-                    </div>
-                     <div class="card">
-                        <h3>יתרון תחרותי</h3>
-                        <p>המפתח הוא מהירות, פשטות וקהילה. בזמן שכלים אחרים דורשים למידה, אנחנו מאפשרים יצירה מיידית. המנוע הוויראלי והמיקוד במובייל הם היתרונות המובהקים שלנו.</p>
-                    </div>
+                    <div class="card"><h3>Tech Stack</h3><p>Google Gemini, Node.js, React, Google Cloud Run, Firebase (Auth, Firestore, Storage), Meta API, GitHub Actions CI/CD.</p></div>
+                    <div class="card"><h3>Serverless & Scalable</h3><p>The entire backend is built on serverless technology, meaning it scales automatically from ten users to ten million without manual intervention.</p></div>
+                    <div class="card"><h3>Secure by Design</h3><p>We use Firebase's robust security rules and authentication to protect user data. The AI generates configuration data, not executable code, preventing malicious injections.</p></div>
                 </div>
             </div>
         </section>
@@ -490,36 +551,13 @@
         <section id="roadmap">
              <div class="container">
                 <div class="section-header">
-                    <h2>מפת דרכים</h2>
-                    <p>יש לנו חזון ברור לאן אנחנו הולכים.</p>
+                    <h2>Our Roadmap</h2>
+                    <p>We have a clear vision for the future.</p>
                 </div>
-                <div class="roadmap">
-                    <div class="roadmap-stage">
-                        <h4>שלב 1: השקה (Now)</h4>
-                        <ul>
-                            <li>השקת MVP עם פונקציונליות ליבה: יצירה, שיתוף, מרקטפלייס בסיסי.</li>
-                            <li>אימות הלולאה הוויראלית עם קבוצת משתמשים ראשונית.</li>
-                            <li>איסוף פידבק ונתונים לתיעדוף המשך הפיתוח.</li>
-                        </ul>
-                    </div>
-                    <div class="roadmap-stage">
-                        <h4>שלב 2: קהילה ותחרותיות (Next)</h4>
-                        <ul>
-                            <li>הוספת Leaderboards לכל משחק.</li>
-                            <li>יצירת פרופילים עשירים יותר ליוצרים.</li>
-                            <li>יכולות "אתגר" בין חברים.</li>
-                            <li>שדרוג יכולות ה-AI לתמיכה בסוגי משחק מורכבים יותר.</li>
-                        </ul>
-                    </div>
-                    <div class="roadmap-stage">
-                        <h4>שלב 3: מונטיזציה וצמיחה (Later)</h4>
-                        <ul>
-                            <li>השקת מודל פרימיום ליוצרים (Creator Pro).</li>
-                            <li>פיתוח כלים למותגים ליצירת משחקי קמפיין (Branded Content).</li>
-                            <li>הרחבת יכולות המנוע הגרפי והפיזיקלי.</li>
-                            <li>אינטגרציות עם פלטפורמות חברתיות נוספות.</li>
-                        </ul>
-                    </div>
+                <div class="grid">
+                    <div class="roadmap-stage"><h4>Phase 1: Launch (Now)</h4><ul><li>MVP launch with core functionality: creation, sharing, basic marketplace.</li><li>Validate the viral loop with an initial user base.</li><li>Gather feedback to prioritize the next steps.</li></ul></div>
+                    <div class="roadmap-stage"><h4>Phase 2: Community & Competition (Next)</h4><ul><li>Implement per-game leaderboards.</li><li>Build rich creator profiles and game galleries.</li><li>Introduce "challenge a friend" features.</li><li>Enhance the AI to support more complex game types.</li></ul></div>
+                    <div class="roadmap-stage"><h4>Phase 3: Monetization & Scale (Later)</h4><ul><li>Launch "Creator Pro" premium features.</li><li>Develop tools for brands to create campaign games.</li><li>Expand the graphic and physics engine capabilities.</li><li>Integrate with more social platforms.</li></ul></div>
                 </div>
              </div>
         </section>
@@ -528,54 +566,175 @@
     
     <footer id="contact">
         <div class="container">
-            <h2>בואו נבנה יחד את עתיד הגיימינג.</h2>
-            <p>אנחנו תמיד מחפשים שותפים, משקיעים וחברי צוות שמאמינים בחזון שלנו.</p>
+            <h2>Let's build the future of gaming, together.</h2>
+            <p>We are actively seeking partners, investors, and team members who believe in our vision.</p>
             <br>
-            <a href="mailto:contact@gamecrafter.example.com" class="cta-button">צרו קשר</a>
+            <a href="mailto:contact@gamecrafter.example.com" class="cta-button">Get in Touch</a>
         </div>
     </footer>
 
     <script>
-        // Smooth scrolling for nav links
-        document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
+    // --- Mobile Navigation ---
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const closeBtn = document.getElementById('close-btn');
+    const mobileLinks = mobileMenu.querySelectorAll('a');
 
-        // Interactive Demo Logic
-        const promptInput = document.getElementById('prompt-input');
-        const generateBtn = document.getElementById('generate-btn');
-        const gameContainer = document.getElementById('game-container');
-        const gameIframe = document.getElementById('game-iframe');
-        const loader = document.getElementById('loader');
+    hamburger.addEventListener('click', () => mobileMenu.classList.add('is-open'));
+    closeBtn.addEventListener('click', () => mobileMenu.classList.remove('is-open'));
+    mobileLinks.forEach(link => link.addEventListener('click', () => mobileMenu.classList.remove('is-open')));
 
-        // Pre-encoded simple HTML game as a Base64 Data URL
-        const gameDataURL = "data:text/html;base64,PCFET0NUWVBFIGh0bWw+PGh0bWwgbGFuZz0iZW4iPjxoZWFkPjxtZXRhIGNoYXJzZXQ9InV0Zi04Ii8+PG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCxpbml0aWFsLXNjYWxlPTEsbWF4aW11bS1zY2FsZT0xLHVzZXItc2NhbGFibGU9bm8iLz48dGl0bGU+Q29sbGVjdG9yPC90aXRsZT48c3R5bGU+aHRtbCxib2R5e21hcmdpbjowO2hlaWdodDoxMDAlO2JhY2tncm91bmQ6IzBiMGYxNjtoZWlnaHQ6MTAwJTt0b3VjaC1hY3Rpb246bm9uZTtvdmVyc2Nyb2xsLWJlaGF2aW9yOm5vbmV9Y2FudmFze2Rpc3BsYXk6YmxvY2s7d2lkdGg6MTAwJTtoZWlnaHQ6MTAwJX08L3N0eWxlPjwvaGVhZD48Ym9keT48Y2FudmFzIGlkPSJnIj48L2NhbnZhcz48c2NyaXB0Pi(()=>{const t=document.getElementById("g"),e=t.getContext("2d"),s={x:100,y:100,r:20,sp:5},o=[],n={x:0,y:0,a:!1};let a=0,i=0,r=null;function c(){const o=innerWidth,c=innerHeight,l=window.devicePixelRatio||1;t.width=o*l,t.height=c*l,e.scale(l,l),s.x=o/2,s.y=c/2,i=o,r=c}function d(){o.push({x:Math.random()*i,y:Math.random()*r,r:10,v:100})}for(let t=0;t<8;t++)d();function l(t,e){const s=t.touches?t.touches[0]:t;n={a:!0,x:s.clientX,y:s.clientY}}function h(){n.a=!1}function u(t){if(!t)return;const c=performance.now();a/1e3;a=c,function(){if(n.a){const t=n.x-s.x,e=n.y-s.y,o=Math.hypot(t,e)||1;s.x+=t/o*s.sp,s.y+=e/o*s.sp}}();for(let t=o.length-1;t>=0;t--){const e=o[t];Math.hypot(s.x-e.x,s.y-e.y)<s.r+e.r&&(o.splice(t,1),d())}e.fillStyle="#0b0f16",e.fillRect(0,0,i,r),e.fillStyle="#A5D6A7";for(const t of o)e.beginPath(),e.arc(t.x,t.y,t.r,0,2*Math.PI),e.fill();e.fillStyle="#FFD54F",e.beginPath(),e.arc(s.x,s.y,s.r,0,2*Math.PI),e.fill(),requestAnimationFrame(u)}addEventListener("resize",c,{passive:!0}),addEventListener("touchstart",l,{passive:!1}),addEventListener("touchmove",l,{passive:!1}),addEventListener("touchend",h,{passive:!1}),c(),u(!0)})();PC9zY3JpcHQ+PC9ib2R5PjwvaHRtbD4=";
-        
-        generateBtn.addEventListener('click', () => {
-            if (promptInput.value.trim() === "") {
-                alert("בבקשה, תאר את המשחק שברצונך ליצור.");
-                return;
+    // --- Interactive Live Demo ---
+    const promptInput = document.getElementById('prompt-input');
+    const generateBtn = document.getElementById('generate-btn');
+    const gameIframe = document.getElementById('game-iframe');
+    const loader = document.getElementById('loader');
+
+    const gameTemplate = `
+        <!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/><title>Gemini Game</title><style>html,body{margin:0;height:100%;background:#0b0f16;color:#e8f0fe;font-family:system-ui,sans-serif;touch-action:none;overscroll-behavior:none}canvas{display:block;width:100%;height:100%}</style></head><body><canvas id="game"></canvas><script>
+        (() => {
+            const cfg = __CONFIG_JSON__;
+            function safeEval(fnStr){ try { return (0,eval)('(' + fnStr + ')'); } catch(e){ console.error(e); return () => {}; } }
+            const drawFns = {
+                drawPlayer: safeEval(cfg.drawFunctions.drawPlayer),
+                drawEnemy: safeEval(cfg.drawFunctions.drawEnemy),
+                drawCollectible: safeEval(cfg.drawFunctions.drawCollectible)
+            };
+            const canvas = document.getElementById('game');
+            const ctx = canvas.getContext('2d', { alpha: false });
+            let W=0,H=0; function resize(){ W=canvas.width=innerWidth; H=canvas.height=innerHeight; } addEventListener('resize', resize, { passive:true }); resize();
+            const state = { t0: performance.now(), score: 0, player: { x: W/2, y: H/2, r: 20, speed: (cfg.config.player?.speed||5) }, enemies: [], collectibles: [], touch: { active:false, x:0, y:0 } };
+            function spawn(type){ if(type==='enemy') state.enemies.push({ x: Math.random()*W, y: Math.random()*H, r:15, speed: (cfg.config.enemies?.[0]?.speed||2) }); else state.collectibles.push({ x: Math.random()*W, y: Math.random()*H, r:10, value: (cfg.config.goal?.value||100) });}
+            for(let i=0;i<4;i++) spawn('enemy'); for(let i=0;i<8;i++) spawn('collectible');
+            function onTouch(e){ const t = e.touches? e.touches[0] : e; state.touch = { active:true, x:t.clientX, y:t.clientY }; e.preventDefault(); }
+            function offTouch(){ state.touch.active=false; }
+            addEventListener('touchstart', onTouch, {passive:false}); addEventListener('touchmove', onTouch, {passive:false}); addEventListener('touchend', offTouch); addEventListener('pointerdown', onTouch); addEventListener('pointermove', onTouch); addEventListener('pointerup', offTouch);
+            function loop(ts){
+                const dt = (ts - state.t0)/1000; state.t0 = ts;
+                const p = state.player;
+                if(state.touch.active){ const dx = state.touch.x - p.x, dy = state.touch.y - p.y; const d = Math.hypot(dx,dy) || 1; p.x += (dx/d)*p.speed; p.y += (dy/d)*p.speed; }
+                p.x = Math.max(p.r, Math.min(W-p.r, p.x)); p.y = Math.max(p.r, Math.min(H-p.r, p.y));
+                for(const e of state.enemies){ const dx = p.x - e.x, dy = p.y - e.y; const d = Math.hypot(dx,dy) || 1; e.x += dx/d * e.speed; e.y += dy/d * e.speed; if (Math.hypot(p.x-e.x, p.y-e.y) < p.r + e.r) state.player.speed = 0; }
+                for (let i=state.collectibles.length-1; i>=0; i--){ const c = state.collectibles[i]; if (Math.hypot(p.x-c.x, p.y-c.y) < p.r + c.r) { state.score += c.value; state.collectibles.splice(i,1); spawn('collectible'); } }
+                ctx.fillStyle = '#0b0f16'; ctx.fillRect(0,0,W,H);
+                for(const c of state.collectibles) drawFns.drawCollectible(ctx, c);
+                for(const e of state.enemies) drawFns.drawEnemy(ctx, e);
+                drawFns.drawPlayer(ctx, p);
+                ctx.fillStyle = 'white'; ctx.font = '20px sans-serif'; ctx.fillText('Score: ' + state.score, 10, 30);
+                requestAnimationFrame(loop);
             }
-            
-            loader.style.display = 'block';
-            gameIframe.src = 'about:blank';
-            generateBtn.disabled = true;
-            generateBtn.textContent = 'יוצר עולם חדש...';
+            loop(performance.now());
+        })();
+        <\/script></body></html>
+    `;
 
+    function simulateGemini(prompt) {
+        const spec = {
+            config: {
+                gameType: "collector",
+                player: { speed: 5 },
+                enemies: [{ speed: 1.5, behavior: "chase" }],
+                goal: { value: 100 }
+            },
+            drawFunctions: {
+                drawPlayer: "function(ctx, p){ ctx.fillStyle='#FFD54F'; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill(); }",
+                drawEnemy: "function(ctx, e){ ctx.fillStyle='#F44336'; ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI*2); ctx.fill(); }",
+                drawCollectible: "function(ctx, c){ ctx.fillStyle='#4CAF50'; ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI*2); ctx.fill(); }"
+            }
+        };
+
+        if (prompt.includes('robot')) {
+            spec.drawFunctions.drawPlayer = "function(ctx, p){ ctx.fillStyle='silver'; ctx.fillRect(p.x-p.r, p.y-p.r, p.r*2, p.r*2); ctx.fillStyle='blue'; ctx.beginPath(); ctx.arc(p.x, p.y-p.r/2, 5, 0, Math.PI*2); ctx.fill(); }";
+        }
+        if (prompt.includes('cat')) {
+            spec.drawFunctions.drawPlayer = "function(ctx, p){ ctx.fillStyle='orange'; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.moveTo(p.x-p.r, p.y-p.r); ctx.lineTo(p.x-p.r+10, p.y-p.r); ctx.lineTo(p.x-p.r, p.y-p.r+10); ctx.fill(); }";
+        }
+        if (prompt.includes('alien')) {
+            spec.drawFunctions.drawEnemy = "function(ctx, e){ ctx.fillStyle='purple'; ctx.beginPath(); ctx.moveTo(e.x, e.y-e.r); ctx.lineTo(e.x-e.r, e.y+e.r); ctx.lineTo(e.x+e.r, e.y+e.r); ctx.closePath(); ctx.fill(); }";
+        }
+        if (prompt.includes('star')) {
+             spec.drawFunctions.drawCollectible = "function(ctx, c){ ctx.fillStyle='gold'; ctx.beginPath(); for(let i=0;i<5;i++){ ctx.lineTo(c.x+c.r*Math.cos(0.4*i*Math.PI), c.y+c.r*Math.sin(0.4*i*Math.PI)); ctx.lineTo(c.x+c.r/2*Math.cos((0.4*i+0.2)*Math.PI), c.y+c.r/2*Math.sin((0.4*i+0.2)*Math.PI)); } ctx.closePath(); ctx.fill(); }";
+        }
+        
+        return new Promise(resolve => setTimeout(() => resolve(spec), 2000));
+    }
+
+    function buildGameHtml(spec) {
+        const configString = JSON.stringify(spec, null, 2);
+        return gameTemplate.replace('__CONFIG_JSON__', configString);
+    }
+
+    generateBtn.addEventListener('click', async () => {
+        const prompt = promptInput.value.trim();
+        if (prompt === "") {
+            alert("Please describe the game you want to create.");
+            return;
+        }
+
+        loader.style.display = 'block';
+        gameIframe.src = 'about:blank';
+        generateBtn.disabled = true;
+        generateBtn.textContent = 'Generating...';
+
+        const spec = await simulateGemini(prompt);
+        const finalHtml = buildGameHtml(spec);
+        
+        const blob = new Blob([finalHtml], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        
+        gameIframe.src = url;
+
+        gameIframe.onload = () => {
+            URL.revokeObjectURL(url); // Clean up memory
+            loader.style.display = 'none';
+            generateBtn.disabled = false;
+            generateBtn.textContent = '🚀 Generate Game';
+        };
+    });
+    
+    // --- WhatsApp Demo Animation ---
+    const chatBody = document.getElementById('chat-body');
+    const messages = [
+        { type: 'sent', text: 'a simple game where a spaceship collects gems and avoids asteroids' },
+        { type: 'received', text: 'Got it. Generating a space adventure for you... 🚀' },
+        { type: 'received', text: 'Your game is ready! ✨<br><a href="#demo" target="_blank">Click here to play!</a>' }
+    ];
+    
+    function addMessage(msg, delay) {
+        return new Promise(resolve => {
             setTimeout(() => {
-                gameIframe.src = gameDataURL;
-                loader.style.display = 'none';
-                generateBtn.disabled = false;
-                generateBtn.textContent = '🚀 צור משחק';
-            }, 2500);
+                const messageEl = document.createElement('div');
+                messageEl.classList.add('message', msg.type);
+                messageEl.innerHTML = msg.text;
+                chatBody.appendChild(messageEl);
+                chatBody.scrollTop = chatBody.scrollHeight;
+                
+                if (msg.type === 'received' && messages[messages.indexOf(msg) + 1]) {
+                    const typingEl = document.createElement('div');
+                    typingEl.classList.add('message', 'received', 'typing');
+                    typingEl.textContent = '...';
+                    chatBody.appendChild(typingEl);
+                    chatBody.scrollTop = chatBody.scrollHeight;
+                }
+                
+                resolve();
+            }, delay);
         });
+    }
+
+    const whatsappObserver = new IntersectionObserver(async (entries, observer) => {
+        if (entries[0].isIntersecting) {
+            chatBody.innerHTML = '';
+            await addMessage(messages[0], 500);
+            await addMessage(messages[1], 2000);
+            document.querySelector('.message.typing')?.remove();
+            await addMessage(messages[2], 1500);
+            observer.unobserve(entries[0].target);
+        }
+    }, { threshold: 0.6 });
+
+    whatsappObserver.observe(document.getElementById('whatsapp-demo'));
 
     </script>
-
 </body>
 </html>
