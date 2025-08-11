@@ -2,581 +2,417 @@
 <html lang="iw" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>2048 - גרסה מתקדמת</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2048 - גרסה אמינה</title>
     <style>
-        /* --- משתני CSS לעיצוב קל --- */
-        :root {
-            --grid-size: 4;
-            --grid-gap: 15px;
-            --cell-size: 20vmin;
-            --cell-size-mobile: 20vmin;
-            --border-radius: 5px;
-            --background-color: #faf8ef;
-            --grid-background: #bbada0;
-        }
-
-        /* --- הגדרות בסיס וגוף העמוד --- */
         body {
-            background-color: var(--background-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #faf8ef;
+            color: #776e65;
             margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            padding: 10px;
+            /* מניעת "הקפצה" של הדף במובייל */
+            overscroll-behavior: none;
         }
 
-        /* --- קונטיינר ראשי למשחק --- */
-        #game-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        h1 {
+            font-size: 5rem;
+            margin: 10px 0;
         }
 
-        /* --- כותרת עליונה (שם, ניקוד, כפתורים) --- */
-        .header {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        #score {
+            font-size: 1.5rem;
             margin-bottom: 20px;
         }
 
-        .title {
-            font-size: 4rem;
-            font-weight: bold;
-            color: #776e65;
-        }
-
-        .controls-container {
-            display: flex;
-            gap: 10px;
-        }
-
-        .score-box, .new-game-button {
+        #board {
+            width: 90vw;
+            max-width: 400px;
+            height: 90vw;
+            max-height: 400px;
             background-color: #bbada0;
-            color: white;
-            padding: 10px 20px;
-            border-radius: var(--border-radius);
-            font-size: 1.2rem;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .score-box .label {
-            font-size: 0.8rem;
-            color: #eee4da;
-        }
-
-        .new-game-button {
-            background-color: #8f7a66;
-            cursor: pointer;
-            border: none;
+            border: 10px solid #bbada0;
+            border-radius: 6px;
+            margin: 0 auto;
             display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .new-game-button:hover {
-            background-color: #9f8b77;
+            flex-wrap: wrap;
         }
 
-        /* --- רשת המשחק --- */
-        #grid-board {
-            display: grid;
-            grid-template-columns: repeat(var(--grid-size), var(--cell-size));
-            grid-template-rows: repeat(var(--grid-size), var(--cell-size));
-            gap: var(--grid-gap);
-            background-color: var(--grid-background);
-            border-radius: var(--border-radius);
-            padding: var(--grid-gap);
-            position: relative; /* חשוב למיקום האריחים */
-        }
-
-        .grid-cell {
-            background-color: rgba(238, 228, 218, 0.35);
-            border-radius: var(--border-radius);
-        }
-
-        /* --- עיצוב האריחים (Tiles) --- */
         .tile {
-            position: absolute;
-            width: var(--cell-size);
-            height: var(--cell-size);
-            border-radius: var(--border-radius);
+            width: 25%;
+            height: 25%;
+            box-sizing: border-box;
+            border: 5px solid #bbada0;
+            border-radius: 3px;
+            font-size: 2rem;
+            font-weight: bold;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-weight: bold;
-            font-size: 2.5rem;
-            /* אנימציות */
-            transition: transform 100ms ease-in-out, top 100ms ease-in-out, left 100ms ease-in-out;
-            animation-duration: 200ms;
-            animation-timing-function: ease;
+            transition: background-color 0.2s, color 0.2s;
         }
 
-        .tile.new {
-            animation-name: appear;
-        }
-        .tile.merged {
-            animation-name: pop;
-        }
+        .tile-0 { background-color: #ccc0b3; }
+        .tile-2 { background-color: #eee4da; color: #776e65; }
+        .tile-4 { background-color: #ede0c8; color: #776e65; }
+        .tile-8 { background-color: #f2b179; color: white; }
+        .tile-16 { background-color: #f59563; color: white; }
+        .tile-32 { background-color: #f67c5f; color: white; }
+        .tile-64 { background-color: #f65e3b; color: white; }
+        .tile-128 { background-color: #edcf72; color: #f9f6f2; font-size: 1.8rem; }
+        .tile-256 { background-color: #edcc61; color: #f9f6f2; font-size: 1.8rem; }
+        .tile-512 { background-color: #edc850; color: #f9f6f2; font-size: 1.8rem; }
+        .tile-1024 { background-color: #edc53f; color: #f9f6f2; font-size: 1.5rem; }
+        .tile-2048 { background-color: #edc22e; color: #f9f6f2; font-size: 1.5rem; }
+        .tile-4096 { background-color: #3c3a32; color: #f9f6f2; font-size: 1.5rem; }
+        .tile-8192 { background-color: #3c3a32; color: #f9f6f2; font-size: 1.5rem; }
 
+        /* אנימציה להופעת אריח חדש */
         @keyframes appear {
-            from { transform: scale(0); }
-            to { transform: scale(1); }
-        }
-        @keyframes pop {
-            from { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            to { transform: scale(1); }
+            from { transform: scale(0.5); opacity: 0.5; }
+            to { transform: scale(1); opacity: 1; }
         }
 
-        /* --- צבעי האריחים --- */
-        .tile[data-value="2"]    { background: #eee4da; color: #776e65; }
-        .tile[data-value="4"]    { background: #ede0c8; color: #776e65; }
-        .tile[data-value="8"]    { background: #f2b179; color: #f9f6f2; }
-        .tile[data-value="16"]   { background: #f59563; color: #f9f6f2; }
-        .tile[data-value="32"]   { background: #f67c5f; color: #f9f6f2; }
-        .tile[data-value="64"]   { background: #f65e3b; color: #f9f6f2; }
-        .tile[data-value="128"]  { background: #edcf72; color: #f9f6f2; font-size: 2.2rem; }
-        .tile[data-value="256"]  { background: #edcc61; color: #f9f6f2; font-size: 2.2rem; }
-        .tile[data-value="512"]  { background: #edc850; color: #f9f6f2; font-size: 2.2rem; }
-        .tile[data-value="1024"] { background: #edc53f; color: #f9f6f2; font-size: 1.8rem; }
-        .tile[data-value="2048"] { background: #edc22e; color: #f9f6f2; font-size: 1.8rem; }
-        .tile[data-value="4096"] { background: #3c3a32; color: #f9f6f2; font-size: 1.8rem; }
-        .tile[data-value="8192"] { background: #3c3a32; color: #f9f6f2; font-size: 1.8rem; }
-
-
-        /* --- שכבת על (Overlay) לסיום/ניצחון המשחק --- */
-        .game-overlay {
-            position: absolute;
+        .new-tile {
+            animation: appear 0.2s ease-in-out;
+        }
+        
+        /* שכבת על לסיום המשחק */
+        #game-over-overlay {
+            position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
+            width: 100%;
+            height: 100%;
             background-color: rgba(238, 228, 218, 0.73);
-            display: flex;
+            display: none; /* מוסתר בהתחלה */
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            text-align: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 300ms ease;
+            z-index: 100;
         }
 
-        .game-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .game-overlay .message {
-            font-size: 4rem;
-            font-weight: bold;
+        #game-over-overlay h2 {
+            font-size: 3rem;
             color: #776e65;
         }
 
-        .game-overlay .lower {
+        #game-over-overlay button {
+            padding: 15px 30px;
             font-size: 1.2rem;
-            color: #776e65;
-            margin-top: 10px;
-        }
-        
-        .game-overlay .retry-button {
-            margin-top: 20px;
+            color: white;
+            background-color: #8f7a66;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
 
-        /* --- עיצוב רספונסיבי למובייל --- */
-        @media (max-width: 520px) {
-            :root {
-                --cell-size: var(--cell-size-mobile);
-                --grid-gap: 10px;
-            }
-            .header {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .title {
-                font-size: 2.5rem;
-            }
-            .tile {
-                font-size: 2rem;
-            }
-            .tile[data-value="1024"],
-            .tile[data-value="2048"],
-            .tile[data-value="4096"],
-            .tile[data-value="8192"] {
-                font-size: 1.5rem;
-            }
+        #game-over-overlay button:hover {
+            background-color: #9f8b77;
         }
+
     </style>
 </head>
 <body>
 
-    <div id="game-container">
-        <div class="header">
-            <h1 class="title">2048</h1>
-            <div class="controls-container">
-                <div class="score-box">
-                    <div class="label">SCORE</div>
-                    <div id="score">0</div>
-                </div>
-                <button id="new-game-button" class="new-game-button">משחק חדש</button>
-            </div>
-        </div>
-        
-        <div id="grid-board">
-            <div id="game-overlay" class="game-overlay">
-                <p class="message" id="overlay-message">הפסדת!</p>
-                <div class="lower">
-                    <p>לחץ על הכפתור כדי לנסות שוב.</p>
-                    <button id="retry-button" class="new-game-button retry-button">נסה שוב</button>
-                </div>
-            </div>
-        </div>
+    <h1>2048</h1>
+    <hr>
+    <h2>ניקוד: <span id="score">0</span></h2>
+    <div id="board"></div>
+    <div id="game-over-overlay">
+        <h2>המשחק נגמר!</h2>
+        <p>הניקוד הסופי שלך: <span id="final-score">0</span></p>
+        <button id="restart-button">שחק שוב</button>
     </div>
 
     <script>
-        // --- הגדרות ראשוניות ואלמנטים מה-DOM ---
-        const GRID_SIZE = 4;
-        const gridBoard = document.getElementById('grid-board');
-        const scoreElement = document.getElementById('score');
-        const newGameButton = document.getElementById('new-game-button');
-        const overlay = document.getElementById('game-overlay');
-        const overlayMessage = document.getElementById('overlay-message');
-        const retryButton = document.getElementById('retry-button');
+        var board;
+        var score = 0;
+        var rows = 4;
+        var columns = 4;
+        var boardElement = document.getElementById("board");
+        var scoreElement = document.getElementById("score");
+        var gameOverOverlay = document.getElementById("game-over-overlay");
+        var finalScoreElement = document.getElementById("final-score");
+        var restartButton = document.getElementById("restart-button");
 
-        let grid = [];
-        let score = 0;
-        let isWon = false;
-        let isMoveInProgress = false;
 
-        // --- קלאס לניהול אריח בודד ---
-        class Tile {
-            constructor(gridElement, value = Math.random() > 0.9 ? 4 : 2) {
-                this.tileElement = document.createElement('div');
-                this.tileElement.classList.add('tile', 'new');
-                this.value = value;
-                gridElement.append(this.tileElement);
-            }
-            
-            set value(v) {
-                this._value = v;
-                this.tileElement.textContent = v;
-                this.tileElement.dataset.value = v;
-            }
-            
-            get value() {
-                return this._value;
-            }
-
-            set x(xPos) {
-                this._x = xPos;
-                this.tileElement.style.left = `${xPos * (100 / GRID_SIZE)}%`;
-            }
-
-            set y(yPos) {
-                this._y = yPos;
-                this.tileElement.style.top = `${yPos * (100 / GRID_SIZE)}%`;
-            }
-
-            remove() {
-                this.tileElement.remove();
-            }
-
-            waitForTransitionEnd() {
-                return new Promise(resolve => {
-                    this.tileElement.addEventListener('transitionend', resolve, { once: true });
-                });
-            }
-
-            markForMerge() {
-                this.tileElement.classList.add('merged');
-            }
-            
-            unmarkForMerge() {
-                this.tileElement.classList.remove('merged');
-            }
+        // --- אתחול המשחק ---
+        window.onload = function() {
+            setupGame();
+            setupInput();
         }
-
-        // --- קלאס לניהול רשת המשחק ---
-        class Grid {
-            constructor(gridElement) {
-                this.gridElement = gridElement;
-                this.cells = [];
-                for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
-                    const cell = document.createElement('div');
-                    cell.classList.add('grid-cell');
-                    this.cells.push(cell);
-                    this.gridElement.append(cell);
-                }
-            }
-
-            get cellsByColumn() {
-                return this.cells.reduce((cellGrid, cell) => {
-                    const col = cellGrid.length % GRID_SIZE;
-                    const row = Math.floor(cellGrid.length / GRID_SIZE);
-                    if (!cellGrid[col]) cellGrid[col] = [];
-                    cellGrid[col][row] = new Cell(cell);
-                    return cellGrid;
-                }, []);
-            }
-            
-            get cellsByRow() {
-                 return this.cells.reduce((cellGrid, cell) => {
-                    const row = Math.floor(cellGrid.length / GRID_SIZE);
-                    if (!cellGrid[row]) cellGrid[row] = [];
-                    cellGrid[row].push(new Cell(cell));
-                    return cellGrid;
-                }, []);
-            }
-
-            get #emptyCells() {
-                return this.cells.filter(cell => cell.tile == null);
-            }
-
-            randomEmptyCell() {
-                const randomIndex = Math.floor(Math.random() * this.#emptyCells.length);
-                return this.#emptyCells[randomIndex];
-            }
-        }
-
-        // --- קלאס לניהול תא בודד ---
-        class Cell {
-            constructor(cellElement) {
-                this.cellElement = cellElement;
-            }
-            
-            get tile() {
-                return grid.find(tile => tile._x === this.x && tile._y === this.y);
-            }
-            
-            set tile(value) {
-                if(value == null) return;
-                value.x = this.x;
-                value.y = this.y;
-            }
-
-            get x() {
-                return Array.from(this.cellElement.parentElement.children).indexOf(this.cellElement) % GRID_SIZE;
-            }
-
-            get y() {
-                 return Math.floor(Array.from(this.cellElement.parentElement.children).indexOf(this.cellElement) / GRID_SIZE);
-            }
-            
-            canAccept(tile) {
-                return this.tile == null || (this.tile.value === tile.value && !this.tile.markedForMerge);
-            }
-
-            mergeTile(tile) {
-                if (this.tile == null) return;
-                this.tile.value += tile.value;
-                updateScore(this.tile.value);
-                this.tile.markForMerge();
-                tile.remove();
-            }
-        }
-
-        // --- פונקציות ליבה של המשחק ---
 
         function setupGame() {
-            const gameGrid = new Grid(gridBoard);
-            grid = [];
+            // איפוס המשתנים
+            board = [
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0]
+            ];
             score = 0;
-            isWon = false;
-            updateScore(0);
-            overlay.classList.remove('active');
-            
-            gameGrid.randomEmptyCell().tile = new Tile(gridBoard);
-            gameGrid.randomEmptyCell().tile = new Tile(gridBoard);
-            
-            // Add all tiles to the main grid array
-            gameGrid.cells.forEach(cell => {
-                if (cell.tile) {
-                    grid.push(cell.tile);
+            gameOverOverlay.style.display = 'none';
+
+            // ניקוי הלוח הויזואלי
+            boardElement.innerHTML = ''; 
+
+            // יצירת הלוח הויזואלי הראשוני
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < columns; c++) {
+                    let tile = document.createElement("div");
+                    tile.id = r.toString() + "-" + c.toString();
+                    let num = board[r][c];
+                    updateTile(tile, num);
+                    boardElement.append(tile);
                 }
-            });
+            }
+
+            // הוספת שני אריחים התחלתיים
+            addRandomTile();
+            addRandomTile();
+            updateScore();
         }
 
-        function updateScore(points) {
-            if (points === 0) {
-                score = 0;
+        // --- עדכון הלוח הויזואלי ---
+        function updateBoard() {
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < columns; c++) {
+                    let tile = document.getElementById(r.toString() + "-" + c.toString());
+                    let num = board[r][c];
+                    updateTile(tile, num);
+                }
+            }
+        }
+
+        function updateTile(tile, num) {
+            tile.innerText = "";
+            tile.classList.value = ""; // clear the class list
+            tile.classList.add("tile");
+            if (num > 0) {
+                tile.innerText = num.toString();
+                tile.classList.add("tile-" + num.toString());
             } else {
-                score += points;
-            }
-            scoreElement.textContent = score;
-        }
-
-        async function handleInput(event) {
-            if (isMoveInProgress) return;
-
-            switch (event.key) {
-                case 'ArrowUp':
-                    await moveUp();
-                    break;
-                case 'ArrowDown':
-                    await moveDown();
-                    break;
-                case 'ArrowLeft':
-                    await moveLeft();
-                    break;
-                case 'ArrowRight':
-                    await moveRight();
-                    break;
-                default:
-                    return;
-            }
-            
-            // After any move, add a new tile
-            const gameGrid = new Grid(gridBoard);
-            const newTileCell = gameGrid.randomEmptyCell();
-            if(newTileCell) {
-                const newTile = new Tile(gridBoard);
-                newTileCell.tile = newTile;
-                grid.push(newTile);
-            }
-            
-            // Check for game over or win
-            if (!canMove()) {
-                endGame();
+                tile.classList.add("tile-0");
             }
         }
         
-        async function moveUp() {
-            await slideTiles(new Grid(gridBoard).cellsByColumn);
-        }
-        
-        async function moveDown() {
-             await slideTiles(new Grid(gridBoard).cellsByColumn.map(col => [...col].reverse()));
+        function updateScore() {
+            scoreElement.innerText = score;
         }
 
-        async function moveLeft() {
-             await slideTiles(new Grid(gridBoard).cellsByRow);
-        }
-
-        async function moveRight() {
-             await slideTiles(new Grid(gridBoard).cellsByRow.map(row => [...row].reverse()));
-        }
-
-        async function slideTiles(cellGroups) {
-            isMoveInProgress = true;
-            const promises = [];
-            
-            cellGroups.forEach(group => {
-                for(let i = 1; i < group.length; i++) {
-                    const cell = group[i];
-                    if (cell.tile == null) continue;
-                    let lastValidCell;
-                    for(let j = i - 1; j >= 0; j--) {
-                        const moveToCell = group[j];
-                        if(!moveToCell.canAccept(cell.tile)) {
-                            break;
-                        }
-                        lastValidCell = moveToCell;
-                    }
-                    
-                    if(lastValidCell != null) {
-                        promises.push(cell.tile.waitForTransitionEnd());
-                        if (lastValidCell.tile != null) {
-                           lastValidCell.mergeTile(cell.tile);
-                        } else {
-                           lastValidCell.tile = cell.tile;
-                        }
-                        cell.tile = null;
+        // --- הוספת אריח רנדומלי ---
+        function hasEmptyTile() {
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < columns; c++) {
+                    if (board[r][c] == 0) {
+                        return true;
                     }
                 }
+            }
+            return false;
+        }
+
+        function addRandomTile() {
+            if (!hasEmptyTile()) {
+                return;
+            }
+            let found = false;
+            while (!found) {
+                let r = Math.floor(Math.random() * rows);
+                let c = Math.floor(Math.random() * columns);
+                if (board[r][c] == 0) {
+                    board[r][c] = Math.random() < 0.9 ? 2 : 4; // 90% סיכוי ל-2, 10% ל-4
+                    let tile = document.getElementById(r.toString() + "-" + c.toString());
+                    updateTile(tile, board[r][c]);
+                    tile.classList.add("new-tile"); // הוספת קלאס לאנימציה
+                    found = true;
+                }
+            }
+        }
+
+        // --- לוגיקת הזזת האריחים ---
+        
+        // מסיר אפסים משורה (לדוגמה [2,0,2,0] -> [2,2])
+        function filterZero(row){
+            return row.filter(num => num != 0);
+        }
+
+        // מבצע מיזוג והזזה על שורה (לדוגמה [2,2,4] -> [4,4,0])
+        function slide(row) {
+            row = filterZero(row); // [2,2,4]
+            for (let i = 0; i < row.length - 1; i++){
+                if (row[i] == row[i+1]) {
+                    row[i] *= 2;
+                    row[i+1] = 0;
+                    score += row[i];
+                }
+            } // [4,0,4]
+            row = filterZero(row); // [4,4]
+            while (row.length < columns) {
+                row.push(0);
+            } // [4,4,0,0]
+            return row;
+        }
+
+        function slideLeft() {
+            let changed = false;
+            for (let r = 0; r < rows; r++) {
+                let row = board[r];
+                let originalRow = [...row];
+                let newRow = slide(row);
+                board[r] = newRow;
+                if (JSON.stringify(originalRow) !== JSON.stringify(newRow)) {
+                    changed = true;
+                }
+            }
+            return changed;
+        }
+
+        function slideRight() {
+            let changed = false;
+            for (let r = 0; r < rows; r++) {
+                let row = board[r];
+                let originalRow = [...row];
+                row.reverse();
+                let newRow = slide(row);
+                newRow.reverse();
+                board[r] = newRow;
+                if (JSON.stringify(originalRow) !== JSON.stringify(newRow)) {
+                    changed = true;
+                }
+            }
+            return changed;
+        }
+        
+        // Transpose: הופך שורות לעמודות ולהיפך
+        function transpose(board) {
+            const newBoard = Array.from({ length: columns }, () => Array(rows).fill(0));
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < columns; c++) {
+                    newBoard[c][r] = board[r][c];
+                }
+            }
+            return newBoard;
+        }
+
+        function slideUp() {
+            let originalBoard = JSON.stringify(board);
+            let transposedBoard = transpose(board);
+            for (let r = 0; r < rows; r++) {
+                let row = transposedBoard[r];
+                let newRow = slide(row);
+                transposedBoard[r] = newRow;
+            }
+            board = transpose(transposedBoard);
+            return JSON.stringify(board) !== originalBoard;
+        }
+
+        function slideDown() {
+             let originalBoard = JSON.stringify(board);
+            let transposedBoard = transpose(board);
+            for (let r = 0; r < rows; r++) {
+                let row = transposedBoard[r];
+                row.reverse();
+                let newRow = slide(row);
+                newRow.reverse();
+                transposedBoard[r] = newRow;
+            }
+            board = transpose(transposedBoard);
+            return JSON.stringify(board) !== originalBoard;
+        }
+
+        // --- בדיקת סיום המשחק ---
+        function canMoveCheck() {
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < columns; c++) {
+                    if (board[r][c] === 0) return true; // יש מקום פנוי
+                    // בדיקת שכנים
+                    if (r < rows - 1 && board[r][c] === board[r+1][c]) return true;
+                    if (c < columns - 1 && board[r][c] === board[r][c+1]) return true;
+                }
+            }
+            return false;
+        }
+        
+        function handleMove(changed) {
+            if (changed) {
+                updateBoard();
+                addRandomTile();
+                updateScore();
+                if (!canMoveCheck()) {
+                    gameOver();
+                }
+            }
+        }
+        
+        function gameOver() {
+            finalScoreElement.innerText = score;
+            gameOverOverlay.style.display = 'flex';
+        }
+
+        // --- קלט מהמשתמש (מקלדת ומגע) ---
+        function setupInput() {
+            // קלט מקלדת
+            document.addEventListener('keyup', (e) => {
+                let changed = false;
+                if (e.code == "ArrowLeft") {
+                    changed = slideLeft();
+                } else if (e.code == "ArrowRight") {
+                    changed = slideRight();
+                } else if (e.code == "ArrowUp") {
+                    changed = slideUp();
+                } else if (e.code == "ArrowDown") {
+                    changed = slideDown();
+                }
+                handleMove(changed);
             });
             
-            await Promise.all(promises);
+            // קלט מגע
+            let touchStartX = 0;
+            let touchStartY = 0;
             
-            // Unmark all tiles for next move
-            grid.forEach(tile => tile.unmarkForMerge());
+            boardElement.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
 
-            isMoveInProgress = false;
-        }
+            boardElement.addEventListener('touchmove', (e) => {
+                // מניעת גלילה של הדף בזמן משחק
+                e.preventDefault();
+            }, { passive: false });
 
-        function canMove() {
-            const gameGrid = new Grid(gridBoard);
-            return canMoveInDirection(gameGrid.cellsByRow) || canMoveInDirection(gameGrid.cellsByColumn);
-        }
-        
-        function canMoveInDirection(cellGroups) {
-            return cellGroups.some(group => {
-                return group.some((cell, index) => {
-                    if(index === 0) return false;
-                    if(cell.tile == null) return false;
-                    const moveToCell = group[index - 1];
-                    return moveToCell.canAccept(cell.tile);
-                });
+            boardElement.addEventListener('touchend', (e) => {
+                let touchEndX = e.changedTouches[0].clientX;
+                let touchEndY = e.changedTouches[0].clientY;
+
+                let diffX = touchStartX - touchEndX;
+                let diffY = touchStartY - touchEndY;
+                let changed = false;
+
+                if (Math.abs(diffX) > Math.abs(diffY)) { // תנועה אופקית
+                    if (Math.abs(diffX) > 50) { // סף תזוזה
+                        if (diffX > 0) { // שמאלה
+                            changed = slideLeft();
+                        } else { // ימינה
+                            changed = slideRight();
+                        }
+                    }
+                } else { // תנועה אנכית
+                    if (Math.abs(diffY) > 50) { // סף תזוזה
+                        if (diffY > 0) { // למעלה
+                            changed = slideUp();
+                        } else { // למטה
+                            changed = slideDown();
+                        }
+                    }
+                }
+                handleMove(changed);
             });
+            
+            restartButton.addEventListener('click', setupGame);
         }
-
-        function endGame() {
-            overlay.classList.add('active');
-            overlayMessage.textContent = "הפסדת!";
-        }
-
-        function checkWin() {
-            if (isWon) return;
-            const has2048 = grid.some(tile => tile.value === 2048);
-            if(has2048) {
-                isWon = true;
-                overlay.classList.add('active');
-                overlayMessage.textContent = "ניצחת!";
-            }
-        }
-
-        // --- טיפול באירועי מגע (Touch) למובייל ---
-        let touchStartX = 0;
-        let touchStartY = 0;
-        let touchEndX = 0;
-        let touchEndY = 0;
-
-        gridBoard.addEventListener('touchstart', e => {
-            touchStartX = e.changedTouches[0].screenX;
-            touchStartY = e.changedTouches[0].screenY;
-        }, { passive: true });
-
-        gridBoard.addEventListener('touchend', e => {
-            touchEndX = e.changedTouches[0].screenX;
-            touchEndY = e.changedTouches[0].screenY;
-            handleSwipe();
-        });
-
-        function handleSwipe() {
-            const deltaX = touchEndX - touchStartX;
-            const deltaY = touchEndY - touchStartY;
-            const minSwipeDistance = 50; // מינימום פיקסלים להחלקה
-
-            if (Math.abs(deltaX) > Math.abs(deltaY)) { // החלקה אופקית
-                if (Math.abs(deltaX) > minSwipeDistance) {
-                    if (deltaX > 0) {
-                        handleInput({ key: 'ArrowRight' });
-                    } else {
-                        handleInput({ key: 'ArrowLeft' });
-                    }
-                }
-            } else { // החלקה אנכית
-                if (Math.abs(deltaY) > minSwipeDistance) {
-                    if (deltaY > 0) {
-                        handleInput({ key: 'ArrowDown' });
-                    } else {
-                        handleInput({ key: 'ArrowUp' });
-                    }
-                }
-            }
-        }
-
-        // --- אתחול המשחק והוספת מאזינים לאירועים ---
-        document.addEventListener('keydown', handleInput);
-        newGameButton.addEventListener('click', setupGame);
-        retryButton.addEventListener('click', setupGame);
-        
-        setupGame();
 
     </script>
 </body>
