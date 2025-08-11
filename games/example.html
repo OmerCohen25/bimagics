@@ -1,49 +1,99 @@
 <!DOCTYPE html>
-<html lang="iw" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2048 - גרסה אמינה</title>
+    <title>2048 - Dynamic Grid</title>
     <style>
+        :root {
+            --grid-size: 4; /* Default value, will be updated by JS */
+            --grid-gap: 10px;
+            --board-bg-color: #bbada0;
+            --cell-bg-color: #ccc0b3;
+            --text-color: #776e65;
+            --bg-color: #faf8ef;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: "Helvetica Neue", Arial, sans-serif;
             text-align: center;
-            background-color: #faf8ef;
-            color: #776e65;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
             padding: 10px;
-            /* מניעת "הקפצה" של הדף במובייל */
             overscroll-behavior: none;
         }
 
         h1 {
-            font-size: 5rem;
+            font-size: 4rem;
             margin: 10px 0;
         }
-
-        #score {
+        
+        #score-container {
             font-size: 1.5rem;
             margin-bottom: 20px;
         }
 
+        /* --- Setup Screen --- */
+        #setup-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 80vh;
+        }
+        
+        #setup-screen h2 {
+            font-size: 2rem;
+        }
+
+        #size-options {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            max-width: 400px;
+        }
+
+        .size-button {
+            padding: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            background-color: #8f7a66;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .size-button:hover {
+            background-color: #9f8b77;
+        }
+
+        /* --- Game Area (Initially Hidden) --- */
+        #game-area {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
         #board {
             width: 90vw;
-            max-width: 400px;
+            max-width: 500px;
             height: 90vw;
-            max-height: 400px;
-            background-color: #bbada0;
-            border: 10px solid #bbada0;
+            max-height: 500px;
+            background-color: var(--board-bg-color);
+            border: var(--grid-gap) solid var(--board-bg-color);
             border-radius: 6px;
             margin: 0 auto;
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(var(--grid-size), 1fr);
+            grid-template-rows: repeat(var(--grid-size), 1fr);
+            gap: var(--grid-gap);
         }
 
         .tile {
-            width: 25%;
-            height: 25%;
             box-sizing: border-box;
-            border: 5px solid #bbada0;
             border-radius: 3px;
             font-size: 2rem;
             font-weight: bold;
@@ -52,23 +102,27 @@
             align-items: center;
             transition: background-color 0.2s, color 0.2s;
         }
+        
+        /* Adjust font size for smaller tiles on larger boards */
+        :root[data-grid-size='5'] .tile, :root[data-grid-size='6'] .tile { font-size: 1.8rem; }
+        :root[data-grid-size='7'] .tile, :root[data-grid-size='8'] .tile { font-size: 1.2rem; }
+        :root[data-grid-size='9'] .tile, :root[data-grid-size='10'] .tile { font-size: 1rem; }
 
-        .tile-0 { background-color: #ccc0b3; }
+        .tile-0 { background-color: var(--cell-bg-color); }
         .tile-2 { background-color: #eee4da; color: #776e65; }
         .tile-4 { background-color: #ede0c8; color: #776e65; }
         .tile-8 { background-color: #f2b179; color: white; }
         .tile-16 { background-color: #f59563; color: white; }
         .tile-32 { background-color: #f67c5f; color: white; }
         .tile-64 { background-color: #f65e3b; color: white; }
-        .tile-128 { background-color: #edcf72; color: #f9f6f2; font-size: 1.8rem; }
-        .tile-256 { background-color: #edcc61; color: #f9f6f2; font-size: 1.8rem; }
-        .tile-512 { background-color: #edc850; color: #f9f6f2; font-size: 1.8rem; }
-        .tile-1024 { background-color: #edc53f; color: #f9f6f2; font-size: 1.5rem; }
-        .tile-2048 { background-color: #edc22e; color: #f9f6f2; font-size: 1.5rem; }
-        .tile-4096 { background-color: #3c3a32; color: #f9f6f2; font-size: 1.5rem; }
-        .tile-8192 { background-color: #3c3a32; color: #f9f6f2; font-size: 1.5rem; }
+        .tile-128 { background-color: #edcf72; color: #f9f6f2; }
+        .tile-256 { background-color: #edcc61; color: #f9f6f2; }
+        .tile-512 { background-color: #edc850; color: #f9f6f2; }
+        .tile-1024 { background-color: #edc53f; color: #f9f6f2; }
+        .tile-2048 { background-color: #edc22e; color: #f9f6f2; }
+        .tile-4096 { background-color: #3c3a32; color: #f9f6f2; }
+        .tile-8192 { background-color: #3c3a32; color: #f9f6f2; }
 
-        /* אנימציה להופעת אריח חדש */
         @keyframes appear {
             from { transform: scale(0.5); opacity: 0.5; }
             to { transform: scale(1); opacity: 1; }
@@ -78,7 +132,6 @@
             animation: appear 0.2s ease-in-out;
         }
         
-        /* שכבת על לסיום המשחק */
         #game-over-overlay {
             position: fixed;
             top: 0;
@@ -86,7 +139,7 @@
             width: 100%;
             height: 100%;
             background-color: rgba(238, 228, 218, 0.73);
-            display: none; /* מוסתר בהתחלה */
+            display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -95,11 +148,11 @@
 
         #game-over-overlay h2 {
             font-size: 3rem;
-            color: #776e65;
         }
 
         #game-over-overlay button {
             padding: 15px 30px;
+            margin-top: 20px;
             font-size: 1.2rem;
             color: white;
             background-color: #8f7a66;
@@ -107,79 +160,100 @@
             border-radius: 5px;
             cursor: pointer;
         }
-
-        #game-over-overlay button:hover {
-            background-color: #9f8b77;
-        }
-
     </style>
 </head>
 <body>
 
-    <h1>2048</h1>
-    <hr>
-    <h2>ניקוד: <span id="score">0</span></h2>
-    <div id="board"></div>
-    <div id="game-over-overlay">
-        <h2>המשחק נגמר!</h2>
-        <p>הניקוד הסופי שלך: <span id="final-score">0</span></p>
-        <button id="restart-button">שחק שוב</button>
+    <div id="setup-screen">
+        <h1>2048</h1>
+        <h2>Choose your board size:</h2>
+        <div id="size-options"></div>
     </div>
 
+    <div id="game-area">
+        <h1>2048</h1>
+        <div id="score-container">Score: <span id="score">0</span></div>
+        <div id="board"></div>
+        <div id="game-over-overlay">
+            <h2>Game Over!</h2>
+            <p>Your final score: <span id="final-score">0</span></p>
+            <button id="restart-button">Play Again</button>
+        </div>
+    </div>
+
+
     <script>
+        // Global variables
         var board;
         var score = 0;
-        var rows = 4;
-        var columns = 4;
-        var boardElement = document.getElementById("board");
-        var scoreElement = document.getElementById("score");
-        var gameOverOverlay = document.getElementById("game-over-overlay");
-        var finalScoreElement = document.getElementById("final-score");
-        var restartButton = document.getElementById("restart-button");
+        var gridSize = 4; // Default
+
+        // DOM Elements
+        const boardElement = document.getElementById("board");
+        const scoreElement = document.getElementById("score");
+        const setupScreen = document.getElementById("setup-screen");
+        const sizeOptions = document.getElementById("size-options");
+        const gameArea = document.getElementById("game-area");
+        const gameOverOverlay = document.getElementById("game-over-overlay");
+        const finalScoreElement = document.getElementById("final-score");
+        const restartButton = document.getElementById("restart-button");
 
 
-        // --- אתחול המשחק ---
         window.onload = function() {
-            setupGame();
+            createSizeButtons();
             setupInput();
+        }
+        
+        function createSizeButtons() {
+            for (let i = 3; i <= 10; i++) {
+                let button = document.createElement("button");
+                button.classList.add("size-button");
+                button.innerText = `${i}x${i}`;
+                button.dataset.size = i;
+                button.addEventListener('click', startGame);
+                sizeOptions.append(button);
+            }
+        }
+        
+        function startGame(event) {
+            gridSize = parseInt(event.target.dataset.size);
+
+            // Update CSS variable for dynamic grid size
+            document.documentElement.style.setProperty('--grid-size', gridSize);
+            // Optional: Add a data-attribute for more specific styling
+            document.documentElement.dataset.gridSize = gridSize;
+
+            setupScreen.style.display = 'none';
+            gameArea.style.display = 'flex';
+            
+            setupGame();
         }
 
         function setupGame() {
-            // איפוס המשתנים
-            board = [
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0]
-            ];
+            board = Array.from({ length: gridSize }, () => Array(gridSize).fill(0));
             score = 0;
             gameOverOverlay.style.display = 'none';
 
-            // ניקוי הלוח הויזואלי
             boardElement.innerHTML = ''; 
 
-            // יצירת הלוח הויזואלי הראשוני
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < columns; c++) {
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
                     let tile = document.createElement("div");
-                    tile.id = r.toString() + "-" + c.toString();
-                    let num = board[r][c];
-                    updateTile(tile, num);
+                    tile.id = `${r}-${c}`;
+                    updateTile(tile, 0);
                     boardElement.append(tile);
                 }
             }
 
-            // הוספת שני אריחים התחלתיים
             addRandomTile();
             addRandomTile();
             updateScore();
         }
 
-        // --- עדכון הלוח הויזואלי ---
         function updateBoard() {
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < columns; c++) {
-                    let tile = document.getElementById(r.toString() + "-" + c.toString());
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
+                    let tile = document.getElementById(`${r}-${c}`);
                     let num = board[r][c];
                     updateTile(tile, num);
                 }
@@ -188,8 +262,7 @@
 
         function updateTile(tile, num) {
             tile.innerText = "";
-            tile.classList.value = ""; // clear the class list
-            tile.classList.add("tile");
+            tile.className = "tile"; // Reset classes
             if (num > 0) {
                 tile.innerText = num.toString();
                 tile.classList.add("tile-" + num.toString());
@@ -202,63 +275,50 @@
             scoreElement.innerText = score;
         }
 
-        // --- הוספת אריח רנדומלי ---
         function hasEmptyTile() {
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < columns; c++) {
-                    if (board[r][c] == 0) {
-                        return true;
-                    }
-                }
-            }
-            return false;
+            return board.flat().includes(0);
         }
 
         function addRandomTile() {
-            if (!hasEmptyTile()) {
-                return;
-            }
+            if (!hasEmptyTile()) return;
+            
             let found = false;
             while (!found) {
-                let r = Math.floor(Math.random() * rows);
-                let c = Math.floor(Math.random() * columns);
+                let r = Math.floor(Math.random() * gridSize);
+                let c = Math.floor(Math.random() * gridSize);
                 if (board[r][c] == 0) {
-                    board[r][c] = Math.random() < 0.9 ? 2 : 4; // 90% סיכוי ל-2, 10% ל-4
-                    let tile = document.getElementById(r.toString() + "-" + c.toString());
+                    board[r][c] = Math.random() < 0.9 ? 2 : 4;
+                    let tile = document.getElementById(`${r}-${c}`);
                     updateTile(tile, board[r][c]);
-                    tile.classList.add("new-tile"); // הוספת קלאס לאנימציה
+                    tile.classList.add("new-tile");
                     found = true;
                 }
             }
         }
-
-        // --- לוגיקת הזזת האריחים ---
         
-        // מסיר אפסים משורה (לדוגמה [2,0,2,0] -> [2,2])
-        function filterZero(row){
+        function filterZero(row) {
             return row.filter(num => num != 0);
         }
 
-        // מבצע מיזוג והזזה על שורה (לדוגמה [2,2,4] -> [4,4,0])
         function slide(row) {
-            row = filterZero(row); // [2,2,4]
+            row = filterZero(row);
             for (let i = 0; i < row.length - 1; i++){
                 if (row[i] == row[i+1]) {
                     row[i] *= 2;
                     row[i+1] = 0;
                     score += row[i];
                 }
-            } // [4,0,4]
-            row = filterZero(row); // [4,4]
-            while (row.length < columns) {
+            }
+            row = filterZero(row);
+            while (row.length < gridSize) {
                 row.push(0);
-            } // [4,4,0,0]
+            }
             return row;
         }
 
         function slideLeft() {
             let changed = false;
-            for (let r = 0; r < rows; r++) {
+            for (let r = 0; r < gridSize; r++) {
                 let row = board[r];
                 let originalRow = [...row];
                 let newRow = slide(row);
@@ -272,7 +332,7 @@
 
         function slideRight() {
             let changed = false;
-            for (let r = 0; r < rows; r++) {
+            for (let r = 0; r < gridSize; r++) {
                 let row = board[r];
                 let originalRow = [...row];
                 row.reverse();
@@ -286,11 +346,10 @@
             return changed;
         }
         
-        // Transpose: הופך שורות לעמודות ולהיפך
         function transpose(board) {
-            const newBoard = Array.from({ length: columns }, () => Array(rows).fill(0));
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < columns; c++) {
+            const newBoard = Array.from({ length: gridSize }, () => Array(gridSize).fill(0));
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
                     newBoard[c][r] = board[r][c];
                 }
             }
@@ -300,19 +359,17 @@
         function slideUp() {
             let originalBoard = JSON.stringify(board);
             let transposedBoard = transpose(board);
-            for (let r = 0; r < rows; r++) {
-                let row = transposedBoard[r];
-                let newRow = slide(row);
-                transposedBoard[r] = newRow;
+            for (let r = 0; r < gridSize; r++) {
+                transposedBoard[r] = slide(transposedBoard[r]);
             }
             board = transpose(transposedBoard);
             return JSON.stringify(board) !== originalBoard;
         }
 
         function slideDown() {
-             let originalBoard = JSON.stringify(board);
+            let originalBoard = JSON.stringify(board);
             let transposedBoard = transpose(board);
-            for (let r = 0; r < rows; r++) {
+            for (let r = 0; r < gridSize; r++) {
                 let row = transposedBoard[r];
                 row.reverse();
                 let newRow = slide(row);
@@ -323,14 +380,12 @@
             return JSON.stringify(board) !== originalBoard;
         }
 
-        // --- בדיקת סיום המשחק ---
         function canMoveCheck() {
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < columns; c++) {
-                    if (board[r][c] === 0) return true; // יש מקום פנוי
-                    // בדיקת שכנים
-                    if (r < rows - 1 && board[r][c] === board[r+1][c]) return true;
-                    if (c < columns - 1 && board[r][c] === board[r][c+1]) return true;
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
+                    if (board[r][c] === 0) return true;
+                    if (r < gridSize - 1 && board[r][c] === board[r+1][c]) return true;
+                    if (c < gridSize - 1 && board[r][c] === board[r][c+1]) return true;
                 }
             }
             return false;
@@ -352,68 +407,54 @@
             gameOverOverlay.style.display = 'flex';
         }
 
-        // --- קלט מהמשתמש (מקלדת ומגע) ---
         function setupInput() {
-            // קלט מקלדת
             document.addEventListener('keyup', (e) => {
+                if(gameArea.style.display === 'none') return;
                 let changed = false;
-                if (e.code == "ArrowLeft") {
-                    changed = slideLeft();
-                } else if (e.code == "ArrowRight") {
-                    changed = slideRight();
-                } else if (e.code == "ArrowUp") {
-                    changed = slideUp();
-                } else if (e.code == "ArrowDown") {
-                    changed = slideDown();
-                }
+                if (e.code == "ArrowLeft") changed = slideLeft();
+                else if (e.code == "ArrowRight") changed = slideRight();
+                else if (e.code == "ArrowUp") changed = slideUp();
+                else if (e.code == "ArrowDown") changed = slideDown();
                 handleMove(changed);
             });
             
-            // קלט מגע
-            let touchStartX = 0;
-            let touchStartY = 0;
+            let touchStartX = 0, touchStartY = 0;
             
-            boardElement.addEventListener('touchstart', (e) => {
+            document.addEventListener('touchstart', (e) => {
                 touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
             }, { passive: true });
 
-            boardElement.addEventListener('touchmove', (e) => {
-                // מניעת גלילה של הדף בזמן משחק
-                e.preventDefault();
+            document.addEventListener('touchmove', (e) => {
+                 if(gameArea.style.display !== 'none') e.preventDefault();
             }, { passive: false });
 
-            boardElement.addEventListener('touchend', (e) => {
+            document.addEventListener('touchend', (e) => {
+                if(gameArea.style.display === 'none') return;
+
                 let touchEndX = e.changedTouches[0].clientX;
                 let touchEndY = e.changedTouches[0].clientY;
-
                 let diffX = touchStartX - touchEndX;
                 let diffY = touchStartY - touchEndY;
                 let changed = false;
 
-                if (Math.abs(diffX) > Math.abs(diffY)) { // תנועה אופקית
-                    if (Math.abs(diffX) > 50) { // סף תזוזה
-                        if (diffX > 0) { // שמאלה
-                            changed = slideLeft();
-                        } else { // ימינה
-                            changed = slideRight();
-                        }
+                if (Math.abs(diffX) > Math.abs(diffY)) {
+                    if (Math.abs(diffX) > 50) {
+                        changed = diffX > 0 ? slideLeft() : slideRight();
                     }
-                } else { // תנועה אנכית
-                    if (Math.abs(diffY) > 50) { // סף תזוזה
-                        if (diffY > 0) { // למעלה
-                            changed = slideUp();
-                        } else { // למטה
-                            changed = slideDown();
-                        }
+                } else {
+                    if (Math.abs(diffY) > 50) {
+                       changed = diffY > 0 ? slideUp() : slideDown();
                     }
                 }
                 handleMove(changed);
             });
             
-            restartButton.addEventListener('click', setupGame);
+            restartButton.addEventListener('click', () => {
+                // When restarting, we re-run the setup for the *same* grid size.
+                setupGame();
+            });
         }
-
     </script>
 </body>
 </html>
