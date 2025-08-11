@@ -8,23 +8,38 @@
         :root {
             --grid-size: 4;
             --grid-gap: 15px;
-            --cell-size: 20vmin;
-            --max-cell-size: 100px;
             --board-bg: #bbada0;
             --cell-bg: #ccc0b3;
-            --text-color: #776e65;
+            --text-color-dark: #776e65;
+            --text-color-light: #f9f6f2;
             --bg-color: #faf8ef;
             --border-radius: 5px;
+        }
+
+        /* Prevents all scrolling and annoying mobile browser UI behaviors */
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            margin: 0;
+            position: fixed;
         }
 
         body {
             font-family: "Helvetica Neue", Arial, sans-serif;
             text-align: center;
             background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 10px;
-            overscroll-behavior-y: contain; /* Prevents pull-to-refresh */
+            color: var(--text-color-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         h1 {
@@ -38,13 +53,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 90vh;
         }
         
-        #setup-screen h2 {
-            font-size: 2rem;
-        }
+        #setup-screen h2 { font-size: 2rem; }
 
         #size-options {
             display: grid;
@@ -53,7 +64,7 @@
             max-width: 400px;
         }
 
-        .size-button, .action-button {
+        .action-button {
             padding: 15px;
             font-size: 1.2rem;
             font-weight: bold;
@@ -65,9 +76,7 @@
             transition: background-color 0.2s;
         }
         .size-button { font-size: 1.5rem; padding: 20px; }
-        .action-button:hover, .size-button:hover {
-            background-color: #9f8b77;
-        }
+        .action-button:hover, .size-button:hover { background-color: #9f8b77; }
 
         /* --- Game Area --- */
         #game-area {
@@ -103,81 +112,51 @@
             position: relative;
             width: clamp(300px, 90vw, 500px);
             height: clamp(300px, 90vw, 500px);
-        }
-
-        #grid-background, #tile-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border-radius: var(--border-radius);
-        }
-
-        #grid-background {
-            display: grid;
-            grid-template-columns: repeat(var(--grid-size), 1fr);
-            grid-template-rows: repeat(var(--grid-size), 1fr);
-            gap: var(--grid-gap);
             background-color: var(--board-bg);
+            border-radius: var(--border-radius);
             padding: var(--grid-gap);
             box-sizing: border-box;
         }
 
         .grid-cell {
+            position: absolute;
             background-color: var(--cell-bg);
             border-radius: var(--border-radius);
         }
         
-        /* -- Tile Styling & Animations -- */
         .tile {
-            --cell-width: calc((100% - var(--grid-gap) * (var(--grid-size) + 1)) / var(--grid-size));
-            --cell-height: calc((100% - var(--grid-gap) * (var(--grid-size) + 1)) / var(--grid-size));
-            --y: 0;
-            --x: 0;
-            
             position: absolute;
-            top: calc(var(--y) * (var(--cell-height) + var(--grid-gap)) + var(--grid-gap));
-            left: calc(var(--x) * (var(--cell-width) + var(--grid-gap)) + var(--grid-gap));
-            width: var(--cell-width);
-            height: var(--cell-height);
-
             display: flex;
             justify-content: center;
             align-items: center;
             border-radius: var(--border-radius);
             font-weight: bold;
-            font-size: 2.5rem; /* Base size, will be adjusted */
-            
-            transition: top 100ms ease-in-out, left 100ms ease-in-out;
-            animation-timing-function: ease;
+            font-size: 2.5rem;
+            /* The magic: transition the transform property for smooth movement */
+            transition: transform 100ms ease-in-out;
         }
-
-        .tile.new { animation: appear 200ms; }
-        .tile.merged { animation: pop 200ms; }
-
-        @keyframes appear { from { transform: scale(0); } to { transform: scale(1); } }
-        @keyframes pop { from { transform: scale(1); } 50% { transform: scale(1.2); } to { transform: scale(1); } }
-
-        /* Font size adjustments for different grid sizes */
+        
+        /* Font size adjustments based on grid size */
         :root[data-grid-size='5'] .tile, :root[data-grid-size='6'] .tile { font-size: 1.8rem; }
         :root[data-grid-size='7'] .tile, :root[data-grid-size='8'] .tile { font-size: 1.2rem; }
-        :root[data-grid-size='9'] .tile, :root[data-grid-size='10'] .tile { font-size: 1rem; }
+        :root[data-grid-size='9'] .tile, :root[data-grid-size='10'] .tile { font-size: 1.0rem; }
         
+        @keyframes appear { from { transform: scale(0); } to { transform: scale(1); } }
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
         /* Tile Colors */
-        .tile[data-value="2"]    { background: #eee4da; color: #776e65; }
-        .tile[data-value="4"]    { background: #ede0c8; color: #776e65; }
-        .tile[data-value="8"]    { background: #f2b179; color: #f9f6f2; }
-        .tile[data-value="16"]   { background: #f59563; color: #f9f6f2; }
-        .tile[data-value="32"]   { background: #f67c5f; color: #f9f6f2; }
-        .tile[data-value="64"]   { background: #f65e3b; color: #f9f6f2; }
-        .tile[data-value="128"]  { background: #edcf72; color: #f9f6f2; }
-        .tile[data-value="256"]  { background: #edcc61; color: #f9f6f2; }
-        .tile[data-value="512"]  { background: #edc850; color: #f9f6f2; }
-        .tile[data-value="1024"] { background: #edc53f; color: #f9f6f2; }
-        .tile[data-value="2048"] { background: #edc22e; color: #f9f6f2; box-shadow: 0 0 30px 10px rgba(243, 215, 116, 0.476); }
-        .tile[data-value="4096"] { background: #3c3a32; color: #f9f6f2; box-shadow: 0 0 30px 10px rgba(243, 215, 116, 0.556); }
-        .tile[data-value="8192"] { background: #3c3a32; color: #f9f6f2; box-shadow: 0 0 30px 10px rgba(243, 215, 116, 0.635); }
+        .tile[data-value="2"]    { background: #eee4da; color: var(--text-color-dark); }
+        .tile[data-value="4"]    { background: #ede0c8; color: var(--text-color-dark); }
+        .tile[data-value="8"]    { background: #f2b179; color: var(--text-color-light); }
+        .tile[data-value="16"]   { background: #f59563; color: var(--text-color-light); }
+        .tile[data-value="32"]   { background: #f67c5f; color: var(--text-color-light); }
+        .tile[data-value="64"]   { background: #f65e3b; color: var(--text-color-light); }
+        .tile[data-value="128"]  { background: #edcf72; color: var(--text-color-light); }
+        .tile[data-value="256"]  { background: #edcc61; color: var(--text-color-light); }
+        .tile[data-value="512"]  { background: #edc850; color: var(--text-color-light); }
+        .tile[data-value="1024"] { background: #edc53f; color: var(--text-color-light); }
+        .tile[data-value="2048"] { background: #edc22e; color: var(--text-color-light); box-shadow: 0 0 20px 0px #edc22e; }
+        .tile[data-value="4096"] { background: #3c3a32; color: var(--text-color-light); box-shadow: 0 0 30px 0px #3c3a32; }
 
         /* Overlay */
         .overlay {
@@ -199,31 +178,30 @@
 </head>
 <body>
 
-    <div id="setup-screen">
-        <h1>2048</h1>
-        <h2>Choose your board size:</h2>
-        <div id="size-options"></div>
-    </div>
+    <div id="main-container">
+        <div id="setup-screen">
+            <h1>2048</h1>
+            <h2>Choose your board size:</h2>
+            <div id="size-options"></div>
+        </div>
 
-    <div id="game-area">
-        <div class="header-container">
-            <h1 class="title">2048</h1>
-            <div class="controls-container" style="display: flex; gap: 10px;">
-                <div class="score-box">
-                    <div class="label">SCORE</div>
-                    <div id="score">0</div>
-                </div>
-                <div class="score-box">
-                    <div class="label">BEST</div>
-                    <div id="best-score">0</div>
+        <div id="game-area">
+            <div class="header-container">
+                <h1 class="title">2048</h1>
+                <div class="controls-container" style="display: flex; gap: 10px;">
+                    <div class="score-box">
+                        <div class="label">SCORE</div>
+                        <div id="score">0</div>
+                    </div>
+                    <div class="score-box">
+                        <div class="label">BEST</div>
+                        <div id="best-score">0</div>
+                    </div>
                 </div>
             </div>
+            <div id="board-container"></div>
+            <button id="menu-button" class="action-button" style="margin-top: 20px;">Back to Menu</button>
         </div>
-        <div id="board-container">
-            <div id="grid-background"></div>
-            <div id="tile-container"></div>
-        </div>
-        <button id="menu-button" class="action-button" style="margin-top: 20px;">Back to Menu</button>
     </div>
 
     <div id="game-over-overlay" class="overlay">
@@ -237,325 +215,351 @@
 
     <script>
         class Tile {
-            constructor(container, value = Math.random() > 0.9 ? 4 : 2) {
-                this.element = document.createElement("div");
-                this.element.classList.add("tile", "new");
-                container.append(this.element);
-                this.value = value;
-                this.x = 0;
-                this.y = 0;
-                this.mergedFrom = null;
-            }
-
-            set value(v) {
-                this._value = v;
-                this.element.textContent = v;
-                this.element.dataset.value = v;
-            }
-            get value() { return this._value; }
-
-            setPosition(x, y) {
+            constructor(value, x, y) {
+                this.value = value || (Math.random() > 0.9 ? 4 : 2);
                 this.x = x;
                 this.y = y;
-                this.element.style.setProperty("--x", x);
-                this.element.style.setProperty("--y", y);
+                this.element = this.createElement();
+                this.update(true);
             }
 
-            remove() {
+            createElement() {
+                const tile = document.createElement('div');
+                tile.classList.add('tile');
+                return tile;
+            }
+
+            update(isNew = false) {
+                this.element.textContent = this.value;
+                this.element.dataset.value = this.value;
+                if(isNew) this.element.style.animation = 'appear 200ms ease';
+            }
+
+            merge() {
+                this.element.style.animation = 'pop 200ms ease';
+            }
+
+            destroy() {
                 this.element.remove();
-            }
-
-            waitForTransition() {
-                return new Promise(resolve => {
-                    this.element.addEventListener("transitionend", resolve, { once: true });
-                });
-            }
-
-            playMergeAnimation() {
-                this.element.classList.add("merged");
-                this.element.addEventListener("animationend", () => {
-                    this.element.classList.remove("merged");
-                }, { once: true });
             }
         }
 
-        class Grid {
-            constructor(gridSize, container) {
-                this.size = gridSize;
-                this.cells = Array.from({ length: this.size }, () => Array(this.size).fill(null));
-                this.container = container;
-                this.tileContainer = document.getElementById('tile-container');
+        class Game {
+            constructor(size) {
+                this.size = size;
+                this.score = 0;
+                this.isWon = false;
+                this.isMoving = false;
+                this.bestScore = parseInt(localStorage.getItem('bestScore')) || 0;
+
+                this.initDOM();
+                this.initGrid();
+                this.updateScore(0);
+                this.updateBestScore();
+
+                this.addRandomTile();
+                this.addRandomTile();
+            }
+
+            initDOM() {
+                this.boardContainer = document.getElementById('board-container');
+                this.boardContainer.innerHTML = ''; // Clear previous board
                 
-                // Create background cells
-                const background = document.getElementById('grid-background');
-                background.innerHTML = '';
+                const boardRect = this.boardContainer.getBoundingClientRect();
+                this.cellSize = (boardRect.width - (this.size + 1) * 15) / this.size; // 15 is grid-gap
+
                 for (let i = 0; i < this.size * this.size; i++) {
                     const cell = document.createElement("div");
                     cell.classList.add("grid-cell");
-                    background.append(cell);
+                    cell.style.width = `${this.cellSize}px`;
+                    cell.style.height = `${this.cellSize}px`;
+                    this.boardContainer.appendChild(cell);
                 }
             }
 
-            randomEmptyCell() {
-                const emptyCells = [];
-                for (let y = 0; y < this.size; y++) {
-                    for (let x = 0; x < this.size; x++) {
-                        if (this.cells[y][x] === null) {
-                            emptyCells.push({ x, y });
+            initGrid() {
+                this.grid = Array.from({ length: this.size }, () => Array(this.size).fill(null));
+            }
+            
+            // --- Core Game Logic ---
+
+            move(direction) {
+                if (this.isMoving) return;
+                this.isMoving = true;
+
+                const firstPositions = this.recordPositions();
+                const moveHappened = this.processMove(direction);
+
+                if (moveHappened) {
+                    this.animateMove(firstPositions);
+                } else {
+                    this.isMoving = false;
+                }
+            }
+
+            processMove(direction) {
+                let moved = false;
+                const getLine = (i) => {
+                    let line = [];
+                    for(let j=0; j<this.size; j++) {
+                        if (direction === 'left' || direction === 'right') line.push(this.grid[i][j]);
+                        else line.push(this.grid[j][i]);
+                    }
+                    return line;
+                };
+
+                const setLine = (i, line) => {
+                    for(let j=0; j<this.size; j++) {
+                        if (direction === 'left' || direction === 'right') this.grid[i][j] = line[j];
+                        else this.grid[j][i] = line[j];
+                    }
+                };
+
+                for (let i = 0; i < this.size; i++) {
+                    const line = getLine(i);
+                    const originalLine = JSON.stringify(line.map(t => t ? t.value : 0));
+                    
+                    if (direction === 'right' || direction === 'down') line.reverse();
+
+                    let current = 0;
+                    let newLine = Array(this.size).fill(null);
+                    
+                    for (let j = 0; j < this.size; j++) {
+                        if (line[j] === null) continue;
+                        
+                        if (newLine[current] === null) {
+                            newLine[current] = line[j];
+                        } else if (newLine[current].value === line[j].value) {
+                            this.updateScore(newLine[current].value * 2);
+                            newLine[current].value *= 2;
+                            line[j].destroy(); // Remove merged tile from DOM
+                            current++;
+                        } else {
+                            current++;
+                            newLine[current] = line[j];
                         }
                     }
+
+                    if (direction === 'right' || direction === 'down') newLine.reverse();
+                    
+                    if (JSON.stringify(newLine.map(t => t ? t.value : 0)) !== originalLine) {
+                        moved = true;
+                    }
+                    setLine(i, newLine);
                 }
-                if (emptyCells.length === 0) return null;
-                return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                return moved;
             }
 
             addRandomTile() {
-                const position = this.randomEmptyCell();
-                if (position) {
-                    const newTile = new Tile(this.tileContainer);
-                    newTile.setPosition(position.x, position.y);
-                    this.cells[position.y][position.x] = newTile;
-                }
-            }
-
-            getTilesGroupedByColumn() {
-                const grouped = Array.from({ length: this.size }, () => []);
-                for(let y=0; y < this.size; y++) {
-                    for(let x=0; x < this.size; x++) {
-                        if(this.cells[y][x]) grouped[x].push(this.cells[y][x]);
+                const emptyCells = [];
+                for (let r = 0; r < this.size; r++) {
+                    for (let c = 0; c < this.size; c++) {
+                        if (this.grid[r][c] === null) emptyCells.push({r, c});
                     }
                 }
-                return grouped;
-            }
-
-            getTilesGroupedByRow() {
-                 const grouped = Array.from({ length: this.size }, () => []);
-                for(let y=0; y < this.size; y++) {
-                    for(let x=0; x < this.size; x++) {
-                        if(this.cells[y][x]) grouped[y].push(this.cells[y][x]);
-                    }
+                if (emptyCells.length > 0) {
+                    const {r, c} = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                    this.grid[r][c] = new Tile(null, c, r);
                 }
-                return grouped;
             }
 
-            canMove() {
-                for (let y = 0; y < this.size; y++) {
-                    for (let x = 0; x < this.size; x++) {
-                        if (this.cells[y][x] === null) return true;
-                        const tile = this.cells[y][x];
-                        if ((x < this.size - 1 && tile.value === this.cells[y][x + 1]?.value) ||
-                            (y < this.size - 1 && tile.value === this.cells[y + 1][x]?.value)) {
-                            return true;
+            // --- Animation (FLIP Technique) ---
+            recordPositions() {
+                const positions = new Map();
+                for (const tile of this.grid.flat().filter(t => t)) {
+                    positions.set(tile, tile.element.getBoundingClientRect());
+                }
+                return positions;
+            }
+
+            animateMove(firstPositions) {
+                // LAST - Update the DOM to the final state
+                this.render();
+
+                // INVERT & PLAY
+                for (const tile of this.grid.flat().filter(t => t)) {
+                    const first = firstPositions.get(tile);
+                    if (first) {
+                        const last = tile.element.getBoundingClientRect();
+                        const dx = first.left - last.left;
+                        const dy = first.top - last.top;
+
+                        if (dx !== 0 || dy !== 0) {
+                            requestAnimationFrame(() => {
+                                tile.element.style.transform = `translate(${dx}px, ${dy}px)`;
+                                requestAnimationFrame(() => {
+                                    tile.element.style.transform = '';
+                                });
+                            });
                         }
+                    }
+                }
+                
+                // After animation, cleanup and next turn
+                setTimeout(() => {
+                    this.grid.flat().filter(t => t).forEach(t => t.update());
+                    this.addRandomTile();
+                    this.render();
+                    this.checkEndConditions();
+                    this.isMoving = false;
+                }, 100);
+            }
+            
+            render() {
+                 this.boardContainer.innerHTML = '';
+                 for (let i = 0; i < this.size * this.size; i++) {
+                    const cell = document.createElement("div");
+                    cell.classList.add("grid-cell");
+                    cell.style.width = `${this.cellSize}px`;
+                    cell.style.height = `${this.cellSize}px`;
+                    this.boardContainer.appendChild(cell);
+                }
+
+                for (let r = 0; r < this.size; r++) {
+                    for (let c = 0; c < this.size; c++) {
+                        const tile = this.grid[r][c];
+                        if (tile) {
+                            tile.x = c;
+                            tile.y = r;
+                            const top = r * (this.cellSize + 15) + 15;
+                            const left = c * (this.cellSize + 15) + 15;
+                            tile.element.style.transform = '';
+                            tile.element.style.top = `${top}px`;
+                            tile.element.style.left = `${left}px`;
+                            tile.element.style.width = `${this.cellSize}px`;
+                            tile.element.style.height = `${this.cellSize}px`;
+                            this.boardContainer.appendChild(tile.element);
+                        }
+                    }
+                }
+            }
+            
+            checkEndConditions() {
+                // Check for win
+                if (!this.isWon && this.grid.flat().some(t => t && t.value === 2048)) {
+                    this.isWon = true;
+                    showOverlay("You Win!", false);
+                }
+                // Check for lose
+                if (!this.canMove()) {
+                    showOverlay("Game Over!", true);
+                }
+            }
+            
+            canMove() {
+                for (let r = 0; r < this.size; r++) {
+                    for (let c = 0; c < this.size; c++) {
+                        if (this.grid[r][c] === null) return true;
+                        if (c < this.size - 1 && this.grid[r][c].value === this.grid[r][c+1]?.value) return true;
+                        if (r < this.size - 1 && this.grid[r][c].value === this.grid[r+1][c]?.value) return true;
                     }
                 }
                 return false;
             }
-        }
-        
-        let grid;
-        let score = 0;
-        let bestScore = 0;
-        let isWon = false;
-        let isMoving = false;
-        
-        const scoreEl = document.getElementById("score");
-        const bestScoreEl = document.getElementById("best-score");
-        
-        function initGame() {
-            bestScore = parseInt(localStorage.getItem('bestScore')) || 0;
-            updateBestScoreDisplay();
+
+            updateScore(points) {
+                this.score += points;
+                document.getElementById('score').innerText = this.score;
+                if(this.score > this.bestScore) {
+                    this.bestScore = this.score;
+                    localStorage.setItem('bestScore', this.bestScore);
+                    this.updateBestScore();
+                }
+                if (navigator.vibrate) navigator.vibrate(10);
+            }
             
-            const sizeOptions = document.getElementById("size-options");
+            updateBestScore() {
+                document.getElementById('best-score').innerText = this.bestScore;
+            }
+        }
+
+        // --- Global State & Event Handling ---
+        let game;
+        const setupScreen = document.getElementById("setup-screen");
+        const gameArea = document.getElementById("game-area");
+
+        function init() {
             for (let i = 3; i <= 10; i++) {
                 let button = document.createElement("button");
                 button.classList.add("size-button");
                 button.innerText = `${i}x${i}`;
                 button.dataset.size = i;
-                button.addEventListener('click', startGame);
-                sizeOptions.append(button);
+                button.addEventListener('click', () => startGame(i));
+                document.getElementById("size-options").append(button);
             }
-            
             setupInputListeners();
         }
 
-        function startGame(event) {
-            const gridSize = parseInt(event.target.dataset.size);
-            document.documentElement.style.setProperty('--grid-size', gridSize);
-            document.documentElement.dataset.gridSize = gridSize;
-            
-            document.getElementById('setup-screen').style.display = 'none';
-            document.getElementById('game-area').style.display = 'flex';
-            
-            grid = new Grid(gridSize);
-            score = 0;
-            isWon = false;
-            updateScoreDisplay();
-            
-            grid.addRandomTile();
-            grid.addRandomTile();
+        function startGame(size) {
+            document.documentElement.style.setProperty('--grid-size', size);
+            document.documentElement.dataset.gridSize = size;
+            setupScreen.style.display = 'none';
+            gameArea.style.display = 'flex';
+            game = new Game(size);
         }
 
-        function updateScoreDisplay() {
-            scoreEl.innerText = score;
-            if (score > bestScore) {
-                bestScore = score;
-                localStorage.setItem('bestScore', bestScore);
-                updateBestScoreDisplay();
-            }
-        }
-        
-        function updateBestScoreDisplay() {
-            bestScoreEl.innerText = bestScore;
-        }
-
-        async function handleInput(direction) {
-            if (isMoving) return;
-            isMoving = true;
-
-            const promises = [];
-            const groups = {
-                'up': grid.getTilesGroupedByColumn(),
-                'down': grid.getTilesGroupedByColumn().map(g => g.reverse()),
-                'left': grid.getTilesGroupedByRow(),
-                'right': grid.getTilesGroupedByRow().map(g => g.reverse())
-            }[direction];
-
-            groups.forEach(group => slideAndMerge(group, promises));
-
-            await Promise.all(promises);
-            
-            grid.cells.flat().filter(tile => tile && tile.mergedFrom).forEach(tile => {
-                score += tile.value;
-                tile.mergedFrom[0].remove();
-                tile.mergedFrom[1].remove();
-                tile.mergedFrom = null;
-                tile.playMergeAnimation();
-                if(navigator.vibrate) navigator.vibrate(10);
-            });
-            updateScoreDisplay();
-
-            if (!isWon && grid.cells.flat().some(tile => tile && tile.value === 2048)) {
-                isWon = true;
-                showOverlay("You Win!", false);
-            }
-            
-            grid.addRandomTile();
-
-            if (!grid.canMove()) {
-                showOverlay("Game Over!", true);
-            }
-            
-            isMoving = false;
-        }
-
-        function slideAndMerge(group, promises) {
-            for (let i = 1; i < group.length; i++) {
-                if (group[i] === null) continue;
-                let lastValidCellIndex = -1;
-                for (let j = i - 1; j >= 0; j--) {
-                    if (group[j] === null) {
-                        lastValidCellIndex = j;
-                    } else if (group[j].value === group[i].value && !group[j].mergedFrom) {
-                        lastValidCellIndex = j;
-                        break;
-                    } else {
-                        break;
-                    }
-                }
-
-                if (lastValidCellIndex !== -1) {
-                    const tileToMove = group[i];
-                    if (group[lastValidCellIndex] !== null) { // It's a merge
-                        const targetTile = group[lastValidCellIndex];
-                        targetTile.mergedFrom = [tileToMove, targetTile];
-                        grid.cells[tileToMove.y][tileToMove.x] = null;
-                        group[i] = null;
-                        group[lastValidCellIndex] = targetTile;
-                    } else { // It's a move
-                        group[lastValidCellIndex] = tileToMove;
-                        grid.cells[tileToMove.y][tileToMove.x] = null;
-                        group[i] = null;
-                    }
-                    promises.push(tileToMove.waitForTransition());
-                    tileToMove.setPosition(group[lastValidCellIndex].x, group[lastValidCellIndex].y);
-                }
-            }
-        }
-        
         function showOverlay(message, isGameOver) {
             const overlay = document.getElementById('game-over-overlay');
             document.getElementById('overlay-message').textContent = message;
-            document.getElementById('final-score').textContent = score;
+            document.getElementById('final-score').textContent = game.score;
 
             const shareButton = document.getElementById('share-button');
-            if (isGameOver && navigator.share) {
-                shareButton.style.display = 'block';
-            } else {
-                shareButton.style.display = 'none';
-            }
+            shareButton.style.display = (isGameOver && navigator.share) ? 'block' : 'none';
             
             const restartButton = document.getElementById('restart-button');
             restartButton.textContent = isGameOver ? "Try Again" : "Keep Playing";
             
             overlay.classList.add('active');
             
-            const restartHandler = () => {
+            const closeOverlay = () => {
                 overlay.classList.remove('active');
-                if(isGameOver) {
-                    // Find the button for the current grid size and click it to restart
-                     document.querySelector(`.size-button[data-size='${grid.size}']`).click();
-                }
-                overlay.removeEventListener('click', restartHandler);
+                if (isGameOver) startGame(game.size);
+                restartButton.removeEventListener('click', closeOverlay);
             };
-
-            restartButton.onclick = restartHandler;
+            restartButton.addEventListener('click', closeOverlay);
         }
         
         function setupInputListeners() {
             document.addEventListener('keydown', e => {
-                if (document.getElementById('game-area').style.display === 'none') return;
-                e.preventDefault();
+                if (gameArea.style.display === 'none' || !game) return;
                 const map = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
-                if (map[e.key]) handleInput(map[e.key]);
+                if (map[e.key]) {
+                    e.preventDefault();
+                    game.move(map[e.key]);
+                }
             });
 
             let touchStart = { x: 0, y: 0 };
             document.addEventListener('touchstart', e => {
-                if (document.getElementById('game-area').style.display === 'none') return;
+                if (gameArea.style.display === 'none') return;
                 touchStart.x = e.touches[0].clientX;
                 touchStart.y = e.touches[0].clientY;
             }, { passive: true });
 
             document.addEventListener('touchend', e => {
-                if (document.getElementById('game-area').style.display === 'none') return;
+                if (gameArea.style.display === 'none' || !game) return;
                 const touchEnd = { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
                 const dx = touchEnd.x - touchStart.x;
                 const dy = touchEnd.y - touchStart.y;
-                const absDx = Math.abs(dx);
-                const absDy = Math.abs(dy);
-
-                if (Math.max(absDx, absDy) > 50) { // Threshold
-                    handleInput(absDx > absDy ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
+                if (Math.max(Math.abs(dx), Math.abs(dy)) > 50) {
+                    game.move(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
                 }
             });
 
-            document.getElementById('menu-button').addEventListener('click', () => {
-                window.location.reload(); // Simplest way to go back to menu
-            });
+            document.getElementById('menu-button').addEventListener('click', () => window.location.reload());
             
             document.getElementById('share-button').addEventListener('click', () => {
                 if (navigator.share) {
                     navigator.share({
                         title: 'I scored in 2048!',
-                        text: `I scored ${score} in 2048 on a ${grid.size}x${grid.size} board! Can you beat it?`,
+                        text: `I scored ${game.score} in 2048 on a ${game.size}x${game.size} board! Can you beat it?`,
                         url: window.location.href,
-                    }).catch(error => console.log('Error sharing:', error));
+                    }).catch(console.error);
                 }
             });
         }
         
-        initGame();
+        init();
     </script>
 </body>
 </html>
