@@ -2,8 +2,8 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>נחשו את המילה!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>נחשו את השם!</title>
     <style>
         :root {
             --correct-bg-color: #6aaa64;
@@ -15,6 +15,13 @@
             --bg-color: #ffffff;
         }
 
+        html, body {
+            height: 100%;
+            height: 100dvh; /* Dynamic viewport height for mobile */
+            margin: 0;
+            overflow: hidden;
+        }
+
         body {
             font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
             background-color: var(--bg-color);
@@ -23,9 +30,6 @@
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
@@ -34,11 +38,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             height: 100%;
             width: 100%;
             max-width: 500px;
-            padding: 10px;
+            padding: 8px;
             box-sizing: border-box;
         }
 
@@ -47,12 +51,13 @@
             text-align: center;
             border-bottom: 1px solid var(--default-border-color);
             padding-bottom: 10px;
-            margin-bottom: 20px;
+            flex-shrink: 0;
         }
 
         h1 {
-            font-size: 2.2rem;
+            font-size: clamp(1.8rem, 5vw, 2.2rem);
             margin: 0;
+            padding: 10px 0;
         }
 
         #board-container {
@@ -60,12 +65,16 @@
             justify-content: center;
             align-items: center;
             flex-grow: 1;
+            width: 100%;
+            padding: 10px 0;
         }
 
         #board {
             display: grid;
             grid-template-rows: repeat(6, 1fr);
             grid-gap: 5px;
+            width: clamp(280px, 90vw, 330px);
+            height: clamp(340px, 110vw, 400px);
         }
 
         .row {
@@ -75,81 +84,50 @@
         }
 
         .tile {
-            width: 60px;
-            height: 60px;
-            border: 2px solid var(--default-border-color);
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 2.5rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            box-sizing: border-box;
+            position: relative;
+            cursor: default;
             transition: transform 0.6s;
             transform-style: preserve-3d;
-        }
-        
-        @media (max-width: 380px) {
-            .tile {
-                width: 50px;
-                height: 50px;
-                font-size: 2rem;
-            }
-        }
-
-
-        .tile.filled {
-            border-color: #878a8c;
-            animation: pop 0.1s;
-        }
-
-        @keyframes pop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
         }
 
         .tile.flip {
             transform: rotateX(180deg);
         }
-
-        .tile .front {
-            z-index: 2;
-            transform: rotateX(0deg);
-        }
-
-        .tile .back {
-            transform: rotateX(-180deg);
-        }
-
-        .tile .front, .tile .back {
-            position: absolute;
+        
+        .tile-face {
             width: 100%;
             height: 100%;
-            display: flex;
+            position: absolute;
+            backface-visibility: hidden;
+            display: inline-flex;
             justify-content: center;
             align-items: center;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
+            font-size: clamp(1.8rem, 8vw, 2.5rem);
+            font-weight: bold;
+            box-sizing: border-box;
+            border-radius: 4px;
         }
 
-
-        .tile.correct {
-            background-color: var(--correct-bg-color);
-            border-color: var(--correct-bg-color);
+        .tile-front {
+            border: 2px solid var(--default-border-color);
+        }
+        
+        .tile.filled .tile-front {
+            border-color: #878a8c;
+            animation: pop 0.1s;
+        }
+        
+        .tile-back {
+            transform: rotateX(180deg);
             color: var(--tile-text-color);
         }
-
-        .tile.present {
-            background-color: var(--present-bg-color);
-            border-color: var(--present-bg-color);
-            color: var(--tile-text-color);
-        }
-
-        .tile.absent {
-            background-color: var(--absent-bg-color);
-            border-color: var(--absent-bg-color);
-            color: var(--tile-text-color);
+        
+        .tile-back.correct { background-color: var(--correct-bg-color); }
+        .tile-back.present { background-color: var(--present-bg-color); }
+        .tile-back.absent { background-color: var(--absent-bg-color); }
+        
+        @keyframes pop {
+            50% { transform: scale(1.1); }
         }
 
         .shake {
@@ -165,42 +143,42 @@
 
         #keyboard {
             width: 100%;
-            margin-top: 20px;
+            flex-shrink: 0;
             user-select: none;
+            padding-bottom: 5px;
         }
 
         .keyboard-row {
             display: flex;
             justify-content: center;
-            margin: 5px 0;
-            width: 100%;
+            margin: 4px 0;
+            touch-action: manipulation;
         }
 
         .key {
             font-family: inherit;
             font-weight: bold;
             border: 0;
-            padding: 0;
-            height: 58px;
+            padding: 0 8px;
+            height: 50px;
             cursor: pointer;
             background-color: #d3d6da;
             color: var(--key-text-color);
             flex-grow: 1;
-            margin: 0 3px;
+            margin: 0 2px;
             border-radius: 4px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.2rem;
+            font-size: clamp(0.8rem, 3.5vw, 1.1rem);
             -webkit-tap-highlight-color: rgba(0,0,0,0.3);
         }
         
         .key.large {
             flex-grow: 1.5;
-            font-size: 1rem;
         }
 
-        .key:hover {
+        .key:active {
             background-color: #c0c3c6;
         }
         
@@ -210,10 +188,10 @@
 
         #toast-container {
             position: fixed;
-            top: 10%;
+            top: 12%;
             left: 50%;
             transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.85);
             color: white;
             padding: 12px 24px;
             border-radius: 24px;
@@ -221,36 +199,33 @@
             z-index: 1000;
             visibility: hidden;
             opacity: 0;
-            transition: visibility 0s 0.5s, opacity 0.5s;
+            transition: visibility 0.5s, opacity 0.5s;
         }
         
         #toast-container.show {
             visibility: visible;
             opacity: 1;
-            transition: opacity 0.5s;
         }
         
-        /* Modal for results */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.7);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 2000;
             visibility: hidden;
             opacity: 0;
-            transition: visibility 0s 0.3s, opacity 0.3s ease;
+            transition: visibility 0.3s, opacity 0.3s ease;
         }
 
         .modal-overlay.show {
             visibility: visible;
             opacity: 1;
-            transition: opacity 0.3s ease;
         }
 
         .modal-content {
@@ -258,6 +233,7 @@
             padding: 20px 30px;
             border-radius: 8px;
             text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
             transform: scale(0.9);
             transition: transform 0.3s ease;
         }
@@ -266,19 +242,17 @@
             transform: scale(1);
         }
 
-        .modal-content h2 {
-            margin-top: 0;
-        }
+        .modal-content h2 { margin-top: 0; }
+        .modal-content p { margin-bottom: 20px; }
 
         .modal-content button {
             background-color: var(--correct-bg-color);
             color: white;
             border: none;
-            padding: 10px 20px;
-            font-size: 1rem;
+            padding: 12px 24px;
+            font-size: 1.1rem;
             border-radius: 4px;
             cursor: pointer;
-            margin-top: 15px;
         }
 
     </style>
@@ -307,33 +281,26 @@
         </div>
     </div>
 
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- הגדרות משחק ---
             const WORD_LENGTH = 5;
             const MAX_TRIES = 6;
             
             // --- סוד כמוס ---
             // המילה "יסמין" מקודדת כדי שלא יהיה קל למצוא אותה בקוד המקור
             const encodedTargetWord = "16LXnNeV"; 
-            const getTargetWord = () => {
-                try {
-                    return decodeURIComponent(escape(atob(encodedTargetWord)));
-                } catch (e) {
-                    console.error("Decoding failed. Using fallback.");
-                    return "יסמין"; // Fallback in case of decoding issues
-                }
-            };
+            const getTargetWord = () => decodeURIComponent(escape(atob(encodedTargetWord)));
             const targetWord = getTargetWord();
             // --- סוף סוד ---
 
-            const board = document.getElementById('board');
-            const keyboardContainer = document.getElementById('keyboard');
-            const toastContainer = document.getElementById('toast-container');
-            const modalOverlay = document.getElementById('modal-overlay');
-            const modalTitle = document.getElementById('modal-title');
-            const modalBody = document.getElementById('modal-body');
-            const modalButton = document.getElementById('modal-button');
+            const boardEl = document.getElementById('board');
+            const keyboardEl = document.getElementById('keyboard');
+            const toastEl = document.getElementById('toast-container');
+            const modalOverlayEl = document.getElementById('modal-overlay');
+            const modalTitleEl = document.getElementById('modal-title');
+            const modalBodyEl = document.getElementById('modal-body');
+            const modalButtonEl = document.getElementById('modal-button');
 
             let currentRowIndex = 0;
             let currentTileIndex = 0;
@@ -352,19 +319,23 @@
                 currentTileIndex = 0;
                 guessGrid = Array(MAX_TRIES).fill(null).map(() => Array(WORD_LENGTH).fill(''));
                 
-                board.innerHTML = '';
+                boardEl.innerHTML = '';
                 for (let i = 0; i < MAX_TRIES; i++) {
-                    let row = document.createElement('div');
+                    const row = document.createElement('div');
                     row.className = 'row';
                     for (let j = 0; j < WORD_LENGTH; j++) {
-                        let tile = document.createElement('div');
+                        const tile = document.createElement('div');
                         tile.className = 'tile';
+                        tile.innerHTML = `
+                            <div class="tile-face tile-front"></div>
+                            <div class="tile-face tile-back"></div>
+                        `;
                         row.appendChild(tile);
                     }
-                    board.appendChild(row);
+                    boardEl.appendChild(row);
                 }
 
-                keyboardContainer.innerHTML = '';
+                keyboardEl.innerHTML = '';
                 keys.forEach(rowKeys => {
                     const rowDiv = document.createElement('div');
                     rowDiv.className = 'keyboard-row';
@@ -377,22 +348,21 @@
                             keyButton.textContent = 'אישור';
                             keyButton.classList.add('large');
                         } else if (key === 'Backspace') {
-                            keyButton.innerHTML = '&#9003;'; // Backspace symbol
+                            keyButton.innerHTML = '&#9003;';
                             keyButton.classList.add('large');
                         } else {
                             keyButton.textContent = key;
                         }
                         rowDiv.appendChild(keyButton);
                     });
-                    keyboardContainer.appendChild(rowDiv);
+                    keyboardEl.appendChild(rowDiv);
                 });
                 
-                // Reset key colors
                 document.querySelectorAll('.key').forEach(key => {
                     key.classList.remove('correct', 'present', 'absent');
                 });
                 
-                modalOverlay.classList.remove('show');
+                modalOverlayEl.classList.remove('show');
             }
             
             function handleKeyPress(key) {
@@ -402,19 +372,16 @@
                     submitGuess();
                 } else if (key === 'Backspace') {
                     deleteLetter();
-                } else if (isLetter(key)) {
+                } else if (keys.flat().includes(key)) {
                     addLetter(key);
                 }
             }
             
-            function isLetter(key) {
-                return keys.flat().includes(key);
-            }
-
             function addLetter(letter) {
-                if (currentTileIndex < WORD_LENGTH && currentRowIndex < MAX_TRIES) {
-                    const tile = board.children[currentRowIndex].children[currentTileIndex];
-                    tile.textContent = letter;
+                if (currentTileIndex < WORD_LENGTH) {
+                    const tile = boardEl.children[currentRowIndex].children[currentTileIndex];
+                    const front = tile.querySelector('.tile-front');
+                    front.textContent = letter;
                     tile.classList.add('filled');
                     guessGrid[currentRowIndex][currentTileIndex] = letter;
                     currentTileIndex++;
@@ -424,8 +391,9 @@
             function deleteLetter() {
                 if (currentTileIndex > 0) {
                     currentTileIndex--;
-                    const tile = board.children[currentRowIndex].children[currentTileIndex];
-                    tile.textContent = '';
+                    const tile = boardEl.children[currentRowIndex].children[currentTileIndex];
+                    const front = tile.querySelector('.tile-front');
+                    front.textContent = '';
                     tile.classList.remove('filled');
                     guessGrid[currentRowIndex][currentTileIndex] = '';
                 }
@@ -439,69 +407,69 @@
                 }
                 
                 const currentGuess = guessGrid[currentRowIndex].join('');
-                flipTiles(currentGuess);
+                processFlip(currentGuess);
             }
 
-            function flipTiles(guess) {
-                const rowTiles = board.children[currentRowIndex].children;
+            function processFlip(guess) {
+                const rowTiles = boardEl.children[currentRowIndex].children;
                 const targetLetters = targetWord.split('');
                 const guessLetters = guess.split('');
-                const letterCounts = {};
+                const letterCounts = targetLetters.reduce((acc, letter) => {
+                    acc[letter] = (acc[letter] || 0) + 1;
+                    return acc;
+                }, {});
 
-                // Count letters in target word for correct 'present' logic
-                targetLetters.forEach(letter => {
-                    letterCounts[letter] = (letterCounts[letter] || 0) + 1;
-                });
-                
-                // First pass for 'correct' letters (green)
+                const states = Array(WORD_LENGTH).fill(null);
+
+                // First pass for 'correct' (green)
                 guessLetters.forEach((letter, index) => {
                     if (targetLetters[index] === letter) {
-                        const tile = rowTiles[index];
-                        tile.dataset.state = 'correct';
+                        states[index] = 'correct';
                         letterCounts[letter]--;
                     }
                 });
 
-                // Second pass for 'present' and 'absent' letters (yellow/gray)
+                // Second pass for 'present' and 'absent' (yellow/gray)
                 guessLetters.forEach((letter, index) => {
-                    const tile = rowTiles[index];
-                    if (tile.dataset.state) return; // Already marked as 'correct'
+                    if (states[index]) return; // Skip if already 'correct'
 
                     if (targetLetters.includes(letter) && letterCounts[letter] > 0) {
-                        tile.dataset.state = 'present';
+                        states[index] = 'present';
                         letterCounts[letter]--;
                     } else {
-                        tile.dataset.state = 'absent';
+                        states[index] = 'absent';
                     }
                 });
                 
-                // Apply flip animation and colors
+                // Apply flip animation and colors one by one
                 Array.from(rowTiles).forEach((tile, index) => {
                     setTimeout(() => {
+                        const front = tile.querySelector('.tile-front');
+                        const back = tile.querySelector('.tile-back');
+                        back.textContent = front.textContent;
+                        back.classList.add(states[index]);
+                        
                         tile.classList.add('flip');
-                        tile.classList.add(tile.dataset.state);
-                        updateKeyboard(guessLetters[index], tile.dataset.state);
-                    }, index * 300);
+                        updateKeyboard(guessLetters[index], states[index]);
+                    }, index * 350);
                 });
 
-                setTimeout(() => checkGameOver(guess), WORD_LENGTH * 300 + 200);
+                setTimeout(() => checkGameOver(guess), WORD_LENGTH * 350);
             }
             
             function updateKeyboard(letter, state) {
                 const key = document.querySelector(`.key[data-key='${letter}']`);
                 if (!key) return;
 
-                const currentState = key.classList.contains('correct') ? 'correct' : 
-                                     key.classList.contains('present') ? 'present' : null;
+                const currentState = key.classList.contains('correct') ? 'correct' : key.classList.contains('present') ? 'present' : 'absent';
                 
-                // 'correct' is highest priority, then 'present'
+                // State priority: correct > present > absent
                 if (state === 'correct') {
-                    key.classList.remove('present', 'absent');
-                    key.classList.add('correct');
+                    key.className = 'key correct';
                 } else if (state === 'present' && currentState !== 'correct') {
-                    key.classList.add('present');
-                } else if (state === 'absent' && !currentState) {
-                    key.classList.add('absent');
+                    key.className = 'key present';
+                } else if (state === 'absent' && currentState !== 'correct' && currentState !== 'present') {
+                    key.className = 'key absent';
                 }
             }
 
@@ -522,42 +490,41 @@
 
             function showResultModal(isWin) {
                 if (isWin) {
-                    modalTitle.textContent = 'ניצחת!';
-                    modalBody.textContent = `כל הכבוד, גילית את השם!`;
+                    modalTitleEl.textContent = 'ניצחת! 🏆';
+                    modalBodyEl.textContent = `כל הכבוד, גילית את השם!`;
                 } else {
-                    modalTitle.textContent = 'אוי, חבל...';
-                    modalBody.textContent = 'לא נורא, אפשר לנסות שוב בפעם הבאה!';
-                    // As requested, not revealing the word on loss.
+                    modalTitleEl.textContent = 'אוי, חבל...';
+                    modalBodyEl.textContent = 'לא נורא, אפשר לנסות שוב בפעם הבאה!';
                 }
-                modalOverlay.classList.add('show');
+                modalOverlayEl.classList.add('show');
             }
 
             function shakeRow() {
-                const row = board.children[currentRowIndex];
+                const row = boardEl.children[currentRowIndex];
                 row.classList.add('shake');
                 row.addEventListener('animationend', () => {
                     row.classList.remove('shake');
                 }, { once: true });
             }
 
-
-            function showToast(message, duration = 1000) {
-                toastContainer.textContent = message;
-                toastContainer.classList.add('show');
+            function showToast(message, duration = 1200) {
+                toastEl.textContent = message;
+                toastEl.classList.add('show');
                 setTimeout(() => {
-                    toastContainer.classList.remove('show');
+                    toastEl.classList.remove('show');
                 }, duration);
             }
 
-            // Event Listeners
-            keyboardContainer.addEventListener('click', (e) => {
-                if (e.target.matches('button.key')) {
-                    handleKeyPress(e.target.dataset.key);
+            // --- Event Listeners ---
+            keyboardEl.addEventListener('click', (e) => {
+                if (e.target.closest('button.key')) {
+                    handleKeyPress(e.target.closest('button.key').dataset.key);
                 }
             });
 
             document.addEventListener('keydown', (e) => {
                 let key = e.key;
+                // Normalize and handle different keyboard layouts if possible
                 if (key === 'Enter') {
                     handleKeyPress('Enter');
                 } else if (key === 'Backspace') {
@@ -567,9 +534,9 @@
                 }
             });
             
-            modalButton.addEventListener('click', initializeGame);
+            modalButtonEl.addEventListener('click', initializeGame);
 
-            // Start the game for the first time
+            // Start the game
             initializeGame();
         });
     </script>
