@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>הרפתקאות גיבור הפיקסלים</title>
+    <style>
+        body { 
+            background-color: #202124; 
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        canvas { 
+            border: 2px solid white;
+            cursor: pointer;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>הרפתקאות גיבור הפיקסלים</h1>
+    <canvas id="game-canvas"></canvas>
+
+    <script src="https://unpkg.com/kaboom/dist/kaboom.js"></script>
+
+    <script>
+        // שלב 2: אתחול Kaboom וחיבורו לאלמנט ה-canvas שיצרנו
+        kaboom({
+            global: true, // מאפשר להשתמש בפונקציות של Kaboom בלי לכתוב kaboom. כל פעם
+            canvas: document.getElementById('game-canvas'), // קישור ל-canvas שלנו
+            scale: 2, // מגדיל את הפיקסלים כדי שיראו טוב יותר
+            clearColor: [0, 0.2, 0.4, 1], // צבע רקע תכלת-כחול
+        });
+
+        // טעינת ספרייטים (גרפיקה) - כאן נשתמש בצורות מובנות כדי לחסוך מקום
+        loadRoot('https://i.imgur.com/');
+        loadSprite('coin', 'g02y3s2.png');
+        loadSprite('evil-shroom', 'KPO3fR9.png');
+        loadSprite('brick', 'pogC9x5.png');
+        loadSprite('block', 'M6rwarW.png');
+        loadSprite('mario', 'Wb1qfhK.png');
+        loadSprite('mushroom', '0wMd92p.png');
+        loadSprite('surprise', 'gesQ1KP.png');
+        loadSprite('unboxed', 'bdrLpi6.png');
+        loadSprite('pipe-top-left', 'ReTPiWY.png');
+        loadSprite('pipe-top-right', 'hj2GK4n.png');
+        loadSprite('pipe-bottom-left', 'c1cYSbt.png');
+        loadSprite('pipe-bottom-right', 'nqQ79eI.png');
+
+        // הגדרת סצנת המשחק הראשית
+        scene("game", ({ level, score }) => {
+            // הגדרת מפת השלב באמצעות טקסט. כל סימן מייצג אובייקט אחר.
+            // זהו שדרוג אדיר - במקום לחשב קואורדינטות X, Y לכל אובייקט, פשוט "מציירים" את השלב.
+            const map = [
+                '                                      ',
+                '                                      ',
+                '                                      ',
+                '                                      ',
+                '                                      ',
+                '     %   =*=%=                        ',
+                '                                      ',
+                '                            -+        ',
+                '                    ^   ^   ()        ',
+                '==============================   =====',
+            ];
+            
+            const levelCfg = {
+                width: 20,
+                height: 20,
+                '=': [sprite('block'), solid()],
+                '$': [sprite('coin'), 'coin'],
+                '%': [sprite('surprise'), solid(), 'coin-surprise'],
+                '*': [sprite('surprise'), solid(), 'mushroom-surprise'],
+                '}': [sprite('unboxed'), solid()],
+                '(': [sprite('pipe-bottom-left'), solid(), scale(0.5)],
+                ')': [sprite('pipe-bottom-right'), solid(), scale(0.5)],
+                '-': [sprite('pipe-top-left'), solid(), scale(0.5), 'pipe'],
+                '+': [sprite('pipe-top-right'), solid(), scale(0.5), 'pipe'],
+                '^': [sprite('evil-shroom'), solid(), 'dangerous'],
+                '#': [sprite('mushroom'), solid(), 'mushroom', body()],
+            }
+
+            const gameLevel = addLevel(map, levelCfg)
+
+            // הגדרת השחקן
+            const player = add([
+                sprite('mario'), 
+                solid(), // אומר לספרייה שהשחקן הוא גוף "מוצק" שצריך להתנגש בדברים
+                pos(30, 0), // מיקום התחלתי
+                body(), // מוסיף פיזיקה! (כבידה, קפיצה). זה לבד חוסך עשרות שורות קוד.
+                origin('bot') // נקודת הייחוס היא תחתית הספרייט
+            ]);
+            
+            // תנועת השחקן ימינה ושמאלה
+            onKeyDown('left', () => {
+                player.move(-120, 0); // הזז את השחקן 120 פיקסלים לשנייה שמאלה
+            });
+
+            onKeyDown('right', () => {
+                player.move(120, 0);
+            });
+
+            // קפיצה. body() מאפשר להשתמש ב-jump()
+            onKeyPress('space', () => {
+                if (player.isGrounded()) { // isGrounded בודק אם השחקן על הרצפה
+                    player.jump(400); // קפיצה בעוצמה של 400
+                }
+            });
+
+            // מה קורה כשהשחקן מתנגש באובייקט עם תג 'coin'
+            player.onCollide('coin', (c) => {
+                destroy(c); // השמד את המטבע
+                scoreLabel.value++; // הגדל את הניקוד
+                scoreLabel.text = scoreLabel.value; // עדכן את הטקסט
+            });
+
+            // מה קורה כשהשחקן מתנגש באובייקט עם תג 'dangerous'
+            player.onCollide('dangerous', (d) => {
+                go('lose', { score: scoreLabel.value }); // לך לסצנת "הפסד"
+            });
+            
+            // הגדרת תווית הניקוד
+            const scoreLabel = add([
+                text(score),
+                pos(30, 6),
+                layer('ui'),
+                {
+                    value: score,
+                }
+            ])
+            
+            add([text('level ' + parseInt(level + 1)), pos(4, 6)])
+
+        });
+
+        // סצנת "הפסד"
+        scene('lose', ({ score }) => {
+            add([
+                text('Game Over\nScore: ' + score, 32),
+                origin('center'),
+                pos(width()/2, height()/2)
+            ]);
+            add([
+                text('Press Space to Restart', 16),
+                origin('center'),
+                pos(width()/2, height()/2 + 60)
+            ]);
+            
+            // לחיצה על רווח תחזיר אותנו לסצנת המשחק
+            onKeyPress('space', () => {
+                go('game', { level: 0, score: 0});
+            });
+        });
+
+        // התחלת המשחק בסצנה הראשית
+        start('game', { level: 0, score: 0 });
+
+    </script>
+</body>
+</html>
