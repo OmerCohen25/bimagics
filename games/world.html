@@ -17,7 +17,7 @@
 
     html, body {
       height: 100%;
-      height: 100dvh; /* תמיכה מובייל */
+      height: 100dvh;
       margin: 0;
       overflow: hidden;
     }
@@ -42,35 +42,46 @@
       height: 100%;
       width: 100%;
       max-width: 500px;
-      padding: 0 8px 8px 8px; /* התאמת ריווח עליון */
+      padding: 8px;
       box-sizing: border-box;
     }
 
-    /* --- שינויים בעיצוב הכותרת --- */
+    /* --- עיצוב ברירת המחדל של הכותרת --- */
     header {
       width: 100%;
       text-align: center;
+      border-bottom: 1px solid var(--default-border-color);
+      padding-bottom: 10px;
       flex-shrink: 0;
-      padding: 20px 0; /* ריווח פנימי כדי לתת מקום לתמונה */
-      border-radius: 0 0 15px 15px; /* פינות מעוגלות */
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      margin-bottom: 10px;
-
-      /* הוספת תמונת הרקע */
-      background-image: url('https://img.lovepik.com/png/20231010/Jasmine-flower-with-leaf-elements-white-flowers-real-flowers_159892_wh1200.png');
-      background-size: cover; /* תכסה את כל השטח */
-      background-position: center 65%; /* ממורכז, מעט למטה */
-      background-repeat: no-repeat;
+      transition: all 0.5s ease; /* מעבר חלק למצב ניצחון */
     }
 
     h1 {
-      font-size: clamp(2.2rem, 6vw, 2.8rem); /* הגדלת הגופן */
+      font-size: clamp(1.8rem, 5vw, 2.2rem);
       margin: 0;
       padding: 10px 0;
-      color: white; /* צבע טקסט לבן */
-      text-shadow: 0px 2px 5px rgba(0, 0, 0, 0.8); /* הצללה לשיפור הקריאות */
+      color: #212121; /* צבע טקסט רגיל */
+      transition: color 0.5s ease;
     }
-    /* --- סוף השינויים בעיצוב הכותרת --- */
+    
+    /* --- חדש: עיצוב מיוחד למצב ניצחון --- */
+    header.header-win {
+      padding: 20px 0;
+      border-bottom: none;
+      border-radius: 0 0 15px 15px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      background-image: url('https://img.lovepik.com/png/20231010/Jasmine-flower-with-leaf-elements-white-flowers-real-flowers_159892_wh1200.png');
+      background-size: cover;
+      background-position: center 65%;
+      background-repeat: no-repeat;
+    }
+
+    header.header-win h1 {
+      font-size: clamp(2.2rem, 6vw, 2.8rem);
+      color: white;
+      text-shadow: 0px 2px 5px rgba(0, 0, 0, 0.8);
+    }
+    /* --- סוף העיצוב המיוחד --- */
 
 
     #board-container {
@@ -291,11 +302,9 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // --- הגדרות משחק ---
       const WORD_LENGTH = 5;
       const MAX_TRIES   = 5;
 
-      // --- מילה סודית: "יסמין" ---
       const encodedTargetWord = "15nXodee15nXnw==";
       const decodeBase64UTF8 = (b64) => {
         const bin = atob(b64);
@@ -314,6 +323,8 @@
       const targetWordNorm = normalizeWord(targetWordRaw);
       const targetWord     = targetWordRaw;
 
+      // --- שמירת האלמנטים מה-DOM ---
+      const headerEl      = document.querySelector('header');
       const boardEl       = document.getElementById('board');
       const keyboardEl    = document.getElementById('keyboard');
       const toastEl       = document.getElementById('toast-container');
@@ -343,6 +354,9 @@
         currentRowIndex = 0;
         currentTileIndex= 0;
         guessGrid = Array(MAX_TRIES).fill(null).map(() => Array(WORD_LENGTH).fill(''));
+
+        // --- חדש: איפוס הכותרת למצב הרגיל ---
+        headerEl.classList.remove('header-win');
 
         boardEl.innerHTML = '';
         for (let i = 0; i < MAX_TRIES; i++) {
@@ -514,6 +528,8 @@
 
       function showResultModal(isWin) {
         if (isWin) {
+          // --- חדש: הוספת מחלקת הניצחון לכותרת ---
+          headerEl.classList.add('header-win');
           modalTitleEl.textContent = 'ניצחת! 🏆';
           modalBodyEl.textContent  = `כל הכבוד! השם הוא: ${targetWord}`;
         } else {
