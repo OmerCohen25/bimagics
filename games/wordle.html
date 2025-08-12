@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>נחשו את המילה!</title>
+    <style>
+        :root {
+            --correct-bg-color: #6aaa64;
+            --present-bg-color: #c9b458;
+            --absent-bg-color: #787c7e;
+            --default-border-color: #d3d6da;
+            --tile-text-color: #ffffff;
+            --key-text-color: #000000;
+            --bg-color: #ffffff;
+        }
+
+        body {
+            font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+            background-color: var(--bg-color);
+            color: #212121;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            max-width: 500px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        header {
+            width: 100%;
+            text-align: center;
+            border-bottom: 1px solid var(--default-border-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin: 0;
+        }
+
+        #board-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        #board {
+            display: grid;
+            grid-template-rows: repeat(6, 1fr);
+            grid-gap: 5px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-gap: 5px;
+        }
+
+        .tile {
+            width: 60px;
+            height: 60px;
+            border: 2px solid var(--default-border-color);
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            box-sizing: border-box;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        
+        @media (max-width: 380px) {
+            .tile {
+                width: 50px;
+                height: 50px;
+                font-size: 2rem;
+            }
+        }
+
+
+        .tile.filled {
+            border-color: #878a8c;
+            animation: pop 0.1s;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .tile.flip {
+            transform: rotateX(180deg);
+        }
+
+        .tile .front {
+            z-index: 2;
+            transform: rotateX(0deg);
+        }
+
+        .tile .back {
+            transform: rotateX(-180deg);
+        }
+
+        .tile .front, .tile .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+
+
+        .tile.correct {
+            background-color: var(--correct-bg-color);
+            border-color: var(--correct-bg-color);
+            color: var(--tile-text-color);
+        }
+
+        .tile.present {
+            background-color: var(--present-bg-color);
+            border-color: var(--present-bg-color);
+            color: var(--tile-text-color);
+        }
+
+        .tile.absent {
+            background-color: var(--absent-bg-color);
+            border-color: var(--absent-bg-color);
+            color: var(--tile-text-color);
+        }
+
+        .shake {
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            10%, 90% { transform: translateX(-1px); }
+            20%, 80% { transform: translateX(2px); }
+            30%, 50%, 70% { transform: translateX(-4px); }
+            40%, 60% { transform: translateX(4px); }
+        }
+
+        #keyboard {
+            width: 100%;
+            margin-top: 20px;
+            user-select: none;
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            margin: 5px 0;
+            width: 100%;
+        }
+
+        .key {
+            font-family: inherit;
+            font-weight: bold;
+            border: 0;
+            padding: 0;
+            height: 58px;
+            cursor: pointer;
+            background-color: #d3d6da;
+            color: var(--key-text-color);
+            flex-grow: 1;
+            margin: 0 3px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            -webkit-tap-highlight-color: rgba(0,0,0,0.3);
+        }
+        
+        .key.large {
+            flex-grow: 1.5;
+            font-size: 1rem;
+        }
+
+        .key:hover {
+            background-color: #c0c3c6;
+        }
+        
+        .key.correct { background-color: var(--correct-bg-color); color: var(--tile-text-color); }
+        .key.present { background-color: var(--present-bg-color); color: var(--tile-text-color); }
+        .key.absent { background-color: var(--absent-bg-color); color: var(--tile-text-color); }
+
+        #toast-container {
+            position: fixed;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 1rem;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s 0.5s, opacity 0.5s;
+        }
+        
+        #toast-container.show {
+            visibility: visible;
+            opacity: 1;
+            transition: opacity 0.5s;
+        }
+        
+        /* Modal for results */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s 0.3s, opacity 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            visibility: visible;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-content {
+            background: var(--bg-color);
+            padding: 20px 30px;
+            border-radius: 8px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.show .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+        }
+
+        .modal-content button {
+            background-color: var(--correct-bg-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <header>
+            <h1>נחש את השם</h1>
+        </header>
+
+        <div id="board-container">
+            <div id="board"></div>
+        </div>
+
+        <div id="keyboard"></div>
+    </div>
+    
+    <div id="toast-container"></div>
+    
+    <div id="modal-overlay">
+        <div class="modal-content">
+            <h2 id="modal-title"></h2>
+            <p id="modal-body"></p>
+            <button id="modal-button">שחק שוב</button>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const WORD_LENGTH = 5;
+            const MAX_TRIES = 6;
+            
+            // --- סוד כמוס ---
+            // המילה "יסמין" מקודדת כדי שלא יהיה קל למצוא אותה בקוד המקור
+            const encodedTargetWord = "16LXnNeV"; 
+            const getTargetWord = () => {
+                try {
+                    return decodeURIComponent(escape(atob(encodedTargetWord)));
+                } catch (e) {
+                    console.error("Decoding failed. Using fallback.");
+                    return "יסמין"; // Fallback in case of decoding issues
+                }
+            };
+            const targetWord = getTargetWord();
+            // --- סוף סוד ---
+
+            const board = document.getElementById('board');
+            const keyboardContainer = document.getElementById('keyboard');
+            const toastContainer = document.getElementById('toast-container');
+            const modalOverlay = document.getElementById('modal-overlay');
+            const modalTitle = document.getElementById('modal-title');
+            const modalBody = document.getElementById('modal-body');
+            const modalButton = document.getElementById('modal-button');
+
+            let currentRowIndex = 0;
+            let currentTileIndex = 0;
+            let isGameOver = false;
+            let guessGrid = [];
+
+            const keys = [
+                ['ק', 'ר', 'א', 'ט', 'ו', 'ן', 'ם', 'פ'],
+                ['ש', 'ד', 'ג', 'כ', 'ע', 'י', 'ח', 'ל', 'ך', 'ף'],
+                ['Enter', 'ז', 'ס', 'ב', 'ה', 'נ', 'מ', 'צ', 'ת', 'ץ', 'Backspace']
+            ];
+
+            function initializeGame() {
+                isGameOver = false;
+                currentRowIndex = 0;
+                currentTileIndex = 0;
+                guessGrid = Array(MAX_TRIES).fill(null).map(() => Array(WORD_LENGTH).fill(''));
+                
+                board.innerHTML = '';
+                for (let i = 0; i < MAX_TRIES; i++) {
+                    let row = document.createElement('div');
+                    row.className = 'row';
+                    for (let j = 0; j < WORD_LENGTH; j++) {
+                        let tile = document.createElement('div');
+                        tile.className = 'tile';
+                        row.appendChild(tile);
+                    }
+                    board.appendChild(row);
+                }
+
+                keyboardContainer.innerHTML = '';
+                keys.forEach(rowKeys => {
+                    const rowDiv = document.createElement('div');
+                    rowDiv.className = 'keyboard-row';
+                    rowKeys.forEach(key => {
+                        const keyButton = document.createElement('button');
+                        keyButton.className = 'key';
+                        keyButton.dataset.key = key;
+
+                        if (key === 'Enter') {
+                            keyButton.textContent = 'אישור';
+                            keyButton.classList.add('large');
+                        } else if (key === 'Backspace') {
+                            keyButton.innerHTML = '&#9003;'; // Backspace symbol
+                            keyButton.classList.add('large');
+                        } else {
+                            keyButton.textContent = key;
+                        }
+                        rowDiv.appendChild(keyButton);
+                    });
+                    keyboardContainer.appendChild(rowDiv);
+                });
+                
+                // Reset key colors
+                document.querySelectorAll('.key').forEach(key => {
+                    key.classList.remove('correct', 'present', 'absent');
+                });
+                
+                modalOverlay.classList.remove('show');
+            }
+            
+            function handleKeyPress(key) {
+                if (isGameOver) return;
+
+                if (key === 'Enter') {
+                    submitGuess();
+                } else if (key === 'Backspace') {
+                    deleteLetter();
+                } else if (isLetter(key)) {
+                    addLetter(key);
+                }
+            }
+            
+            function isLetter(key) {
+                return keys.flat().includes(key);
+            }
+
+            function addLetter(letter) {
+                if (currentTileIndex < WORD_LENGTH && currentRowIndex < MAX_TRIES) {
+                    const tile = board.children[currentRowIndex].children[currentTileIndex];
+                    tile.textContent = letter;
+                    tile.classList.add('filled');
+                    guessGrid[currentRowIndex][currentTileIndex] = letter;
+                    currentTileIndex++;
+                }
+            }
+
+            function deleteLetter() {
+                if (currentTileIndex > 0) {
+                    currentTileIndex--;
+                    const tile = board.children[currentRowIndex].children[currentTileIndex];
+                    tile.textContent = '';
+                    tile.classList.remove('filled');
+                    guessGrid[currentRowIndex][currentTileIndex] = '';
+                }
+            }
+
+            function submitGuess() {
+                if (currentTileIndex !== WORD_LENGTH) {
+                    showToast('לא מספיק אותיות');
+                    shakeRow();
+                    return;
+                }
+                
+                const currentGuess = guessGrid[currentRowIndex].join('');
+                flipTiles(currentGuess);
+            }
+
+            function flipTiles(guess) {
+                const rowTiles = board.children[currentRowIndex].children;
+                const targetLetters = targetWord.split('');
+                const guessLetters = guess.split('');
+                const letterCounts = {};
+
+                // Count letters in target word for correct 'present' logic
+                targetLetters.forEach(letter => {
+                    letterCounts[letter] = (letterCounts[letter] || 0) + 1;
+                });
+                
+                // First pass for 'correct' letters (green)
+                guessLetters.forEach((letter, index) => {
+                    if (targetLetters[index] === letter) {
+                        const tile = rowTiles[index];
+                        tile.dataset.state = 'correct';
+                        letterCounts[letter]--;
+                    }
+                });
+
+                // Second pass for 'present' and 'absent' letters (yellow/gray)
+                guessLetters.forEach((letter, index) => {
+                    const tile = rowTiles[index];
+                    if (tile.dataset.state) return; // Already marked as 'correct'
+
+                    if (targetLetters.includes(letter) && letterCounts[letter] > 0) {
+                        tile.dataset.state = 'present';
+                        letterCounts[letter]--;
+                    } else {
+                        tile.dataset.state = 'absent';
+                    }
+                });
+                
+                // Apply flip animation and colors
+                Array.from(rowTiles).forEach((tile, index) => {
+                    setTimeout(() => {
+                        tile.classList.add('flip');
+                        tile.classList.add(tile.dataset.state);
+                        updateKeyboard(guessLetters[index], tile.dataset.state);
+                    }, index * 300);
+                });
+
+                setTimeout(() => checkGameOver(guess), WORD_LENGTH * 300 + 200);
+            }
+            
+            function updateKeyboard(letter, state) {
+                const key = document.querySelector(`.key[data-key='${letter}']`);
+                if (!key) return;
+
+                const currentState = key.classList.contains('correct') ? 'correct' : 
+                                     key.classList.contains('present') ? 'present' : null;
+                
+                // 'correct' is highest priority, then 'present'
+                if (state === 'correct') {
+                    key.classList.remove('present', 'absent');
+                    key.classList.add('correct');
+                } else if (state === 'present' && currentState !== 'correct') {
+                    key.classList.add('present');
+                } else if (state === 'absent' && !currentState) {
+                    key.classList.add('absent');
+                }
+            }
+
+            function checkGameOver(guess) {
+                if (guess === targetWord) {
+                    showToast('כל הכבוד! הצלחת!', 2000);
+                    isGameOver = true;
+                    setTimeout(() => showResultModal(true), 1000);
+                } else {
+                    currentRowIndex++;
+                    currentTileIndex = 0;
+                    if (currentRowIndex >= MAX_TRIES) {
+                        isGameOver = true;
+                        setTimeout(() => showResultModal(false), 500);
+                    }
+                }
+            }
+
+            function showResultModal(isWin) {
+                if (isWin) {
+                    modalTitle.textContent = 'ניצחת!';
+                    modalBody.textContent = `כל הכבוד, גילית את השם!`;
+                } else {
+                    modalTitle.textContent = 'אוי, חבל...';
+                    modalBody.textContent = 'לא נורא, אפשר לנסות שוב בפעם הבאה!';
+                    // As requested, not revealing the word on loss.
+                }
+                modalOverlay.classList.add('show');
+            }
+
+            function shakeRow() {
+                const row = board.children[currentRowIndex];
+                row.classList.add('shake');
+                row.addEventListener('animationend', () => {
+                    row.classList.remove('shake');
+                }, { once: true });
+            }
+
+
+            function showToast(message, duration = 1000) {
+                toastContainer.textContent = message;
+                toastContainer.classList.add('show');
+                setTimeout(() => {
+                    toastContainer.classList.remove('show');
+                }, duration);
+            }
+
+            // Event Listeners
+            keyboardContainer.addEventListener('click', (e) => {
+                if (e.target.matches('button.key')) {
+                    handleKeyPress(e.target.dataset.key);
+                }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                let key = e.key;
+                if (key === 'Enter') {
+                    handleKeyPress('Enter');
+                } else if (key === 'Backspace') {
+                    handleKeyPress('Backspace');
+                } else if (keys.flat().includes(key)) { // Handles Hebrew physical keyboard
+                    handleKeyPress(key);
+                }
+            });
+            
+            modalButton.addEventListener('click', initializeGame);
+
+            // Start the game for the first time
+            initializeGame();
+        });
+    </script>
+</body>
+</html>
