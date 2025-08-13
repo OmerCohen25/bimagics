@@ -2,7 +2,8 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <!-- חשוב: דפדפנים ניידים יכווצו את התוכן כשהמקלדת נפתחת -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, interactive-widget=resizes-content" />
   <title>נחשו את השם!</title>
   <meta name="theme-color" content="#6aaa64" />
   <style>
@@ -14,16 +15,36 @@
       --tile-text-color:#ffffff;
       --key-text-color:#000000;
       --bg-color:#ffffff;
+
+      /* גובה אפליקציה דינמי – יתעדכן ב־JS עם visualViewport */
+      --app-h: 100svh; /* עדיפות */
     }
-    html,body{height:100%;height:100dvh;margin:0;overflow:hidden}
+
+    /* לא משתמשים ב-overflow:hidden כדי לא לחתוך מסכים */
+    html, body { margin: 0; padding: 0; }
     body{
-      font-family:Arial,"Helvetica Neue",Helvetica,sans-serif;
-      background:var(--bg-color);color:#212121;
-      display:flex;flex-direction:column;align-items:center;justify-content:space-between;
-      -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+      min-height: var(--app-h);
+      /* נפעיל גם נפילות חינניות: */
+      min-height: 100svh;
+      min-height: 100dvh;
+      min-height: 100vh;
+      background: var(--bg-color);
+      color:#212121;
+      font-family: Arial,"Helvetica Neue",Helvetica,sans-serif;
+      display:flex;flex-direction:column;align-items:center;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
       touch-action:manipulation;
+      /* נאפשר גלילה במקרה של מסכים קצרים */
+      overflow:auto;
     }
-    #game-container{display:flex;flex-direction:column;align-items:center;justify-content:space-between;height:100%;width:100%;max-width:500px;padding:8px;box-sizing:border-box}
+
+    #game-container{
+      display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+      min-height: var(--app-h);
+      min-height: 100%;
+      width:100%;max-width:500px;padding:8px;box-sizing:border-box;
+    }
+
     header{width:100%;text-align:center;border-bottom:1px solid var(--default-border-color);padding-bottom:10px;flex-shrink:0;transition:all .5s ease}
     h1{font-size:clamp(1.8rem,5vw,2.2rem);margin:0;padding:10px 0;color:#212121;transition:color .5s ease}
     header.header-win{padding:20px 0;border-bottom:none;border-radius:0 0 15px 15px;box-shadow:0 4px 6px rgba(0,0,0,.1);
@@ -45,21 +66,28 @@
     .tile-back.absent{background:var(--absent-bg-color)}
     @keyframes pop{50%{transform:scale(1.08)}}
     .shake{animation:shake .5s}
-    @keyframes shake{
-      10%,90%{transform:translateX(-1px)}
-      20%,80%{transform:translateX(2px)}
-      30%,50%,70%{transform:translateX(-4px)}
-      40%,60%{transform:translateX(4px)}
-    }
+    @keyframes shake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}}
 
-    #keyboard{width:100%;flex-shrink:0;user-select:none;padding-bottom:5px}
-    .keyboard-row{display:flex;justify-content:center;margin:6px 0;direction:rtl} /* מציב את ״פ״ בצד ימין כמו במקלדת אמת */
-    .key{
-      font-family:inherit;font-weight:bold;border:0;padding:0 8px;height:58px;cursor:pointer;
-      background:#d3d6da;color:var(--key-text-color);flex-grow:1;margin:0 3px;border-radius:4px;
-      display:flex;justify-content:center;align-items:center;font-size:clamp(1rem,4.5vw,1.4rem);-webkit-tap-highlight-color:rgba(0,0,0,.3)
+    /* מקלדת: תמיד נראית; נדבקת לתחתית, עם שוליים לאזורי safe-area */
+    #keyboard{
+      width:100%;
+      user-select:none;
+      padding: 6px 6px max(env(safe-area-inset-bottom), 6px) 6px;
+      background: linear-gradient(#f4f5f6,#e6e8ea);
+      box-shadow: 0 -2px 8px rgba(0,0,0,.06);
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
+      flex-shrink: 0;
     }
-    .key.large{flex-grow:1.5}
+    .keyboard-row{display:flex;justify-content:center;margin:6px 0;direction:rtl}
+    .key{
+      font-family:inherit;font-weight:bold;border:0;padding:0 8px;height:56px;cursor:pointer;
+      background:#d3d6da;color:var(--key-text-color);flex-grow:1;margin:0 3px;border-radius:8px;
+      display:flex;justify-content:center;align-items:center;font-size:clamp(1rem,4.5vw,1.4rem);
+      -webkit-tap-highlight-color:rgba(0,0,0,.2)
+    }
+    .key.large{flex-grow:1.6}
     .key:active{background:#c0c3c6}
     .key.correct{background:var(--correct-bg-color);color:var(--tile-text-color)}
     .key.present{background:var(--present-bg-color);color:var(--tile-text-color)}
@@ -99,12 +127,23 @@
   </div>
 
   <script>
+  // התאמת גובה לכל דפדפן – גם כשמקלדת מערכת נפתחת
+  (function setViewportHeight(){
+    const apply = () => {
+      const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      document.documentElement.style.setProperty('--app-h', vh + 'px');
+    };
+    apply();
+    window.addEventListener('resize', apply);
+    window.visualViewport && window.visualViewport.addEventListener('resize', apply);
+  })();
+
   document.addEventListener('DOMContentLoaded', () => {
     const WORD_LENGTH = 5;
     const MAX_TRIES = 5;
 
-    // שמור את מילת היעד מוצפנת בסיסית (אין חשיפה על הפסד)
-    const encodedTargetWord = "15nXodee15nXnw=="; // דוגמה בלבד – החלף למילה שלך מקודדת Base64-UTF8
+    // לא חושפים על הפסד – מציגים רק אם ניצחון
+    const encodedTargetWord = "15nXodee15nXnw=="; // החלף למילה שלך (Base64 UTF-8)
     const decodeBase64UTF8 = (b64) => {
       const bin = atob(b64);
       const bytes = Uint8Array.from([...bin].map(ch => ch.charCodeAt(0)));
@@ -112,7 +151,6 @@
     };
     const targetWordRaw = decodeBase64UTF8(encodedTargetWord);
 
-    // נרמול סופיות
     const finalsMap = {"ך":"כ","ם":"מ","ן":"נ","ף":"פ","ץ":"צ","כ":"כ","מ":"מ","נ":"נ","פ":"פ","צ":"צ"};
     const normalizeLetter = (ch)=>finalsMap[ch]||ch;
     const normalizeWord   = (w)=>[...w].map(normalizeLetter).join("");
@@ -120,7 +158,6 @@
     const targetWordNorm = normalizeWord(targetWordRaw);
     const targetWord = targetWordRaw;
 
-    // DOM
     const headerEl = document.querySelector('header');
     const boardEl = document.getElementById('board');
     const keyboardEl = document.getElementById('keyboard');
@@ -135,14 +172,10 @@
     let isGameOver = false;
     let guessGrid = [];
 
-    // ==== מפתח מקלדת קלאסי (כמו בסמארטפון) ====
-    // כיוון RTL בשורות => הפריט הראשון יופיע בצד ימין.
+    // פריסת מקלדת עברית קלאסית (RTL: ״פ״ בימין)
     const keys = [
-      // שורה עליונה: פ מ ן ו ט א ר ק
       ['פ','ם','ן','ו','ט','א','ר','ק'],
-      // שורה אמצעית: ף ך ל ח י ע כ ג ד ש
       ['ף','ך','ל','ח','י','ע','כ','ג','ד','ש'],
-      // שורה תחתונה: Backspace בצד ימין, Enter בצד שמאל
       ['Backspace','ץ','ת','צ','מ','נ','ה','ב','ס','ז','Enter']
     ];
 
@@ -157,7 +190,6 @@
 
       headerEl.classList.remove('header-win');
 
-      // לוח
       boardEl.innerHTML='';
       for(let i=0;i<MAX_TRIES;i++){
         const row=document.createElement('div');row.className='row';
@@ -169,7 +201,6 @@
         boardEl.appendChild(row);
       }
 
-      // מקלדת
       keyboardEl.innerHTML='';
       keys.forEach(rowKeys=>{
         const rowDiv=document.createElement('div');rowDiv.className='keyboard-row';
@@ -185,6 +216,7 @@
 
       document.querySelectorAll('.key').forEach(k=>k.classList.remove('correct','present','absent'));
       modalOverlayEl.classList.remove('show');
+      modalOverlayEl.setAttribute('aria-hidden','true');
     }
 
     function handleKeyPress(key){
@@ -231,11 +263,9 @@
       const letterCounts=targetLettersNorm.reduce((acc,l)=>(acc[l]=(acc[l]||0)+1,acc),{});
       const states=Array(WORD_LENGTH).fill(null);
 
-      // קודם "במקום"
       guessLettersNorm.forEach((l,i)=>{
         if(targetLettersNorm[i]===l){states[i]='correct';letterCounts[l]--;}
       });
-      // אחר כך "קיים"
       guessLettersNorm.forEach((l,i)=>{
         if(states[i])return;
         if((letterCounts[l]||0)>0){states[i]='present';letterCounts[l]--;}
@@ -269,7 +299,7 @@
       });
     }
 
-    function checkGameOver(guess,states){
+    function checkGameOver(guess){
       if(normalizeWord(guess)===targetWordNorm){
         showToast('כל הכבוד! הצלחת!',2000);
         isGameOver=true;
@@ -307,7 +337,6 @@
       setTimeout(()=>toastEl.classList.remove('show'),duration);
     }
 
-    // קליקים / מקלדת
     keyboardEl.addEventListener('click',(e)=>{
       const btn=e.target.closest('button.key'); if(!btn) return;
       handleKeyPress(btn.dataset.key);
@@ -316,10 +345,7 @@
       let k=e.key;
       if(k==='Enter') handleKeyPress('Enter');
       else if(k==='Backspace') handleKeyPress('Backspace');
-      else{
-        // קלט פיזי בעברית
-        if(keys.flat().includes(k)) handleKeyPress(k);
-      }
+      else if(keys.flat().includes(k)) handleKeyPress(k);
     });
 
     modalButtonEl.addEventListener('click',initializeGame);
