@@ -335,19 +335,7 @@
                 function processFlip(guess) { const guessLettersNorm = [...normalizeWord(guess)]; const targetLettersNorm = [...targetWordNorm]; const letterCounts = targetLettersNorm.reduce((acc, l) => (acc[l] = (acc[l] || 0) + 1, acc), {}); const states = Array(WORD_LENGTH).fill(null); guessLettersNorm.forEach((l, i) => { if (targetLettersNorm[i] === l) { states[i] = 'correct'; letterCounts[l]--; } }); guessLettersNorm.forEach((l, i) => { if (states[i]) return; if ((letterCounts[l] || 0) > 0) { states[i] = 'present'; letterCounts[l]--; } else { states[i] = 'absent'; } }); resultsGrid.push(states); Array.from(boardEl.children[currentRowIndex].children).forEach((tile, idx) => { setTimeout(() => { const back = tile.querySelector('.tile-back'); back.textContent = tile.querySelector('.tile-front').textContent; back.classList.add(states[idx]); tile.classList.add('flip'); updateKeyboard([...guess][idx], states[idx]); }, idx * 350); }); setTimeout(() => checkGameOver(guess), WORD_LENGTH * 350 + 50); }
                 function updateKeyboard(letter, state) { const twin = pairLetter(letter);[letter, twin].forEach(ch => { const key = document.querySelector(`.key[data-key='${CSS.escape(ch)}']`); if (!key) return; const isCorrect = key.classList.contains('correct'); const isPresent = key.classList.contains('present'); if (state === 'correct') { key.classList.remove('present', 'absent'); key.classList.add('correct'); } else if (state === 'present' && !isCorrect) { key.classList.add('present'); } else if (state === 'absent' && !isCorrect && !isPresent) { key.classList.add('absent'); } }); }
                 function checkGameOver(guess) { if (normalizeWord(guess) === targetWordNorm) { showToast('כל הכבוד!', 2000); isGameOver = true; setTimeout(() => showResultModal(true), 700); } else { currentRowIndex++; if (currentRowIndex >= MAX_TRIES) { isGameOver = true; setTimeout(() => showResultModal(false), 400); } else { currentTileIndex = 0; } } }
-                function showResultModal(isWin) { shareResultsBtn.style.display = isWin ? 'block' : 'none'; if (isWin) { headerEl.classList.add('header-win'); modalTitleEl.textContent = 'ניצחת! 🏆'; modalBodyEl.textContent = `כל הכבוד! המילה היא: ${targetWord}`; } } else {
-    modalTitleEl.textContent = 'כמעט שם!';
-    modalBodyEl.textContent = 'לא נורא, זה היה אתגר קשה. אפשר לנסות שוב או ליצור משחק חדש.';
-    
-    // הוספת כפתור "נסה שוב" שמרענן את הדף
-    const tryAgainBtn = document.createElement('button');
-    tryAgainBtn.textContent = 'נסה שוב ↻';
-    tryAgainBtn.style.background = '#4a90e2'; // צבע שונה
-    tryAgainBtn.onclick = () => window.location.reload();
-
-    // מוסיפים אותו לפני הכפתור הקיים
-    modalButtonEl.parentElement.insertBefore(tryAgainBtn, modalButtonEl);
-} modalOverlayEl.classList.add('show'); }
+                function showResultModal(isWin) { shareResultsBtn.style.display = isWin ? 'block' : 'none'; if (isWin) { headerEl.classList.add('header-win'); modalTitleEl.textContent = 'ניצחת! 🏆'; modalBodyEl.textContent = `כל הכבוד! המילה היא: ${targetWord}`; } else { modalTitleEl.textContent = 'אוי, חבל...'; modalBodyEl.textContent = `המילה הנכונה הייתה: ${targetWord}.`; } modalOverlayEl.classList.add('show'); }
                 function shakeRow() { const row = boardEl.children[currentRowIndex]; row.classList.add('shake'); row.addEventListener('animationend', () => row.classList.remove('shake'), { once: true }); }
                 
                 function generateShareableGrid() { let gridText = resultsGrid.map(rowStates => rowStates.map(state => { if (state === 'correct') return '🟩'; if (state === 'present') return '🟨'; return '⬛'; }).join('')).join('\n'); return `ניחשתי את המילה! (${resultsGrid.length}/${MAX_TRIES})\n\n${gridText}\n\nרוצים לנסות? ${window.location.href}`; }
@@ -372,7 +360,7 @@
                 const shareLinkInput = document.getElementById('shareLink');
                 const copyBtn = document.getElementById('copyBtn');
                 const goToLinkBtn = document.getElementById('goToLinkBtn');
-אוי
+
                 generateBtn.addEventListener('click', () => {
                     const word = wordInput.value.trim();
                     if (word.length < 2 || word.length > 9) { alert('יש להכניס מילה באורך 2 עד 9 אותיות.'); return; }
