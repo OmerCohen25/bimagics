@@ -3,201 +3,253 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, interactive-widget=resizes-content" />
-    <title>נחשו את השם!</title>
-    <meta name="theme-color" content="#6aaa64" />
+    <title>נחשו את המילה!</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">
+
     <style>
-        /* --- סגנון כללי ומשתנים --- */
+        /* --- פלטת צבעים ומשתני עיצוב --- */
         :root {
-            --word-length: 5;
-            --correct-bg-color: #6aaa64;
-            --present-bg-color: #c9b458;
-            --absent-bg-color: #787c7e;
-            --default-border-color: #d3d6da;
+            --font-main: 'Heebo', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --word-length: 5; /* Default, will be updated by JS */
+
+            --bg-color: #FDFBFF; /* רקע כללי רך */
+            --text-color: #312A2A;
+            --border-color: #DCDDE1;
+            
+            --correct-bg-color: #6aaa64; /* ירוק נעים */
+            --present-bg-color: #c9b458; /* צהוב חרדל */
+            --absent-bg-color: #a4a8ab; /* אפור רך */
+            --key-bg-color: #d3d6da;
+
             --tile-text-color: #ffffff;
-            --key-text-color: #000000;
-            --bg-color: #ffffff;
-            --app-h: 100svh;
+            --modal-bg: rgba(0, 0, 0, 0.4);
+            --container-shadow: 0px 8px 24px rgba(0, 0, 0, 0.08);
+            --tile-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
+            --key-shadow: 0px 2px 2px rgba(0,0,0,0.1);
         }
+
+        html { box-sizing: border-box; }
+        *, *:before, *:after { box-sizing: inherit; }
+
         html, body { margin: 0; padding: 0; }
         body {
-            min-height: var(--app-h);
+            min-height: 100vh;
+            min-height: -webkit-fill-available; /* For mobile Safari */
             background: var(--bg-color);
-            color: #212121;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-color);
+            font-family: var(--font-main);
             display: flex;
-            flex-direction: column;
             align-items: center;
+            justify-content: center;
             -webkit-font-smoothing: antialiased;
             touch-action: manipulation;
-            overflow: auto;
         }
 
-        /* --- הסתרה ראשונית של הממשקים --- */
-        #generator-container, #game-container {
-            display: none;
-        }
+        #generator-container, #game-container { display: none; }
 
-        /* --- סגנון עבור המחולל --- */
+        /* --- עיצוב המחולל --- */
         #generator-container {
-            display: flex; justify-content: center; align-items: center; flex-grow: 1; width: 100%; padding: 20px; box-sizing: border-box;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            width: 100%; padding: 20px;
         }
-        .generator-box { background: #fff; padding: 30px 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 100%; }
-        .generator-box h1 { margin-top: 0; color: #333; }
-        .generator-box p { color: #666; line-height: 1.6; }
-        #wordInput { width: 100%; padding: 12px; font-size: 1.2rem; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; text-align: center; margin-bottom: 20px; }
-        #generateBtn { background: var(--correct-bg-color); color: #fff; border: none; padding: 12px 24px; font-size: 1.1rem; border-radius: 8px; cursor: pointer; transition: background-color .3s; width: 100%; }
-        #generateBtn:hover { background: #5a9a54; }
-        #result { margin-top: 25px; visibility: hidden; opacity: 0; transition: all .3s ease; }
+        .generator-box {
+            background: #fff; padding: clamp(2rem, 5vw, 3rem); border-radius: 20px;
+            box-shadow: var(--container-shadow); text-align: center;
+            max-width: 450px; width: 100%;
+        }
+        .generator-box h1 { margin-top: 0; font-weight: 700; font-size: clamp(1.8rem, 5vw, 2.2rem); }
+        .generator-box p { color: #666; line-height: 1.7; font-size: clamp(1rem, 3vw, 1.1rem); margin-bottom: 2rem; }
+        #wordInput {
+            width: 100%; padding: 14px; font-size: 1.2rem; text-align: center; margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color); border-radius: 12px; transition: all .2s ease;
+        }
+        #wordInput:focus { border-color: var(--correct-bg-color); box-shadow: 0 0 0 3px rgba(106, 170, 100, 0.2); outline: none; }
+        #generateBtn {
+            background: var(--correct-bg-color); color: #fff; border: none; font-weight: 500;
+            padding: 14px 24px; font-size: 1.1rem; border-radius: 12px; cursor: pointer;
+            width: 100%; transition: all .2s ease;
+        }
+        #generateBtn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(106, 170, 100, 0.3); }
+        #result { margin-top: 2rem; visibility: hidden; opacity: 0; transition: all .3s ease; }
         #result.show { visibility: visible; opacity: 1; }
-        #shareLink { width: 100%; padding: 10px; font-size: 1rem; border: 1px solid #ddd; background-color: #f9f9f9; border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; direction: ltr; text-align: left; }
+        #shareLink {
+            width: 100%; padding: 10px; font-size: 1rem; border: 1px solid var(--border-color);
+            background-color: #f8f9fa; border-radius: 8px; margin-bottom: 1rem; direction: ltr; text-align: left;
+        }
         .result-buttons { display: flex; gap: 10px; }
         #copyBtn, #goToLinkBtn {
-            flex-grow: 1;
-            text-decoration: none;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            color: #fff;
-            transition: opacity .3s;
+            flex-grow: 1; text-decoration: none; display: inline-flex; justify-content: center; align-items: center;
+            border: none; padding: 12px; border-radius: 10px; cursor: pointer;
+            font-size: 1rem; font-weight: 500; color: #fff; transition: all .2s ease;
         }
         #copyBtn { background: var(--present-bg-color); }
         #goToLinkBtn { background: #4a90e2; }
-        #goToLinkBtn.disabled { opacity: 0.5; pointer-events: none; }
+        #copyBtn:hover, #goToLinkBtn:hover { transform: translateY(-2px); }
+        #goToLinkBtn.disabled { opacity: 0.5; pointer-events: none; background: #a4a8ab; }
 
-
-        /* --- סגנון עבור המשחק --- */
+        /* --- עיצוב המשחק --- */
         #game-container {
-            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            min-height: var(--app-h); min-height: 100%;
-            width: 100%; max-width: 500px; padding: 0 8px; box-sizing: border-box;
+            display: flex; flex-direction: column; justify-content: space-between;
+            height: 100vh; height: -webkit-fill-available;
+            width: 100%; max-width: 500px;
         }
         header {
-            width: 100%; text-align: center; border-bottom: 1px solid var(--default-border-color);
-            padding: 0 10px; flex-shrink: 0; transition: all .5s ease;
+            width: 100%; text-align: center; border-bottom: 1px solid var(--border-color);
+            padding: 0 1rem; flex-shrink: 0; transition: all .3s ease;
             display: flex; align-items: center; justify-content: center; position: relative; height: 60px;
         }
-        header h1 { font-size: clamp(1.5rem,5vw,2rem); margin: 0; color: #212121; transition: color .5s ease; }
+        header h1 { font-size: 1.5rem; font-weight: 700; margin: 0; }
         #create-own-game-link {
-            position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
-            font-size: 0.8rem; color: #555; text-decoration: none;
-            padding: 6px 10px; border-radius: 4px; background: #f0f0f0;
+            position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+            font-size: 0.8rem; font-weight: 500; color: #555; text-decoration: none;
+            padding: 6px 10px; border-radius: 8px; background: #f0f0f0; transition: all .2s ease;
         }
+        #create-own-game-link:hover { background: #e0e0e0; }
         header.header-win {
-            border-bottom: none;
-            background-color: var(--correct-bg-color);
+            border-bottom-color: transparent; background-color: var(--correct-bg-color);
         }
-        header.header-win h1, header.header-win #create-own-game-link {
-            color: #fff;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
-        }
+        header.header-win h1, header.header-win #create-own-game-link { color: #fff; }
         header.header-win #create-own-game-link { background: rgba(255,255,255,0.2); }
-
-        #board-container { display: flex; justify-content: center; align-items: center; flex-grow: 1; width: 100%; padding: 10px 0; perspective: 1000px; }
-        #board { display: grid; grid-template-rows: repeat(6, 1fr); grid-gap: 5px; width: clamp(280px, 90vw, 380px); height: clamp(300px, calc(90vw + 30px), 420px); }
-        .row { display: grid; grid-template-columns: repeat(var(--word-length), 1fr); grid-gap: 5px; }
-        .tile { position: relative; cursor: default; transform-style: preserve-3d; transition: transform .6s ease; will-change: transform; }
+        
+        #board-container { display: flex; justify-content: center; align-items: center; flex-grow: 1; width: 100%; padding: 1rem 0; perspective: 1000px; }
+        #board { display: grid; grid-template-rows: repeat(6, 1fr); grid-gap: 8px; width: clamp(280px, 90vw, 380px); max-height: 420px; }
+        .row { display: grid; grid-template-columns: repeat(var(--word-length), 1fr); grid-gap: 8px; }
+        .tile { position: relative; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
         .tile.flip { transform: rotateX(180deg); }
-        .tile-face { width: 100%; height: 100%; position: absolute; backface-visibility: hidden; display: inline-flex; justify-content: center; align-items: center; font-size: clamp(1.8rem, 8vw, 2.5rem); font-weight: bold; box-sizing: border-box; border-radius: 4px; }
-        .tile-front { border: 2px solid var(--default-border-color); background: #fff; color: #000; }
-        .tile.filled .tile-front { border-color: #878a8c; animation: pop .1s; }
-        .tile-back { transform: rotateX(180deg); color: var(--tile-text-color); border: 2px solid transparent; }
+        .tile-face {
+            width: 100%; height: 100%; position: absolute; backface-visibility: hidden;
+            display: inline-flex; justify-content: center; align-items: center;
+            font-size: clamp(2rem, 8vw, 2.5rem); font-weight: 700;
+            box-sizing: border-box; border-radius: 8px;
+        }
+        .tile-front { border: 2px solid var(--border-color); color: var(--text-color); }
+        .tile.filled .tile-front { border-color: #878a8c; animation: pop 0.1s ease-out; }
+        .tile-back {
+            transform: rotateX(180deg); color: var(--tile-text-color);
+            border: 2px solid transparent; box-shadow: var(--tile-shadow);
+        }
         .tile-back.correct { background: var(--correct-bg-color); }
         .tile-back.present { background: var(--present-bg-color); }
         .tile-back.absent { background: var(--absent-bg-color); }
         @keyframes pop { 50% { transform: scale(1.08); } }
-        .shake { animation: shake .5s; }
+        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(2px); } 30%, 50%, 70% { transform: translateX(-4px); } 40%, 60% { transform: translateX(4px); } }
-        #keyboard { width: 100%; user-select: none; padding: 6px 6px max(env(safe-area-inset-bottom), 6px) 6px; background: linear-gradient(#f4f5f6, #e6e8ea); box-shadow: 0 -2px 8px rgba(0,0,0,.06); position: sticky; bottom: 0; z-index: 10; flex-shrink: 0; }
-        .keyboard-row { display: flex; justify-content: center; margin: 6px 0; direction: rtl; }
-        .key { font-family: inherit; font-weight: bold; border: 0; padding: 0 8px; height: 56px; cursor: pointer; background: #d3d6da; color: var(--key-text-color); flex-grow: 1; margin: 0 3px; border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: clamp(1rem, 4.5vw, 1.4rem); -webkit-tap-highlight-color: rgba(0,0,0,.2); }
-        .key.large { flex-grow: 1.6; }
-        #toast-container { position: fixed; top: 12%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.85); color: #fff; padding: 12px 24px; border-radius: 24px; font-size: 1rem; z-index: 1000; visibility: hidden; opacity: 0; transition: visibility .5s, opacity .5s; }
-        #toast-container.show { visibility: visible; opacity: 1; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(255,255,255,.7); display: flex; justify-content: center; align-items: center; z-index: 2000; visibility: hidden; opacity: 0; transition: visibility .3s, opacity .3s ease; }
+
+        #keyboard {
+            width: 100%; user-select: none; flex-shrink: 0;
+            padding: 0.5rem 0.5rem max(env(safe-area-inset-bottom), 0.5rem) 0.5rem;
+        }
+        .keyboard-row { display: flex; justify-content: center; margin: 0 auto; width: 100%; max-width: 500px; touch-action: manipulation; }
+        .key {
+            font-family: inherit; font-weight: 500; border: 0;
+            height: 54px; cursor: pointer; background: var(--key-bg-color); color: var(--text-color);
+            flex-grow: 1; margin: 4px; border-radius: 6px;
+            display: flex; justify-content: center; align-items: center;
+            font-size: clamp(1rem, 4vw, 1.4rem); -webkit-tap-highlight-color: rgba(0,0,0,0.2);
+            transition: all .1s ease-out;
+        }
+        .key:active { background: #b0b3b6; transform: scale(0.95); }
+        .key.large { flex-grow: 1.5; font-size: 1rem; }
+        .key.correct, .key.present, .key.absent { color: var(--tile-text-color); border: 0; }
+        .key.correct { background: var(--correct-bg-color); }
+        .key.present { background: var(--present-bg-color); }
+        .key.absent { background: var(--absent-bg-color); }
+
+        #toast-container {
+            position: fixed; top: 10%; left: 50%; transform: translateX(-50%);
+            background: rgba(29, 39, 53, 0.9); backdrop-filter: blur(5px);
+            color: #fff; padding: 14px 28px; border-radius: 12px;
+            font-size: 1rem; font-weight: 500; z-index: 1000;
+            visibility: hidden; opacity: 0; transition: all .4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        #toast-container.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        .modal-overlay {
+            position: fixed; inset: 0; background: var(--modal-bg);
+            display: flex; justify-content: center; align-items: center; z-index: 2000;
+            visibility: hidden; opacity: 0; transition: visibility .3s, opacity .3s ease;
+        }
         .modal-overlay.show { visibility: visible; opacity: 1; }
-        .modal-content { background: var(--bg-color); padding: 20px 30px; border-radius: 8px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,.2); transform: scale(.9); transition: transform .3s ease; }
+        .modal-content {
+            background: var(--bg-color); padding: 2rem; border-radius: 16px; text-align: center;
+            box-shadow: var(--container-shadow);
+            transform: scale(.95); transition: transform .3s cubic-bezier(0.25, 1, 0.5, 1);
+            max-width: 90%; width: 350px;
+        }
         .modal-overlay.show .modal-content { transform: scale(1); }
-        .modal-content h2 { margin-top: 0; }
-        .modal-content p { margin-bottom: 20px; }
-        .modal-content button { background: var(--correct-bg-color); color: #fff; border: none; padding: 12px 24px; font-size: 1.1rem; border-radius: 4px; cursor: pointer; }
+        .modal-content h2 { margin-top: 0; font-size: 1.8rem; }
+        .modal-content p { margin-bottom: 2rem; color: #555; line-height: 1.6; }
+        .modal-content button {
+             background: var(--correct-bg-color); color: #fff; border: none; font-weight: 500;
+             padding: 14px 24px; font-size: 1.1rem; border-radius: 12px; cursor: pointer;
+             width: 100%; transition: all .2s ease;
+        }
+        .modal-content button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(106, 170, 100, 0.3); }
+
+        /* התאמה למסך רחב (לרוחב) */
+        @media (orientation: landscape) and (max-height: 500px) {
+            header { height: 48px; }
+            header h1 { font-size: 1.2rem; }
+            .key { height: 40px; margin: 3px; border-radius: 5px; }
+            #board-container { padding: 8px 0; }
+            #game-container { padding-bottom: 0; }
+        }
     </style>
 </head>
 <body>
 
     <div id="generator-container">
         <div class="generator-box">
-            <h1>יצירת משחק "נחש את השם"</h1>
+            <h1>יצירת משחק מילים</h1>
             <p>הכניסו מילה או שם בעברית, ותקבלו קישור ייחודי למשחק שתוכלו לשלוח לחברים!</p>
-            <input type="text" id="wordInput" placeholder="הקלד כאן את המילה...">
-            <button id="generateBtn">צור לי קישור! 🚀</button>
+            <input type="text" id="wordInput" placeholder="הקלידו כאן את המילה...">
+            <button id="generateBtn">צרו קישור למשחק 🚀</button>
             <div id="result">
-                <p>הקישור למשחק שלך מוכן:</p>
+                <p>הקישור מוכן! שתפו אותו:</p>
                 <input type="text" id="shareLink" readonly>
                 <div class="result-buttons">
-                    <button id="copyBtn">העתק קישור</button>
-                    <a href="#" id="goToLinkBtn" class="disabled">עבור למשחק</a>
+                    <button id="copyBtn">העתקת הקישור</button>
+                    <a href="#" id="goToLinkBtn" class="disabled">מעבר למשחק</a>
                 </div>
             </div>
         </div>
     </div>
 
-
     <div id="game-container">
         <header>
-            <a href="/" id="create-own-game-link">צור משחק חדש</a>
-            <h1>נחש את השם</h1>
+            <a href="#" id="create-own-game-link">צרו משחק בעצמכם</a>
+            <h1>נחשו את המילה</h1>
         </header>
         <div id="board-container"><div id="board"></div></div>
         <div id="keyboard"></div>
     </div>
+    
     <div id="toast-container"></div>
     <div id="modal-overlay" class="modal-overlay" aria-hidden="true">
         <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title">
             <h2 id="modal-title"></h2>
             <p id="modal-body"></p>
-            <button id="modal-button">צור משחק חדש</button>
+            <button id="modal-button">צרו משחק חדש</button>
         </div>
     </div>
 
     <script>
-        (function setViewportHeight() {
-            const apply = () => {
-                const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-                document.documentElement.style.setProperty('--app-h', vh + 'px');
-            };
-            apply();
-            window.addEventListener('resize', apply);
-            window.visualViewport && window.visualViewport.addEventListener('resize', apply);
-        })();
-
-        const encodeBase64UTF8 = (str) => {
-            const bytes = new TextEncoder().encode(str);
-            const bin = String.fromCharCode(...bytes);
-            return btoa(bin);
-        };
-        const decodeBase64UTF8 = (b64) => {
-            try {
-                const bin = atob(b64);
-                const bytes = Uint8Array.from([...bin].map(ch => ch.charCodeAt(0)));
-                return new TextDecoder("utf-8").decode(bytes);
-            } catch (e) { return null; }
-        };
+        const encodeBase64UTF8 = (str) => { const bytes = new TextEncoder().encode(str); const bin = String.fromCharCode(...bytes); return btoa(bin); };
+        const decodeBase64UTF8 = (b64) => { try { const bin = atob(b64); const bytes = Uint8Array.from([...bin].map(ch => ch.charCodeAt(0))); return new TextDecoder("utf-8").decode(bytes); } catch (e) { return null; } };
 
         document.addEventListener('DOMContentLoaded', () => {
+            const BIMAGICS_URL = "https://bimagics.com/games/Wordle/";
             const params = new URLSearchParams(window.location.search);
             const encodedWord = params.get('word');
 
-            // ==========================================================
-            //  אם קיים פרמטר 'word' ב-URL -> הצג את המשחק
-            // ==========================================================
+            // --- מצב משחק ---
             if (encodedWord) {
+                document.getElementById('generator-container').remove();
                 document.getElementById('game-container').style.display = 'flex';
-                document.getElementById('create-own-game-link').href = window.location.pathname; // הגדרת הקישור חזרה למחולל
+                document.getElementById('create-own-game-link').href = BIMAGICS_URL;
 
                 const targetWordRaw = decodeBase64UTF8(encodedWord);
                 if (!targetWordRaw) {
@@ -224,11 +276,7 @@
                 const modalBodyEl = document.getElementById('modal-body');
                 const modalButtonEl = document.getElementById('modal-button');
 
-                let currentRowIndex = 0;
-                let currentTileIndex = 0;
-                let isGameOver = false;
-                let guessGrid = [];
-
+                let currentRowIndex = 0, currentTileIndex = 0, isGameOver = false, guessGrid = [];
                 const keys = [['פ', 'ם', 'ן', 'ו', 'ט', 'א', 'ר', 'ק'], ['ף', 'ך', 'ל', 'ח', 'י', 'ע', 'כ', 'ג', 'ד', 'ש'], ['Backspace', 'ץ', 'ת', 'צ', 'מ', 'נ', 'ה', 'ב', 'ס', 'ז', 'Enter']];
                 const pairLetter = (ch) => { const pairs = { "כ": "ך", "ך": "כ", "מ": "ם", "ם": "מ", "נ": "ן", "ן": "נ", "פ": "ף", "ף": "פ", "צ": "ץ", "ץ": "צ" }; return pairs[ch] || ch; };
 
@@ -252,7 +300,7 @@
                         rowKeys.forEach(key => {
                             const keyButton = document.createElement('button'); keyButton.className = 'key'; keyButton.dataset.key = key;
                             if (key === 'Enter') { keyButton.textContent = 'אישור'; keyButton.classList.add('large'); }
-                            else if (key === 'Backspace') { keyButton.innerHTML = '&#9003;'; keyButton.classList.add('large'); keyButton.setAttribute('aria-label', 'מחיקה'); }
+                            else if (key === 'Backspace') { keyButton.innerHTML = '&#9003;'; keyButton.classList.add('large'); }
                             else { keyButton.textContent = key; }
                             rowDiv.appendChild(keyButton);
                         }); keyboardEl.appendChild(rowDiv);
@@ -264,24 +312,23 @@
                 function addLetter(letter) { if (currentTileIndex < WORD_LENGTH) { const tile = boardEl.children[currentRowIndex].children[currentTileIndex]; tile.querySelector('.tile-front').textContent = letter; tile.classList.add('filled'); guessGrid[currentRowIndex][currentTileIndex] = letter; currentTileIndex++; } }
                 function deleteLetter() { if (currentTileIndex > 0) { currentTileIndex--; const tile = boardEl.children[currentRowIndex].children[currentTileIndex]; tile.querySelector('.tile-front').textContent = ''; tile.classList.remove('filled'); guessGrid[currentRowIndex][currentTileIndex] = ''; } }
                 function submitGuess() { if (currentTileIndex !== WORD_LENGTH) { showToast('לא מספיק אותיות'); shakeRow(); return; } const currentGuess = guessGrid[currentRowIndex].join(''); processFlip(currentGuess); }
-                function processFlip(guess) { const rowTiles = boardEl.children[currentRowIndex].children; const guessLettersNorm = [...normalizeWord(guess)]; const targetLettersNorm = [...targetWordNorm]; const letterCounts = targetLettersNorm.reduce((acc, l) => (acc[l] = (acc[l] || 0) + 1, acc), {}); const states = Array(WORD_LENGTH).fill(null); guessLettersNorm.forEach((l, i) => { if (targetLettersNorm[i] === l) { states[i] = 'correct'; letterCounts[l]--; } }); guessLettersNorm.forEach((l, i) => { if (states[i]) return; if ((letterCounts[l] || 0) > 0) { states[i] = 'present'; letterCounts[l]--; } else { states[i] = 'absent'; } }); Array.from(rowTiles).forEach((tile, idx) => { setTimeout(() => { const back = tile.querySelector('.tile-back'); back.textContent = tile.querySelector('.tile-front').textContent; back.classList.add(states[idx]); tile.classList.add('flip'); updateKeyboard([...guess][idx], states[idx]); }, idx * 350); }); setTimeout(() => checkGameOver(guess), WORD_LENGTH * 350 + 20); }
+                function processFlip(guess) { const rowTiles = boardEl.children[currentRowIndex].children; const guessLettersNorm = [...normalizeWord(guess)]; const targetLettersNorm = [...targetWordNorm]; const letterCounts = targetLettersNorm.reduce((acc, l) => (acc[l] = (acc[l] || 0) + 1, acc), {}); const states = Array(WORD_LENGTH).fill(null); guessLettersNorm.forEach((l, i) => { if (targetLettersNorm[i] === l) { states[i] = 'correct'; letterCounts[l]--; } }); guessLettersNorm.forEach((l, i) => { if (states[i]) return; if ((letterCounts[l] || 0) > 0) { states[i] = 'present'; letterCounts[l]--; } else { states[i] = 'absent'; } }); Array.from(rowTiles).forEach((tile, idx) => { setTimeout(() => { const back = tile.querySelector('.tile-back'); back.textContent = tile.querySelector('.tile-front').textContent; back.classList.add(states[idx]); tile.classList.add('flip'); updateKeyboard([...guess][idx], states[idx]); }, idx * 350); }); setTimeout(() => checkGameOver(guess), WORD_LENGTH * 350 + 50); }
                 function updateKeyboard(letter, state) { const twin = pairLetter(letter);[letter, twin].forEach(ch => { const key = document.querySelector(`.key[data-key='${CSS.escape(ch)}']`); if (!key) return; const isCorrect = key.classList.contains('correct'); const isPresent = key.classList.contains('present'); if (state === 'correct') { key.classList.remove('present', 'absent'); key.classList.add('correct'); } else if (state === 'present' && !isCorrect) { key.classList.add('present'); } else if (state === 'absent' && !isCorrect && !isPresent) { key.classList.add('absent'); } }); }
-                function checkGameOver(guess) { if (normalizeWord(guess) === targetWordNorm) { showToast('כל הכבוד! הצלחת!', 2000); isGameOver = true; setTimeout(() => showResultModal(true), 700); } else { currentRowIndex++; currentTileIndex = 0; if (currentRowIndex >= MAX_TRIES) { isGameOver = true; setTimeout(() => showResultModal(false), 400); } } }
-                function showResultModal(isWin) { if (isWin) { headerEl.classList.add('header-win'); modalTitleEl.textContent = 'ניצחת! 🏆'; modalBodyEl.textContent = `כל הכבוד! השם הוא: ${targetWord}`; } else { modalTitleEl.textContent = 'אוי, הפסדת...'; modalBodyEl.textContent = `המילה הנכונה הייתה: ${targetWord}. לא נורא, אפשר לנסות שוב!`; } modalOverlayEl.classList.add('show'); }
+                function checkGameOver(guess) { if (normalizeWord(guess) === targetWordNorm) { showToast('כל הכבוד!', 2000); isGameOver = true; setTimeout(() => showResultModal(true), 700); } else { currentRowIndex++; currentTileIndex = 0; if (currentRowIndex >= MAX_TRIES) { isGameOver = true; setTimeout(() => showResultModal(false), 400); } } }
+                function showResultModal(isWin) { if (isWin) { headerEl.classList.add('header-win'); modalTitleEl.textContent = 'ניצחת! 🏆'; modalBodyEl.textContent = `כל הכבוד! המילה היא: ${targetWord}`; } else { modalTitleEl.textContent = 'אוי, חבל...'; modalBodyEl.textContent = `המילה הנכונה הייתה: ${targetWord}. לא נורא, אפשר ליצור משחק חדש!`; } modalOverlayEl.classList.add('show'); }
                 function shakeRow() { const row = boardEl.children[currentRowIndex]; row.classList.add('shake'); row.addEventListener('animationend', () => row.classList.remove('shake'), { once: true }); }
                 function showToast(message, duration = 1200) { toastEl.textContent = message; toastEl.classList.add('show'); setTimeout(() => toastEl.classList.remove('show'), duration); }
                 
                 keyboardEl.addEventListener('click', (e) => { const btn = e.target.closest('button.key'); if (!btn) return; handleKeyPress(btn.dataset.key); });
                 document.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleKeyPress('Enter'); else if (e.key === 'Backspace') handleKeyPress('Backspace'); else if (keys.flat().includes(e.key)) handleKeyPress(e.key); });
-                modalButtonEl.addEventListener('click', () => { window.location.href = window.location.pathname; });
+                modalButtonEl.addEventListener('click', () => { window.location.href = BIMAGICS_URL; });
 
                 initializeGame();
             }
             
-            // ==========================================================
-            //  אם אין פרמטר 'word' -> הצג את המחולל
-            // ==========================================================
+            // --- מצב מחולל ---
             else {
+                document.getElementById('game-container').remove();
                 document.getElementById('generator-container').style.display = 'flex';
                 
                 const wordInput = document.getElementById('wordInput');
@@ -293,7 +340,7 @@
 
                 generateBtn.addEventListener('click', () => {
                     const word = wordInput.value.trim();
-                    if (word.length < 2 || word.length > 9) { // שיניתי מעט את הגבולות
+                    if (word.length < 2 || word.length > 9) {
                         alert('יש להכניס מילה באורך 2 עד 9 אותיות.');
                         return;
                     }
@@ -302,10 +349,10 @@
                         return;
                     }
                     const encodedWord = encodeBase64UTF8(word);
-                    const gameUrl = `${window.location.href.split('?')[0]}?word=${encodedWord}`;
+                    const gameUrl = `${BIMAGICS_URL}?word=${encodedWord}`;
                     
                     shareLinkInput.value = gameUrl;
-                    goToLinkBtn.href = gameUrl; // עדכון הקישור בכפתור "עבור למשחק"
+                    goToLinkBtn.href = gameUrl;
                     goToLinkBtn.classList.remove('disabled');
                     resultDiv.classList.add('show');
                 });
@@ -314,7 +361,7 @@
                     shareLinkInput.select();
                     document.execCommand('copy');
                     copyBtn.textContent = 'הועתק!';
-                    setTimeout(() => { copyBtn.textContent = 'העתק קישור'; }, 1500);
+                    setTimeout(() => { copyBtn.textContent = 'העתקת הקישור'; }, 1500);
                 });
             }
         });
