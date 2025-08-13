@@ -13,6 +13,7 @@
         :root {
             --font-main: 'Heebo', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             --word-length: 5;
+            --max-tries: 6;
             --bg-color: #FDFBFF;
             --text-color: #312A2A;
             --border-color: #DCDDE1;
@@ -77,7 +78,7 @@
         #game-container {
             display: flex; flex-direction: column;
             width: 100%; height: 100%;
-            max-width: 500px; max-height: 95vh; /* מניעת גלישה על מסכים גבוהים */
+            max-width: 500px; max-height: 95vh;
         }
         header {
             width: 100%; text-align: center; border-bottom: 1px solid var(--border-color);
@@ -86,8 +87,7 @@
         }
         header h1 {
             font-size: 1.5rem; font-weight: 700; margin: 0;
-            /* טריק למרכוז כותרת כשיש כפתורים בצדדים */
-            position: absolute; left: 50%; transform: translateX(-50%);
+            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
         }
         #header-links { display: flex; align-items: center; gap: 1rem; }
         .header-btn {
@@ -107,22 +107,19 @@
         }
         #board {
             display: grid;
-            grid-template-rows: repeat(var(--max-tries, 6), 1fr);
+            grid-template-rows: repeat(var(--max-tries), 1fr);
             grid-gap: 8px;
             width: 100%;
             max-width: 380px;
         }
         .row { display: grid; grid-template-columns: repeat(var(--word-length), 1fr); grid-gap: 8px; }
-        
-        /* 🔥 התיקון המרכזי 🔥 */
         .tile {
             position: relative;
             transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             width: 100%;
-            aspect-ratio: 1 / 1; /* מבטיח שהאריח תמיד יהיה ריבוע */
+            aspect-ratio: 1 / 1;
         }
-        
         .tile.flip { transform: rotateX(180deg); }
         .tile-face {
             width: 100%; height: 100%; position: absolute; backface-visibility: hidden;
@@ -162,13 +159,30 @@
         }
         #toast-container.show { visibility: visible; opacity: 1; }
         
-        .modal-overlay { /* ... as before ... */ }
-        .modal-content { /* ... as before ... */ }
+        .modal-overlay {
+            position: fixed; inset: 0; background: var(--modal-bg);
+            display: flex; justify-content: center; align-items: center; z-index: 2000;
+            visibility: hidden; opacity: 0; transition: visibility .3s, opacity .3s ease;
+        }
+        .modal-overlay.show { visibility: visible; opacity: 1; }
+        .modal-content {
+            background: var(--bg-color); padding: 2rem; border-radius: 16px; text-align: center;
+            box-shadow: var(--container-shadow);
+            transform: scale(.95); transition: transform .3s cubic-bezier(0.25, 1, 0.5, 1);
+            max-width: 90%; width: 350px;
+        }
+        .modal-overlay.show .modal-content { transform: scale(1); }
+        .modal-content h2 { margin-top: 0; font-size: 1.8rem; }
+        .modal-content p { margin-bottom: 2rem; color: #555; line-height: 1.6; }
         .modal-buttons { display: flex; flex-direction: column; gap: 0.8rem; }
-        .modal-buttons button { /* ... as before ... */ }
+        .modal-buttons button {
+             background: var(--correct-bg-color); color: #fff; border: none; font-weight: 500;
+             padding: 14px 24px; font-size: 1.1rem; border-radius: 12px; cursor: pointer;
+             width: 100%; transition: all .2s ease;
+        }
         #share-results-btn { background: var(--present-bg-color); }
+        .modal-buttons button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0, 0.15); }
 
-        /* התאמה למסך רחב (לרוחב) */
         @media (orientation: landscape) and (max-height: 500px) {
             #game-container { flex-direction: row; align-items: center; justify-content: center; gap: 2rem; max-height: 100vh; }
             header { display: none; }
@@ -238,6 +252,10 @@
             const toastEl = document.getElementById('toast-container');
 
             async function copyToClipboard(text, message = 'הועתק ללוח!') {
+                if (!navigator.clipboard) {
+                    showToast('ההעתקה לא נתמכת בדפדפן זה');
+                    return;
+                }
                 try {
                     await navigator.clipboard.writeText(text);
                     showToast(message);
@@ -254,21 +272,24 @@
                 document.getElementById('create-own-game-link').href = BIMAGICS_URL;
                 
                 const targetWordRaw = decodeBase64UTF8(encodedWord);
-                if (!targetWordRaw) { /* ... error handling ... */ return; }
+                if (!targetWordRaw) {
+                    const errorBox = document.createElement('div');
+                    errorBox.className = 'generator-box';
+                    errorBox.innerHTML = `<h1>שגיאה</h1><p>לא ניתן היה לפענח את המילה מהקישור. ודאו שהקישור הועתק במלואו.</p><a href="${BIMAGICS_URL}" style="text-decoration:none;"><button class="modal-buttons"><button>חזרה למשחק</button></button></a>`;
+                    document.body.innerHTML = '';
+                    document.body.appendChild(errorBox);
+                    return;
+                }
 
                 const WORD_LENGTH = targetWordRaw.length;
                 const MAX_TRIES = WORD_LENGTH + 1;
                 document.documentElement.style.setProperty('--word-length', WORD_LENGTH);
                 document.documentElement.style.setProperty('--max-tries', MAX_TRIES);
 
-                // ... [שאר קוד המשחק נשאר זהה לגרסה הקודמת] ...
-                // The full game logic from the previous answer is assumed here for brevity
-                // It includes all the functions: initializeGame, handleKeyPress, etc.
                 const finalsMap = { "ך": "כ", "ם": "מ", "ן": "נ", "ף": "פ", "ץ": "צ", "כ": "כ", "מ": "מ", "נ": "נ", "פ": "פ", "צ": "צ" };
                 const normalizeLetter = (ch) => finalsMap[ch] || ch;
                 const normalizeWord = (w) => [...w].map(normalizeLetter).join("");
                 const targetWordNorm = normalizeWord(targetWordRaw), targetWord = targetWordRaw;
-
                 const headerEl = document.querySelector('header');
                 const boardEl = document.getElementById('board');
                 const keyboardEl = document.getElementById('keyboard');
@@ -277,7 +298,6 @@
                 const modalBodyEl = document.getElementById('modal-body');
                 const modalButtonEl = document.getElementById('modal-button');
                 const shareResultsBtn = document.getElementById('share-results-btn');
-
                 let currentRowIndex = 0, currentTileIndex = 0, isGameOver = false;
                 let guessGrid = [], resultsGrid = [];
                 const keys = [['פ', 'ם', 'ן', 'ו', 'ט', 'א', 'ר', 'ק'], ['ף', 'ך', 'ל', 'ח', 'י', 'ע', 'כ', 'ג', 'ד', 'ש'], ['Backspace', 'ץ', 'ת', 'צ', 'מ', 'נ', 'ה', 'ב', 'ס', 'ז', 'Enter']];
