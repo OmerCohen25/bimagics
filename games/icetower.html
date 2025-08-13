@@ -2,102 +2,85 @@
 <html lang="he">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Icy Tower Mobile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Simple Tower Climber</title>
     <style>
-        body {
+        body, html {
             margin: 0;
             padding: 0;
-            background-color: #000;
-            color: #fff;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #f0f0f0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            overflow: hidden;
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
         }
         #game-container {
-            position: relative;
             width: 100%;
             height: 100%;
-            max-width: 450px; /* Max width for larger screens */
-            max-height: 800px;
-            overflow: hidden;
+            max-width: 400px;
+            position: relative;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
         canvas {
-            background-color: #6c88c2;
             display: block;
             width: 100%;
             height: 100%;
+            background-color: #87CEEB; /* Sky blue */
         }
-        #controls {
+        .screen {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 25%;
-            display: flex;
-            z-index: 10;
-        }
-        .control-zone {
-            width: 38%;
-            height: 100%;
-            opacity: 0.1; /* Make zones slightly visible for debugging, can be 0 */
-        }
-        #jump-button-container {
-            width: 24%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        #jump-button {
-            width: 80px;
-            height: 80px;
-            background-color: rgba(255, 255, 255, 0.5);
-            border: 2px solid #fff;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 20px;
-            font-weight: bold;
-            color: #333;
-            user-select: none;
-            -webkit-user-select: none; /* for Safari */
-        }
-        #start-screen, #game-over-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            z-index: 20;
+            z-index: 10;
         }
-        h1 {
-            font-size: 48px;
-            text-shadow: 3px 3px 0 #ff00ff, -3px -3px 0 #00ffff;
-        }
-        p, button {
-            font-size: 20px;
-        }
-        button {
+        .screen h1 { font-size: 48px; }
+        .screen p { font-size: 20px; }
+        .screen button {
             padding: 15px 30px;
-            border: 3px solid #fff;
-            background: #ff47a4;
-            color: #fff;
-            cursor: pointer;
+            font-size: 20px;
+            border: 2px solid white;
+            background-color: #4CAF50;
+            color: white;
             border-radius: 10px;
-            margin-top: 20px;
-            text-transform: uppercase;
+            cursor: pointer;
+        }
+        #game-over-screen { display: none; }
+        #controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 5;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+        .control-button {
+            width: 80px;
+            height: 80px;
+            background-color: rgba(255, 255, 255, 0.4);
+            border: 2px solid white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
             font-weight: bold;
+            user-select: none;
+            -webkit-user-select: none; /* Safari */
         }
     </style>
 </head>
@@ -106,276 +89,221 @@
 <div id="game-container">
     <canvas id="gameCanvas"></canvas>
     
-    <div id="start-screen">
-        <h1>Icy Tower</h1>
-        <p>טפס הכי גבוה שאתה יכול!</p>
-        <button id="start-button">התחל משחק</button>
+    <div id="start-screen" class="screen">
+        <h1>מטפס המגדל</h1>
+        <p>געו בכפתורים כדי לזוז ולקפוץ.</p>
+        <button id="start-button">התחל</button>
     </div>
 
-    <div id="game-over-screen" style="display: none;">
-        <h1>Game Over</h1>
-        <p>הניקוד שלך: <span id="final-score">0</span></p>
+    <div id="game-over-screen" class="screen">
+        <h1>המשחק נגמר</h1>
+        <p>ניקוד: <span id="final-score">0</span></p>
         <button id="restart-button">שחק שוב</button>
     </div>
-
+    
     <div id="controls">
-        <div id="left-zone" class="control-zone"></div>
-        <div id="jump-button-container">
-             <div id="jump-button">קפוץ</div>
-        </div>
-        <div id="right-zone" class="control-zone"></div>
+        <div id="left-button" class="control-button">&lt;</div>
+        <div id="jump-button" class="control-button">↑</div>
+        <div id="right-button" class="control-button">&gt;</div>
     </div>
 </div>
 
 <script>
-// Base64 encoded assets
-const playerSpriteBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAA8CAYAAABflJsSAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOwgAADsIBFShKgAAAABl0RVh0U29mdHdhcmUAcGFpbnQubmV0IDQuMC4xMkMEa+wAAARFSURBVFhH7ZddixtVEMB/997LmzZE8lAIKYEaKkQIiYQQSgkpJBBCSCG9EEgISUghkR/yQwlJSAghEAIJEchvJAkpkpAs+b1z7p6Zt+19f/d1v/vee2f2zD7f2T17X/bdd99jIysrC7Ozs6ivr2d3d5fR0VGqq6t5e3vLzc0N9/f3XF9f5+PjA+fn5zQ0NODj4yPl5eU0NDTQ3t5OS0sLCwsLNDU10dTUxPz8PA0NDTQ2NtLa2kpraysNDAxs/V+Sk5PZ39+nsbGRjo4OVlZW2NjYYHl5mZ2dHQoLC2loaGB0dJRpaWmMjY0xMjLCzMwMz8/P7O/vs7e3h0ajwcXFRVwuF52dnVRXV9Pc3Mzl5SVubm7weDx4eXkhJSUFUqlUkY6Ojvj4eJqbm+nt7eXn54eOjg5CQ0PR0NBAbW0tfX19fHx8EB8fT29vL42NjdjtdgwGA5eXl4SEhBAWFkZ0dDRCQ0NxOBw4ODhgYWEBBwfnP2wLCwvs7OwwNDTE+vo6S0tLWFhY4OvrC5fLRVFREa2trVRWVhIdHU1paSmVlZUMDAwQHBxMaGgocXFxDAwM4Ha7sbW1RTAYRENDA15eXgQFBTEwMACA+fn57X00Gg2Oj4/Z2trCbrfjdruxubmJ3W7H3t4eBwchitzW5/Px8fF+2n19fVRVVdHY2EhERAQTExNcuBQXF2NjYwMPDw8YGBiQlZWFxcVFaJBIJBQUFODh4QEHBwcUFhZycnJCVlYWwcHBjI2N4XK58PHxgYuLi6Snp2NsbIympic/3tLSQk9PD7W1tSQmJjI8PMzV1RWhUAiHwwGXy4WJiQk2NjZIpVJETU0Nzc3NREZGEhQUxMjICGdnZ6SlpZGcnEx+fj6Cg4NZWlpCV1cXbW1t+Pj4YPv4+Pjg4+Nj+9Xj4+N7bLfbzRzR3NyMp6cnNjY2mJqaIhAIoKoEBQUxNjbG4uIiISEhzM7OEhERgbu7OwYGBnB0dEQ4ODj+o9zc3GBhYQEA5ObmMjAwQFZWFn5+fhiNRhiNRmz3+/r62L7W39/fXl9rtdphMpmQyWRwuVwYDAZMpVK+r2WzWWAwGBQKBar3oFar/e/90+k0kZERWltbqaioICkpiaGhoSQlJTExMYGQkBB2d3c5OTnB29sbh4eHBAYGsrq6itvtZnh4mMHBQfR6PUFBQezu7hIaGkpCQsI/t+l0GoPBwNra2iJNp9NIpVLtTzKZzGF+7O7u8vPzw8XFBbW1tTwej5w8eZKenp4iHR4eJjExkTQzM0N6ejp5/vw5mZqaIikpCaGhoRw6dIjc3FwiIiKIiorC0tIShYWF/P39sb6+zqFDhygtLeXQoUMEBQVx+PBhaFhK8h/7j2Vvb4+pqSk8Hs/e3jQ0NDBixAjy+PFjcnNzSUpKIjc3l8TERDIzM0N6ejqZmpqioaEBkUiEp6en9p27u7vk5eURExPDkSNH+PDhAyUlJZSWljJ48GCSkpLIz88nLS2NgYEB/v7+WFhYwNbWFnNzc2RmZpKcnMzYsWPRsJTc/9h/3AHA4XCgq6uLjo4O3n70aFxdXeTl5TEmJgYASkpKSCQSkZqaSnBwMOXl5SQmJpKYmEhubq4igYGBREZGEh0dTVRUlCLPnj3LtWvXaGho4Pjx47S3t1NTU0NAQADpdBrxP8h4jF8f+3/lH3y+L1wAAAAASUVORK5CYII=";
-const platformSpriteBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABACAYAAADTVf9dAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOwgAADsIBFShKgAAAABl0RVh0U29mdHdhcmUAcGFpbnQubmV0IDQuMC4xMkMEa+wAAAKLSURBVHhe7d2xahRREMbxj1FwIdhY+AA2NoKViJ3gK3gJdhbBQrCxERsLWyvY2AmCIEgQFIVbEBfFvYVFXBScj3PumXkY4a7k+5JJbkkCAACg/p6W7wEAcA0BAgECAQIBAgECAQIBAgECAQIBfwWk/Q5f/q8P/m1s+V7r37p/wHAc471G+2+s6V9pP3q6/XlY+/MewFMc5t6t/Q6r/25698Z6xPOfj7Uu/hF9wFMc59fSfk7t62/S/iVr37h657uApyL+N1V+b/3P7+n/r5t6//g/dAGPddR95+CfvX3b1W/S/u/f/60P+K1j9z+7AnwK/wH6L9f1L+5/Ufuv/eP3P/3+D9u32+P2P3D+sXvB+k1/3v03//v1X+46y//j/03e/s/6X+Y6k/9313+76+/+0f/j/47+5/+v3P/9f/f+/z8B/3f/+3e/9X/6/k/4P/D/+1/d+9+qf/B/+/+a/+7d3/1f+f/1f/n/lX9n/+X+X/+X/5v6r/j/xX9n/3v1X/h/lf+f+5/3f/X/i/uv/h/g/7f/P/c/s/9T+7+6/8n9n/7/8n9f/xf+f/H/p/5/+f/J/5/+b/D/nf+f+d/N/4/+n/D/l/+b+t/A/5v/b/J/g/5v9j+j//v8f/b/Z/+n9H/+f4j/7/EP8X/If6/8n+N/o/4v9T+h/h/7f8f8P/X/w/+/+r/1/8P9H/+/4b/f4T/7/gP8f+3+7/G//f+j/G//P/l/z/6v9b/L/x/6f+v/v/B//P8/wT43w/4P5H/J/7/VP//6P8U/7/8/0P/f+7/Y//P9L8P/M+a//P/3/j/p/7/iP8E+X/r/wv/X4r//w3/nwj/nyT/v/T/d/l/Gf//vP8/6H9n/x//X+X/e/2/+L+7//P7v/3f7f/i/g+AAgECgR/gDwpXj45Z1A7AAAAAAElFTkSuQmCC";
-const jumpSoundBase64 = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP9/AIA/gECCQYJBgkKCgoKCgoKCgoKCgkJ8An0CfwJ/An38//369vXy8fHv7u3t6+vo6Ojn5uXl5eXl4eHg397e3t7e3t3c29bW1tXV1dLS0tLR0c/Pz8/Pzs7Ozs3Nzcy8vLy8vLy7u7u6urri";
-const fallSoundBase64 = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAAA/v8A/P4A+fsA9/YA9e4A8OsA7+gA7ecA7eUA6+IA6eAA594A59wA59kA59gA59YA59UA59QA59IA59EA59AA588A58wA58oA58gA58cA58YA58UA58QA58MA58AA58A=";
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const gameContainer = document.getElementById('game-container');
 
-
-// Game elements
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const startScreen = document.getElementById('start-screen');
-const gameOverScreen = document.getElementById('game-over-screen');
-const startButton = document.getElementById('start-button');
-const restartButton = document.getElementById('restart-button');
-const finalScoreElement = document.getElementById('final-score');
-
-// Control elements
-const leftZone = document.getElementById('left-zone');
-const rightZone = document.getElementById('right-zone');
-const jumpButton = document.getElementById('jump-button');
-
-
-// Game state
-let gameState = 'start'; // 'start', 'playing', 'gameOver'
-
-// Game variables
-let player, platforms, score, cameraY, gameSpeed;
-let keys = { right: false, left: false };
-
-const GRAVITY = 0.4;
-const PLAYER_JUMP = -12;
-const PLAYER_SPEED = 6;
-const PLATFORM_HEIGHT = 20;
-const PLATFORM_WIDTH = 96;
-
-const playerSprite = new Image();
-playerSprite.src = playerSpriteBase64;
-
-const platformSprite = new Image();
-platformSprite.src = platformSpriteBase64;
-
-const jumpSound = new Audio(jumpSoundBase64);
-const fallSound = new Audio(fallSoundBase64);
-
-
-function resizeCanvas() {
-    const container = document.getElementById('game-container');
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
-}
-
-function initGame() {
-    resizeCanvas();
+    // Screens
+    const startScreen = document.getElementById('start-screen');
+    const gameOverScreen = document.getElementById('game-over-screen');
+    const startButton = document.getElementById('start-button');
+    const restartButton = document.getElementById('restart-button');
+    const finalScoreEl = document.getElementById('final-score');
     
-    player = {
-        x: canvas.width / 2 - 20,
-        y: canvas.height - 100,
-        width: 32,
-        height: 56,
-        vx: 0,
-        vy: 0,
-        onGround: false
-    };
+    // Controls
+    const leftButton = document.getElementById('left-button');
+    const rightButton = document.getElementById('right-button');
+    const jumpButton = document.getElementById('jump-button');
 
-    platforms = [];
-    score = 0;
-    cameraY = 0;
-    gameSpeed = 1;
+    // Game state
+    let player, platforms, cameraY, score, keys;
+    let gameState = 'start';
 
-    // Create initial platforms
-    platforms.push({ x: canvas.width / 2 - PLATFORM_WIDTH / 2, y: canvas.height - PLATFORM_HEIGHT, width: PLATFORM_WIDTH, type: 'normal' });
-    for (let i = 1; i < 15; i++) {
-        generatePlatform(canvas.height - i * 80);
+    // Game constants
+    const GRAVITY = 0.5;
+    const PLAYER_JUMP = -12;
+    const PLAYER_SPEED = 7;
+    const PLATFORM_HEIGHT = 15;
+    const PLATFORM_WIDTH = 80;
+
+    function resizeCanvas() {
+        canvas.width = gameContainer.clientWidth;
+        canvas.height = gameContainer.clientHeight;
     }
 
-    gameState = 'playing';
-    gameOverScreen.style.display = 'none';
-    startScreen.style.display = 'none';
-    
-    gameLoop();
-}
+    function init() {
+        resizeCanvas();
+        
+        player = {
+            x: canvas.width / 2 - 25,
+            y: canvas.height - 50,
+            width: 30,
+            height: 40,
+            vx: 0,
+            vy: 0,
+            color: '#FF5733' // Red-orange color
+        };
 
-function generatePlatform(yPos) {
-    platforms.push({
-        x: Math.random() * (canvas.width - PLATFORM_WIDTH),
-        y: yPos,
-        width: PLATFORM_WIDTH,
-        height: PLATFORM_HEIGHT
+        keys = { right: false, left: false };
+        platforms = [];
+        cameraY = 0;
+        score = 0;
+
+        // Create initial platforms
+        platforms.push({ x: canvas.width / 2 - PLATFORM_WIDTH / 2, y: canvas.height - PLATFORM_HEIGHT });
+        for (let i = 1; i < 20; i++) {
+            generateNewPlatform(canvas.height - i * 90);
+        }
+        
+        gameState = 'playing';
+        startScreen.style.display = 'none';
+        gameOverScreen.style.display = 'none';
+
+        gameLoop();
+    }
+    
+    function generateNewPlatform(yPos) {
+         platforms.push({
+            x: Math.random() * (canvas.width - PLATFORM_WIDTH),
+            y: yPos
+        });
+    }
+
+    function update() {
+        // Player horizontal movement
+        if (keys.right) player.vx = PLAYER_SPEED;
+        else if (keys.left) player.vx = -PLAYER_SPEED;
+        else player.vx = 0;
+        player.x += player.vx;
+
+        // Gravity and vertical movement
+        player.vy += GRAVITY;
+        player.y += player.vy;
+
+        // Wall collision
+        if (player.x < 0) player.x = 0;
+        if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+
+        // Camera follow and platform collision
+        const cameraOffset = player.y < canvas.height / 2 ? (canvas.height / 2) - player.y : 0;
+        if (cameraOffset > 0) {
+            player.y += cameraOffset;
+            platforms.forEach(p => p.y += cameraOffset);
+            cameraY += cameraOffset;
+            score += Math.floor(cameraOffset);
+        }
+
+        platforms.forEach(p => {
+            if (player.vy > 0 && // Moving down
+                player.x < p.x + PLATFORM_WIDTH &&
+                player.x + player.width > p.x &&
+                player.y + player.height > p.y &&
+                player.y + player.height < p.y + PLATFORM_HEIGHT
+            ) {
+                player.vy = PLAYER_JUMP;
+            }
+        });
+
+        // Remove old platforms and generate new ones
+        platforms = platforms.filter(p => p.y < canvas.height + cameraY);
+        let highestY = Math.min(...platforms.map(p => p.y));
+        if (platforms.length < 20) {
+            generateNewPlatform(highestY - (60 + Math.random() * 60));
+        }
+
+        // Game over
+        if (player.y > canvas.height + cameraY) {
+            gameState = 'gameOver';
+            finalScoreEl.innerText = score;
+            gameOverScreen.style.display = 'flex';
+        }
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.save();
+        ctx.translate(0, -cameraY); // Apply camera scroll
+
+        // Draw platforms
+        ctx.fillStyle = '#654321'; // Brown color
+        platforms.forEach(p => {
+            ctx.fillRect(p.x, p.y, PLATFORM_WIDTH, PLATFORM_HEIGHT);
+        });
+
+        // Draw player
+        ctx.fillStyle = player.color;
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+        
+        ctx.restore();
+
+        // Draw score on screen (fixed position)
+        ctx.fillStyle = 'black';
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(`ניקוד: ${score}`, 10, 30);
+    }
+
+    function gameLoop() {
+        if (gameState !== 'playing') return;
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- Event Listeners ---
+    startButton.addEventListener('click', init);
+    restartButton.addEventListener('click', init);
+    window.addEventListener('resize', () => {
+        resizeCanvas();
+        if (gameState !== 'playing') draw(); // Redraw if game is not running
     });
-}
-
-function update() {
-    if (gameState !== 'playing') return;
-
-    // Player movement
-    player.x += player.vx;
-    player.vy += GRAVITY;
-    player.y += player.vy;
-
-    player.onGround = false;
-
-    // Wall collision
-    if (player.x < 0) {
-        player.x = 0;
+    
+    // Touch controls
+    function handleMove(isPressed, isRight) {
+        if (isRight) keys.right = isPressed;
+        else keys.left = isPressed;
     }
-    if (player.x + player.width > canvas.width) {
-        player.x = canvas.width - player.width;
-    }
+    
+    leftButton.addEventListener('touchstart', (e) => { e.preventDefault(); handleMove(true, false); });
+    leftButton.addEventListener('touchend', (e) => { e.preventDefault(); handleMove(false, false); });
+    rightButton.addEventListener('touchstart', (e) => { e.preventDefault(); handleMove(true, true); });
+    rightButton.addEventListener('touchend', (e) => { e.preventDefault(); handleMove(false, true); });
 
-    // Platform collision
-    platforms.forEach(platform => {
-        if (player.vy > 0 &&
-            player.x < platform.x + platform.width &&
-            player.x + player.width > platform.x &&
-            player.y + player.height > platform.y &&
-            player.y + player.height < platform.y + platform.height) {
-            
-            player.vy = PLAYER_JUMP;
-            player.onGround = true;
-            jumpSound.currentTime = 0;
-            jumpSound.play();
+    jumpButton.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (player && player.vy > -5) { // Prevent double jumping in mid-air
+             player.vy = PLAYER_JUMP;
         }
     });
 
-    // Camera follow
-    if (player.y < canvas.height / 2 - 50) {
-        const deltaY = (canvas.height / 2 - 50) - player.y;
-        cameraY += deltaY;
-        player.y += deltaY;
-        platforms.forEach(p => p.y += deltaY);
-        score += Math.round(deltaY);
-    }
-    
-    // Generate new platforms
-    platforms = platforms.filter(p => p.y < canvas.height + cameraY);
-    let highestPlatformY = Math.min(...platforms.map(p => p.y));
-    while (highestPlatformY > -200) {
-        generatePlatform(highestPlatformY - (60 + Math.random() * 40));
-        highestPlatformY = Math.min(...platforms.map(p => p.y));
-    }
-
-    // Game over condition
-    if (player.y > canvas.height + cameraY) {
-       gameOver();
-    }
-    
-    // Increase speed
-    gameSpeed = 1 + score / 5000;
-    platforms.forEach(p => p.y += gameSpeed);
-    cameraY += gameSpeed;
-
-    // Update player horizontal velocity based on keys
-    if (keys.right) {
-        player.vx = PLAYER_SPEED;
-    } else if (keys.left) {
-        player.vx = -PLAYER_SPEED;
-    } else {
-        player.vx = 0;
-    }
-}
-
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw background (simple gradient)
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, '#6c88c2');
-    gradient.addColorStop(1, '#a6c0fe');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Draw platforms
-    platforms.forEach(platform => {
-        ctx.drawImage(platformSprite, platform.x, platform.y, platform.width, platform.height);
+    // Keyboard controls for desktop
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') handleMove(true, false);
+        if (e.key === 'ArrowRight') handleMove(true, true);
+        if (e.key === ' ' || e.key === 'ArrowUp') {
+            if (player && player.vy > -5) player.vy = PLAYER_JUMP;
+        }
+    });
+    document.addEventListener('keyup', (e) => {
+        if (e.key === 'ArrowLeft') handleMove(false, false);
+        if (e.key === 'ArrowRight') handleMove(false, true);
     });
 
-    // Draw player
-    ctx.drawImage(playerSprite, player.x, player.y, player.width, player.height);
-
-    // Draw Score
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 24px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText('Score: ' + score, 10, 30);
-}
-
-function gameOver() {
-    fallSound.play();
-    gameState = 'gameOver';
-    finalScoreElement.innerText = score;
-    gameOverScreen.style.display = 'flex';
-}
-
-function gameLoop() {
-    update();
-    draw();
-    if (gameState === 'playing') {
-        requestAnimationFrame(gameLoop);
-    }
-}
-
-// Event Listeners
-startButton.addEventListener('click', initGame);
-restartButton.addEventListener('click', initGame);
-window.addEventListener('resize', resizeCanvas);
-
-// Keyboard Controls (for desktop testing)
-document.addEventListener('keydown', e => {
-    if (e.key === 'ArrowRight') keys.right = true;
-    if (e.key === 'ArrowLeft') keys.left = true;
-    if (e.key === ' ' || e.key === 'ArrowUp') {
-        if(player.onGround) player.vy = PLAYER_JUMP;
-    }
-});
-document.addEventListener('keyup', e => {
-    if (e.key === 'ArrowRight') keys.right = false;
-    if (e.key === 'ArrowLeft') keys.left = false;
-});
-
-// Touch Controls
-leftZone.addEventListener('touchstart', e => { e.preventDefault(); keys.left = true; });
-leftZone.addEventListener('touchend', e => { e.preventDefault(); keys.left = false; });
-leftZone.addEventListener('touchcancel', e => { e.preventDefault(); keys.left = false; });
-
-rightZone.addEventListener('touchstart', e => { e.preventDefault(); keys.right = true; });
-rightZone.addEventListener('touchend', e => { e.preventDefault(); keys.right = false; });
-rightZone.addEventListener('touchcancel', e => { e.preventDefault(); keys.right = false; });
-
-jumpButton.addEventListener('touchstart', e => {
-    e.preventDefault();
-    jumpButton.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-    if(gameState === 'playing' && player.vy > -5) { // Allow jump only if not moving up too fast
-      player.vy = PLAYER_JUMP;
-      jumpSound.currentTime = 0;
-      jumpSound.play();
-    }
-});
-jumpButton.addEventListener('touchend', e => {
-    e.preventDefault();
-    jumpButton.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
-});
-
-
-// Initial setup
-resizeCanvas();
-ctx.fillStyle = '#6c88c2';
-ctx.fillRect(0,0,canvas.width, canvas.height);
-
+    // Initial setup
+    resizeCanvas();
+    startScreen.style.display = 'flex';
 </script>
+
 </body>
 </html>
