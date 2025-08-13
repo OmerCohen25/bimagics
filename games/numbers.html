@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>משחק המספרים והחידות</title>
+    <title>משחק המספרים והספירה</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-color: #f0f7ff;
-            --primary-color: #005c99;
-            --secondary-color: #ff6f61;
+            --primary-color: #0a6cb5;
+            --secondary-color: #ff7b54;
+            --accent-color: #ffb26b;
             --text-color: #333;
             --white: #ffffff;
             --correct-color: #2ecc71;
@@ -65,40 +66,50 @@
             display: none !important;
         }
 
-        /* --- Start Screen --- */
-        #start-screen h1 {
+        /* --- Start & Mode Screens --- */
+        #start-screen h1, #mode-selection h2 {
             font-size: 2.5rem;
-            color: var(--primary-color);
-        }
-        #start-button {
-            font-size: 1.8rem;
-            padding: 20px 40px;
-            margin-top: 20px;
-            font-weight: 700;
-        }
-
-        /* --- Mode Selection --- */
-        #mode-selection h2 {
-            font-size: 2rem;
             color: var(--primary-color);
             margin-bottom: 25px;
         }
-        .mode-buttons {
-            display: flex;
-            gap: 20px;
-        }
-        .mode-button {
-             font-size: 1.5rem;
-             padding: 15px 30px;
-        }
+        .mode-buttons { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+        .mode-button, #start-button { font-size: 1.5rem; padding: 15px 30px; }
 
         /* --- Learn Mode --- */
+        #learn-mode .display-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+        }
         #learn-mode .number-display {
             font-size: 12rem;
             font-weight: 800;
             color: var(--primary-color);
             line-height: 1;
         }
+        .audio-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .control-btn {
+            background-color: var(--accent-color);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        .control-btn:hover { transform: scale(1.1); }
+        .control-btn:active { transform: scale(0.95); }
+        .control-btn svg { width: 30px; height: 30px; fill: var(--white); }
 
         #learn-mode .objects-display {
             font-size: 4rem;
@@ -110,32 +121,12 @@
             align-items: center;
             gap: 10px;
         }
-        
-        #learn-mode .objects-display span {
-            display: inline-block;
-        }
-        
-        #learn-mode .navigation {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin-top: 20px;
-            gap: 15px;
-        }
+        #learn-mode .objects-display span { display: inline-block; }
+        #learn-mode .navigation { display: flex; justify-content: space-between; width: 100%; margin-top: 20px; gap: 15px; }
         
         /* --- Quiz Mode --- */
-        #quiz-mode h2 {
-            font-size: 2rem;
-            color: var(--primary-color);
-            margin-bottom: 20px;
-            min-height: 60px;
-        }
-        .quiz-options {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            width: 100%;
-        }
+        #quiz-mode h2 { font-size: 2rem; color: var(--primary-color); margin-bottom: 20px; min-height: 60px; }
+        .quiz-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; width: 100%; }
         .quiz-option {
             background-color: #e9f3ff;
             border: 4px solid transparent;
@@ -150,17 +141,9 @@
             flex-wrap: wrap;
             min-height: 120px;
         }
-        .quiz-option:hover {
-            transform: scale(1.05);
-        }
-        .quiz-option.correct {
-            border-color: var(--correct-color);
-            animation: bounce 0.5s;
-        }
-        .quiz-option.incorrect {
-            border-color: var(--incorrect-color);
-            animation: shake 0.5s;
-        }
+        .quiz-option:hover { transform: scale(1.05); }
+        .quiz-option.correct { border-color: var(--correct-color); animation: bounce 0.5s; }
+        .quiz-option.incorrect { border-color: var(--incorrect-color); animation: shake 0.5s; }
 
         /* --- General Elements --- */
         .btn {
@@ -174,18 +157,9 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
         }
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.5);
-        }
-        .btn:active {
-            transform: translateY(1px);
-        }
-        .nav-button {
-            font-size: 4rem;
-            padding: 10px 0;
-            flex-grow: 1;
-        }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(52, 152, 219, 0.5); }
+        .btn:active { transform: translateY(1px); }
+        .nav-button { font-size: 4rem; padding: 10px 0; flex-grow: 1; }
         .home-button {
             position: absolute;
             top: 15px;
@@ -204,27 +178,21 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.15);
             transition: transform 0.2s;
         }
-        .home-button:hover {
-            transform: scale(1.1);
-        }
+        .home-button:hover { transform: scale(1.1); }
 
         /* Animations */
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
-            40% {transform: translateY(-20px);}
-            60% {transform: translateY(-10px);}
-        }
-        @keyframes shake {
-            0%, 100% {transform: translateX(0);}
-            10%, 30%, 50%, 70%, 90% {transform: translateX(-10px);}
-            20%, 40%, 60%, 80% {transform: translateX(10px);}
-        }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-20px);} 60% {transform: translateY(-10px);} }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 10%, 30%, 50%, 70%, 90% {transform: translateX(-10px);} 20%, 40%, 60%, 80% {transform: translateX(10px);} }
 
         /* Responsive */
         @media (max-width: 600px) {
             .game-container { padding: 15px; }
-            #learn-mode .number-display { font-size: 8rem; }
-            #learn-mode .objects-display { font-size: 2.5rem; min-height: 100px; }
+            #learn-mode .number-display { font-size: 7rem; }
+            .audio-controls { flex-direction: row; justify-content: center; margin-top: 10px; }
+            #learn-mode .display-area { flex-direction: column; gap: 10px; }
+            .control-btn { width: 50px; height: 50px; }
+            .control-btn svg { width: 25px; height: 25px; }
+            #learn-mode .objects-display { font-size: 2.5rem; min-height: 80px; }
             .nav-button { font-size: 3rem; }
             #quiz-mode h2 { font-size: 1.5rem; min-height: 50px; }
             .quiz-options { gap: 10px; }
@@ -239,13 +207,11 @@
     <div class="game-wrapper">
         <div id="game-container" class="game-container">
 
-            <!-- Start Screen -->
             <div id="start-screen">
                 <h1>משחק המספרים</h1>
                 <button id="start-button" class="btn">התחלה!</button>
             </div>
 
-            <!-- Mode Selection Screen -->
             <div id="mode-selection" class="hidden">
                 <h2>במה נשחק?</h2>
                 <div class="mode-buttons">
@@ -254,10 +220,19 @@
                 </div>
             </div>
 
-            <!-- Learn Mode -->
             <div id="learn-mode" class="hidden">
-                 <button class="home-button" onclick="showModeSelection()">🏠</button>
-                <div id="learn-number-display" class="number-display"></div>
+                <button id="home-from-learn" class="home-button">🏠</button>
+                <div class="display-area">
+                    <div id="learn-number-display" class="number-display"></div>
+                    <div class="audio-controls">
+                        <button id="speak-number-btn" class="control-btn" aria-label="שמע את המספר">
+                            <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>
+                        </button>
+                        <button id="count-up-btn" class="control-btn" aria-label="ספור עד המספר">
+                            <svg viewBox="0 0 24 24"><path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"></path></svg>
+                        </button>
+                    </div>
+                </div>
                 <div id="learn-objects-display" class="objects-display"></div>
                 <div class="navigation">
                     <button id="prev-button" class="btn nav-button">→</button>
@@ -265,9 +240,8 @@
                 </div>
             </div>
 
-            <!-- Quiz Mode -->
             <div id="quiz-mode" class="hidden">
-                <button class="home-button" onclick="showModeSelection()">🏠</button>
+                <button id="home-from-quiz" class="home-button">🏠</button>
                 <h2 id="quiz-question"></h2>
                 <div id="quiz-options" class="quiz-options"></div>
             </div>
@@ -276,224 +250,248 @@
     </div>
 
     <script>
-        // --- DOM Elements ---
-        const startScreen = document.getElementById('start-screen');
-        const startButton = document.getElementById('start-button');
-        const modeSelectionScreen = document.getElementById('mode-selection');
-        const learnModeScreen = document.getElementById('learn-mode');
-        const quizModeScreen = document.getElementById('quiz-mode');
-        const selectLearnModeBtn = document.getElementById('select-learn-mode');
-        const selectQuizModeBtn = document.getElementById('select-quiz-mode');
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const startScreen = document.getElementById('start-screen');
+            const startButton = document.getElementById('start-button');
+            const modeSelectionScreen = document.getElementById('mode-selection');
+            const learnModeScreen = document.getElementById('learn-mode');
+            const quizModeScreen = document.getElementById('quiz-mode');
+            const selectLearnModeBtn = document.getElementById('select-learn-mode');
+            const selectQuizModeBtn = document.getElementById('select-quiz-mode');
+            const homeFromLearnBtn = document.getElementById('home-from-learn');
+            const homeFromQuizBtn = document.getElementById('home-from-quiz');
 
-        // --- Learn Mode Elements ---
-        const learnNumberDisplay = document.getElementById('learn-number-display');
-        const learnObjectsDisplay = document.getElementById('learn-objects-display');
-        const nextButton = document.getElementById('next-button');
-        const prevButton = document.getElementById('prev-button');
+            // --- Learn Mode Elements ---
+            const learnNumberDisplay = document.getElementById('learn-number-display');
+            const learnObjectsDisplay = document.getElementById('learn-objects-display');
+            const nextButton = document.getElementById('next-button');
+            const prevButton = document.getElementById('prev-button');
+            const speakNumberBtn = document.getElementById('speak-number-btn');
+            const countUpBtn = document.getElementById('count-up-btn');
 
-        // --- Quiz Mode Elements ---
-        const quizQuestion = document.getElementById('quiz-question');
-        const quizOptionsContainer = document.getElementById('quiz-options');
-        
-        // --- Game Data & State ---
-        const numbersData = [
-            { number: 1, name: 'אחת', object: '🍎' },
-            { number: 2, name: 'שתיים', object: '🚗' },
-            { number: 3, name: 'שלוש', object: '⭐' },
-            { number: 4, name: 'ארבע', object: '🦆' },
-            { number: 5, name: 'חמש', object: '🎈' },
-            { number: 6, name: 'שש', object: '⚽' },
-            { number: 7, name: 'שבע', object: '🍓' },
-            { number: 8, name: 'שמונה', object: '☀️' },
-            { number: 9, name: 'תשע', object: '🌸' },
-            { number: 10, name: 'עשר', object: '💖' }
-        ];
-        let currentNumberIndex = 0;
-        let quizCorrectAnswer = 0;
-        let isQuizActive = false;
-        let audioContext;
-        
-        // --- Audio Functions ---
-        function initAudio() {
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        }
-
-        function playSound(type) {
-            if (!audioContext) return;
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-
-            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-            gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
-
-            if (type === 'click') {
-                oscillator.type = 'triangle';
-                oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
-            } else if (type === 'correct') {
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
-                setTimeout(() => oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime), 100); // E5
-                setTimeout(() => oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime), 200); // G5
-            } else if (type === 'incorrect') {
-                oscillator.type = 'square';
-                oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
-                setTimeout(() => oscillator.frequency.setValueAtTime(150, audioContext.currentTime), 100);
-            }
-
-            oscillator.start(audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.3);
-            oscillator.stop(audioContext.currentTime + 0.3);
-        }
-
-        function speak(text, rate = 0.9) {
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'he-IL';
-            utterance.rate = rate;
-            window.speechSynthesis.speak(utterance);
-        }
-
-        // --- Screen Management ---
-        function showScreen(screen) {
-            startScreen.classList.add('hidden');
-            modeSelectionScreen.classList.add('hidden');
-            learnModeScreen.classList.add('hidden');
-            quizModeScreen.classList.add('hidden');
-            screen.classList.remove('hidden');
-        }
-
-        function showModeSelection() {
-            isQuizActive = false;
-            showScreen(modeSelectionScreen);
-        }
-
-        // --- Learn Mode Logic ---
-        function updateLearnDisplay() {
-            const currentData = numbersData[currentNumberIndex];
-            learnNumberDisplay.textContent = currentData.number;
+            // --- Quiz Mode Elements ---
+            const quizQuestion = document.getElementById('quiz-question');
+            const quizOptionsContainer = document.getElementById('quiz-options');
             
-            gsap.fromTo(learnNumberDisplay, { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.7)" });
-
-            learnObjectsDisplay.innerHTML = '';
-            for (let i = 0; i < currentData.number; i++) {
-                const span = document.createElement('span');
-                span.textContent = currentData.object;
-                learnObjectsDisplay.appendChild(span);
-            }
+            // --- Game Data & State ---
+            const numbersData = [
+                { number: 1, name: 'אחת', object: '🍎' },
+                { number: 2, name: 'שתיים', object: '🚗' },
+                { number: 3, name: 'שלוש', object: '⭐' },
+                { number: 4, name: 'ארבע', object: '🦆' },
+                { number: 5, name: 'חמש', object: '🎈' },
+                { number: 6, name: 'שש', object: '⚽' },
+                { number: 7, name: 'שבע', object: '🍓' },
+                { number: 8, name: 'שמונה', object: '☀️' },
+                { number: 9, name: 'תשע', object: '🌸' },
+                { number: 10, name: 'עשר', object: '💖' }
+            ];
+            let currentNumberIndex = 0;
+            let quizCorrectAnswer = 0;
+            let isQuizActive = false;
+            let audioContext;
+            let speechQueue = [];
             
-            gsap.fromTo(".objects-display span", 
-                { y: 50, opacity: 0 }, 
-                { y: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: "back.out(2)" }
-            );
-
-            speak(currentData.name);
-        }
-
-        function startLearnMode() {
-            showScreen(learnModeScreen);
-            currentNumberIndex = 0;
-            updateLearnDisplay();
-        }
-
-        // --- Quiz Mode Logic ---
-        function generateQuizQuestion() {
-            isQuizActive = true;
-            // Pick a correct answer
-            const correctData = numbersData[Math.floor(Math.random() * numbersData.length)];
-            quizCorrectAnswer = correctData.number;
-
-            // Generate options
-            let options = [correctData.number];
-            while (options.length < 3) {
-                const randomNum = numbersData[Math.floor(Math.random() * numbersData.length)].number;
-                if (!options.includes(randomNum)) {
-                    options.push(randomNum);
+            // --- Audio Functions ---
+            function initAudio() {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 }
             }
-            
-            // Shuffle options
-            options.sort(() => Math.random() - 0.5);
-            
-            quizQuestion.textContent = `איפה יש ${correctData.name}?`;
-            speak(`אֵיפֹה יֵשׁ ${correctData.name}?`, 0.8);
-            
-            quizOptionsContainer.innerHTML = '';
-            options.forEach(num => {
-                const optionData = numbersData.find(d => d.number === num);
-                const optionDiv = document.createElement('div');
-                optionDiv.className = 'quiz-option';
-                optionDiv.dataset.number = num;
-                optionDiv.textContent = optionData.object.repeat(num);
-                optionDiv.addEventListener('click', handleQuizAnswer);
-                quizOptionsContainer.appendChild(optionDiv);
+
+            function playSound(type) {
+                if (!audioContext) return;
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
+
+                if (type === 'click') {
+                    oscillator.type = 'triangle';
+                    oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+                } else if (type === 'correct') {
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+                    setTimeout(() => oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime), 100);
+                    setTimeout(() => oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime), 200);
+                } else if (type === 'incorrect') {
+                    oscillator.type = 'square';
+                    oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                    setTimeout(() => oscillator.frequency.setValueAtTime(150, audioContext.currentTime), 100);
+                }
+
+                oscillator.start(audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.3);
+                oscillator.stop(audioContext.currentTime + 0.3);
+            }
+
+            function speak(text, rate = 0.9) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'he-IL';
+                utterance.rate = rate;
+                window.speechSynthesis.speak(utterance);
+            }
+
+            function speakSequence(texts) {
+                window.speechSynthesis.cancel();
+                speechQueue = texts.map(text => {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'he-IL';
+                    utterance.rate = 1.0;
+                    return utterance;
+                });
+                playNextInQueue();
+            }
+
+            function playNextInQueue() {
+                if (speechQueue.length === 0) return;
+                const utterance = speechQueue.shift();
+                utterance.onend = playNextInQueue;
+                window.speechSynthesis.speak(utterance);
+            }
+
+            // --- Screen Management ---
+            function showScreen(screen) {
+                window.speechSynthesis.cancel(); // Stop speech on screen change
+                startScreen.classList.add('hidden');
+                modeSelectionScreen.classList.add('hidden');
+                learnModeScreen.classList.add('hidden');
+                quizModeScreen.classList.add('hidden');
+                if (screen) {
+                    screen.classList.remove('hidden');
+                }
+            }
+
+            function showModeSelection() {
+                isQuizActive = false;
+                showScreen(modeSelectionScreen);
+            }
+
+            // --- Learn Mode Logic ---
+            function updateLearnDisplay() {
+                const currentData = numbersData[currentNumberIndex];
+                learnNumberDisplay.textContent = currentData.number;
+                gsap.fromTo(learnNumberDisplay, { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.7)" });
+
+                learnObjectsDisplay.innerHTML = '';
+                for (let i = 0; i < currentData.number; i++) {
+                    const span = document.createElement('span');
+                    span.textContent = currentData.object;
+                    learnObjectsDisplay.appendChild(span);
+                }
+                gsap.fromTo("#learn-mode .objects-display span", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.08, ease: "back.out(2)" });
+
+                speak(currentData.name);
+            }
+
+            function startLearnMode() {
+                showScreen(learnModeScreen);
+                currentNumberIndex = 0;
+                updateLearnDisplay();
+            }
+
+            // --- Quiz Mode Logic ---
+            function generateQuizQuestion() {
+                isQuizActive = true;
+                const correctData = numbersData[Math.floor(Math.random() * numbersData.length)];
+                quizCorrectAnswer = correctData.number;
+
+                let options = [correctData.number];
+                while (options.length < 3) {
+                    const randomNum = numbersData[Math.floor(Math.random() * numbersData.length)].number;
+                    if (!options.includes(randomNum)) {
+                        options.push(randomNum);
+                    }
+                }
+                options.sort(() => Math.random() - 0.5);
+                
+                quizQuestion.textContent = `איפה יש ${correctData.name}?`;
+                speak(`אֵיפֹה יֵשׁ ${correctData.name}?`, 0.8);
+                
+                quizOptionsContainer.innerHTML = '';
+                options.forEach(num => {
+                    const optionData = numbersData.find(d => d.number === num);
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'quiz-option';
+                    optionDiv.dataset.number = num;
+                    optionDiv.textContent = optionData.object.repeat(num);
+                    optionDiv.addEventListener('click', handleQuizAnswer);
+                    quizOptionsContainer.appendChild(optionDiv);
+                });
+                gsap.from(".quiz-option", { scale: 0.5, opacity: 0, duration: 0.5, stagger: 0.1, ease: 'back.out(1.7)' });
+            }
+
+            function handleQuizAnswer(e) {
+                if (!isQuizActive) return;
+                const selectedNumber = parseInt(e.currentTarget.dataset.number);
+                
+                if (selectedNumber === quizCorrectAnswer) {
+                    isQuizActive = false;
+                    e.currentTarget.classList.add('correct');
+                    playSound('correct');
+                    speak('נכון מאוד!', 1);
+                    setTimeout(generateQuizQuestion, 2000);
+                } else {
+                    e.currentTarget.classList.add('incorrect');
+                    playSound('incorrect');
+                    speak('אוי, נסו שוב', 1);
+                    setTimeout(() => e.currentTarget.classList.remove('incorrect'), 1000);
+                }
+            }
+
+            function startQuizMode() {
+                showScreen(quizModeScreen);
+                generateQuizQuestion();
+            }
+
+            // --- Event Listeners ---
+            startButton.addEventListener('click', () => {
+                initAudio();
+                playSound('click');
+                gsap.to(startScreen, { opacity: 0, scale: 0.8, duration: 0.3, onComplete: () => {
+                    showModeSelection();
+                    gsap.from(modeSelectionScreen, { opacity: 0, scale: 0.8, duration: 0.3 });
+                }});
             });
 
-            gsap.from(".quiz-option", { scale: 0.5, opacity: 0, duration: 0.5, stagger: 0.1, ease: 'back.out(1.7)' });
-        }
+            selectLearnModeBtn.addEventListener('click', () => { playSound('click'); startLearnMode(); });
+            selectQuizModeBtn.addEventListener('click', () => { playSound('click'); startQuizMode(); });
+            homeFromLearnBtn.addEventListener('click', () => { playSound('click'); showModeSelection(); });
+            homeFromQuizBtn.addEventListener('click', () => { playSound('click'); showModeSelection(); });
 
-        function handleQuizAnswer(e) {
-            if (!isQuizActive) return;
+            nextButton.addEventListener('click', () => {
+                playSound('click');
+                currentNumberIndex = (currentNumberIndex + 1) % numbersData.length;
+                updateLearnDisplay();
+            });
 
-            const selectedNumber = parseInt(e.currentTarget.dataset.number);
-            
-            if (selectedNumber === quizCorrectAnswer) {
-                isQuizActive = false;
-                e.currentTarget.classList.add('correct');
-                playSound('correct');
-                speak('נכון מאוד!', 1);
-                setTimeout(generateQuizQuestion, 2000); // Next question after 2 seconds
-            } else {
-                e.currentTarget.classList.add('incorrect');
-                playSound('incorrect');
-                speak('אוי, נסו שוב', 1);
-                // Remove incorrect class to allow another try
-                setTimeout(() => {
-                    e.currentTarget.classList.remove('incorrect');
-                }, 1000);
-            }
-        }
+            prevButton.addEventListener('click', () => {
+                playSound('click');
+                currentNumberIndex = (currentNumberIndex - 1 + numbersData.length) % numbersData.length;
+                updateLearnDisplay();
+            });
 
-        function startQuizMode() {
-            showScreen(quizModeScreen);
-            generateQuizQuestion();
-        }
+            speakNumberBtn.addEventListener('click', () => {
+                playSound('click');
+                gsap.fromTo(speakNumberBtn, {scale: 1}, {scale: 1.2, repeat: 1, yoyo: true, duration: 0.15});
+                speak(numbersData[currentNumberIndex].name);
+            });
 
-        // --- Event Listeners ---
-        startButton.addEventListener('click', () => {
-            initAudio();
-            playSound('click');
-            gsap.to(startScreen, { opacity: 0, scale: 0.8, duration: 0.3, onComplete: () => {
-                showModeSelection();
-                gsap.from(modeSelectionScreen, { opacity: 0, scale: 0.8, duration: 0.3 });
-            }});
+            countUpBtn.addEventListener('click', () => {
+                playSound('click');
+                gsap.fromTo(countUpBtn, {scale: 1}, {scale: 1.2, repeat: 1, yoyo: true, duration: 0.15});
+                const countTo = numbersData[currentNumberIndex].number;
+                const namesToSpeak = [];
+                for (let i = 0; i < countTo; i++) {
+                    namesToSpeak.push(numbersData[i].name);
+                }
+                speakSequence(namesToSpeak);
+            });
         });
-
-        selectLearnModeBtn.addEventListener('click', () => {
-            playSound('click');
-            startLearnMode();
-        });
-
-        selectQuizModeBtn.addEventListener('click', () => {
-            playSound('click');
-            startQuizMode();
-        });
-
-        nextButton.addEventListener('click', () => {
-            playSound('click');
-            currentNumberIndex = (currentNumberIndex + 1) % numbersData.length;
-            updateLearnDisplay();
-        });
-
-        prevButton.addEventListener('click', () => {
-            playSound('click');
-            currentNumberIndex = (currentNumberIndex - 1 + numbersData.length) % numbersData.length;
-            updateLearnDisplay();
-        });
-
     </script>
 
 </body>
