@@ -318,7 +318,7 @@
 
     <script>
     const GAME_PARAMS = {
-        "engine":"v1-minimal",
+        "engine":"v1.1-fixed",
         "genre":"runner",
         "seed": "auto" === "auto" ? Date.now() : "auto",
         "difficulty":"normal",
@@ -340,8 +340,6 @@
             } catch (e) {
                 console.error("Error in __TRACK hook", e);
             }
-        } else {
-            // console.log(`Analytics Event: ${name}`, params);
         }
     };
     const postScore = (score) => {
@@ -447,7 +445,6 @@
                     .then(() => trackEvent('share_success'))
                     .catch(err => trackEvent('share_error', { error: err.message }));
             } else {
-                // Fallback for desktop
                 navigator.clipboard.writeText(`${text} ${url}`);
                 alert('Link copied to clipboard!');
             }
@@ -500,7 +497,6 @@
         },
         
         hideLeaderboard() {
-            // Re-open the modal that was open before
             if(game.state === 'paused') this.show(this.pauseScreen);
             else if(game.state === 'gameOver') this.show(this.gameoverScreen);
             else this.show(null);
@@ -547,7 +543,6 @@
         init() {
             this.isMuted = storage.getMute();
             ui.muteBtn.textContent = this.isMuted ? '🔇' : '🔊';
-            // Audio context can only be created after a user gesture
         },
         
         createContext() {
@@ -632,7 +627,7 @@
         ctx: null,
         width: 0,
         height: 0,
-        state: 'booting', // booting, menu, playing, paused, gameOver
+        state: 'booting',
         
         rng: null, // seeded random number generator
         
@@ -657,6 +652,9 @@
         
         init() {
             this.ctx = this.canvas.getContext('2d');
+            // *** FIX: Initialize RNG here, before it's needed by resize/initParallax ***
+            this.rng = new Math.seedrandom(GAME_PARAMS.seed);
+
             window.addEventListener('resize', this.resize.bind(this), false);
             this.resize();
             
@@ -675,7 +673,10 @@
             trackEvent('game_start', { difficulty: GAME_PARAMS.difficulty });
             audio.createContext(); // Init on user gesture
             
-            this.rng = new Math.seedrandom(GAME_PARAMS.seed);
+            // *** FIX: Re-seed the RNG for a new, different run each time ***
+            const newSeed = Date.now();
+            this.rng = new Math.seedrandom(newSeed);
+            GAME_PARAMS.seed = newSeed; // Update meta for upgrade button
             
             this.state = 'playing';
             this.score = 0;
@@ -706,7 +707,7 @@
         resume() {
             if (this.state !== 'paused') return;
             this.state = 'playing';
-            this.lastTime = performance.now(); // prevent large dt jump
+            this.lastTime = performance.now();
             ui.show(null);
             trackEvent('game_resumed');
         },
@@ -739,12 +740,14 @@
         },
         
         initParallax() {
+            if (!this.rng) return; // safety check
             this.parallaxLayers = [
                 { z: 0.1, color: '#100f20', items: [] },
                 { z: 0.2, color: '#151328', items: [] },
                 { z: 0.5, color: '#201d38', items: [] }
             ];
             this.parallaxLayers.forEach(layer => {
+                layer.items = []; // Clear previous items
                 for (let i = 0; i < 20; i++) {
                     layer.items.push({
                         x: this.rng() * this.width * 2,
@@ -771,13 +774,13 @@
                 e.preventDefault();
                 if(this.state !== 'playing') return;
                 touchStartY = e.touches[0].clientY;
-                this.player.jump(); // Treat any tap as a jump initially
+                this.player.jump();
             });
             this.canvas.addEventListener('touchmove', e => {
                 e.preventDefault();
                 if(this.state !== 'playing') return;
                 const touchEndY = e.touches[0].clientY;
-                if (touchEndY - touchStartY > 30) { // Swipe down
+                if (touchEndY - touchStartY > 30) {
                     this.player.slide();
                 }
             });
@@ -802,11 +805,10 @@
         },
         
         update(dt) {
-            // Cap dt to prevent physics explosions
             const delta = Math.min(dt, 0.05);
 
             this.score += this.gameSpeed * 5 * delta;
-            this.gameSpeed += delta * 0.05; // Gradually increase speed
+            this.gameSpeed += delta * 0.05;
             
             this.updateParallax(delta);
             this.player.update(delta);
@@ -834,7 +836,6 @@
         },
 
         spawnEntities(dt) {
-            // Obstacles
             this.nextObstacleTime -= dt;
             if (this.nextObstacleTime <= 0 && !this.boss) {
                 this.spawnObstacle();
@@ -842,14 +843,12 @@
                 this.nextObstacleTime = (rate / GAME_PARAMS.params.enemyRate) * (0.75 + this.rng() * 0.5);
             }
             
-            // Powerups
             this.nextPowerupTime -= dt;
             if (this.nextPowerupTime <= 0) {
                 this.spawnPowerup();
                 this.nextPowerupTime = 10 + this.rng() * 15;
             }
 
-            // Boss
             if (this.score >= this.nextBossScore && !this.boss) {
                 this.spawnBoss();
                 this.nextBossScore *= 2.5;
@@ -886,7 +885,6 @@
         },
 
         checkCollisions() {
-            // Player vs Obstacles
             if (!this.player.isInvincible) {
                 for (const obs of this.obstacles) {
                     if (this.isColliding(this.player.getHitbox(), obs.getHitbox())) {
@@ -906,13 +904,12 @@
                 }
             }
             
-            // Player vs Powerups
             for (let i = this.powerups.length - 1; i >= 0; i--) {
                  if (this.isColliding(this.player.getHitbox(), this.powerups[i].getHitbox())) {
                     this.player.collectPowerup(this.powerups[i].type);
-                    this.powerups.splice(i, 1);
                     audio.play(audio.collect);
-                    trackEvent('powerup_collect', { type: this.powerups[i]?.type });
+                    trackEvent('powerup_collect', { type: this.powerups[i].type });
+                    this.powerups.splice(i, 1);
                  }
             }
         },
@@ -928,14 +925,11 @@
             this.ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--color-bg');
             this.ctx.fillRect(0, 0, this.width, this.height);
             
-            // Draw Parallax BG
             this.drawParallax();
 
-            // Draw Ground
             this.ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--color-ground');
             this.ctx.fillRect(0, this.groundY, this.width, this.height - this.groundY);
 
-            // Set glow for all game elements
             this.ctx.shadowBlur = 15;
             this.ctx.shadowColor = 'rgba(0, 224, 255, 0.5)';
             
@@ -943,11 +937,10 @@
             this.drawEntities(this.obstacles);
             if (this.boss) this.boss.draw(this.ctx);
             
-            this.player.draw(this.ctx);
+            if(this.player) this.player.draw(this.ctx);
             
             this.drawEntities(this.particles);
 
-            // Reset glow for UI
             this.ctx.shadowBlur = 0;
             ui.updateScore(this.score);
         },
@@ -996,7 +989,6 @@
         get isInvincible() { return this.invincibleTimer > 0 || this.shielded; }
 
         update(dt) {
-            // Physics
             if (!this.onGround) {
                 this.dy += this.gravity * dt;
                 this.y += this.dy * dt;
@@ -1009,7 +1001,6 @@
             
             if (this.invincibleTimer > 0) this.invincibleTimer -= dt;
             
-            // Slide particles
             if(this.isSliding && this.onGround) {
                 game.createParticles(this.x, this.y + this.h, 1, 'var(--color-secondary)', 2);
             }
@@ -1049,7 +1040,7 @@
         hit() {
             if (this.shielded) {
                 this.shielded = false;
-                this.invincibleTimer = 1.0; // short grace period
+                this.invincibleTimer = 1.0;
                 return;
             }
             game.createParticles(this.x + this.w / 2, this.y + this.h / 2, 50, 'var(--color-primary)', 8);
@@ -1058,7 +1049,6 @@
         collectPowerup(type) {
             switch(type) {
                 case 'shield': this.shielded = true; break;
-                // other powerups could be implemented here
             }
         }
     }
@@ -1151,8 +1141,8 @@
         
         draw(ctx) {
             ctx.globalAlpha = Math.max(0, this.lifespan * 2);
-            ctx.fillStyle = this.color;
-            ctx.shadowColor = this.color;
+            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue(this.color);
+            ctx.shadowColor = getComputedStyle(document.body).getPropertyValue(this.color);
             ctx.fillRect(this.x, this.y, this.size, this.size);
             ctx.globalAlpha = 1.0;
         }
@@ -1160,9 +1150,9 @@
     
     class MiniBoss {
         constructor() {
-            this.state = 'entering'; // entering, attacking, leaving
+            this.state = 'entering';
             this.timer = 0;
-            this.duration = 15; // total boss fight duration
+            this.duration = 15;
             this.projectiles = [];
             this.nextAttackTime = 0;
         }
@@ -1190,8 +1180,8 @@
                     break;
                 case 'leaving':
                      if (this.timer > 2 && this.projectiles.length === 0) {
-                         game.boss = null; // Boss is defeated/gone
-                         game.gameSpeed *= 1.2; // Speed boost after boss
+                         game.boss = null;
+                         game.gameSpeed *= 1.2;
                      }
                     break;
             }
@@ -1205,7 +1195,6 @@
         }
         
         attack() {
-            // Pattern: 3 shots, one high, one mid, one low
             const yPositions = [game.groundY - 180, game.groundY - 100, game.groundY - 40];
             for (let i = 0; i < 3; i++) {
                 setTimeout(() => {
@@ -1217,7 +1206,6 @@
         }
         
         draw(ctx) {
-             // Draw a warning indicator instead of a full boss model
             if (this.state === 'attacking') {
                 ctx.fillStyle = 'red';
                 ctx.shadowColor = 'red';
@@ -1230,8 +1218,6 @@
         }
     }
     
-    // Simple seeded PRNG (for deterministic runs if seed is provided)
-    // Source: https://stackoverflow.com/a/47593316/1601914
     (function() {
         let a = 0, b = 0, c = 0, d = 0;
         function xor128() {
@@ -1245,24 +1231,21 @@
             a = t ^ s ^ (s >> 19);
             return a / 0x100000000;
         }
-
         Math.seedrandom = function(seed) {
             if (seed === undefined) seed = new Date().getTime();
             a = 0, b = 0, c = 0, d = 0;
             seed = seed.toString();
             for (let i = 0; i < seed.length + 64; i++) {
-                a ^= seed.charCodeAt(i) | 0;
-                b ^= seed.charCodeAt(i) | 0;
-                c ^= seed.charCodeAt(i) | 0;
-                d ^= seed.charCodeAt(i) | 0;
+                a ^= seed.charCodeAt(i) | 0; b ^= seed.charCodeAt(i) | 0;
+                c ^= seed.charCodeAt(i) | 0; d ^= seed.charCodeAt(i) | 0;
                 xor128();
             }
-            return xor128;
+            const returnedFunc = function() { return xor128(); };
+            returnedFunc.seed = seed;
+            return returnedFunc;
         };
     })();
 
-
-    // --- Bootstrap ---
     window.onload = () => game.init();
 
     </script>
