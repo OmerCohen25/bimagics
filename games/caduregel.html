@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>כדורגל מטורף</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #111;
+        }
+        canvas {
+            display: block;
+            background-color: #4CAF50; /* צבע דשא */
+        }
+    </style>
+</head>
+<body>
+
+<script>
+    // הגדרות ראשוניות
+    const canvas = document.createElement('canvas');
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+
+    let score = 0;
+    let goalScoredTime = 0;
+    const goalMessageDuration = 2000; // 2 שניות
+
+    // התאמת גודל הקנבס למסך
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // הגדרות אובייקטים במשחק
+    const playerRadius = Math.min(canvas.width, canvas.height) * 0.05;
+    const ballRadius = playerRadius * 0.7;
+    const opponentRadius = playerRadius;
+
+    const goal = {
+        x: canvas.width * 0.3,
+        y: 0,
+        width: canvas.width * 0.4,
+        height: 50,
+        color: 'white'
+    };
+
+    const player = {
+        x: canvas.width / 2,
+        y: canvas.height * 0.8,
+        radius: playerRadius,
+        color: '#3498db' // כחול
+    };
+
+    const ball = {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        radius: ballRadius,
+        color: 'white',
+        vx: 0, // מהירות אופקית
+        vy: 0, // מהירות אנכית
+        friction: 0.985 // חיכוך להאטה
+    };
+
+    const opponents = [];
+    const numOpponents = 3;
+
+    // פונקציית אתחול/איפוס המשחק
+    function resetGame() {
+        player.x = canvas.width / 2;
+        player.y = canvas.height * 0.8;
+
+        ball.x = canvas.width / 2;
+        ball.y = canvas.height / 2;
+        ball.vx = 0;
+        ball.vy = 0;
+
+        opponents.length = 0;
+        for (let i = 0; i < numOpponents; i++) {
+            opponents.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height * 0.6, // בחלק העליון של המגרש
+                radius: opponentRadius,
+                color: '#e74c3c', // אדום
+                speed: 1 + Math.random() * 1.5 // מהירות אקראית
+            });
+        }
+    }
+
+    // שליטה באמצעות מגע
+    let touchPos = { x: player.x, y: player.y };
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        touchPos.x = e.touches[0].clientX;
+        touchPos.y = e.touches[0].clientY;
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        touchPos.x = e.touches[0].clientX;
+        touchPos.y = e.touches[0].clientY;
+    }, { passive: false });
+
+
+    // חישוב מרחק בין שני עיגולים
+    function getDistance(x1, y1, x2, y2) {
+        return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+    }
+
+    // לולאת המשחק הראשית
+    function gameLoop(timestamp) {
+        // עדכון לוגיקה
+        update();
+
+        // ציור על המסך
+        draw();
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    function update() {
+        // הזזת השחקן לכיוון הנגיעה
+        const dxPlayer = touchPos.x - player.x;
+        const dyPlayer = touchPos.y - player.y;
+        const distPlayer = getDistance(touchPos.x, touchPos.y, player.x, player.y);
+        if (distPlayer > 1) {
+            player.x += dxPlayer / 10;
+            player.y += dyPlayer / 10;
+        }
+
+        // הזזת הכדור
+        ball.x += ball.vx;
+        ball.y += ball.vy;
+        ball.vx *= ball.friction;
+        ball.vy *= ball.friction;
+
+        // התנגשות כדור-קירות
+        if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+            ball.vx *= -1;
+            ball.x = (ball.x - ball.radius < 0) ? ball.radius : canvas.width - ball.radius;
+        }
+        if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
+            ball.vy *= -1;
+            ball.y = (ball.y - ball.radius < 0) ? ball.radius : canvas.height - ball.radius;
+        }
+
+        // התנגשות שחקן-כדור (בעיטה)
+        const distPlayerBall = getDistance(player.x, player.y, ball.x, ball.y);
+        if (distPlayerBall < player.radius + ball.radius) {
+            const angle = Math.atan2(ball.y - player.y, ball.x - player.x);
+            const kickStrength = 15;
+            ball.vx = Math.cos(angle) * kickStrength;
+            ball.vy = Math.sin(angle) * kickStrength;
+        }
+
+        // בינה מלאכותית פשוטה ליריבים
+        opponents.forEach(opponent => {
+            const angleToBall = Math.atan2(ball.y - opponent.y, ball.x - opponent.x);
+            opponent.x += Math.cos(angleToBall) * opponent.speed;
+            opponent.y += Math.sin(angleToBall) * opponent.speed;
+
+            // התנגשות יריב-כדור
+            const distOpponentBall = getDistance(opponent.x, opponent.y, ball.x, ball.y);
+            if (distOpponentBall < opponent.radius + ball.radius) {
+                const angle = Math.atan2(ball.y - opponent.y, ball.x - opponent.x);
+                const kickStrength = 10;
+                ball.vx = Math.cos(angle) * kickStrength;
+                ball.vy = Math.sin(angle) * kickStrength;
+            }
+        });
+
+        // בדיקה להבקעת גול
+        if (ball.y - ball.radius < goal.height &&
+            ball.x > goal.x &&
+            ball.x < goal.x + goal.width) {
+            score++;
+            goalScoredTime = Date.now();
+            resetGame();
+        }
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // ציור מגרש
+        drawField();
+
+        // ציור השער
+        ctx.fillStyle = goal.color;
+        ctx.fillRect(goal.x, goal.y, goal.width, goal.height);
+        ctx.strokeStyle = '#cccccc';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(goal.x, goal.y, goal.width, goal.height);
+
+
+        // ציור היריבים
+        opponents.forEach(opponent => {
+            drawCircle(opponent);
+        });
+
+        // ציור הכדור
+        drawCircle(ball);
+        drawSoccerBallPattern(ball);
+
+        // ציור השחקן
+        drawCircle(player);
+
+        // ציור התוצאה
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 40px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(`תוצאה: ${score}`, canvas.width / 2, canvas.height - 30);
+
+        // הצגת הודעת "גול!"
+        if (Date.now() - goalScoredTime < goalMessageDuration) {
+            ctx.fillStyle = `rgba(255, 215, 0, ${1 - (Date.now() - goalScoredTime) / goalMessageDuration})`; // צבע זהב שנעלם
+            ctx.font = 'bold 120px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('!גול', canvas.width / 2, canvas.height / 2);
+        }
+    }
+    
+    function drawField() {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 5;
+
+        // קו האמצע
+        ctx.beginPath();
+        ctx.moveTo(0, canvas.height / 2);
+        ctx.lineTo(canvas.width, canvas.height / 2);
+        ctx.stroke();
+
+        // עיגול האמצע
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height / 2, 80, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // רחבת השער
+        ctx.beginPath();
+        ctx.rect(goal.x-40, 0, goal.width+80, goal.height + 100);
+        ctx.stroke();
+    }
+
+    function drawCircle(obj) {
+        ctx.beginPath();
+        ctx.arc(obj.x, obj.y, obj.radius, 0, Math.PI * 2);
+        ctx.fillStyle = obj.color;
+        ctx.fill();
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+    }
+    
+    function drawSoccerBallPattern(ball) {
+        ctx.fillStyle = 'black';
+        for (let i = 0; i < 6; i++) {
+            let angle = i * (Math.PI / 3);
+            let x = ball.x + Math.cos(angle) * ball.radius * 0.5;
+            let y = ball.y + Math.sin(angle) * ball.radius * 0.5;
+            ctx.beginPath();
+            ctx.arc(x, y, ball.radius * 0.25, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+
+    // התחלת המשחק
+    resetGame();
+    gameLoop();
+
+</script>
+
+</body>
+</html>
