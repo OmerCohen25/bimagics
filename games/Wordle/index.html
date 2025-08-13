@@ -83,13 +83,13 @@
         header {
             width: 100%; text-align: center; border-bottom: 1px solid var(--border-color);
             padding: 0 1rem; flex-shrink: 0; transition: all .3s ease;
-            display: flex; align-items: center; justify-content: space-between; position: relative; height: 60px;
+            display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+            position: relative; height: 60px;
         }
         header h1 {
-            font-size: 1.5rem; font-weight: 700; margin: 0;
-            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            font-size: 1.5rem; font-weight: 700; margin: 0; grid-column: 2;
         }
-        #header-links { display: flex; align-items: center; gap: 1rem; }
+        #header-links { display: flex; align-items: center; gap: 1rem; grid-column: 1; justify-self: start; }
         .header-btn {
             background: #f0f0f0; border: none; border-radius: 8px; cursor: pointer;
             width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
@@ -219,12 +219,10 @@
                 <button id="share-game-btn" class="header-btn" aria-label="שתף את המשחק">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.186 2.25 2.25 0 0 0-3.933 2.186Z" /></svg>
                 </button>
-                <a href="#" id="create-own-game-link" class="header-btn" aria-label="צור משחק חדש">
-                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                </a>
             </div>
             <h1>נחשו את המילה</h1>
-            <div></div> </header>
+            <div style="grid-column: 3;"></div> <!-- Spacer for centering title -->
+        </header>
         <div id="board-container"><div id="board"></div></div>
         <div id="keyboard"></div>
     </div>
@@ -269,7 +267,6 @@
             if (encodedWord) {
                 document.getElementById('generator-container')?.remove();
                 document.getElementById('game-container').style.display = 'flex';
-                document.getElementById('create-own-game-link').href = BIMAGICS_URL;
                 
                 const targetWordRaw = decodeBase64UTF8(encodedWord);
                 if (!targetWordRaw) {
@@ -289,7 +286,7 @@
                 const finalsMap = { "ך": "כ", "ם": "מ", "ן": "נ", "ף": "פ", "ץ": "צ", "כ": "כ", "מ": "מ", "נ": "נ", "פ": "פ", "צ": "צ" };
                 const normalizeLetter = (ch) => finalsMap[ch] || ch;
                 const normalizeWord = (w) => [...w].map(normalizeLetter).join("");
-                const targetWordNorm = normalizeWord(targetWordRaw), targetWord = targetWordRaw;
+                const targetWordNorm = normalizeWord(targetWordRaw);
                 const headerEl = document.querySelector('header');
                 const boardEl = document.getElementById('board');
                 const keyboardEl = document.getElementById('keyboard');
@@ -335,7 +332,27 @@
                 function processFlip(guess) { const guessLettersNorm = [...normalizeWord(guess)]; const targetLettersNorm = [...targetWordNorm]; const letterCounts = targetLettersNorm.reduce((acc, l) => (acc[l] = (acc[l] || 0) + 1, acc), {}); const states = Array(WORD_LENGTH).fill(null); guessLettersNorm.forEach((l, i) => { if (targetLettersNorm[i] === l) { states[i] = 'correct'; letterCounts[l]--; } }); guessLettersNorm.forEach((l, i) => { if (states[i]) return; if ((letterCounts[l] || 0) > 0) { states[i] = 'present'; letterCounts[l]--; } else { states[i] = 'absent'; } }); resultsGrid.push(states); Array.from(boardEl.children[currentRowIndex].children).forEach((tile, idx) => { setTimeout(() => { const back = tile.querySelector('.tile-back'); back.textContent = tile.querySelector('.tile-front').textContent; back.classList.add(states[idx]); tile.classList.add('flip'); updateKeyboard([...guess][idx], states[idx]); }, idx * 350); }); setTimeout(() => checkGameOver(guess), WORD_LENGTH * 350 + 50); }
                 function updateKeyboard(letter, state) { const twin = pairLetter(letter);[letter, twin].forEach(ch => { const key = document.querySelector(`.key[data-key='${CSS.escape(ch)}']`); if (!key) return; const isCorrect = key.classList.contains('correct'); const isPresent = key.classList.contains('present'); if (state === 'correct') { key.classList.remove('present', 'absent'); key.classList.add('correct'); } else if (state === 'present' && !isCorrect) { key.classList.add('present'); } else if (state === 'absent' && !isCorrect && !isPresent) { key.classList.add('absent'); } }); }
                 function checkGameOver(guess) { if (normalizeWord(guess) === targetWordNorm) { showToast('כל הכבוד!', 2000); isGameOver = true; setTimeout(() => showResultModal(true), 700); } else { currentRowIndex++; if (currentRowIndex >= MAX_TRIES) { isGameOver = true; setTimeout(() => showResultModal(false), 400); } else { currentTileIndex = 0; } } }
-                function showResultModal(isWin) { shareResultsBtn.style.display = isWin ? 'block' : 'none'; if (isWin) { headerEl.classList.add('header-win'); modalTitleEl.textContent = 'ניצחת! 🏆'; modalBodyEl.textContent = `כל הכבוד! המילה היא: ${targetWord}`; } else { modalTitleEl.textContent = 'אוי, חבל...'; modalBodyEl.textContent = `המילה הנכונה הייתה: ${targetWord}.`; } modalOverlayEl.classList.add('show'); }
+                
+                function showResultModal(isWin) {
+                    shareResultsBtn.style.display = isWin ? 'block' : 'none';
+                    if (isWin) {
+                        headerEl.classList.add('header-win');
+                        modalTitleEl.textContent = 'ניצחת! 🏆';
+                        modalBodyEl.textContent = `כל הכבוד! גילית את המילה.`;
+                    } else {
+                        modalTitleEl.textContent = 'כמעט שם!';
+                        modalBodyEl.textContent = 'לא נורא, זה היה אתגר קשה. אפשר לנסות שוב או ליצור משחק חדש.';
+                        
+                        // Create and add "Try Again" button only on failure
+                        const tryAgainBtn = document.createElement('button');
+                        tryAgainBtn.textContent = 'נסה שוב ↻';
+                        tryAgainBtn.style.background = '#4a90e2';
+                        tryAgainBtn.onclick = () => window.location.reload();
+                        modalButtonEl.parentElement.insertBefore(tryAgainBtn, modalButtonEl);
+                    }
+                    modalOverlayEl.classList.add('show');
+                }
+
                 function shakeRow() { const row = boardEl.children[currentRowIndex]; row.classList.add('shake'); row.addEventListener('animationend', () => row.classList.remove('shake'), { once: true }); }
                 
                 function generateShareableGrid() { let gridText = resultsGrid.map(rowStates => rowStates.map(state => { if (state === 'correct') return '🟩'; if (state === 'present') return '🟨'; return '⬛'; }).join('')).join('\n'); return `ניחשתי את המילה! (${resultsGrid.length}/${MAX_TRIES})\n\n${gridText}\n\nרוצים לנסות? ${window.location.href}`; }
