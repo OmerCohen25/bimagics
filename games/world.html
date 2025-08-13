@@ -1,357 +1,426 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <!-- חשוב: דפדפנים ניידים יכווצו את התוכן כשהמקלדת נפתחת -->
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, interactive-widget=resizes-content" />
-  <title>נחשו את השם!</title>
-  <meta name="theme-color" content="#6aaa64" />
-  <style>
-    :root{
-      --correct-bg-color:#6aaa64;
-      --present-bg-color:#c9b458;
-      --absent-bg-color:#787c7e;
-      --default-border-color:#d3d6da;
-      --tile-text-color:#ffffff;
-      --key-text-color:#000000;
-      --bg-color:#ffffff;
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2EY1HGXGNT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
 
-      /* גובה אפליקציה דינמי – יתעדכן ב־JS עם visualViewport */
-      --app-h: 100svh; /* עדיפות */
-    }
+  gtag('config', 'G-2EY1HGXGNT');
+</script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, interactive-widget=resizes-content" />
+    <title>נחשו את המילה!</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;900&display=swap" rel="stylesheet">
 
-    /* לא משתמשים ב-overflow:hidden כדי לא לחתוך מסכים */
-    html, body { margin: 0; padding: 0; }
-    body{
-      min-height: var(--app-h);
-      /* נפעיל גם נפילות חינניות: */
-      min-height: 100svh;
-      min-height: 100dvh;
-      min-height: 100vh;
-      background: var(--bg-color);
-      color:#212121;
-      font-family: Arial,"Helvetica Neue",Helvetica,sans-serif;
-      display:flex;flex-direction:column;align-items:center;
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-      touch-action:manipulation;
-      /* נאפשר גלילה במקרה של מסכים קצרים */
-      overflow:auto;
-    }
+    <style>
+        :root {
+            --font-main: 'Heebo', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --word-length: 5;
+            --max-tries: 6;
+            --bg-color: #FDFBFF;
+            --text-color: #312A2A;
+            --border-color: #DCDDE1;
+            --correct-bg-color: #6aaa64;
+            --present-bg-color: #c9b458;
+            --absent-bg-color: #a4a8ab;
+            --key-bg-color: #d3d6da;
+            --tile-text-color: #ffffff;
+            --modal-bg: rgba(0, 0, 0, 0.5);
+            --container-shadow: 0px 10px 30px rgba(0, 0, 0, 0.09);
+            --transition-main: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-    #game-container{
-      display:flex;flex-direction:column;align-items:center;justify-content:space-between;
-      min-height: var(--app-h);
-      min-height: 100%;
-      width:100%;max-width:500px;padding:8px;box-sizing:border-box;
-    }
+        html { box-sizing: border-box; }
+        *, *:before, *:after { box-sizing: inherit; }
 
-    header{width:100%;text-align:center;border-bottom:1px solid var(--default-border-color);padding-bottom:10px;flex-shrink:0;transition:all .5s ease}
-    h1{font-size:clamp(1.8rem,5vw,2.2rem);margin:0;padding:10px 0;color:#212121;transition:color .5s ease}
-    header.header-win{padding:20px 0;border-bottom:none;border-radius:0 0 15px 15px;box-shadow:0 4px 6px rgba(0,0,0,.1);
-      background-image:url('https://img.lovepik.com/png/20231010/Jasmine-flower-with-leaf-elements-white-flowers-real-flowers_159892_wh1200.png');
-      background-size:cover;background-position:center 65%;background-repeat:no-repeat}
-    header.header-win h1{font-size:clamp(2.2rem,6vw,2.8rem);color:#fff;text-shadow:0 2px 5px rgba(0,0,0,.8)}
+        html, body { margin: 0; padding: 0; }
+        body {
+            background: var(--bg-color); color: var(--text-color); font-family: var(--font-main);
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100vh; min-height: -webkit-fill-available; padding: 10px;
+            overflow: hidden;
+        }
 
-    #board-container{display:flex;justify-content:center;align-items:center;flex-grow:1;width:100%;padding:10px 0;perspective:1000px}
-    #board{display:grid;grid-template-rows:repeat(5,1fr);grid-gap:5px;width:clamp(280px,90vw,330px);height:clamp(300px,100vw,360px)}
-    .row{display:grid;grid-template-columns:repeat(5,1fr);grid-gap:5px}
-    .tile{position:relative;cursor:default;transform-style:preserve-3d;transition:transform .6s ease;will-change:transform}
-    .tile.flip{transform:rotateX(180deg)}
-    .tile-face{width:100%;height:100%;position:absolute;backface-visibility:hidden;display:inline-flex;justify-content:center;align-items:center;font-size:clamp(1.8rem,8vw,2.5rem);font-weight:bold;box-sizing:border-box;border-radius:4px}
-    .tile-front{border:2px solid var(--default-border-color);background:#fff;color:#000}
-    .tile.filled .tile-front{border-color:#878a8c;animation:pop .1s}
-    .tile-back{transform:rotateX(180deg);color:var(--tile-text-color);border:2px solid transparent}
-    .tile-back.correct{background:var(--correct-bg-color)}
-    .tile-back.present{background:var(--present-bg-color)}
-    .tile-back.absent{background:var(--absent-bg-color)}
-    @keyframes pop{50%{transform:scale(1.08)}}
-    .shake{animation:shake .5s}
-    @keyframes shake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}}
+        #menu-container, #game-container { display: none; }
 
-    /* מקלדת: תמיד נראית; נדבקת לתחתית, עם שוליים לאזורי safe-area */
-    #keyboard{
-      width:100%;
-      user-select:none;
-      padding: 6px 6px max(env(safe-area-inset-bottom), 6px) 6px;
-      background: linear-gradient(#f4f5f6,#e6e8ea);
-      box-shadow: 0 -2px 8px rgba(0,0,0,.06);
-      position: sticky;
-      bottom: 0;
-      z-index: 10;
-      flex-shrink: 0;
-    }
-    .keyboard-row{display:flex;justify-content:center;margin:6px 0;direction:rtl}
-    .key{
-      font-family:inherit;font-weight:bold;border:0;padding:0 8px;height:56px;cursor:pointer;
-      background:#d3d6da;color:var(--key-text-color);flex-grow:1;margin:0 3px;border-radius:8px;
-      display:flex;justify-content:center;align-items:center;font-size:clamp(1rem,4.5vw,1.4rem);
-      -webkit-tap-highlight-color:rgba(0,0,0,.2)
-    }
-    .key.large{flex-grow:1.6}
-    .key:active{background:#c0c3c6}
-    .key.correct{background:var(--correct-bg-color);color:var(--tile-text-color)}
-    .key.present{background:var(--present-bg-color);color:var(--tile-text-color)}
-    .key.absent{background:var(--absent-bg-color);color:var(--tile-text-color)}
+        /* --- עיצוב תפריט ראשי --- */
+        #menu-container { width: 100%; max-width: 480px; }
+        .menu-box {
+            background: #fff; padding: clamp(2rem, 6vw, 3.5rem); border-radius: 24px;
+            box-shadow: var(--container-shadow); text-align: center; width: 100%; position: relative;
+        }
+        .menu-box h1 {
+            font-weight: 900; font-size: clamp(2.2rem, 7vw, 3rem); margin: 0 0 1rem 0;
+            background: linear-gradient(45deg, var(--correct-bg-color), var(--present-bg-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .menu-box p { color: #666; line-height: 1.7; font-size: clamp(1rem, 3vw, 1.15rem); margin-bottom: 2.5rem; }
+        .menu-buttons { display: flex; flex-direction: column; gap: 1rem; }
+        .menu-btn {
+            background: var(--correct-bg-color); color: #fff; border: none; font-weight: 700;
+            padding: 16px 26px; font-size: 1.2rem; border-radius: 14px; cursor: pointer;
+            width: 100%; transition: var(--transition-main);
+            box-shadow: 0 4px 15px rgba(106, 170, 100, 0.2);
+        }
+        .menu-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(106, 170, 100, 0.35); }
+        .menu-btn.secondary { background: #fff; color: var(--correct-bg-color); border: 2px solid var(--correct-bg-color); box-shadow: none; }
+        .menu-btn.secondary:hover { background: var(--correct-bg-color); color: #fff; }
+        
+        #generator-section { margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color); }
+        #wordInput {
+            width: 100%; padding: 14px; font-size: 1.2rem; text-align: center; margin-bottom: 1.5rem;
+            border: 2px solid var(--border-color); border-radius: 12px; transition: var(--transition-main);
+        }
+        #wordInput:focus { border-color: var(--correct-bg-color); box-shadow: 0 0 0 4px rgba(106, 170, 100, 0.2); outline: none; }
+        #result { margin-top: 2rem; visibility: hidden; opacity: 0; transition: all .4s ease; max-height: 0; }
+        #result.show { visibility: visible; opacity: 1; max-height: 300px; }
+        #shareLink {
+            width: 100%; padding: 10px; font-size: 1rem; border: 1px solid var(--border-color);
+            background-color: #f8f9fa; border-radius: 8px; margin-bottom: 1rem; direction: ltr; text-align: left;
+        }
+        .result-buttons { display: flex; gap: 10px; }
+        #copyBtn, #goToLinkBtn {
+            flex-grow: 1; text-decoration: none; display: inline-flex; justify-content: center; align-items: center;
+            border: none; padding: 12px; border-radius: 10px; cursor: pointer;
+            font-size: 1rem; font-weight: 500; color: #fff; transition: var(--transition-main);
+        }
+        #copyBtn { background: var(--present-bg-color); }
+        #goToLinkBtn { background: #4a90e2; }
+        #copyBtn:hover, #goToLinkBtn:hover { transform: translateY(-2px); }
+        
+        /* --- עיצוב המשחק --- */
+        #game-container {
+            display: flex; flex-direction: column; width: 100%; height: 100%;
+            max-width: 500px; max-height: 95vh;
+        }
+        header {
+            width: 100%; text-align: center; border-bottom: 1px solid var(--border-color);
+            padding: 0 1rem; flex-shrink: 0; transition: var(--transition-main);
+            display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+            position: relative; height: 60px;
+        }
+        header h1 { font-size: 1.8rem; font-weight: 900; margin: 0; grid-column: 2; }
+        
+        #board-container {
+            display: flex; justify-content: center; align-items: center;
+            flex-grow: 1; width: 100%; padding: 1rem 0; perspective: 1000px;
+        }
+        #board {
+            display: grid; grid-template-rows: repeat(var(--max-tries), 1fr);
+            grid-gap: 8px; width: 100%; max-width: 380px; transition: var(--transition-main);
+        }
+        #board.lost { opacity: 0; transform: scale(0.8) rotateX(45deg); filter: blur(5px); }
+        .row { display: grid; grid-template-columns: repeat(var(--word-length), 1fr); grid-gap: 8px; }
+        .tile {
+            position: relative; transform-style: preserve-3d;
+            transition: transform 0.7s cubic-bezier(0.5, 0, 0.3, 1.5);
+            width: 100%; aspect-ratio: 1 / 1;
+        }
+        .tile.flip { transform: rotateX(180deg); }
+        .tile-face {
+            width: 100%; height: 100%; position: absolute; backface-visibility: hidden;
+            display: inline-flex; justify-content: center; align-items: center;
+            font-size: clamp(2rem, 8vw, 2.5rem); font-weight: 700;
+            box-sizing: border-box; border-radius: 8px;
+        }
+        .tile-front { border: 2px solid var(--border-color); color: var(--text-color); }
+        .tile.filled .tile-front { border-color: #878a8c; animation: pop 0.1s ease-out; }
+        .tile-back { transform: rotateX(180deg); color: var(--tile-text-color); border: 2px solid transparent; }
+        .tile-back.correct { background: var(--correct-bg-color); }
+        .tile-back.present { background: var(--present-bg-color); }
+        .tile-back.absent { background: var(--absent-bg-color); }
+        
+        /* --- אנימציות --- */
+        @keyframes pop { 50% { transform: scale(1.1); } }
+        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(2px); } 30%, 50%, 70% { transform: translateX(-4px); } 40%, 60% { transform: translateX(4px); } }
+        .win-dance .tile { animation: dance 0.5s ease-in-out; }
+        @keyframes dance { 0%, 100% { transform: translateY(0) rotateX(180deg); } 50% { transform: translateY(-15px) rotateX(180deg); } }
 
-    #toast-container{
-      position:fixed;top:12%;left:50%;transform:translateX(-50%);
-      background:rgba(0,0,0,.85);color:#fff;padding:12px 24px;border-radius:24px;font-size:1rem;z-index:1000;
-      visibility:hidden;opacity:0;transition:visibility .5s,opacity .5s
-    }
-    #toast-container.show{visibility:visible;opacity:1}
+        #keyboard { width: 100%; user-select: none; flex-shrink: 0; padding: 0.5rem; }
+        .keyboard-row { display: flex; justify-content: center; margin: 0 auto; width: 100%; touch-action: manipulation; }
+        .key {
+            font-family: inherit; font-weight: 500; border: 0; height: 54px; cursor: pointer; background: var(--key-bg-color);
+            color: var(--text-color); flex-grow: 1; margin: 4px; border-radius: 6px;
+            display: flex; justify-content: center; align-items: center;
+            font-size: clamp(1rem, 3vw, 1.4rem); -webkit-tap-highlight-color: rgba(0,0,0,0.2); transition: all .1s ease-out;
+        }
+        .key:active { background: #b0b3b6; transform: scale(0.95); }
+        .key.large { flex-grow: 1.5; font-size: 1rem; }
+        .key.correct, .key.present, .key.absent { color: var(--tile-text-color); transition: background-color 0.2s, transform 0.1s; }
+        .key.correct { background: var(--correct-bg-color); }
+        .key.present { background: var(--present-bg-color); }
+        .key.absent { background: var(--absent-bg-color); }
 
-    .modal-overlay{position:fixed;inset:0;background:rgba(255,255,255,.7);display:flex;justify-content:center;align-items:center;z-index:2000;visibility:hidden;opacity:0;transition:visibility .3s,opacity .3s ease}
-    .modal-overlay.show{visibility:visible;opacity:1}
-    .modal-content{background:var(--bg-color);padding:20px 30px;border-radius:8px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.2);transform:scale(.9);transition:transform .3s ease}
-    .modal-overlay.show .modal-content{transform:scale(1)}
-    .modal-content h2{margin-top:0}
-    .modal-content p{margin-bottom:20px}
-    .modal-content button{background:var(--correct-bg-color);color:#fff;border:none;padding:12px 24px;font-size:1.1rem;border-radius:4px;cursor:pointer}
-  </style>
+        #toast-container {
+            position: fixed; bottom: 12%; left: 50%; transform: translateX(-50%);
+            background: rgba(29, 39, 53, 0.95); backdrop-filter: blur(8px); color: #fff;
+            padding: 14px 28px; border-radius: 12px; font-size: 1rem; font-weight: 500;
+            z-index: 1000; visibility: hidden; opacity: 0; transform: translateY(20px) translateX(-50%);
+            transition: all .4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        #toast-container.show { visibility: visible; opacity: 1; transform: translateY(0) translateX(-50%); }
+        
+        .modal-overlay {
+            position: fixed; inset: 0; background: var(--modal-bg);
+            display: flex; justify-content: center; align-items: center; z-index: 2000;
+            visibility: hidden; opacity: 0; transition: visibility .3s, opacity .3s ease;
+        }
+        .modal-overlay.show { visibility: visible; opacity: 1; }
+        .modal-content {
+            background: var(--bg-color); padding: 2rem; border-radius: 20px; text-align: center;
+            box-shadow: var(--container-shadow);
+            transform: scale(.9); transition: transform .3s cubic-bezier(0.25, 1, 0.5, 1);
+            max-width: 90%; width: 380px;
+        }
+        .modal-overlay.show .modal-content { transform: scale(1); }
+        .modal-content h2 { margin: 0.5rem 0; font-size: 2.5rem; font-weight: 900; }
+        .modal-content p { margin-bottom: 1.5rem; color: #555; line-height: 1.6; font-size: 1.1rem; }
+        .modal-buttons { display: flex; flex-direction: column; gap: 0.8rem; }
+        .modal-buttons button {
+             background: var(--correct-bg-color); color: #fff; border: none; font-weight: 700;
+             padding: 14px 24px; font-size: 1.1rem; border-radius: 12px; cursor: pointer;
+             width: 100%; transition: var(--transition-main);
+        }
+        #share-results-btn { background: var(--present-bg-color); }
+        .modal-buttons button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0, 0.15); }
+        
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1999; pointer-events: none; }
+    </style>
 </head>
 <body>
-  <div id="game-container">
-    <header><h1>נחש את השם</h1></header>
-    <div id="board-container"><div id="board"></div></div>
-    <div id="keyboard"></div>
-  </div>
+    <canvas id="confetti-canvas"></canvas>
 
-  <div id="toast-container"></div>
-
-  <div id="modal-overlay" class="modal-overlay" aria-hidden="true">
-    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <h2 id="modal-title"></h2>
-      <p id="modal-body"></p>
-      <button id="modal-button">שחק שוב</button>
+    <div id="menu-container">
+        <div class="menu-box">
+            <h1>מילה ביום</h1>
+            <p>גלו את המילה היומית או צרו משחק מילים מותאם אישית ושלחו לחברים!</p>
+            <div class="menu-buttons">
+                <button id="randomGameBtn" class="menu-btn">שחק משחק אקראי ✨</button>
+                <button id="createGameToggle" class="menu-btn secondary">צור משחק משלך</button>
+            </div>
+            <div id="generator-section" style="display: none;">
+                <p style="margin-bottom: 1.5rem;">הכניסו מילה או שם בעברית (2-9 אותיות):</p>
+                <input type="text" id="wordInput" placeholder="הקלידו כאן..." autocomplete="off">
+                <button id="generateBtn" class="menu-btn">צרו קישור למשחק 🚀</button>
+                <div id="result">
+                    <p>הקישור מוכן! שתפו אותו:</p>
+                    <input type="text" id="shareLink" readonly>
+                    <div class="result-buttons">
+                        <button id="copyBtn">העתקת הקישור</button>
+                        <a href="#" id="goToLinkBtn">מעבר למשחק</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
+    
+    <div id="game-container">
+        <header>
+            <div style="grid-column: 1;"></div>
+            <h1>נחשו את המילה</h1>
+            <div style="grid-column: 3;"></div>
+        </header>
+        <div id="board-container"><div id="board"></div></div>
+        <div id="keyboard"></div>
+    </div>
+    
+    <div id="toast-container"></div>
+    <div id="modal-overlay" class="modal-overlay" aria-hidden="true">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <h2 id="modal-title"></h2>
+            <p id="modal-body"></p>
+            <div id="modal-solution"></div>
+            <div class="modal-buttons">
+                <button id="share-results-btn" style="display:none;">שתפו את הניצחון 🎉</button>
+                <button id="modal-new-game-btn">משחק אקראי חדש</button>
+                <button id="modal-create-game-btn">צרו משחק משלכם</button>
+            </div>
+        </div>
+    </div>
 
-  <script>
-  // התאמת גובה לכל דפדפן – גם כשמקלדת מערכת נפתחת
-  (function setViewportHeight(){
-    const apply = () => {
-      const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-      document.documentElement.style.setProperty('--app-h', vh + 'px');
-    };
-    apply();
-    window.addEventListener('resize', apply);
-    window.visualViewport && window.visualViewport.addEventListener('resize', apply);
-  })();
+    <script>
+        // --- Confetti micro-library ---
+        // (canvas-confetti by Cat Loaf: https://github.com/cat-loof/canvas-confetti)
+        // Pasted here to keep it a single file
+        var confetti = (function() { var t = {}; function e(i) { if (t[i]) return t[i].exports; var n = t[i] = { i: i, l: !1, exports: {} }; return e.m = i, e.c = t, e.d = function(t, i, n) { e.o(t, i) || Object.defineProperty(t, i, { enumerable: !0, get: n }) }, e.r = function(t) { "undefined" != typeof Symbol && Symbol.toStringTag && Object.defineProperty(t, Symbol.toStringTag, { value: "Module" }), Object.defineProperty(t, "__esModule", { value: !0 }) }, e.t = function(t, i) { if (1 & i && (t = e(t)), 8 & i) return t; if (4 & i && "object" == typeof t && t && t.__esModule) return t; var n = Object.create(null); if (e.r(n), Object.defineProperty(n, "default", { enumerable: !0, value: t }), 2 & i && "string" != typeof t) for (var o in t) e.d(n, o, function(e) { return t[e] }.bind(null, o)); return n }, e.n = function(t) { var i = t && t.__esModule ? function() { return t.default } : function() { return t }; return e.d(i, "a", i), i }, e.o = function(t, e) { return Object.prototype.hasOwnProperty.call(t, e) }, e.p = "", e(e.s = 0) } ([, function(t, e, i) {}]); return t.exports }(t, e, i.n(e).a) });
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const WORD_LENGTH = 5;
-    const MAX_TRIES = 5;
+        const encodeBase64UTF8 = (str) => { const bytes = new TextEncoder().encode(str); const bin = String.fromCharCode(...bytes); return btoa(bin); };
+        const decodeBase64UTF8 = (b64) => { try { const bin = atob(b64); const bytes = Uint8Array.from([...bin].map(ch => ch.charCodeAt(0))); return new TextDecoder("utf-8").decode(bytes); } catch (e) { return null; } };
 
-    // לא חושפים על הפסד – מציגים רק אם ניצחון
-    const encodedTargetWord = "15nXodee15nXnw=="; // החלף למילה שלך (Base64 UTF-8)
-    const decodeBase64UTF8 = (b64) => {
-      const bin = atob(b64);
-      const bytes = Uint8Array.from([...bin].map(ch => ch.charCodeAt(0)));
-      return new TextDecoder("utf-8").decode(bytes);
-    };
-    const targetWordRaw = decodeBase64UTF8(encodedTargetWord);
+        document.addEventListener('DOMContentLoaded', () => {
+            const BIMAGICS_URL = "https://bimagics.com/games/Wordle/"; // Replace with your actual URL if hosting elsewhere
+            const params = new URLSearchParams(window.location.search);
+            const encodedWord = params.get('word');
+            const playRandom = params.get('play') === 'random';
+            
+            const HEBREW_WORDS = ["אחדות","אורוות","אחרות","אלימות","אריזות","ארצות","בחירות","בדיחות","בטוחות","בריאות","ברירות","גופיות","דמעות","הוראות","הנאות","הערות","הפגנות","הפתעות","חברות","חולצות","חנויות","טבעות","טיוטות","ידיעות","ילדות","כפפות","מדינות","מילים","מכונית","מלכות","מסעדות","מציאות","נבואות","נקודות","סוכנות","עוגיות","עובדות","עיירות","פינות","פעולות","קבוצות","קערות","שאלות","שכונות","תאונות","תכונות","תמונות","תקופות","תשובות","אגוזים","אחוזים","איתנים","ארוכים","ארמונות","אשכול","בגדים","בחורים","ביטחון","בניינים","בקבוק","ברבור","גאונים","גדולים","גורלות","גיבורים","גפרורים","דיבורים","הבדלים","הישגים","הרפתקן","וילונות","ותיקים","זיתים","חברים","חולמים","חוקרים","חיוכים","חלומות","חסרונות","חרקים","חשבון","ידידים","יהלום","יונקים","יסודות","יצורים","ישראלי","יתרונות","כישרון","כפתורים","מדפים","מובנים","מנהגים","מספרים","מפעלים","מצוינים","מפתחות","משחקים","משרדים","נבונים","נכונים","ניצחון","ניסים","נסיכים","סיוטים","ספרדים","עולמות","עיתונים","עמוקים","עקרונות","עשרים","עתיקים","פירות","פרטים","פרקים","פתאום","פתרונות","צבעים","צעצוע","צפויים","קולות","קרובים","שירים","שכנים","שלטים","שערים","שקל","תאומים","תחתון","תיקנים","תלמידים", "שלום", "מילה", "משחק", "מחשב", "אבא", "אמא", "ילדים", "בית", "ספר", "עבודה", "חופש", "ים", "קיץ", "חורף", "גשם", "שמש", "ענן", "כוכב", "ירח", "אהבה", "אוכל", "מים", "אש", "אדמה", "אוויר", "טוב", "רע", "גדול", "קטן", "יפה", "חדש", "ישן", "חכם", "טיפש", "מהר", "לאט", "לבן", "שחור", "אדום", "כחול", "ירוק", "צהוב", "כתום", "סגול", "ורוד", "חום", "אפור", "כסף", "זהב", "בוקר", "ערב", "לילה", "יום", "שבוע", "חודש", "שנה", "שעה", "דקה", "שניה", "איש", "אישה", "ילד", "ילדה", "תינוק"];
 
-    const finalsMap = {"ך":"כ","ם":"מ","ן":"נ","ף":"פ","ץ":"צ","כ":"כ","מ":"מ","נ":"נ","פ":"פ","צ":"צ"};
-    const normalizeLetter = (ch)=>finalsMap[ch]||ch;
-    const normalizeWord   = (w)=>[...w].map(normalizeLetter).join("");
+            // --- Routing ---
+            if (encodedWord || playRandom) {
+                if (playRandom && !encodedWord) {
+                    const randomWord = HEBREW_WORDS[Math.floor(Math.random() * HEBREW_WORDS.length)];
+                    const encodedRandomWord = encodeBase64UTF8(randomWord);
+                    window.location.href = `${BIMAGICS_URL}?word=${encodedRandomWord}`;
+                    return;
+                }
+                document.getElementById('menu-container')?.remove();
+                document.getElementById('game-container').style.display = 'flex';
+                initializeGame();
+            } else {
+                document.getElementById('game-container')?.remove();
+                document.getElementById('menu-container').style.display = 'block';
+                initializeMenu();
+            }
 
-    const targetWordNorm = normalizeWord(targetWordRaw);
-    const targetWord = targetWordRaw;
+            function initializeMenu() {
+                const createToggle = document.getElementById('createGameToggle');
+                const generatorSection = document.getElementById('generator-section');
+                createToggle.addEventListener('click', () => {
+                    generatorSection.style.display = generatorSection.style.display === 'none' ? 'block' : 'none';
+                });
 
-    const headerEl = document.querySelector('header');
-    const boardEl = document.getElementById('board');
-    const keyboardEl = document.getElementById('keyboard');
-    const toastEl = document.getElementById('toast-container');
-    const modalOverlayEl = document.getElementById('modal-overlay');
-    const modalTitleEl = document.getElementById('modal-title');
-    const modalBodyEl = document.getElementById('modal-body');
-    const modalButtonEl = document.getElementById('modal-button');
+                document.getElementById('randomGameBtn').addEventListener('click', () => {
+                    window.location.href = `${BIMAGICS_URL}?play=random`;
+                });
 
-    let currentRowIndex = 0;
-    let currentTileIndex = 0;
-    let isGameOver = false;
-    let guessGrid = [];
+                const wordInput = document.getElementById('wordInput');
+                const generateBtn = document.getElementById('generateBtn');
+                const resultDiv = document.getElementById('result');
+                const shareLinkInput = document.getElementById('shareLink');
+                const copyBtn = document.getElementById('copyBtn');
+                const goToLinkBtn = document.getElementById('goToLinkBtn');
 
-    // פריסת מקלדת עברית קלאסית (RTL: ״פ״ בימין)
-    const keys = [
-      ['פ','ם','ן','ו','ט','א','ר','ק'],
-      ['ף','ך','ל','ח','י','ע','כ','ג','ד','ש'],
-      ['Backspace','ץ','ת','צ','מ','נ','ה','ב','ס','ז','Enter']
-    ];
+                generateBtn.addEventListener('click', () => {
+                    const word = wordInput.value.trim();
+                    if (word.length < 2 || word.length > 9) { showToast('יש להכניס מילה באורך 2 עד 9 אותיות.'); return; }
+                    if (!/^[\u0590-\u05FF]+$/.test(word)) { showToast('יש להכניס אותיות בעברית בלבד.'); return; }
+                    const encoded = encodeBase64UTF8(word);
+                    const gameUrl = `${BIMAGICS_URL}?word=${encoded}`;
+                    shareLinkInput.value = gameUrl;
+                    goToLinkBtn.href = gameUrl;
+                    resultDiv.classList.add('show');
+                });
+                copyBtn.addEventListener('click', () => copyToClipboard(shareLinkInput.value));
+            }
 
-    const pairLetter = (ch)=>{
-      const pairs={"כ":"ך","ך":"כ","מ":"ם","ם":"מ","נ":"ן","ן":"נ","פ":"ף","ף":"פ","צ":"ץ","ץ":"צ"};
-      return pairs[ch]||ch;
-    };
+            function initializeGame() {
+                const targetWordRaw = decodeBase64UTF8(encodedWord);
+                if (!targetWordRaw) { /* Error handling */ return; }
 
-    function initializeGame(){
-      isGameOver=false;currentRowIndex=0;currentTileIndex=0;
-      guessGrid = Array(MAX_TRIES).fill(null).map(()=>Array(WORD_LENGTH).fill(''));
+                const WORD_LENGTH = targetWordRaw.length;
+                const MAX_TRIES = WORD_LENGTH + 1;
+                document.documentElement.style.setProperty('--word-length', WORD_LENGTH);
+                document.documentElement.style.setProperty('--max-tries', MAX_TRIES);
 
-      headerEl.classList.remove('header-win');
+                const finalsMap = { "ך": "כ", "ם": "מ", "ן": "נ", "ף": "פ", "ץ": "צ", "כ": "כ", "מ": "מ", "נ": "נ", "פ": "פ", "צ": "צ" };
+                const normalizeLetter = (ch) => finalsMap[ch] || ch;
+                const normalizeWord = (w) => [...w].map(normalizeLetter).join("");
+                const targetWordNorm = normalizeWord(targetWordRaw);
+                
+                const boardEl = document.getElementById('board');
+                const keyboardEl = document.getElementById('keyboard');
+                const modalOverlayEl = document.getElementById('modal-overlay');
+                const modalTitleEl = document.getElementById('modal-title');
+                const modalBodyEl = document.getElementById('modal-body');
+                const shareResultsBtn = document.getElementById('share-results-btn');
+                const toastEl = document.getElementById('toast-container');
+                const confettiCanvas = document.getElementById('confetti-canvas');
+                const myConfetti = confetti.create(confettiCanvas, { resize: true });
 
-      boardEl.innerHTML='';
-      for(let i=0;i<MAX_TRIES;i++){
-        const row=document.createElement('div');row.className='row';
-        for(let j=0;j<WORD_LENGTH;j++){
-          const tile=document.createElement('div');tile.className='tile';
-          tile.innerHTML=`<div class="tile-face tile-front"></div><div class="tile-face tile-back"></div>`;
-          row.appendChild(tile);
-        }
-        boardEl.appendChild(row);
-      }
+                let currentRowIndex = 0, currentTileIndex = 0, isGameOver = false;
+                let guessGrid = [], resultsGrid = [];
+                const keys = [['פ', 'ם', 'ן', 'ו', 'ט', 'א', 'ר', 'ק'], ['ף', 'ך', 'ל', 'ח', 'י', 'ע', 'כ', 'ג', 'ד', 'ש'], ['Backspace', 'ץ', 'ת', 'צ', 'מ', 'נ', 'ה', 'ב', 'ס', 'ז', 'Enter']];
+                
+                function setupBoardAndKeyboard() {
+                    guessGrid = Array(MAX_TRIES).fill(null).map(() => Array(WORD_LENGTH).fill(''));
+                    boardEl.innerHTML = '';
+                    for (let i = 0; i < MAX_TRIES; i++) {
+                        const row = document.createElement('div'); row.className = 'row';
+                        for (let j = 0; j < WORD_LENGTH; j++) {
+                            const tile = document.createElement('div'); tile.className = 'tile';
+                            tile.innerHTML = `<div class="tile-face tile-front"></div><div class="tile-face tile-back"></div>`;
+                            row.appendChild(tile);
+                        } boardEl.appendChild(row);
+                    }
+                    keyboardEl.innerHTML = '';
+                    keys.forEach(rowKeys => {
+                        const rowDiv = document.createElement('div'); rowDiv.className = 'keyboard-row';
+                        rowKeys.forEach(key => {
+                            const keyButton = document.createElement('button'); keyButton.className = 'key'; keyButton.dataset.key = key;
+                            if (key === 'Enter') { keyButton.textContent = 'אישור'; keyButton.classList.add('large'); }
+                            else if (key === 'Backspace') { keyButton.innerHTML = '&#9003;'; keyButton.classList.add('large'); }
+                            else { keyButton.textContent = key; }
+                            rowDiv.appendChild(keyButton);
+                        }); keyboardEl.appendChild(rowDiv);
+                    });
+                }
+                
+                function handleKeyPress(key) { if (isGameOver) return; if (key === 'Enter') submitGuess(); else if (key === 'Backspace') deleteLetter(); else if (keys.flat().includes(key)) addLetter(key); }
+                function addLetter(letter) { if (currentTileIndex < WORD_LENGTH) { const tile = boardEl.children[currentRowIndex].children[currentTileIndex]; tile.querySelector('.tile-front').textContent = letter; tile.classList.add('filled'); guessGrid[currentRowIndex][currentTileIndex] = letter; currentTileIndex++; } }
+                function deleteLetter() { if (currentTileIndex > 0) { currentTileIndex--; const tile = boardEl.children[currentRowIndex].children[currentTileIndex]; tile.querySelector('.tile-front').textContent = ''; tile.classList.remove('filled'); guessGrid[currentRowIndex][currentTileIndex] = ''; } }
+                function submitGuess() { if (currentTileIndex !== WORD_LENGTH) { showToast('לא מספיק אותיות'); shakeRow(); return; } const currentGuess = guessGrid[currentRowIndex].join(''); processFlip(currentGuess); }
+                
+                function processFlip(guess) { /* ... same logic as before ... */ const guessLettersNorm = [...normalizeWord(guess)]; const targetLettersNorm = [...targetWordNorm]; const letterCounts = targetLettersNorm.reduce((acc, l) => (acc[l] = (acc[l] || 0) + 1, acc), {}); const states = Array(WORD_LENGTH).fill(null); guessLettersNorm.forEach((l, i) => { if (targetLettersNorm[i] === l) { states[i] = 'correct'; letterCounts[l]--; } }); guessLettersNorm.forEach((l, i) => { if (states[i]) return; if ((letterCounts[l] || 0) > 0) { states[i] = 'present'; letterCounts[l]--; } else { states[i] = 'absent'; } }); resultsGrid.push(states); Array.from(boardEl.children[currentRowIndex].children).forEach((tile, idx) => { setTimeout(() => { const back = tile.querySelector('.tile-back'); back.textContent = tile.querySelector('.tile-front').textContent; back.classList.add(states[idx]); tile.classList.add('flip'); updateKeyboard([...guess][idx], states[idx]); }, idx * 250); }); setTimeout(() => checkGameOver(guess, states), WORD_LENGTH * 250 + 50); }
+                
+                function updateKeyboard(letter, state) { const pairLetter = (ch) => { const pairs = { "כ": "ך", "ך": "כ", "מ": "ם", "ם": "מ", "נ": "ן", "ן": "נ", "פ": "ף", "ף": "פ", "צ": "ץ", "ץ": "צ" }; return pairs[ch] || ch; }; const twin = pairLetter(letter);[letter, twin].forEach(ch => { const key = document.querySelector(`.key[data-key='${CSS.escape(ch)}']`); if (!key) return; const currentState = key.classList.contains('correct') ? 'correct' : key.classList.contains('present') ? 'present' : 'none'; if (state === 'correct') { key.classList.remove('present', 'absent'); key.classList.add('correct'); } else if (state === 'present' && currentState !== 'correct') { key.classList.add('present'); } else if (state === 'absent' && currentState === 'none') { key.classList.add('absent'); } }); }
+                
+                function checkGameOver(guess, states) {
+                    if (normalizeWord(guess) === targetWordNorm) {
+                        isGameOver = true;
+                        showToast('כל הכבוד!', 2000);
+                        setTimeout(() => {
+                           boardEl.children[currentRowIndex].classList.add('win-dance');
+                           triggerConfetti();
+                           showResultModal(true);
+                        }, 500);
+                    } else {
+                        currentRowIndex++;
+                        if (currentRowIndex >= MAX_TRIES) {
+                            isGameOver = true;
+                            boardEl.classList.add('lost');
+                            setTimeout(() => showResultModal(false), 800);
+                        } else {
+                            currentTileIndex = 0;
+                        }
+                    }
+                }
+                
+                function showResultModal(isWin) {
+                    shareResultsBtn.style.display = isWin ? 'block' : 'none';
+                    if (isWin) {
+                        modalTitleEl.innerHTML = 'ניצחת! 🏆';
+                        modalBodyEl.textContent = `מעולה! גילית את המילה בניסיון ה-${currentRowIndex + 1}.`;
+                    } else {
+                        modalTitleEl.innerHTML = 'אוי, חבל 😥';
+                        modalBodyEl.innerHTML = `לא נורא, זה היה אתגר קשה. המילה הנכונה הייתה: <strong style="color: var(--correct-bg-color); font-size: 1.2em;">${targetWordRaw}</strong>`;
+                    }
+                    modalOverlayEl.classList.add('show');
+                }
 
-      keyboardEl.innerHTML='';
-      keys.forEach(rowKeys=>{
-        const rowDiv=document.createElement('div');rowDiv.className='keyboard-row';
-        rowKeys.forEach(key=>{
-          const keyButton=document.createElement('button');keyButton.className='key';keyButton.dataset.key=key;
-          if(key==='Enter'){keyButton.textContent='אישור';keyButton.classList.add('large');}
-          else if(key==='Backspace'){keyButton.innerHTML='&#9003;';keyButton.classList.add('large');keyButton.setAttribute('aria-label','מחיקה');}
-          else{keyButton.textContent=key;}
-          rowDiv.appendChild(keyButton);
+                function generateShareableGrid() { let gridText = resultsGrid.map(rowStates => rowStates.map(state => { if (state === 'correct') return '🟩'; if (state === 'present') return '🟨'; return '⬛'; }).join('')).join('\n'); const attemptText = resultsGrid.length === MAX_TRIES && normalizeWord(guessGrid[MAX_TRIES-1].join('')) !== targetWordNorm ? 'X' : resultsGrid.length; return `ניחשתי את המילה! (${attemptText}/${MAX_TRIES})\n\n${gridText}\n\nרוצים לנסות? ${window.location.href.split('&')[0]}`; }
+                shareResultsBtn.addEventListener('click', () => copyToClipboard(generateShareableGrid(), 'תוצאות הניצחון הועתקו!'));
+                
+                function shakeRow() { const row = boardEl.children[currentRowIndex]; row.classList.add('shake'); row.addEventListener('animationend', () => row.classList.remove('shake'), { once: true }); }
+                function showToast(message, duration = 2000) { if(!toastEl) return; toastEl.textContent = message; toastEl.classList.add('show'); setTimeout(() => toastEl.classList.remove('show'), duration); }
+                async function copyToClipboard(text, message = 'הועתק ללוח!') { try { await navigator.clipboard.writeText(text); showToast(message); } catch (err) { showToast('שגיאה בהעתקה'); } }
+                function triggerConfetti() { myConfetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } }); }
+
+                keyboardEl.addEventListener('click', (e) => { const btn = e.target.closest('button.key'); if (!btn) return; handleKeyPress(btn.dataset.key); });
+                document.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleKeyPress('Enter'); else if (e.key === 'Backspace') handleKeyPress('Backspace'); else if (keys.flat().includes(e.key)) handleKeyPress(e.key); });
+                
+                document.getElementById('modal-new-game-btn').addEventListener('click', () => window.location.href = `${BIMAGICS_URL}?play=random`);
+                document.getElementById('modal-create-game-btn').addEventListener('click', () => window.location.href = BIMAGICS_URL);
+                
+                setupBoardAndKeyboard();
+            }
         });
-        keyboardEl.appendChild(rowDiv);
-      });
-
-      document.querySelectorAll('.key').forEach(k=>k.classList.remove('correct','present','absent'));
-      modalOverlayEl.classList.remove('show');
-      modalOverlayEl.setAttribute('aria-hidden','true');
-    }
-
-    function handleKeyPress(key){
-      if(isGameOver) return;
-      if(key==='Enter'){submitGuess();}
-      else if(key==='Backspace'){deleteLetter();}
-      else if(keys.flat().includes(key)){addLetter(key);}
-    }
-
-    function addLetter(letter){
-      if(currentTileIndex<WORD_LENGTH){
-        const tile=boardEl.children[currentRowIndex].children[currentTileIndex];
-        const front=tile.querySelector('.tile-front');
-        front.textContent=letter;
-        tile.classList.add('filled');
-        guessGrid[currentRowIndex][currentTileIndex]=letter;
-        currentTileIndex++;
-      }
-    }
-
-    function deleteLetter(){
-      if(currentTileIndex>0){
-        currentTileIndex--;
-        const tile=boardEl.children[currentRowIndex].children[currentTileIndex];
-        const front=tile.querySelector('.tile-front');
-        front.textContent='';
-        tile.classList.remove('filled');
-        guessGrid[currentRowIndex][currentTileIndex]='';
-      }
-    }
-
-    function submitGuess(){
-      if(currentTileIndex!==WORD_LENGTH){showToast('לא מספיק אותיות');shakeRow();return;}
-      const currentGuess=guessGrid[currentRowIndex].join('');
-      processFlip(currentGuess);
-    }
-
-    function processFlip(guess){
-      const rowTiles=boardEl.children[currentRowIndex].children;
-      const guessLetters=[...guess];
-      const guessLettersNorm=[...normalizeWord(guess)];
-      const targetLettersNorm=[...targetWordNorm];
-
-      const letterCounts=targetLettersNorm.reduce((acc,l)=>(acc[l]=(acc[l]||0)+1,acc),{});
-      const states=Array(WORD_LENGTH).fill(null);
-
-      guessLettersNorm.forEach((l,i)=>{
-        if(targetLettersNorm[i]===l){states[i]='correct';letterCounts[l]--;}
-      });
-      guessLettersNorm.forEach((l,i)=>{
-        if(states[i])return;
-        if((letterCounts[l]||0)>0){states[i]='present';letterCounts[l]--;}
-        else{states[i]='absent';}
-      });
-
-      Array.from(rowTiles).forEach((tile,idx)=>{
-        setTimeout(()=>{
-          const front=tile.querySelector('.tile-front');
-          const back =tile.querySelector('.tile-back');
-          back.textContent=front.textContent;
-          back.classList.add(states[idx]);
-          tile.classList.add('flip');
-          updateKeyboard(guessLetters[idx],states[idx]);
-        },idx*350);
-      });
-
-      setTimeout(()=>checkGameOver(guess,states),WORD_LENGTH*350+20);
-    }
-
-    function updateKeyboard(letter,state){
-      const twin=pairLetter(letter);
-      [letter,twin].forEach(ch=>{
-        const key=document.querySelector(`.key[data-key='${CSS.escape(ch)}']`);
-        if(!key) return;
-        const isCorrect=key.classList.contains('correct');
-        const isPresent=key.classList.contains('present');
-        if(state==='correct'){key.classList.remove('present','absent');key.classList.add('correct');}
-        else if(state==='present'&&!isCorrect){key.classList.remove('absent');key.classList.add('present');}
-        else if(state==='absent'&&!isCorrect&&!isPresent){key.classList.add('absent');}
-      });
-    }
-
-    function checkGameOver(guess){
-      if(normalizeWord(guess)===targetWordNorm){
-        showToast('כל הכבוד! הצלחת!',2000);
-        isGameOver=true;
-        setTimeout(()=>showResultModal(true),700);
-      }else{
-        currentRowIndex++;currentTileIndex=0;
-        if(currentRowIndex>=MAX_TRIES){
-          isGameOver=true;
-          setTimeout(()=>showResultModal(false),400);
-        }
-      }
-    }
-
-    function showResultModal(isWin){
-      if(isWin){
-        headerEl.classList.add('header-win');
-        modalTitleEl.textContent='ניצחת! 🏆';
-        modalBodyEl.textContent=`כל הכבוד! השם הוא: ${targetWord}`;
-      }else{
-        modalTitleEl.textContent='כמעט!';
-        modalBodyEl.textContent='לא נורא, תמיד אפשר לנסות שוב! לחצו "שחק שוב" וקדימה לסיבוב נוסף ✨';
-      }
-      modalOverlayEl.classList.add('show');
-      modalOverlayEl.setAttribute('aria-hidden','false');
-    }
-
-    function shakeRow(){
-      const row=boardEl.children[currentRowIndex];
-      row.classList.add('shake');
-      row.addEventListener('animationend',()=>row.classList.remove('shake'),{once:true});
-    }
-
-    function showToast(message,duration=1200){
-      toastEl.textContent=message;toastEl.classList.add('show');
-      setTimeout(()=>toastEl.classList.remove('show'),duration);
-    }
-
-    keyboardEl.addEventListener('click',(e)=>{
-      const btn=e.target.closest('button.key'); if(!btn) return;
-      handleKeyPress(btn.dataset.key);
-    });
-    document.addEventListener('keydown',(e)=>{
-      let k=e.key;
-      if(k==='Enter') handleKeyPress('Enter');
-      else if(k==='Backspace') handleKeyPress('Backspace');
-      else if(keys.flat().includes(k)) handleKeyPress(k);
-    });
-
-    modalButtonEl.addEventListener('click',initializeGame);
-
-    initializeGame();
-  });
-  </script>
+    </script>
 </body>
 </html>
