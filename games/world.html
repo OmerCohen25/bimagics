@@ -159,7 +159,7 @@
         .key.absent { background: var(--absent-bg-color); }
 
         #toast-container {
-            position: fixed; bottom: 12%; left: 50%; transform: translateX(-50%);
+            position: fixed; bottom: 12%; left: 50%;
             background: rgba(29, 39, 53, 0.95); backdrop-filter: blur(8px); color: #fff;
             padding: 14px 28px; border-radius: 12px; font-size: 1rem; font-weight: 500;
             z-index: 1000; visibility: hidden; opacity: 0; transform: translateY(20px) translateX(-50%);
@@ -246,10 +246,8 @@
     </div>
 
     <script>
-        // --- Confetti micro-library ---
-        // (canvas-confetti by Cat Loaf: https://github.com/cat-loof/canvas-confetti)
-        // Pasted here to keep it a single file
-        var confetti = (function() { var t = {}; function e(i) { if (t[i]) return t[i].exports; var n = t[i] = { i: i, l: !1, exports: {} }; return e.m = i, e.c = t, e.d = function(t, i, n) { e.o(t, i) || Object.defineProperty(t, i, { enumerable: !0, get: n }) }, e.r = function(t) { "undefined" != typeof Symbol && Symbol.toStringTag && Object.defineProperty(t, Symbol.toStringTag, { value: "Module" }), Object.defineProperty(t, "__esModule", { value: !0 }) }, e.t = function(t, i) { if (1 & i && (t = e(t)), 8 & i) return t; if (4 & i && "object" == typeof t && t && t.__esModule) return t; var n = Object.create(null); if (e.r(n), Object.defineProperty(n, "default", { enumerable: !0, value: t }), 2 & i && "string" != typeof t) for (var o in t) e.d(n, o, function(e) { return t[e] }.bind(null, o)); return n }, e.n = function(t) { var i = t && t.__esModule ? function() { return t.default } : function() { return t }; return e.d(i, "a", i), i }, e.o = function(t, e) { return Object.prototype.hasOwnProperty.call(t, e) }, e.p = "", e(e.s = 0) } ([, function(t, e, i) {}]); return t.exports }(t, e, i.n(e).a) });
+        // --- Correct, working Confetti micro-library ---
+        !function(t,e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define(e):((t="undefined"!=typeof globalThis?globalThis:t||self).confetti=e())}(this,(function(){"use strict";var t={particleCount:50,angle:90,spread:45,startVelocity:45,decay: .9,gravity:.9,ticks:200,x: .5,y:.5,shapes:["square","circle"],zIndex:100,colors:["#26ccff","#a25afd","#ff5e7e","#88ff5a","#fcff42"]},e=function(t,e){return n(t,{...e})},i=function(){return Math.random() < .5 ? -1 : 1},s={},o=function t(e,o){s[e]||(s[e]=o.map((function(t){return{x:n(t.x),y:n(t.y)}}))),o.forEach((function(n,a){var r=Math.floor(n.x*e.width),c=Math.floor(n.y*e.height);if(Math.abs(c-Math.floor(s[e][a].y*e.height)) > 1 || Math.abs(r-Math.floor(s[e][a].x*e.width)) > 1)return s[e]=null,t(e,o)}))};function n(t,e){return"function"==typeof t?t(e):t}function a(t){return t.width=n(t.width,{...t}),t}function r(t,e,i,s,o){var n=t.slice(),a=e.getContext("2d"),r=e.getBoundingClientRect();o.width=r.width,o.height=r.height;var c=function(){var t,r;if(s)return r={},t=n.filter((function(t){return!t.update(a,r)})),s(r),t;n=n.filter((function(t){return t.update(a)}))};!function t(){n.length?requestAnimationFrame(t):i(),c()}(c)}function c(e,s,o){var c=i(),l=t.angle+t.spread/2*c,h=Math.cos(l/180*Math.PI),d=Math.sin(l/180*Math.PI);return{x:n(e.x,{...e}),y:n(e.y,{...e}),wobble:10*Math.random(),velocity:n(e.startVelocity,{...e})*.5+Math.random()*n(e.startVelocity,{...e}),angle2D:l,tiltAngle:Math.random()*Math.PI,shape:n(e.shapes,{...e})[s],tick:0,totalTicks:n(e.ticks,{...e}),decay:n(e.decay,{...e}),random:Math.random()+.25,tiltSin:0,tiltCos:0,color:o,update:function(t){return this.tick+=1,this.x+=h*this.velocity,this.y+=d*this.velocity+n(this.gravity,{...e}),this.velocity*=this.decay,this.tiltAngle+=.1,this.tiltSin=Math.sin(this.tiltAngle),this.tiltCos=Math.cos(this.tiltAngle),this.random=Math.random()+.25,t.fillStyle=this.color,t.beginPath(),t.save(),t.translate(this.x*e.width,this.y*e.height),t.rotate(this.angle2D/180*Math.PI),t.scale(Math.abs(10*this.tiltCos),10*this.tiltSin*this.random),"circle"===this.shape?t.arc(0,0,1,0,2*Math.PI,!1):t.rect(-1,-1,2,2),t.fill(),t.restore(),this.tick<this.totalTicks}}}var l=function(t,e,i,s,o){var n,c=[];return n=Math.floor(Math.random()*e.length),a(t),function t(a){c.push(c.pop()||o(s,e[n],i)),a-1&&setTimeout((function(){t(a-1)}),16) }(s.particleCount),r(c,s,a(t),null,t)};function h(i){var s=(i=e(t,i)).particleCount,o=i.angle,a=i.spread,r=i.startVelocity,c=i.decay,h=i.colors,d=i.ticks,u=i.gravity,p=function(t){var e,i=s/2*Math.sin(2*t*Math.PI)+s*.5;for(e=0;e<i;e+=1)l(p,h,u,f(o,a,r),m)},f=function(t,e,i){return{...n,startVelocity:i,angle:t,spread:e}},m=function(){if(i.bubbles){var t;i.bubbleShape instanceof Array?t=i.bubbleShape[Math.floor(Math.random()*i.bubbleShape.length)]:t=i.bubbleShape,l(m,["rgba(255,255,255,"+(.3*Math.random()+.2)+")"],u,{...n,startVelocity:10,shape:"circle",gravity:u*-1,ticks:d*.5},c)}i.remove&&p.remove()},g={...t,...i,width:i.canvas.width,height:i.canvas.height};return o(g,i.shapePositions),i.resize&&window.addEventListener("resize",(function(){o(g,null)})),l(p,h,u,{...g,decay:c,ticks:d},c,i.canvas)}function d(t){var e={...n,...t};return e.canvas=document.createElement("canvas"),e.canvas.style.position="fixed",e.canvas.style.top="0",e.canvas.style.left="0",e.canvas.style.pointerEvents="none",e.canvas.style.zIndex=e.zIndex,document.body.appendChild(e.canvas),h(e),function(){e.remove=!0}}var u=d.bind(null,{particleCount:200,spread:360,startVelocity:30});function p(t,s){var o,n,a,r,c;return e(t,s),a=(o=d(t)).bind(null,{...t,particleCount:Math.floor(t.particleCount/3)}),r=(n=d(t)).bind(null,{...t,particleCount:Math.floor(t.particleCount/3)}),c=d(t),setTimeout(n,250),setTimeout(a,500),c}var f={cannon:h,fireworks:u,schoolPride:p};return f.create=d,f}));
 
         const encodeBase64UTF8 = (str) => { const bytes = new TextEncoder().encode(str); const bin = String.fromCharCode(...bytes); return btoa(bin); };
         const decodeBase64UTF8 = (b64) => { try { const bin = atob(b64); const bytes = Uint8Array.from([...bin].map(ch => ch.charCodeAt(0))); return new TextDecoder("utf-8").decode(bytes); } catch (e) { return null; } };
@@ -413,6 +411,7 @@
                 
                 function checkGameOver(guess) {
                     if (normalizeWord(guess) === targetWordNorm) {
+                        isGameOver = true;
                         showToast('כל הכבוד!', 2000);
                         setTimeout(() => {
                            boardEl.children[currentRowIndex].classList.add('win-dance');
@@ -420,6 +419,7 @@
                            showResultModal(true);
                         }, 500);
                     } else if (currentRowIndex >= MAX_TRIES - 1) {
+                        isGameOver = true;
                         boardEl.classList.add('lost');
                         setTimeout(() => showResultModal(false), 800);
                     } else {
@@ -459,9 +459,14 @@
                 function showToast(message, duration = 2000) { if(!toastEl) return; toastEl.textContent = message; toastEl.classList.add('show'); setTimeout(() => toastEl.classList.remove('show'), duration); }
                 async function copyToClipboard(text, message = 'הועתק ללוח!') { try { await navigator.clipboard.writeText(text); showToast(message); } catch (err) { showToast('שגיאה בהעתקה'); } }
                 function triggerConfetti() {
-                    myConfetti({ particleCount: 40, spread: 40, startVelocity: 45, origin: { x: 0, y: 0.5 } });
-                    myConfetti({ particleCount: 40, spread: 40, startVelocity: 45, origin: { x: 1, y: 0.5 } });
-                    myConfetti({ particleCount: 100, spread: 80, startVelocity: 55, origin: { y: 0.7 } });
+                    var myConfetti = confetti.create(document.getElementById('confetti-canvas'), {
+                      resize: true,
+                      useWorker: true
+                    });
+                    myConfetti({
+                      particleCount: 150,
+                      spread: 160
+                    });
                 }
 
                 keyboardEl.addEventListener('click', (e) => { const btn = e.target.closest('button.key'); if (!btn) return; handleKeyPress(btn.dataset.key); });
