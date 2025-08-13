@@ -10,25 +10,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
-        /* --- פלטת צבעים ומשתני עיצוב --- */
         :root {
             --font-main: 'Heebo', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            --word-length: 5; /* Default, will be updated by JS */
-
-            --bg-color: #FDFBFF; /* רקע כללי רך */
+            --word-length: 5;
+            --bg-color: #FDFBFF;
             --text-color: #312A2A;
             --border-color: #DCDDE1;
-            
-            --correct-bg-color: #6aaa64; /* ירוק נעים */
-            --present-bg-color: #c9b458; /* צהוב חרדל */
-            --absent-bg-color: #a4a8ab; /* אפור רך */
+            --correct-bg-color: #6aaa64;
+            --present-bg-color: #c9b458;
+            --absent-bg-color: #a4a8ab;
             --key-bg-color: #d3d6da;
-
             --tile-text-color: #ffffff;
             --modal-bg: rgba(0, 0, 0, 0.4);
             --container-shadow: 0px 8px 24px rgba(0, 0, 0, 0.08);
-            --tile-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
-            --key-shadow: 0px 2px 2px rgba(0,0,0,0.1);
         }
 
         html { box-sizing: border-box; }
@@ -36,29 +30,28 @@
 
         html, body { margin: 0; padding: 0; }
         body {
-            min-height: 100vh;
-            min-height: -webkit-fill-available; /* For mobile Safari */
             background: var(--bg-color);
             color: var(--text-color);
             font-family: var(--font-main);
             display: flex;
             align-items: center;
             justify-content: center;
-            -webkit-font-smoothing: antialiased;
-            touch-action: manipulation;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            padding: 10px;
         }
 
+        /* הסתרה ראשונית של הממשקים */
         #generator-container, #game-container { display: none; }
 
         /* --- עיצוב המחולל --- */
         #generator-container {
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            width: 100%; padding: 20px;
+            width: 100%;
+            max-width: 450px;
         }
         .generator-box {
             background: #fff; padding: clamp(2rem, 5vw, 3rem); border-radius: 20px;
-            box-shadow: var(--container-shadow); text-align: center;
-            max-width: 450px; width: 100%;
+            box-shadow: var(--container-shadow); text-align: center; width: 100%;
         }
         .generator-box h1 { margin-top: 0; font-weight: 700; font-size: clamp(1.8rem, 5vw, 2.2rem); }
         .generator-box p { color: #666; line-height: 1.7; font-size: clamp(1rem, 3vw, 1.1rem); margin-bottom: 2rem; }
@@ -73,8 +66,8 @@
             width: 100%; transition: all .2s ease;
         }
         #generateBtn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(106, 170, 100, 0.3); }
-        #result { margin-top: 2rem; visibility: hidden; opacity: 0; transition: all .3s ease; }
-        #result.show { visibility: visible; opacity: 1; }
+        #result { margin-top: 2rem; visibility: hidden; opacity: 0; transition: all .3s ease; max-height: 0; }
+        #result.show { visibility: visible; opacity: 1; max-height: 300px; }
         #shareLink {
             width: 100%; padding: 10px; font-size: 1rem; border: 1px solid var(--border-color);
             background-color: #f8f9fa; border-radius: 8px; margin-bottom: 1rem; direction: ltr; text-align: left;
@@ -89,12 +82,14 @@
         #goToLinkBtn { background: #4a90e2; }
         #copyBtn:hover, #goToLinkBtn:hover { transform: translateY(-2px); }
         #goToLinkBtn.disabled { opacity: 0.5; pointer-events: none; background: #a4a8ab; }
-
+        
         /* --- עיצוב המשחק --- */
         #game-container {
-            display: flex; flex-direction: column; justify-content: space-between;
-            height: 100vh; height: -webkit-fill-available;
-            width: 100%; max-width: 500px;
+            display: flex; flex-direction: column;
+            width: 100%;
+            height: 100%;
+            max-width: 500px;
+            max-height: 90vh; /* מניעת גלישה על מסכים גבוהים */
         }
         header {
             width: 100%; text-align: center; border-bottom: 1px solid var(--border-color);
@@ -115,7 +110,7 @@
         header.header-win #create-own-game-link { background: rgba(255,255,255,0.2); }
         
         #board-container { display: flex; justify-content: center; align-items: center; flex-grow: 1; width: 100%; padding: 1rem 0; perspective: 1000px; }
-        #board { display: grid; grid-template-rows: repeat(6, 1fr); grid-gap: 8px; width: clamp(280px, 90vw, 380px); max-height: 420px; }
+        #board { display: grid; grid-template-rows: repeat(6, 1fr); grid-gap: 8px; width: 100%; max-width: 380px; height: 100%; max-height: 420px; }
         .row { display: grid; grid-template-columns: repeat(var(--word-length), 1fr); grid-gap: 8px; }
         .tile { position: relative; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
         .tile.flip { transform: rotateX(180deg); }
@@ -127,10 +122,7 @@
         }
         .tile-front { border: 2px solid var(--border-color); color: var(--text-color); }
         .tile.filled .tile-front { border-color: #878a8c; animation: pop 0.1s ease-out; }
-        .tile-back {
-            transform: rotateX(180deg); color: var(--tile-text-color);
-            border: 2px solid transparent; box-shadow: var(--tile-shadow);
-        }
+        .tile-back { transform: rotateX(180deg); color: var(--tile-text-color); border: 2px solid transparent; }
         .tile-back.correct { background: var(--correct-bg-color); }
         .tile-back.present { background: var(--present-bg-color); }
         .tile-back.absent { background: var(--absent-bg-color); }
@@ -138,25 +130,21 @@
         .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(2px); } 30%, 50%, 70% { transform: translateX(-4px); } 40%, 60% { transform: translateX(4px); } }
 
-        #keyboard {
-            width: 100%; user-select: none; flex-shrink: 0;
-            padding: 0.5rem 0.5rem max(env(safe-area-inset-bottom), 0.5rem) 0.5rem;
-        }
-        .keyboard-row { display: flex; justify-content: center; margin: 0 auto; width: 100%; max-width: 500px; touch-action: manipulation; }
+        #keyboard { width: 100%; user-select: none; flex-shrink: 0; padding: 0.5rem; }
+        .keyboard-row { display: flex; justify-content: center; margin: 0 auto; width: 100%; touch-action: manipulation; }
         .key {
             font-family: inherit; font-weight: 500; border: 0;
             height: 54px; cursor: pointer; background: var(--key-bg-color); color: var(--text-color);
             flex-grow: 1; margin: 4px; border-radius: 6px;
             display: flex; justify-content: center; align-items: center;
-            font-size: clamp(1rem, 4vw, 1.4rem); -webkit-tap-highlight-color: rgba(0,0,0,0.2);
+            font-size: clamp(1rem, 3vw, 1.4rem); -webkit-tap-highlight-color: rgba(0,0,0,0.2);
             transition: all .1s ease-out;
         }
         .key:active { background: #b0b3b6; transform: scale(0.95); }
         .key.large { flex-grow: 1.5; font-size: 1rem; }
-        .key.correct, .key.present, .key.absent { color: var(--tile-text-color); border: 0; }
-        .key.correct { background: var(--correct-bg-color); }
-        .key.present { background: var(--present-bg-color); }
-        .key.absent { background: var(--absent-bg-color); }
+        .key.correct { background: var(--correct-bg-color); color: var(--tile-text-color); }
+        .key.present { background: var(--present-bg-color); color: var(--tile-text-color); }
+        .key.absent { background: var(--absent-bg-color); color: var(--tile-text-color); }
 
         #toast-container {
             position: fixed; top: 10%; left: 50%; transform: translateX(-50%);
@@ -165,8 +153,8 @@
             font-size: 1rem; font-weight: 500; z-index: 1000;
             visibility: hidden; opacity: 0; transition: all .4s cubic-bezier(0.25, 1, 0.5, 1);
         }
-        #toast-container.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
-
+        #toast-container.show { visibility: visible; opacity: 1; }
+        
         .modal-overlay {
             position: fixed; inset: 0; background: var(--modal-bg);
             display: flex; justify-content: center; align-items: center; z-index: 2000;
@@ -191,11 +179,10 @@
 
         /* התאמה למסך רחב (לרוחב) */
         @media (orientation: landscape) and (max-height: 500px) {
-            header { height: 48px; }
-            header h1 { font-size: 1.2rem; }
+            #game-container { flex-direction: row; align-items: center; justify-content: center; gap: 2rem; max-height: 100vh; }
+            header { display: none; } /* במצב צר אין מקום לכותרת */
+            #board-container { flex-grow: 0; }
             .key { height: 40px; margin: 3px; border-radius: 5px; }
-            #board-container { padding: 8px 0; }
-            #game-container { padding-bottom: 0; }
         }
     </style>
 </head>
@@ -205,7 +192,7 @@
         <div class="generator-box">
             <h1>יצירת משחק מילים</h1>
             <p>הכניסו מילה או שם בעברית, ותקבלו קישור ייחודי למשחק שתוכלו לשלוח לחברים!</p>
-            <input type="text" id="wordInput" placeholder="הקלידו כאן את המילה...">
+            <input type="text" id="wordInput" placeholder="הקלידו כאן את המילה..." autocomplete="off">
             <button id="generateBtn">צרו קישור למשחק 🚀</button>
             <div id="result">
                 <p>הקישור מוכן! שתפו אותו:</p>
@@ -253,7 +240,11 @@
 
                 const targetWordRaw = decodeBase64UTF8(encodedWord);
                 if (!targetWordRaw) {
-                    document.body.innerHTML = `<div class="generator-box" style="margin-top:50px;"><h1>שגיאה</h1><p>לא ניתן היה לפענח את המילה מהקישור.</p></div>`;
+                    const errorBox = document.createElement('div');
+                    errorBox.className = 'generator-box';
+                    errorBox.innerHTML = `<h1>שגיאה</h1><p>לא ניתן היה לפענח את המילה מהקישור. ודאו שהקישור הועתק במלואו.</p><a href="${BIMAGICS_URL}" style="text-decoration:none;"><button>חזרה למשחק</button></a>`;
+                    document.body.innerHTML = '';
+                    document.body.appendChild(errorBox);
                     return;
                 }
 
@@ -276,12 +267,12 @@
                 const modalBodyEl = document.getElementById('modal-body');
                 const modalButtonEl = document.getElementById('modal-button');
 
-                let currentRowIndex = 0, currentTileIndex = 0, isGameOver = false, guessGrid = [];
+                let currentRowIndex = 0, currentTileIndex = 0, isGameOver = false;
+                let guessGrid = [];
                 const keys = [['פ', 'ם', 'ן', 'ו', 'ט', 'א', 'ר', 'ק'], ['ף', 'ך', 'ל', 'ח', 'י', 'ע', 'כ', 'ג', 'ד', 'ש'], ['Backspace', 'ץ', 'ת', 'צ', 'מ', 'נ', 'ה', 'ב', 'ס', 'ז', 'Enter']];
                 const pairLetter = (ch) => { const pairs = { "כ": "ך", "ך": "כ", "מ": "ם", "ם": "מ", "נ": "ן", "ן": "נ", "פ": "ף", "ף": "פ", "צ": "ץ", "ץ": "צ" }; return pairs[ch] || ch; };
 
                 function initializeGame() {
-                    isGameOver = false; currentRowIndex = 0; currentTileIndex = 0;
                     guessGrid = Array(MAX_TRIES).fill(null).map(() => Array(WORD_LENGTH).fill(''));
                     boardEl.style.gridTemplateRows = `repeat(${MAX_TRIES}, 1fr)`;
                     headerEl.classList.remove('header-win');
@@ -306,7 +297,6 @@
                         }); keyboardEl.appendChild(rowDiv);
                     });
                     document.querySelectorAll('.key').forEach(k => k.classList.remove('correct', 'present', 'absent'));
-                    modalOverlayEl.classList.remove('show');
                 }
                 function handleKeyPress(key) { if (isGameOver) return; if (key === 'Enter') { submitGuess(); } else if (key === 'Backspace') { deleteLetter(); } else if (keys.flat().includes(key)) { addLetter(key); } }
                 function addLetter(letter) { if (currentTileIndex < WORD_LENGTH) { const tile = boardEl.children[currentRowIndex].children[currentTileIndex]; tile.querySelector('.tile-front').textContent = letter; tile.classList.add('filled'); guessGrid[currentRowIndex][currentTileIndex] = letter; currentTileIndex++; } }
@@ -329,7 +319,7 @@
             // --- מצב מחולל ---
             else {
                 document.getElementById('game-container').remove();
-                document.getElementById('generator-container').style.display = 'flex';
+                document.getElementById('generator-container').style.display = 'block';
                 
                 const wordInput = document.getElementById('wordInput');
                 const generateBtn = document.getElementById('generateBtn');
@@ -359,8 +349,13 @@
 
                 copyBtn.addEventListener('click', () => {
                     shareLinkInput.select();
-                    document.execCommand('copy');
-                    copyBtn.textContent = 'הועתק!';
+                    shareLinkInput.setSelectionRange(0, 99999); 
+                    try {
+                        document.execCommand('copy');
+                        copyBtn.textContent = 'הועתק!';
+                    } catch (err) {
+                        copyBtn.textContent = 'שגיאה';
+                    }
                     setTimeout(() => { copyBtn.textContent = 'העתקת הקישור'; }, 1500);
                 });
             }
