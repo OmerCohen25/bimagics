@@ -255,7 +255,7 @@
         const decodeBase64UTF8 = (b64) => { try { const bin = atob(b64); const bytes = Uint8Array.from([...bin].map(ch => ch.charCodeAt(0))); return new TextDecoder("utf-8").decode(bytes); } catch (e) { return null; } };
 
         document.addEventListener('DOMContentLoaded', () => {
-            const BIMAGICS_URL = "https://bimagics.com/games/Wordle/"; // Replace with your actual URL if hosting elsewhere
+            const BIMAGICS_URL = window.location.href.split('?')[0]; // Use current page URL as base
             const params = new URLSearchParams(window.location.search);
             const encodedWord = params.get('word');
             const playRandom = params.get('play') === 'random';
@@ -312,14 +312,17 @@
 
             function initializeGame() {
                 const targetWordRaw = decodeBase64UTF8(encodedWord);
-                if (!targetWordRaw) { /* Error handling */ return; }
+                if (!targetWordRaw) { 
+                    document.body.innerHTML = `<div class="menu-box"><h1>שגיאה</h1><p>הקישור לא תקין. לא ניתן היה לפענח את המילה.</p><a href="${BIMAGICS_URL}" style="text-decoration:none;"><button class="menu-btn">חזרה למשחק</button></a></div>`;
+                    return; 
+                }
 
                 const WORD_LENGTH = targetWordRaw.length;
                 const MAX_TRIES = WORD_LENGTH + 1;
                 document.documentElement.style.setProperty('--word-length', WORD_LENGTH);
                 document.documentElement.style.setProperty('--max-tries', MAX_TRIES);
 
-                const finalsMap = { "ך": "כ", "ם": "מ", "ן": "נ", "ף": "פ", "ץ": "צ", "כ": "כ", "מ": "מ", "נ": "נ", "פ": "פ", "צ": "צ" };
+                const finalsMap = { "ך": "כ", "ם": "מ", "ן": "נ", "ף": "פ", "ץ": "צ" };
                 const normalizeLetter = (ch) => finalsMap[ch] || ch;
                 const normalizeWord = (w) => [...w].map(normalizeLetter).join("");
                 const targetWordNorm = normalizeWord(targetWordRaw);
@@ -367,28 +370,62 @@
                 function deleteLetter() { if (currentTileIndex > 0) { currentTileIndex--; const tile = boardEl.children[currentRowIndex].children[currentTileIndex]; tile.querySelector('.tile-front').textContent = ''; tile.classList.remove('filled'); guessGrid[currentRowIndex][currentTileIndex] = ''; } }
                 function submitGuess() { if (currentTileIndex !== WORD_LENGTH) { showToast('לא מספיק אותיות'); shakeRow(); return; } const currentGuess = guessGrid[currentRowIndex].join(''); processFlip(currentGuess); }
                 
-                function processFlip(guess) { /* ... same logic as before ... */ const guessLettersNorm = [...normalizeWord(guess)]; const targetLettersNorm = [...targetWordNorm]; const letterCounts = targetLettersNorm.reduce((acc, l) => (acc[l] = (acc[l] || 0) + 1, acc), {}); const states = Array(WORD_LENGTH).fill(null); guessLettersNorm.forEach((l, i) => { if (targetLettersNorm[i] === l) { states[i] = 'correct'; letterCounts[l]--; } }); guessLettersNorm.forEach((l, i) => { if (states[i]) return; if ((letterCounts[l] || 0) > 0) { states[i] = 'present'; letterCounts[l]--; } else { states[i] = 'absent'; } }); resultsGrid.push(states); Array.from(boardEl.children[currentRowIndex].children).forEach((tile, idx) => { setTimeout(() => { const back = tile.querySelector('.tile-back'); back.textContent = tile.querySelector('.tile-front').textContent; back.classList.add(states[idx]); tile.classList.add('flip'); updateKeyboard([...guess][idx], states[idx]); }, idx * 250); }); setTimeout(() => checkGameOver(guess, states), WORD_LENGTH * 250 + 50); }
+                function processFlip(guess) {
+                    isGameOver = true; // Prevent input during flip
+                    const guessLettersNorm = [...normalizeWord(guess)];
+                    const targetLettersNorm = [...targetWordNorm];
+                    const letterCounts = targetLettersNorm.reduce((acc, l) => (acc[l] = (acc[l] || 0) + 1, acc), {});
+                    const states = Array(WORD_LENGTH).fill('absent');
+                    
+                    // First pass for 'correct'
+                    guessLettersNorm.forEach((l, i) => {
+                        if (targetLettersNorm[i] === l) {
+                            states[i] = 'correct';
+                            letterCounts[l]--;
+                        }
+                    });
+
+                    // Second pass for 'present'
+                    guessLettersNorm.forEach((l, i) => {
+                        if (states[i] !== 'correct' && (letterCounts[l] || 0) > 0) {
+                            states[i] = 'present';
+                            letterCounts[l]--;
+                        }
+                    });
+                    
+                    resultsGrid.push(states);
+                    Array.from(boardEl.children[currentRowIndex].children).forEach((tile, idx) => {
+                        setTimeout(() => {
+                            const back = tile.querySelector('.tile-back');
+                            back.textContent = tile.querySelector('.tile-front').textContent;
+                            back.classList.add(states[idx]);
+                            tile.classList.add('flip');
+                            updateKeyboard([...guess][idx], states[idx]);
+                        }, idx * 250);
+                    });
+
+                    setTimeout(() => {
+                        checkGameOver(guess);
+                    }, WORD_LENGTH * 250 + 50);
+                }
                 
                 function updateKeyboard(letter, state) { const pairLetter = (ch) => { const pairs = { "כ": "ך", "ך": "כ", "מ": "ם", "ם": "מ", "נ": "ן", "ן": "נ", "פ": "ף", "ף": "פ", "צ": "ץ", "ץ": "צ" }; return pairs[ch] || ch; }; const twin = pairLetter(letter);[letter, twin].forEach(ch => { const key = document.querySelector(`.key[data-key='${CSS.escape(ch)}']`); if (!key) return; const currentState = key.classList.contains('correct') ? 'correct' : key.classList.contains('present') ? 'present' : 'none'; if (state === 'correct') { key.classList.remove('present', 'absent'); key.classList.add('correct'); } else if (state === 'present' && currentState !== 'correct') { key.classList.add('present'); } else if (state === 'absent' && currentState === 'none') { key.classList.add('absent'); } }); }
                 
-                function checkGameOver(guess, states) {
+                function checkGameOver(guess) {
                     if (normalizeWord(guess) === targetWordNorm) {
-                        isGameOver = true;
                         showToast('כל הכבוד!', 2000);
                         setTimeout(() => {
                            boardEl.children[currentRowIndex].classList.add('win-dance');
                            triggerConfetti();
                            showResultModal(true);
                         }, 500);
+                    } else if (currentRowIndex >= MAX_TRIES - 1) {
+                        boardEl.classList.add('lost');
+                        setTimeout(() => showResultModal(false), 800);
                     } else {
                         currentRowIndex++;
-                        if (currentRowIndex >= MAX_TRIES) {
-                            isGameOver = true;
-                            boardEl.classList.add('lost');
-                            setTimeout(() => showResultModal(false), 800);
-                        } else {
-                            currentTileIndex = 0;
-                        }
+                        currentTileIndex = 0;
+                        isGameOver = false; // Allow input for next row
                     }
                 }
                 
@@ -404,16 +441,36 @@
                     modalOverlayEl.classList.add('show');
                 }
 
-                function generateShareableGrid() { let gridText = resultsGrid.map(rowStates => rowStates.map(state => { if (state === 'correct') return '🟩'; if (state === 'present') return '🟨'; return '⬛'; }).join('')).join('\n'); const attemptText = resultsGrid.length === MAX_TRIES && normalizeWord(guessGrid[MAX_TRIES-1].join('')) !== targetWordNorm ? 'X' : resultsGrid.length; return `ניחשתי את המילה! (${attemptText}/${MAX_TRIES})\n\n${gridText}\n\nרוצים לנסות? ${window.location.href.split('&')[0]}`; }
+                function generateShareableGrid() {
+                    const lastGuessCorrect = normalizeWord(guessGrid[resultsGrid.length - 1].join('')) === targetWordNorm;
+                    const attemptText = lastGuessCorrect ? resultsGrid.length : 'X';
+                    let gridText = resultsGrid.map(rowStates => rowStates.map(state => {
+                        if (state === 'correct') return '🟩';
+                        if (state === 'present') return '🟨';
+                        return '⬛';
+                    }).join('')).join('\n');
+                    
+                    const shareUrl = window.location.href.replace(/&?play=random/,'').split('&')[0];
+                    return `שיחקתי מילה ביום! (${attemptText}/${MAX_TRIES})\n\n${gridText}\n\nרוצים לשחק גם? ${shareUrl}`;
+                }
                 shareResultsBtn.addEventListener('click', () => copyToClipboard(generateShareableGrid(), 'תוצאות הניצחון הועתקו!'));
                 
                 function shakeRow() { const row = boardEl.children[currentRowIndex]; row.classList.add('shake'); row.addEventListener('animationend', () => row.classList.remove('shake'), { once: true }); }
                 function showToast(message, duration = 2000) { if(!toastEl) return; toastEl.textContent = message; toastEl.classList.add('show'); setTimeout(() => toastEl.classList.remove('show'), duration); }
                 async function copyToClipboard(text, message = 'הועתק ללוח!') { try { await navigator.clipboard.writeText(text); showToast(message); } catch (err) { showToast('שגיאה בהעתקה'); } }
-                function triggerConfetti() { myConfetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } }); }
+                function triggerConfetti() {
+                    myConfetti({ particleCount: 40, spread: 40, startVelocity: 45, origin: { x: 0, y: 0.5 } });
+                    myConfetti({ particleCount: 40, spread: 40, startVelocity: 45, origin: { x: 1, y: 0.5 } });
+                    myConfetti({ particleCount: 100, spread: 80, startVelocity: 55, origin: { y: 0.7 } });
+                }
 
                 keyboardEl.addEventListener('click', (e) => { const btn = e.target.closest('button.key'); if (!btn) return; handleKeyPress(btn.dataset.key); });
-                document.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleKeyPress('Enter'); else if (e.key === 'Backspace') handleKeyPress('Backspace'); else if (keys.flat().includes(e.key)) handleKeyPress(e.key); });
+                document.addEventListener('keydown', (e) => {
+                    if (modalOverlayEl.classList.contains('show')) return;
+                    if (e.key === 'Enter') handleKeyPress('Enter');
+                    else if (e.key === 'Backspace') handleKeyPress('Backspace');
+                    else if (keys.flat().includes(e.key)) handleKeyPress(e.key);
+                });
                 
                 document.getElementById('modal-new-game-btn').addEventListener('click', () => window.location.href = `${BIMAGICS_URL}?play=random`);
                 document.getElementById('modal-create-game-btn').addEventListener('click', () => window.location.href = BIMAGICS_URL);
