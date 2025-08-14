@@ -175,21 +175,76 @@
             z-index: 999;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        .search-container { max-width: 700px; margin: 0 auto 25px auto; }
+        .search-container { max-width: 700px; margin: 0 auto 20px auto; }
         #search-input {
             width: 100%; padding: 15px; font-size: 1.1em;
             border: 1px solid var(--border-color); border-radius: 25px;
             box-sizing: border-box; transition: box-shadow 0.3s;
         }
         #search-input:focus { outline: none; box-shadow: 0 0 0 3px rgba(10, 147, 150, 0.3); }
-        .category-filters-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-        .category-btn {
-            padding: 8px 18px; font-size: 1em; font-weight: 600;
-            border: 1px solid transparent; border-radius: 20px; cursor: pointer;
-            background-color: #fff; color: var(--primary-color); transition: all 0.3s;
+
+        /* START: NEW CSS FOR CATEGORY DROPDOWN */
+        .filters-dropdown {
+            position: relative;
+            margin: 0 auto;
+            max-width: 700px;
         }
-        .category-btn:hover { background-color: var(--secondary-color); color: white; }
-        .category-btn.active { background-color: var(--primary-color); color: white; }
+        #category-filter-toggle {
+            width: 100%;
+            padding: 12px 20px;
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: 600;
+            color: var(--primary-color);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-align: right;
+            transition: all 0.3s;
+        }
+        #category-filter-toggle .bi {
+            transition: transform 0.3s ease;
+        }
+        /* JavaScript will need to add the 'open' class to rotate the icon */
+        #category-filter-toggle.open .bi {
+            transform: rotate(180deg);
+        }
+        .category-filters-container {
+            /* Hide by default on mobile, JS will toggle this */
+            display: none;
+            position: absolute;
+            top: calc(100% + 5px);
+            right: 0;
+            width: 100%;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            z-index: 100;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+        }
+        /* JavaScript will need to add the 'open' class to show the list */
+        .category-filters-container.open {
+            display: block;
+        }
+        .category-filters-container .category-btn {
+            /* Style buttons as a list inside the dropdown */
+            display: block;
+            width: 100%;
+            text-align: right;
+            border-radius: 0;
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 20px;
+            margin: 0; /* Reset margin */
+        }
+        .category-filters-container .category-btn:last-child {
+            border-bottom: none;
+        }
+        /* END: NEW CSS FOR CATEGORY DROPDOWN */
 
         /* --- Product Catalog --- */
         #catalog { padding: 40px 0; }
@@ -199,14 +254,14 @@
         .swiper-container { width: 100%; min-height: 450px; overflow: hidden; }
         .swiper-slide {
             box-sizing: border-box;
-            padding: 0 10px; /* Spacing between slides */
-            height: auto; /* Allow swiper to calculate height */
+            padding: 0 10px;
+            height: auto;
         }
         .product-card {
             background-color: var(--card-bg); border-radius: 12px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             overflow: hidden; display: flex; flex-direction: column;
-            height: 100%; /* Ensure cards have same height in a row */
+            height: 100%;
             transition: box-shadow 0.3s ease;
         }
         .product-image-container { 
@@ -268,6 +323,47 @@
             .hero h1 { font-size: 3em; }
             .hero p { font-size: 1.3em; }
             .whatsapp-btn-header span { display: inline; }
+            
+            /* START: DESKTOP OVERRIDES FOR FILTERS */
+            #category-filter-toggle {
+                display: none;
+            }
+            .filters-dropdown {
+                max-width: none;
+            }
+            .category-filters-container {
+                display: flex !important; /* Override JS/inline styles if needed */
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+                position: static;
+                box-shadow: none;
+                border: none;
+                background-color: transparent;
+                max-height: none;
+                overflow-y: visible;
+            }
+            .category-filters-container .category-btn {
+                display: inline-block;
+                width: auto;
+                padding: 8px 18px;
+                font-size: 1em;
+                font-weight: 600;
+                border: 1px solid transparent;
+                border-radius: 20px;
+                cursor: pointer;
+                background-color: #fff;
+                color: var(--primary-color);
+                transition: all 0.3s;
+                border-bottom: none; /* Override mobile list style */
+            }
+            .category-filters-container .category-btn:hover {
+                 background-color: var(--secondary-color); color: white;
+            }
+             .category-filters-container .category-btn.active {
+                 background-color: var(--primary-color); color: white;
+            }
+            /* END: DESKTOP OVERRIDES FOR FILTERS */
         }
         @media (min-width: 1024px) {
             .hero h1 { font-size: 3.5em; }
@@ -310,16 +406,24 @@
             <h1>פתרונות צריכה מתקדמים לעסק שלך</h1>
             <p>שיווק והפצה של מגוון רחב של מוצרי צריכה איכותיים לספקים, מסעדות, חנויות ומוסדות.</p>
         </section>
-
+        
         <section class="filters-section">
             <div class="container">
                 <div class="search-container">
                     <input type="search" id="search-input" placeholder="חפשו שם מוצר, מק״ט או תיאור...">
                 </div>
-                <div id="category-filters" class="category-filters-container"></div>
+                
+                <div class="filters-dropdown">
+                    <button id="category-filter-toggle">
+                        <span id="category-filter-label">סנן לפי קטגוריה</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <div id="category-filters" class="category-filters-container">
+                        </div>
+                </div>
+
             </div>
         </section>
-
         <section id="catalog" class="container">
             <h2 id="catalog-title">קטלוג המוצרים</h2>
             <div class="swiper-container">
