@@ -1,4 +1,3 @@
-<script>
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- State and DOM Elements ---
@@ -13,29 +12,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Main Function to Load and Render Everything ---
     async function initializeCatalog() {
         try {
-            // הוספת פרמטר ייחודי למניעת שמירה במטמון (cache) של הדפדפן
+            // Adding a unique parameter to prevent browser caching issues
             const response = await fetch(`products.json?v=${new Date().getTime()}`);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             allProducts = await response.json();
             
             if (allProducts.length > 0) {
-                placeholder.remove(); // הסרת הודעת הטעינה
+                if (placeholder) placeholder.remove(); // Remove loading message
                 renderCategories(allProducts);
                 renderProducts(allProducts);
             } else {
-                placeholder.innerHTML = '<p>לא נמצאו מוצרים בקטלוג.</p>';
+                if (placeholder) placeholder.innerHTML = '<p>לא נמצאו מוצרים בקטלוג.</p>';
             }
 
         } catch (error) {
             console.error("Could not load or render products:", error);
-            placeholder.innerHTML = '<p style="color: red;">שגיאה בטעינת הקטלוג.</p>';
+            if (placeholder) placeholder.innerHTML = '<p style="color: red;">שגיאה בטעינת הקטלוג.</p>';
         }
     }
 
     // --- Rendering Functions ---
     function renderCategories(products) {
         const categories = ['הכל', ...new Set(products.map(p => p.category).filter(Boolean))];
-        categoryFiltersContainer.innerHTML = ''; // ניקוי פילטרים קיימים
+        categoryFiltersContainer.innerHTML = ''; // Clear existing filters
         
         categories.forEach(category => {
             const btn = document.createElement('button');
@@ -49,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderProducts(productsToRender) {
-        productGrid.innerHTML = ''; // ניקוי הגריד לפני רינדור מחדש
+        productGrid.innerHTML = ''; // Clear the grid before re-rendering
         
         if (productsToRender.length === 0) {
             productGrid.innerHTML = '<p style="text-align:center; padding: 20px; width: 100%;">לא נמצאו מוצרים התואמים לחיפוש.</p>';
@@ -63,8 +62,10 @@ document.addEventListener('DOMContentLoaded', () => {
             cardClone.querySelector('.product-name').textContent = product.name;
             cardClone.querySelector('.product-sku').textContent = `מק״ט: ${product.sku || 'N/A'}`;
             cardClone.querySelector('.product-description').textContent = product.description || '';
-            cardClone.querySelector('.product-image').src = product.imageUrl;
-            cardClone.querySelector('.product-image').alt = product.name;
+            
+            const imgElement = cardClone.querySelector('.product-image');
+            imgElement.src = product.imageUrl;
+            imgElement.alt = product.name;
             
             productGrid.appendChild(cardClone);
         });
@@ -102,14 +103,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const activeBtn = Array.from(document.querySelectorAll('.category-btn')).find(b => b.textContent === category);
         if (activeBtn) activeBtn.classList.add('active');
         
-        searchInput.value = ''; // ניקוי החיפוש בעת לחיצה על קטגוריה
+        searchInput.value = ''; // Clear search when a category is clicked
         const productsToRender = category === 'הכל' ? allProducts : allProducts.filter(p => p.category === category);
         renderProducts(productsToRender);
     }
     
     function handleSearch() {
         const searchTerm = searchInput.value.toLowerCase().trim();
-        // באירוע חיפוש, נסמן את קטגוריית 'הכל' כפעילה
+        // When searching, 'All' category should be active
         document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
         const allButton = Array.from(document.querySelectorAll('.category-btn')).find(b => b.textContent === 'הכל');
         if (allButton) allButton.classList.add('active');
@@ -128,17 +129,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const mobileNav = document.querySelector('.mobile-nav');
         const closeNavBtn = document.querySelector('.close-nav-btn');
         const navOverlay = document.querySelector('.nav-overlay');
-        const navLinks = document.querySelectorAll('.mobile-nav a');
+        const navLinks = document.querySelectorAll('.mobile-nav a, .main-nav a');
 
         const toggleNav = () => {
             mobileNav.classList.toggle('active');
             navOverlay.classList.toggle('active');
         };
 
-        mobileNavToggle.addEventListener('click', toggleNav);
-        closeNavBtn.addEventListener('click', toggleNav);
-        navOverlay.addEventListener('click', toggleNav);
-        navLinks.forEach(link => link.addEventListener('click', toggleNav));
+        if (mobileNavToggle) mobileNavToggle.addEventListener('click', toggleNav);
+        if(closeNavBtn) closeNavBtn.addEventListener('click', toggleNav);
+        if(navOverlay) navOverlay.addEventListener('click', toggleNav);
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const targetId = link.getAttribute('href');
+                if (targetId && targetId.startsWith('#')) {
+                    e.preventDefault();
+                    document.querySelector(targetId)?.scrollIntoView({ behavior: 'smooth' });
+                    if (mobileNav.classList.contains('active')) {
+                        toggleNav();
+                    }
+                }
+            });
+        });
     }
     
     // --- Initial Setup ---
@@ -146,4 +158,3 @@ document.addEventListener('DOMContentLoaded', () => {
     setupMobileNav();
     initializeCatalog();
 });
-</script>
