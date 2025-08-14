@@ -1,40 +1,54 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- State and DOM Elements ---
-    let allProducts = [];
-    let swiper;
+    // --- DOM Elements ---
     const productGrid = document.getElementById('product-grid');
     const searchInput = document.getElementById('search-input');
     const categoryFiltersContainer = document.getElementById('category-filters');
     const cardTemplate = document.getElementById('product-card-template');
     const placeholder = document.getElementById('catalog-placeholder');
+    const catalogTitle = document.getElementById('catalog-title');
+    
+    // New elements for the dropdown functionality
+    const categoryFilterToggle = document.getElementById('category-filter-toggle');
+    const categoryFilterLabel = document.getElementById('category-filter-label');
 
-    // --- Main Function to Load and Render Everything ---
-    async function initializeCatalog() {
+    // State variables
+    let allProducts = [];
+    let swiper;
+
+    // --- Main Initialization ---
+    async function initializeApp() {
+        setupEventListeners();
+        setupMobileNav();
+        await loadProducts();
+        updateFooter();
+    }
+
+    async function loadProducts() {
         try {
-            // Adding a unique parameter to prevent browser caching issues
+            // Fetch products with cache-busting parameter
             const response = await fetch(`products.json?v=${new Date().getTime()}`);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
             allProducts = await response.json();
             
             if (allProducts.length > 0) {
-                if (placeholder) placeholder.remove(); // Remove loading message
+                if (placeholder) placeholder.style.display = 'none';
                 renderCategories(allProducts);
-                renderProducts(allProducts);
+                filterAndRender(); // Initial render of all products
             } else {
                 if (placeholder) placeholder.innerHTML = '<p>לא נמצאו מוצרים בקטלוג.</p>';
             }
-
         } catch (error) {
-            console.error("Could not load or render products:", error);
-            if (placeholder) placeholder.innerHTML = '<p style="color: red;">שגיאה בטעינת הקטלוג.</p>';
+            console.error("Could not load products:", error);
+            if (placeholder) placeholder.innerHTML = '<p style="color: red;">שגיאה בטעינת הקטלוג. נסו לרענן את הדף.</p>';
         }
     }
 
-    // --- Rendering Functions ---
+    // --- Rendering and UI Updates ---
     function renderCategories(products) {
-        const categories = ['הכל', ...new Set(products.map(p => p.category).filter(Boolean))];
-        categoryFiltersContainer.innerHTML = ''; // Clear existing filters
+        const categories = ['הכל', ...new Set(products.map(p => p.category).filter(Boolean).sort())];
+        categoryFiltersContainer.innerHTML = '';
         
         categories.forEach(category => {
             const btn = document.createElement('button');
@@ -42,16 +56,16 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.textContent = category;
             if (category === 'הכל') btn.classList.add('active');
             
-            btn.addEventListener('click', () => handleFilter(category));
+            btn.addEventListener('click', () => handleCategoryClick(category));
             categoryFiltersContainer.appendChild(btn);
         });
     }
 
     function renderProducts(productsToRender) {
-        productGrid.innerHTML = ''; // Clear the grid before re-rendering
+        productGrid.innerHTML = '';
         
         if (productsToRender.length === 0) {
-            productGrid.innerHTML = '<p style="text-align:center; padding: 20px; width: 100%;">לא נמצאו מוצרים התואמים לחיפוש.</p>';
+            productGrid.innerHTML = '<p style="text-align:center; padding: 20px; width: 100%;">לא נמצאו מוצרים התואמים לסינון.</p>';
             destroySwiper();
             return;
         }
@@ -73,7 +87,62 @@ document.addEventListener('DOMContentLoaded', () => {
         initOrUpdateSwiper();
     }
 
-    // --- Swiper (Slider) Initialization ---
+    // --- Unified Filtering Logic ---
+    function filterAndRender() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const activeCategory = document.querySelector('#category-filters .category-btn.active').textContent;
+
+        const filteredProducts = allProducts.filter(p => {
+            const matchesCategory = (activeCategory === 'הכל' || p.category === activeCategory);
+            const matchesSearch = !searchTerm || 
+                (p.name && p.name.toLowerCase().includes(searchTerm)) ||
+                (p.sku && p.sku.toLowerCase().includes(searchTerm)) ||
+                (p.description && p.description.toLowerCase().includes(searchTerm));
+            
+            return matchesCategory && matchesSearch;
+        });
+
+        renderProducts(filteredProducts);
+        updateUITexts(activeCategory, searchTerm);
+    }
+    
+    function updateUITexts(category, searchTerm) {
+        if (catalogTitle) {
+            if (searchTerm) {
+                catalogTitle.textContent = `תוצאות חיפוש עבור "${searchTerm}"`;
+            } else if (category !== 'הכל') {
+                catalogTitle.textContent = `קטלוג המוצרים: ${category}`;
+            } else {
+                catalogTitle.textContent = 'קטלוג המוצרים';
+            }
+        }
+    }
+
+    // --- Event Handlers ---
+    function handleCategoryClick(category) {
+        // Update active button
+        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+        const activeBtn = Array.from(document.querySelectorAll('.category-btn')).find(b => b.textContent === category);
+        if (activeBtn) activeBtn.classList.add('active');
+        
+        // Clear search input for a cleaner experience
+        searchInput.value = '';
+
+        // On mobile, update label and close dropdown
+        if (window.innerWidth < 768) {
+            categoryFilterLabel.textContent = category === 'הכל' ? 'סינון לפי קטגוריה' : `קטגוריה: ${category}`;
+            closeDropdown();
+        }
+
+        filterAndRender();
+    }
+    
+    function closeDropdown() {
+        categoryFilterToggle.classList.remove('open');
+        categoryFiltersContainer.classList.remove('open');
+    }
+
+    // --- Swiper (Slider) Functions ---
     function initOrUpdateSwiper() {
         destroySwiper();
         swiper = new Swiper('.swiper-container', {
@@ -81,11 +150,13 @@ document.addEventListener('DOMContentLoaded', () => {
             spaceBetween: 20,
             pagination: { el: '.swiper-pagination', clickable: true },
             navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+            slidesPerView: 1.2,
+            centeredSlides: true,
             breakpoints: {
-                320: { slidesPerView: 1, spaceBetween: 10 },
-                768: { slidesPerView: 2, spaceBetween: 20 },
-                1024: { slidesPerView: 3, spaceBetween: 20 },
-                1300: { slidesPerView: 4, spaceBetween: 25 },
+                640: { slidesPerView: 2, spaceBetween: 20, centeredSlides: false },
+                768: { slidesPerView: 3 },
+                1024: { slidesPerView: 4 },
+                1300: { slidesPerView: 5 },
             }
         });
     }
@@ -97,39 +168,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Event Handlers ---
-    function handleFilter(category) {
-        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-        const activeBtn = Array.from(document.querySelectorAll('.category-btn')).find(b => b.textContent === category);
-        if (activeBtn) activeBtn.classList.add('active');
-        
-        searchInput.value = ''; // Clear search when a category is clicked
-        const productsToRender = category === 'הכל' ? allProducts : allProducts.filter(p => p.category === category);
-        renderProducts(productsToRender);
-    }
-    
-    function handleSearch() {
-        const searchTerm = searchInput.value.toLowerCase().trim();
-        // When searching, 'All' category should be active
-        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-        const allButton = Array.from(document.querySelectorAll('.category-btn')).find(b => b.textContent === 'הכל');
-        if (allButton) allButton.classList.add('active');
-
-        const filteredProducts = allProducts.filter(p => 
-            (p.name && p.name.toLowerCase().includes(searchTerm)) ||
-            (p.sku && p.sku.toLowerCase().includes(searchTerm)) ||
-            (p.description && p.description.toLowerCase().includes(searchTerm))
-        );
-        renderProducts(filteredProducts);
-    }
-
-    // --- Mobile Navigation Logic ---
+    // --- Mobile Navigation Setup ---
     function setupMobileNav() {
         const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
         const mobileNav = document.querySelector('.mobile-nav');
         const closeNavBtn = document.querySelector('.close-nav-btn');
         const navOverlay = document.querySelector('.nav-overlay');
-        const navLinks = document.querySelectorAll('.mobile-nav a, .main-nav a');
 
         const toggleNav = () => {
             mobileNav.classList.toggle('active');
@@ -137,24 +181,44 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         if (mobileNavToggle) mobileNavToggle.addEventListener('click', toggleNav);
-        if(closeNavBtn) closeNavBtn.addEventListener('click', toggleNav);
-        if(navOverlay) navOverlay.addEventListener('click', toggleNav);
-        navLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                const targetId = link.getAttribute('href');
-                if (targetId && targetId.startsWith('#')) {
-                    e.preventDefault();
-                    document.querySelector(targetId)?.scrollIntoView({ behavior: 'smooth' });
-                    if (mobileNav.classList.contains('active')) {
-                        toggleNav();
-                    }
-                }
-            });
-        });
+        if (closeNavBtn) closeNavBtn.addEventListener('click', toggleNav);
+        if (navOverlay) navOverlay.addEventListener('click', toggleNav);
     }
     
-    // --- Initial Setup ---
-    searchInput.addEventListener('input', handleSearch);
-    setupMobileNav();
-    initializeCatalog();
+    // --- General Event Listeners Setup ---
+    function setupEventListeners() {
+        // Search functionality
+        searchInput.addEventListener('input', () => {
+            // When user types, reset category to 'All' visually
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            const allButton = Array.from(document.querySelectorAll('.category-btn')).find(b => b.textContent === 'הכל');
+            if (allButton) allButton.classList.add('active');
+            filterAndRender();
+        });
+
+        // Dropdown toggle logic
+        categoryFilterToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            categoryFilterToggle.classList.toggle('open');
+            categoryFiltersContainer.classList.toggle('open');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!categoryFilterToggle.contains(e.target) && !categoryFiltersContainer.contains(e.target)) {
+                closeDropdown();
+            }
+        });
+    }
+
+    // --- Footer Update ---
+    function updateFooter() {
+        const footer = document.querySelector('.site-footer p');
+        if (footer) {
+            footer.innerHTML = `&copy; ${new Date().getFullYear()} כל הזכויות שמורות | אבינועם נעים - א.נ טורקיז שיווק בע"מ`;
+        }
+    }
+
+    // --- Start the application ---
+    initializeApp();
 });
