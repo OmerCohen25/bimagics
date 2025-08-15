@@ -125,7 +125,6 @@
         .category-btn:hover { background-color: var(--secondary-color); color: white; border-color: var(--secondary-color); }
         .category-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
 
-        /* --- NEW: Product Feed Layout --- */
         #catalog { padding: 50px 0; }
         #catalog-title { text-align: center; margin-bottom: 40px; font-size: 2.2em; }
         .product-feed-container {
@@ -148,7 +147,6 @@
         .product-info .sku { font-weight: 700; color: var(--secondary-color); display: block; margin-bottom: 15px; font-size: 1em; }
         #catalog-feedback { text-align: center; padding: 40px; font-size: 1.2em; width: 100%; grid-column: 1 / -1; }
 
-        /* --- NEW: Loader Animation --- */
         .loader-container { display: flex; justify-content: center; align-items: center; min-height: 300px; width: 100%; grid-column: 1 / -1; }
         .loader { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
         
@@ -300,11 +298,13 @@
 
             async function loadProducts() {
                 catalogLoader.style.display = 'flex';
-                catalogFeedback.style.display = 'none';
+                catalogFeedback.innerHTML = '';
                 try {
-                    // Use the categorized JSON file you created
-                    const response = await fetch(`products_categorized.json?v=${new Date().getTime()}`);
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    // This will fetch the JSON file. Ensure it's in the same directory.
+                    const response = await fetch('products.json?v=' + new Date().getTime());
+                    if (!response.ok) {
+                        throw new Error(`שגיאה בטעינת הקובץ: ${response.status} ${response.statusText}`);
+                    }
                     
                     allProducts = await response.json();
                     
@@ -316,7 +316,7 @@
                     }
                 } catch (error) {
                     console.error("Could not load products:", error);
-                    showFeedback('<span style="color: red;">שגיאה בטעינת הקטלוג. נסו לרענן את הדף.</span>');
+                    showFeedback(`<span style="color: red;">שגיאה בטעינת הקטלוג. ודא שהקובץ products.json נמצא באותה תיקייה עם קובץ ה-HTML.</span>`);
                 } finally {
                     catalogLoader.style.display = 'none';
                 }
@@ -325,7 +325,6 @@
             function showFeedback(message) {
                 productFeed.innerHTML = '';
                 catalogFeedback.innerHTML = `<p>${message}</p>`;
-                catalogFeedback.style.display = 'block';
             }
 
             function renderCategories(products) {
@@ -343,8 +342,8 @@
             }
 
             function renderProductFeed(productsToRender) {
-                productFeed.innerHTML = ''; // Clear previous results
-                catalogFeedback.style.display = 'none';
+                productFeed.innerHTML = '';
+                catalogFeedback.innerHTML = '';
                 
                 if (productsToRender.length === 0) {
                     showFeedback('לא נמצאו מוצרים התואמים לסינון.');
@@ -366,9 +365,6 @@
             }
 
             function filterAndRender() {
-                catalogLoader.style.display = 'flex';
-                
-                // Debounce to prevent rapid re-rendering on input
                 clearTimeout(debounceTimer);
                 debounceTimer = setTimeout(() => {
                     const searchTerm = searchInput.value.toLowerCase().trim();
@@ -387,8 +383,7 @@
                     renderProductFeed(filteredProducts);
                     updateCatalogTitle(activeCategory, searchTerm);
                     
-                    catalogLoader.style.display = 'none';
-                }, 300); // 300ms delay
+                }, 300);
             }
             
             function updateCatalogTitle(category, searchTerm) {
@@ -406,7 +401,7 @@
                     b.classList.toggle('active', b.textContent === category);
                 });
                 
-                searchInput.value = ''; // Clear search when a category is clicked
+                searchInput.value = '';
                 filterAndRender();
             }
             
