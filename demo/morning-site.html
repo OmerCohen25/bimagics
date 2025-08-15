@@ -1,812 +1,486 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="he" dir="rtl">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Wholesale Demo — Morning-Synced Catalog Admin + Customer Store (Single HTML)</title>
+<title>דמו סיטונאי — ניהול קטלוג מסונכרן מורנינג + אתר לקוחות (דף אחד, קליל ובהיר)</title>
 <style>
   :root{
-    --bg:#0b0f15; --panel:#121825; --soft:#101626; --muted:#94a3b8; --text:#e6eefc; --accent:#22c55e;
-    --danger:#ef4444; --warn:#f59e0b; --border:#1c2740; --card:#0f1522; --shadow:0 10px 30px rgba(0,0,0,.35);
+    /* צבעים בהירים ונקיים */
+    --bg:#f6f8fb; --panel:#ffffff; --panel-soft:#fafbff; --border:#e5e7eb;
+    --text:#0f172a; --muted:#64748b; --accent:#16a34a; --accent-2:#2563eb;
+    --danger:#ef4444; --shadow:0 10px 28px rgba(15,23,42,.06), 0 4px 10px rgba(15,23,42,.05);
   }
   *{box-sizing:border-box}
   html,body{height:100%}
-  body{margin:0;background:linear-gradient(180deg,var(--bg),#0a1220);color:var(--text);font:14px/1.45 Inter, ui-sans-serif, system-ui, Segoe UI, Roboto, Arial}
-  a{color:#93c5fd;text-decoration:none}
-  a:hover{text-decoration:underline}
-  button,input,select,textarea{background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:10px 12px;outline:none}
-  button{cursor:pointer;transition:.15s ease;box-shadow:0 1px 0 rgba(255,255,255,.05) inset}
-  button.primary{background:linear-gradient(180deg,#1f7a47,#155d36);border-color:#1a6a40}
-  button.ghost{background:transparent;border-color:transparent}
-  button.warn{background:linear-gradient(180deg,#836312,#6e5210);border-color:#7a5a11}
-  button.danger{background:linear-gradient(180deg,#7a1f1f,#5c1717);border-color:#7a1f1f}
-  .kbd{font:12px ui-monospace,Menlo,Consolas,monospace;border:1px solid var(--border);padding:2px 6px;border-radius:6px;background:#0f1726;color:#cbd9f2}
+  body{margin:0;background:linear-gradient(180deg,#ffffff,var(--bg));color:var(--text);font:15px/1.55 "Heebo", "Rubik", system-ui, -apple-system, Segoe UI, Roboto, Arial}
+  a{color:var(--accent-2);text-decoration:none} a:hover{text-decoration:underline}
+  button,input,select,textarea{background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:14px;padding:12px 14px;outline:none}
+  input::placeholder,textarea::placeholder{color:#94a3b8}
+  button{cursor:pointer;transition:.15s;box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
+  button.primary{background:linear-gradient(180deg,#22c55e,#16a34a);border-color:#10a146;color:#fff}
+  button.secondary{background:linear-gradient(180deg,#3b82f6,#2563eb);border-color:#2159d9;color:#fff}
+  button.ghost{background:var(--panel);border-color:var(--border)}
+  button.danger{background:linear-gradient(180deg,#f87171,#ef4444);border-color:#e11d48;color:#fff}
+  .kbd{font:12px ui-monospace,Menlo,Consolas,monospace;border:1px solid var(--border);padding:2px 6px;border-radius:6px;background:#eef2ff;color:#334155}
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .sp{flex:1}
-  .badge{font-size:11px;padding:3px 8px;border-radius:999px;background:#142136;border:1px solid var(--border);color:#b8c7e6}
-  .tag{font-size:12px;padding:3px 8px;border-radius:999px;background:#1b273b;border:1px solid var(--border);color:#b8c7e6}
+  .badge{font-size:11px;padding:4px 10px;border-radius:999px;background:#eef2ff;border:1px solid var(--border);color:#334155}
   .muted{color:var(--muted)}
   .shadow{box-shadow:var(--shadow)}
   .hidden{display:none!important}
 
-  /* App shell */
+  /* מעטפת */
   .app{display:grid;grid-template-rows:auto 1fr;min-height:100%}
   header{
+    position:sticky;top:0;z-index:30;
     display:flex;justify-content:space-between;align-items:center;gap:12px;
-    padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(10,16,26,.78);backdrop-filter:blur(8px);position:sticky;top:0;z-index:20
+    padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.8);backdrop-filter:blur(10px)
   }
   .brand{display:flex;align-items:center;gap:10px}
-  .logo{width:28px;height:28px;border-radius:8px;background:conic-gradient(from 230deg,#34d399,#22d3ee,#60a5fa,#a78bfa);box-shadow:0 0 18px rgba(99,102,241,.35)}
-  nav .tab{padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:linear-gradient(180deg,#0d1322,#0a111f);cursor:pointer}
-  nav .tab.active{outline:2px solid #2a3f6f}
+  .logo{width:28px;height:28px;border-radius:9px;background:conic-gradient(from 210deg,#34d399,#22d3ee,#60a5fa,#a78bfa);box-shadow:0 0 22px rgba(99,102,241,.2)}
+  nav .tab{padding:10px 14px;border:1px solid var(--border);border-radius:12px;background:var(--panel);cursor:pointer}
+  nav .tab.active{outline:2px solid #bfdbfe}
 
-  /* Views */
+  /* תצוגות */
   .view{display:none}
   .view.active{display:block}
 
-  /* Auth Screen */
-  .auth{min-height:calc(100vh - 56px);display:grid;place-items:center;padding:20px}
-  .card-auth{max-width:880px;width:100%;background:linear-gradient(180deg,#0f1524,#0e1422);border:1px solid var(--border);border-radius:18px;padding:20px;display:grid;gap:14px}
-  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-  .step{background:#0d1628;border:1px dashed #2a3a5c;border-radius:14px;padding:12px}
-  .gbtn{display:flex;gap:10px;align-items:center;justify-content:center;background:#111827;border:1px solid #263246;border-radius:12px;padding:10px;cursor:pointer}
-  .gbtn:hover{filter:brightness(1.05)}
+  /* מסכים מדורגים — מעט פרטים */
+  .centerwrap{min-height:calc(100vh - 56px);display:grid;place-items:center;padding:20px}
+  .card{max-width:720px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:22px;display:grid;gap:16px}
+  .title{margin:0;font-size:22px}
+  .subtitle{margin:0;color:var(--muted)}
+  .gbtn{display:flex;gap:12px;align-items:center;justify-content:center;background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:12px;cursor:pointer}
+  .gbtn:hover{filter:brightness(1.02)}
   .google{width:18px;height:18px;border-radius:4px;background:conic-gradient(#ea4335 0 25%, #fbbc04 0 50%, #34a853 0 75%, #4285f4 0 100%)}
-  .hero{display:grid;gap:8px}
-  .hero h1{margin:0;font-size:22px}
-  .hero p{margin:0;color:#a3b3d6}
-  .hl{color:#9ae6b4}
 
-  /* Admin */
-  .container{display:grid;grid-template-columns:320px 1fr;gap:14px;padding:14px}
-  @media(max-width:980px){.container{grid-template-columns:1fr}}
-  aside{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:12px}
-  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;align-content:start}
-  .card-item{background:linear-gradient(180deg,var(--card),#0b1220);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;min-height:280px}
-  .image{aspect-ratio:4/3;background:#0b1424;display:grid;place-items:center;border-bottom:1px solid var(--border);position:relative}
+  /* ניהול — נקי ומינימלי */
+  .admin-wrap{padding:14px;display:grid;gap:12px}
+  .toolbar{display:flex;gap:10px;align-items:center}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+  .card-item{background:var(--panel);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+  .image{aspect-ratio:4/3;background:#f1f5f9;display:grid;place-items:center;position:relative}
   .image img{width:100%;height:100%;object-fit:cover}
   .image input{position:absolute;inset:0;opacity:0;cursor:pointer}
-  .img-hint{position:absolute;bottom:6px;right:6px;font-size:11px;background:rgba(0,0,0,.5);padding:4px 6px;border-radius:8px}
-  .meta{padding:10px;display:grid;gap:8px}
+  .img-hint{position:absolute;bottom:6px;left:6px;font-size:11px;background:rgba(255,255,255,.9);border:1px solid var(--border);padding:4px 6px;border-radius:8px}
+  .meta{padding:10px;display:grid;gap:6px}
   .row-sm{display:flex;justify-content:space-between;align-items:center;gap:6px}
-  .desc{color:#9db0cc;font-size:12px;height:34px;overflow:hidden}
-  .pill{padding:6px 9px;border-radius:10px;background:#111a2a;border:1px solid var(--border);font-size:12px}
-  .list{display:grid;gap:8px;max-height:38vh;overflow:auto;padding-right:2px}
-  .list .it{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:6px 8px;border:1px solid var(--border);border-radius:10px;background:#0d1524}
-  .list .it:hover{background:#0f1a2d}
-  .log{font:12px ui-monospace,monospace;background:#09111e;border:1px solid var(--border);border-radius:12px;height:150px;overflow:auto;padding:8px;color:#cdd9f5}
-  .divider{height:1px;background:var(--border);margin:8px 0}
-  .switch{display:flex;align-items:center;gap:8px}
-  .switch input{appearance:none;width:44px;height:24px;border-radius:999px;background:#25324a;position:relative;border:1px solid var(--border);transition:.2s}
-  .switch input:checked{background:#1e6b3f}
-  .switch input::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;left:3px;top:2.5px;background:#fff;transition:.2s}
-  .switch input:checked::after{left:22px}
-  .toast{position:fixed;bottom:16px;right:16px;background:#0d1a2a;border:1px solid var(--border);padding:10px 14px;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.4);display:none;z-index:80}
-  .toast.show{display:block}
+  .desc{color:var(--muted);font-size:12px;height:36px;overflow:hidden}
+  .pill{padding:6px 9px;border-radius:10px;background:#eef2ff;border:1px solid var(--border);font-size:12px;color:#334155}
+  .fab{position:fixed;bottom:16px;left:16px;z-index:40}
 
-  /* Drawer (editor) */
-  .drawer{position:fixed;inset:0;display:none;z-index:70;align-items:flex-end;justify-content:flex-end;background:rgba(0,0,0,.35)}
+  /* חנות */
+  .store-head{position:sticky;top:56px;z-index:20;background:var(--panel-soft);border-bottom:1px solid var(--border);padding:10px 14px}
+  .store-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;padding:12px}
+  .store-card{background:var(--panel);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+  .store-footer{padding:16px;color:var(--muted);text-align:center}
+
+  /* מגירת עריכה */
+  .drawer{position:fixed;inset:0;display:none;z-index:60;align-items:flex-start;justify-content:flex-start;background:rgba(15,23,42,.1)}
   .drawer.show{display:flex}
-  .panel{width:min(720px,100%);max-width:720px;height:100%;background:linear-gradient(180deg,var(--panel),#0e1524);border-left:1px solid var(--border);padding:14px;overflow:auto}
-  .panel h2{margin:2px 0 10px 0;font-size:16px}
+  .panel{width:min(720px,100%);max-width:720px;height:100%;background:var(--panel);border-right:1px solid var(--border);padding:16px;overflow:auto}
   .form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .form .full{grid-column:1/-1}
-  .drop{border:1px dashed #2a3957;background:#0b1424;border-radius:12px;display:grid;place-items:center;min-height:140px;position:relative}
+  .drop{border:2px dashed #e2e8f0;background:#f8fafc;border-radius:14px;display:grid;place-items:center;min-height:140px;position:relative}
   .drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
   .preview{display:flex;gap:10px;flex-wrap:wrap}
   .preview img{width:120px;height:90px;object-fit:cover;border:1px solid var(--border);border-radius:10px}
-  .danger-link{color:#fca5a5;text-decoration:none}
-  .danger-link:hover{text-decoration:underline}
 
-  /* Store */
-  .store-head{position:sticky;top:0;z-index:10;background:#0e1422;border-bottom:1px solid var(--border);padding:10px 12px;display:grid;gap:8px}
-  .chips{display:flex;gap:6px;flex-wrap:wrap}
-  .chip{padding:6px 10px;border-radius:999px;background:#0f1a2d;border:1px solid var(--border);cursor:pointer}
-  .chip.active{outline:2px solid #243b6b}
-  .store-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;padding:12px}
-  .store-card{background:#0f1522;border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
-  .store-footer{padding:12px;color:#9db0cc;border-top:1px solid var(--border);text-align:center}
+  /* טוסט */
+  .toast{position:fixed;bottom:16px;right:16px;background:#111827;color:#fff;border:1px solid #0b1220;padding:10px 14px;border-radius:12px;box-shadow:var(--shadow);display:none;z-index:90}
+  .toast.show{display:block}
+
+  @media (max-width:640px){
+    .toolbar{gap:8px}
+    .grid,.store-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+    .image{aspect-ratio:1/1}
+  }
 </style>
 </head>
 <body>
 <div class="app">
 
-  <!-- Global Header -->
+  <!-- כותרת עליונה מינימלית -->
   <header>
     <div class="brand">
       <div class="logo"></div>
       <div>
-        <div style="font-weight:800;letter-spacing:.3px">BulkGoods • Wholesale Demo</div>
-        <div class="muted" style="font-size:12px">Disposable & Consumer Products — Morning-synced</div>
+        <div style="font-weight:800;letter-spacing:.2px">דמו סיטונאי • חד״פ</div>
+        <div class="muted" style="font-size:12px">ממשק ניהול + אתר לקוחות — בהיר, נקי ומותאם מובייל</div>
       </div>
-      <span class="badge" id="modeBadge">Demo</span>
+      <span class="badge" id="modeBadge">דמו</span>
     </div>
     <nav class="row">
-      <div class="tab active" id="tab-admin">Admin</div>
-      <div class="tab" id="tab-store">Customer Site</div>
-      <div class="tab" id="tab-logout">Sign out</div>
+      <div class="tab active" id="tab-admin" title="ממשק ניהול">ניהול</div>
+      <div class="tab" id="tab-store" title="אתר ללקוחות">חנות</div>
+      <div class="tab hidden" id="tab-logout" title="התנתקות">התנתק</div>
     </nav>
   </header>
 
-  <!-- AUTH VIEW -->
-  <section id="view-auth" class="view active">
-    <div class="auth">
-      <div class="card-auth shadow">
-        <div class="hero">
-          <h1>Welcome to <span class="hl">BulkGoods</span> demo</h1>
-          <p>Sign in, paste Morning keys (or use demo), and manage your catalog. Then switch to the customer site — all inside this single HTML.</p>
-        </div>
-
-        <div class="steps">
-          <div class="step">
-            <b>Step 1 · Sign in with Google</b>
-            <p class="muted">Demo login — no external calls.</p>
-            <div class="gbtn" id="btn-google"><div class="google"></div> Continue with Google</div>
-            <div class="row">
-              <input id="demoName" placeholder="Name (for demo)" class="sp"/>
-              <input id="demoEmail" placeholder="Email (for demo)" class="sp" />
-            </div>
-          </div>
-
-          <div class="step">
-            <b>Step 2 · Morning keys</b>
-            <p class="muted">Paste JWT & choose base (Sandbox/Prod) or toggle Demo.</p>
-            <div class="row"><select id="base">
-              <option value="https://sandbox.d.greeninvoice.co.il/api/v1">Sandbox</option>
-              <option value="https://api.greeninvoice.co.il/api/v1">Production</option>
-              <option value="custom">Custom…</option>
-            </select>
-            <input id="baseCustom" class="sp hidden" placeholder="https://…/api/v1"/></div>
-            <input id="token" placeholder="Paste Morning JWT (Authorization: Bearer …)"/>
-            <div class="row switch"><input id="mockToggle" type="checkbox" checked/><span class="muted">Demo mode (no external network)</span></div>
-            <button id="btn-test">Test Connection</button>
-          </div>
-
-          <div class="step">
-            <b>Step 3 · Let’s go</b>
-            <p class="muted">We’ll pre-load your demo catalog (wholesale disposable goods).</p>
-            <div class="row">
-              <button class="primary" id="btn-enter">Open Admin</button>
-              <button id="btn-enter-store">Open Customer Site</button>
-              <button class="ghost" id="btn-reset">Reset demo</button>
-            </div>
-            <div class="muted" style="font-size:12px">Keyboard: <span class="kbd">/</span> search · <span class="kbd">N</span> new · <span class="kbd">Ctrl/Cmd+S</span> save</div>
-          </div>
-        </div>
+  <!-- מסך 1: רואים רק גוגל -->
+  <section id="view-login" class="view active">
+    <div class="centerwrap">
+      <div class="card shadow" style="text-align:center">
+        <h1 class="title">התחברות עם Google</h1>
+        <p class="subtitle">דמו אינטראקטיבי — לחיצה תדמה התחברות מאובטחת (ללא חיבור חיצוני).</p>
+        <div class="gbtn" id="btn-google"><div class="google"></div> התחברות עם Google</div>
       </div>
     </div>
   </section>
 
-  <!-- ADMIN VIEW -->
-  <section id="view-admin" class="view">
-    <div class="container">
-      <aside>
-        <div class="toolbar">
-          <input id="q" placeholder="Search ( / )" class="sp"/>
-          <button id="pull">Pull ↩︎</button>
-          <button id="push">Push/Upsert ↪︎</button>
-          <button class="warn" id="publish">Publish to customer site</button>
-        </div>
-        <div class="divider"></div>
-        <div class="toolbar">
-          <button id="newItem" class="primary">➕ New item</button>
-          <button id="clearLocal" title="Clear local cache">🧹</button>
-          <label class="switch"><input id="autoSync" type="checkbox"><span class="muted">Auto-Sync</span></label>
-          <span class="badge" id="syncStatus">idle</span>
-        </div>
-        <div class="divider"></div>
-        <div class="row" style="justify-content:space-between">
-          <span class="muted">Items</span>
-          <span class="tag" id="countTag">0</span>
-        </div>
-        <div class="list" id="sideList"></div>
-        <div class="divider"></div>
-        <div class="row" style="justify-content:space-between;align-items:center"><b>Logs</b><button id="logClear">Clear</button></div>
-        <div class="log" id="log"></div>
-      </aside>
-
-      <main class="grid" id="grid"></main>
-    </div>
-  </section>
-
-  <!-- STORE VIEW -->
-  <section id="view-store" class="view">
-    <div class="store-head">
-      <div class="row">
-        <b>Customer Site</b>
-        <input id="s-q" class="sp" placeholder="Search products…"/>
-        <select id="s-sort">
-          <option value="rel">Sort: Relevance</option>
-          <option value="name">Name (A→Z)</option>
-          <option value="priceAsc">Price (low→high)</option>
-          <option value="priceDesc">Price (high→low)</option>
+  <!-- מסך 2: רואים רק מפתחות מורנינג (מינימלי) -->
+  <section id="view-keys" class="view">
+    <div class="centerwrap">
+      <div class="card shadow">
+        <h2 class="title">חיבור ל-Morning</h2>
+        <p class="subtitle">ניתן להשאיר במצב דמו — הכל יעבוד ללא רשת. להדגמה בלבד.</p>
+        <label>סביבת עבודה</label>
+        <select id="base">
+          <option value="https://sandbox.d.greeninvoice.co.il/api/v1">Sandbox</option>
+          <option value="https://api.greeninvoice.co.il/api/v1">Production</option>
+          <option value="custom">מותאם…</option>
         </select>
-        <input id="s-phone" placeholder="WhatsApp phone (e.g., 972501234567)"/>
-        <button id="s-refresh">Reload published</button>
-        <span class="badge" id="pubCount">0</span>
+        <input id="baseCustom" class="hidden" placeholder="https://…/api/v1"/>
+        <label>JWT (Authorization: Bearer …)</label>
+        <input id="token" placeholder="הדבק כאן את ה-JWT שלך (לא חובה בדמו)"/>
+        <label class="row" style="align-items:center"><input type="checkbox" id="demoToggle" checked/> <span>מצב דמו (ללא רשת חיצונית)</span></label>
+        <div class="row" style="justify-content:flex-start">
+          <button class="primary" id="btn-continue">המשך לניהול</button>
+          <button class="ghost" id="btn-test">בדיקת חיבור</button>
+        </div>
+        <small class="muted">טיפ: אפשר תמיד לעבור לחנות דרך הכפתור בחלק העליון.</small>
       </div>
-      <div class="chips" id="chips"></div>
+    </div>
+  </section>
+
+  <!-- מסך 3: רואים רק הקטלוג ומצב ניהול (מינימליסטי) -->
+  <section id="view-admin" class="view">
+    <div class="admin-wrap">
+
+      <!-- טולבר נקי: חיפוש + כפתורים עיקריים -->
+      <div class="toolbar">
+        <input id="q" class="sp" placeholder="חיפוש בקטלוג ( / )"/>
+        <button id="newItem" class="ghost">➕ פריט חדש</button>
+        <button id="syncBtn" class="ghost" title="סנכרון דוחף/שואב">🔄 סנכרן</button>
+        <button id="publish" class="secondary">פרסום לחנות</button>
+        <button id="gotoStore" class="primary">מעבר לחנות</button>
+      </div>
+
+      <!-- רשת פריטים -->
+      <div class="grid" id="grid"></div>
+
+      <!-- כפתור צף להוספה (מובייל נוח) -->
+      <div class="fab"><button id="fabNew" class="primary shadow">➕ הוסף</button></div>
+    </div>
+  </section>
+
+  <!-- מסך 4: החנות (נקייה: חיפוש בלבד + רשת כרטיסים) -->
+  <section id="view-store" class="view">
+    <div class="store-head row">
+      <input id="s-q" class="sp" placeholder="חיפוש בחנות…"/>
+      <button id="backAdmin" class="ghost">↩︎ חזרה לניהול</button>
     </div>
     <div class="store-grid" id="s-grid"></div>
-    <div class="store-footer">Powered by Morning (demo) + your catalog • This is a self-contained interactive demo</div>
+    <div class="store-footer">דמו בהיר ומקצועי — כל הדף בקובץ אחד. התמונות בדמו הן דינמיות (SVG) לצורך המחשה.</div>
   </section>
 
 </div>
 
-<!-- Drawer / Editor -->
+<!-- מגירת עריכה -->
 <div class="drawer" id="drawer">
   <div class="panel">
     <div class="row" style="justify-content:space-between;align-items:center">
-      <h2 id="editTitle">New Item</h2>
+      <h3 id="editTitle" style="margin:0">פריט חדש</h3>
       <div class="row">
-        <button id="save" class="primary">💾 Save (Ctrl/Cmd+S)</button>
-        <button id="close">✖</button>
+        <button id="save" class="primary">💾 שמור</button>
+        <button id="close" class="ghost">סגור ✖</button>
       </div>
     </div>
     <div class="form">
-      <div class="full"><label>Name</label><input id="f_name" placeholder="Item name" required/></div>
-      <div class="full"><label>Description</label><textarea id="f_desc" placeholder="Short description" rows="3"></textarea></div>
-      <div><label>Price</label><input id="f_price" type="number" step="0.01" placeholder="0.00"/></div>
-      <div><label>Currency</label><select id="f_currency"><option>ILS</option><option>USD</option><option>EUR</option></select></div>
-      <div><label>SKU</label><input id="f_sku" placeholder="Optional SKU / code"/></div>
-      <div><label>Category</label><input id="f_cat" placeholder="Optional category"/></div>
-      <div class="full"><label>Image</label>
-        <div class="drop"><input id="f_img" type="file" accept="image/*"/><div class="muted">Drop or click to upload image</div></div>
+      <div class="full"><label>שם</label><input id="f_name" placeholder="שם פריט" required/></div>
+      <div class="full"><label>תיאור</label><textarea id="f_desc" placeholder="תיאור קצר" rows="3"></textarea></div>
+      <div><label>מחיר</label><input id="f_price" type="number" step="0.01" placeholder="0.00"/></div>
+      <div><label>מטבע</label><select id="f_currency"><option>ILS</option><option>USD</option><option>EUR</option></select></div>
+      <div><label>SKU</label><input id="f_sku" placeholder="מק״ט / קוד"/></div>
+      <div><label>קטגוריה</label><input id="f_cat" placeholder="קטגוריה"/></div>
+      <div class="full"><label>תמונה</label>
+        <div class="drop"><input id="f_img" type="file" accept="image/*"/><div class="muted">גרור/י או לחצ/י להעלאת תמונה</div></div>
         <div class="preview" id="preview"></div>
       </div>
-      <div class="full"><label>Public Image URL (optional)</label><input id="f_imgurl" placeholder="https://… (used in customer site)"/></div>
-      <div class="full"><label>Active</label><div><input id="f_active" type="checkbox" checked/> <span class="muted">Show in customer site</span></div></div>
+      <div class="full"><label>קישור תמונה (אופציונלי)</label><input id="f_imgurl" placeholder="https://… (להטמעה בחנות)"/></div>
+      <div class="full"><label><input id="f_active" type="checkbox" checked/> להציג בחנות</label></div>
       <div class="full row" style="justify-content:space-between;margin-top:6px">
-        <div class="row"><button id="dup">⧉ Duplicate</button><button id="newFrom">➕ New from this</button></div>
-        <a href="#" id="delete" class="danger-link">Delete</a>
+        <button id="dup" class="ghost">⧉ שכפל</button>
+        <button id="delete" class="danger">מחק</button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- טוסט -->
 <div class="toast" id="toast"></div>
 
 <script>
-/* =======================
-   DEMO: Single-file Admin + Store with Morning "mock" sync
-   ======================= */
+/* =========================
+   דמו בהיר נקי: גוגל → מפתחות → ניהול → חנות
+   ========================= */
 
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 const uid = () => Math.random().toString(36).slice(2,9);
-const now = () => new Date().toLocaleTimeString();
-const toast = (m)=>{const t=$('#toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200);};
-const escapeHTML = s => (s??'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+const toast = (m)=>{const t=$('#toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000);};
+const esc = s => (s??'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const money = (v,c='ILS') => Number(v||0).toLocaleString('he-IL',{style:'currency',currency:c});
 
-/* ---------- Local storage keys ---------- */
-const LS = {
-  user: 'demo.user',
-  items: 'demo.items.wholesale',
-  published: 'demo.published.catalog',
-  demoRemote: 'demo.morning.remote', // "server" state
-  settings: 'demo.settings'
-};
-
-/* ---------- Global State ---------- */
+/* מצב כלל־מערכתי (מינימלי) */
+const LS = { items:'lightdemo.items', published:'lightdemo.published', remote:'lightdemo.remote', settings:'lightdemo.settings', user:'lightdemo.user' };
 let USER = null;
-let SETTINGS = loadSettings();
+let SETTINGS = load(LS.settings) || { base:'https://sandbox.d.greeninvoice.co.il/api/v1', token:'', demo:true };
 let ITEMS = load(LS.items) || [];
-let PUBLISHED = load(LS.published) || { meta:{}, items:[] }; // what store uses
-let CURRENT = null;  // item being edited
-let QUERY = '';
-let S_QUERY = '';
-let S_CAT = '';
-let SYNC_TIMER = null;
-let SYNC_BUSY = false;
+let PUBLISHED = load(LS.published) || { items:[] };
+let CURRENT = null;
 
-/* ---------- Utilities ---------- */
-function loadSettings(){
-  return load(LS.settings) || { base:'https://sandbox.d.greeninvoice.co.il/api/v1', token:'', demo:true };
+/* כלים */
+function load(k){ try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch{ return null; } }
+function save(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+function setView(id){ $$('.view').forEach(v=>v.classList.remove('active')); $(id).classList.add('active'); }
+function svgPlaceholder(text, color='#22c55e'){
+  const w=800,h=600,t=encodeURIComponent(text);
+  return `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'>
+  <defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='${color}'/><stop offset='100%' stop-color='%23e2e8f0'/></linearGradient></defs>
+  <rect width='100%' height='100%' fill='url(%23g)'/><text x='50%' y='52%' dominant-baseline='middle' text-anchor='middle'
+  font-family='Heebo,Arial' font-size='54' fill='%230f172a' opacity='.9'>${t}</text></svg>`;
 }
-function saveSettings(){
-  save(LS.settings, SETTINGS);
-}
-function load(key){
-  try{ return JSON.parse(localStorage.getItem(key) || 'null'); }catch{ return null; }
-}
-function save(key, val){
-  localStorage.setItem(key, JSON.stringify(val));
-}
-function resetDemo(){
-  [LS.user,LS.items,LS.published,LS.demoRemote,LS.settings].forEach(k=>localStorage.removeItem(k));
-  location.reload();
-}
-function setView(id){
-  $$('.view').forEach(v=>v.classList.remove('active'));
-  $(id).classList.add('active');
-}
-function svgPlaceholder(text, color='#3b82f6'){
-  const t = encodeURIComponent(text);
-  const w=800,h=600;
-  return `data:image/svg+xml;utf8,`+
-    `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'>`+
-    `<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='${color}'/><stop offset='100%' stop-color='#111827'/></linearGradient></defs>`+
-    `<rect width='100%' height='100%' fill='url(#g)'/>`+
-    `<text x='50%' y='52%' dominant-baseline='middle' text-anchor='middle' font-size='54' font-family='Inter,Segoe UI,Arial' fill='white' opacity='.95'>${t}</text>`+
-    `</svg>`;
-}
+const fileToDataURL = f => new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(f); });
 
-/* ---------- Morning "API" mock (in-tab server) ---------- */
+/* "שרת" מורנינג מדומה — נקי */
 const MorningMock = {
   load(){
-    // remote items on "server"
-    let r = load(LS.demoRemote);
+    let r = load(LS.remote);
     if(!r){
-      // Seed remote with realistic wholesale disposable goods
       const seed = [
-        ['Plastic Cups 200ml (100 pcs)','Clear plastic cups for cold drinks',12.9,'ILS'],
-        ['Plastic Cups 300ml (50 pcs)','Sturdy clear cups for events',10.9,'ILS'],
-        ['Paper Cups 8oz (100 pcs)','Double-wall paper coffee cups',24.9,'ILS'],
-        ['Cup Lids 8oz (100 pcs)','Fits 8oz paper cups',18.0,'ILS'],
-        ['Paper Plates 9" (100 pcs)','White disposable plates',22.9,'ILS'],
-        ['Paper Bowls (50 pcs)','Thick paper bowls',15.9,'ILS'],
-        ['Plastic Cutlery Set (100 pcs)','Forks, knives, spoons',27.9,'ILS'],
-        ['Napkins 33x33 (500 pcs)','2-ply white napkins',28.0,'ILS'],
-        ['Garbage Bags XL (25 pcs)','Extra-strong 120L black bags',19.9,'ILS'],
-        ['Aluminum Trays (20 pcs)','BBQ & oven-safe trays',32.0,'ILS'],
-        ['Cling Film 300m','Commercial-grade wrap',29.9,'ILS'],
-        ['Aluminum Foil 45cm','Heavy-duty foil roll',26.0,'ILS'],
-        ['Takeaway Boxes (50 pcs)','Clamshell food containers',44.9,'ILS'],
-        ['Plastic Stir Sticks (500 pcs)','Coffee stirrers bulk',14.5,'ILS'],
-        ['Sugar Sachets (500 pcs)','Individually wrapped',34.0,'ILS'],
-        ['Paper Towels (24 rolls)','Strong & absorbent',69.0,'ILS'],
-        ['Toilet Paper (48 rolls)','Soft, 3-ply',99.0,'ILS'],
-        ['Cleaning Gloves (10 pairs)','Durable household gloves',24.0,'ILS'],
-        ['Sponges (20 pcs)','Multi-purpose sponges',16.0,'ILS'],
-        ['Dish Soap 5L','Lemon scented bulk',29.0,'ILS']
+        ['כוסות פלסטיק 200 מ״ל (100 יח׳)','כוסות שקופות למשקאות קרים',12.9,'ILS'],
+        ['מכסים לכוס 8oz (100 יח׳)','מתאים לכוסות קפה 8oz',18.0,'ILS'],
+        ['צלחות נייר 9" (100 יח׳)','צלחות לבנות חד״פ',22.9,'ILS'],
+        ['סכו״ם פלסטיק (100 יח׳)','מזלגות/סכינים/כפיות',27.9,'ILS'],
+        ['שקי אשפה XL (25 יח׳)','שקיות 120 ל׳ חזקות',19.9,'ILS'],
+        ['תבניות אלומיניום (20 יח׳)','לתנור/מנגל',32.0,'ILS'],
+        ['מגבות נייר (24 גלילים)','ספיגה חזקה',69.0,'ILS'],
+        ['סבון כלים 5 ל׳','ניחוח לימון',29.0,'ILS']
       ];
       r = seed.map((s,i)=>({ id:String(1000+i), name:s[0], description:s[1], price:s[2], currency:s[3] }));
-      save(LS.demoRemote, r);
+      save(LS.remote, r);
     }
     return r;
   },
-  save(arr){ save(LS.demoRemote, arr); },
-  async search(query='', page=1, pageSize=100){
-    await waitRandom();
-    const all = this.load();
-    const q = query.toLowerCase();
-    const filtered = all.filter(i => (`${i.name} ${i.description}`).toLowerCase().includes(q));
-    const start=(page-1)*pageSize, end=start+pageSize;
-    return { items: filtered.slice(start,end), page, total: filtered.length };
-  },
-  async create(payload){
-    await waitRandom();
-    const all = this.load();
-    const id = String(Date.now() + Math.floor(Math.random()*1000));
-    const item = { id, name:payload.name||'', description:payload.description||'', price:Number(payload.price||0), currency:payload.currency||'ILS' };
-    all.push(item); this.save(all);
-    return item;
-  },
-  async update(id, patch){
-    await waitRandom();
-    const all = this.load();
-    const ix = all.findIndex(x=>x.id===id);
-    if(ix===-1) throw new Error('404');
-    all[ix] = { ...all[ix], ...{ name:patch.name||all[ix].name, description:patch.description??all[ix].description, price:Number(patch.price??all[ix].price), currency:patch.currency||all[ix].currency } };
-    this.save(all);
-    return all[ix];
-  },
-  async remove(id){
-    await waitRandom();
-    const all = this.load().filter(x=>x.id!==id);
-    this.save(all);
-    return 'ok';
-  },
-  injectRandomChanges(n=3){ // simulate server-side edits
-    const all = this.load();
-    for(let k=0;k<n;k++){
-      const ix = Math.floor(Math.random()*all.length);
-      all[ix].price = +(all[ix].price * (0.9 + Math.random()*0.2)).toFixed(2);
-      all[ix].description = all[ix].description.replace(/\.?$/, ' • updated');
-    }
-    this.save(all);
-  }
+  save(a){ save(LS.remote, a); },
+  async search(q=''){ await delay(); const all=this.load(); q=q.toLowerCase(); return { items: all.filter(i => (`${i.name} ${i.description}`).toLowerCase().includes(q)) }; },
+  async create(p){ await delay(); const all=this.load(); const id=String(Date.now()+Math.random()*1000|0); const obj={ id, name:p.name||'', description:p.description||'', price:+(p.price||0), currency:p.currency||'ILS' }; all.push(obj); this.save(all); return obj; },
+  async update(id,p){ await delay(); const all=this.load(); const ix=all.findIndex(x=>x.id===id); if(ix<0) throw new Error('404'); all[ix]={...all[ix], name:p.name||all[ix].name, description:p.description??all[ix].description, price:+(p.price??all[ix].price), currency:p.currency||all[ix].currency}; this.save(all); return all[ix]; },
+  async remove(id){ await delay(); const all=this.load().filter(x=>x.id!==id); this.save(all); return 'ok'; },
 };
-function waitRandom(){ return new Promise(res=>setTimeout(res, 250 + Math.random()*400)); }
+function delay(){ return new Promise(r=>setTimeout(r,220+Math.random()*320)); }
 
-/* ---------- Demo Admin Catalog ---------- */
-function ensureLocalSeed(){
-  if(ITEMS && ITEMS.length) return;
+/* זריעת דמו מקומי מינימלי */
+function ensureSeed(){
+  if(ITEMS.length) return;
   const remote = MorningMock.load();
-  // map with local-only fields: category, sku, image, active
-  const mapCategory = (n)=>{
-    if(n.match(/cups|lids|coffee|stir/i)) return 'Cups & Accessories';
-    if(n.match(/plate|bowl|cutlery|napkin/i)) return 'Tableware';
-    if(n.match(/tray|foil|film|takeaway/i)) return 'Packaging & Kitchen';
-    if(n.match(/garbage|bag/i)) return 'Bags';
-    if(n.match(/paper towel|toilet/i)) return 'Paper Goods';
-    if(n.match(/glove|sponge|soap|clean/i)) return 'Cleaning';
-    return 'General';
-  };
-  ITEMS = remote.map(r=>{
-    const cat = mapCategory(r.name);
-    return {
-      id: uid(),
-      morningId: r.id,
-      name: r.name,
-      description: r.description,
-      price: r.price,
-      currency: r.currency,
-      sku: cat.slice(0,3).toUpperCase() + '-' + Math.floor(100+Math.random()*900),
-      category: cat,
-      active: true,
-      imageUrl: '',
-      imageData: svgPlaceholder(r.name, '#3b82f6'),
-      dirty: false
-    };
-  });
+  ITEMS = remote.map(r=>({
+    id:uid(), morningId:r.id, name:r.name, description:r.description, price:r.price, currency:r.currency,
+    sku:'SKU-'+(100+Math.random()*900|0), category:'חד״פ', active:true,
+    imageData: svgPlaceholder(r.name), imageUrl:'', dirty:false
+  }));
   save(LS.items, ITEMS);
 }
 
-/* ---------- Render Admin ---------- */
-const logEl = $('#log');
-function log(msg,obj){
-  const line = document.createElement('div');
-  line.textContent = `[${now()}] ${msg}`;
-  logEl.prepend(line);
-  if(obj) console.log('[DEMO]', msg, obj);
-}
+/* רינדור ניהול */
 function renderAdmin(){
-  const q = (QUERY||'').trim().toLowerCase();
+  const q = ($('#q').value||'').toLowerCase();
   const list = ITEMS.filter(i => (`${i.name} ${i.description} ${i.sku} ${i.category}`).toLowerCase().includes(q));
-  $('#countTag').textContent = list.length;
-  // grid
   const grid = $('#grid'); grid.innerHTML='';
   list.forEach(it=>{
-    const el = document.createElement('div'); el.className='card-item';
-    el.innerHTML = `
+    const card=document.createElement('div'); card.className='card-item shadow';
+    card.innerHTML = `
       <div class="image">
-        ${(it.imageUrl||it.imageData)?`<img src="${it.imageUrl||it.imageData}" alt="">`:`<div class="muted">No image</div>`}
-        <div class="img-hint">Change image</div>
-        <input type="file" accept="image/*" data-img="${it.id}" />
+        ${(it.imageUrl||it.imageData)?`<img src="${it.imageUrl||it.imageData}" alt="">`:`<div class="muted">ללא תמונה</div>`}
+        <div class="img-hint">שנה תמונה</div>
+        <input type="file" accept="image/*" data-img="${it.id}">
       </div>
       <div class="meta">
-        <div class="row-sm"><b>${escapeHTML(it.name)}</b>${it.dirty?'<span class="tag">unsynced</span>':''}</div>
-        <div class="desc">${escapeHTML(it.description||'')}</div>
-        <div class="row-sm"><div style="font-weight:700">${(it.price??0).toLocaleString(undefined,{style:'currency',currency:it.currency||'ILS'})}</div><span class="pill">${escapeHTML(it.currency||'ILS')}</span></div>
-        <div class="row-sm"><span class="muted">${it.sku||'—'}</span>
+        <div class="row-sm"><b>${esc(it.name)}</b>${it.dirty?'<span class="badge">לא מסונכרן</span>':''}</div>
+        <div class="desc">${esc(it.description||'')}</div>
+        <div class="row-sm"><div style="font-weight:700">${money(it.price,it.currency)}</div><span class="pill">${esc(it.currency||'ILS')}</span></div>
+        <div class="row" style="justify-content:space-between">
+          <span class="muted" title="SKU">${esc(it.sku||'–')}</span>
           <div class="row" style="gap:6px">
-            <button data-edit="${it.id}">Edit</button>
-            <button data-del="${it.id}" class="danger">Del</button>
+            <button class="ghost" data-edit="${it.id}">עריכה</button>
+            <button class="ghost danger" data-del="${it.id}">מחיקה</button>
           </div>
         </div>
       </div>`;
-    grid.appendChild(el);
-  });
-  // side list (quick jump)
-  const sl = $('#sideList'); sl.innerHTML='';
-  list.slice(0,160).forEach(it=>{
-    const li=document.createElement('div'); li.className='it';
-    li.innerHTML = `<div class="row" style="gap:8px"><span class="badge">${escapeHTML(it.category||'•')}</span><b>${escapeHTML(it.name)}</b></div><span class="muted">${it.price??0} ${it.currency||'ILS'}</span>`;
-    li.onclick = ()=>openEditor(it.id);
-    sl.appendChild(li);
+    grid.appendChild(card);
   });
 }
+
+/* פתיחה/שמירה */
 function openEditor(id){
   const it = ITEMS.find(x=>x.id===id);
-  CURRENT = it ? {...it} : { id:uid(), name:'', description:'', price:0, currency:'ILS', sku:'', category:'', active:true, imageUrl:'', imageData:'' };
-  $('#editTitle').textContent = it ? 'Edit Item' : 'New Item';
+  CURRENT = it ? {...it} : { id:uid(), name:'', description:'', price:0, currency:'ILS', sku:'', category:'', active:true, imageData:'', imageUrl:'' };
+  $('#editTitle').textContent = it ? 'עריכת פריט' : 'פריט חדש';
   $('#f_name').value=CURRENT.name||''; $('#f_desc').value=CURRENT.description||'';
-  $('#f_price').value=CURRENT.price??0; $('#f_currency').value=CURRENT.currency||'ILS';
+  $('#f_price').value=CURRENT.price||0; $('#f_currency').value=CURRENT.currency||'ILS';
   $('#f_sku').value=CURRENT.sku||''; $('#f_cat').value=CURRENT.category||'';
   $('#f_active').checked=!!CURRENT.active; $('#f_imgurl').value=CURRENT.imageUrl||'';
-  $('#preview').innerHTML = (CURRENT.imageUrl||CURRENT.imageData)?`<img src="${CURRENT.imageUrl||CURRENT.imageData}" />`:'';
+  $('#preview').innerHTML = (CURRENT.imageUrl||CURRENT.imageData)?`<img src="${CURRENT.imageUrl||CURRENT.imageData}">`:'';
   $('#drawer').classList.add('show');
 }
 function closeEditor(){ $('#drawer').classList.remove('show'); CURRENT=null; }
 function persistCurrent(){
   if(!CURRENT) return;
-  CURRENT.name = $('#f_name').value.trim(); if(!CURRENT.name) return toast('Name is required');
+  CURRENT.name = $('#f_name').value.trim(); if(!CURRENT.name) return toast('שם נדרש');
   CURRENT.description = $('#f_desc').value.trim();
-  CURRENT.price = Number($('#f_price').value||0);
+  CURRENT.price = +($('#f_price').value||0);
   CURRENT.currency = $('#f_currency').value;
   CURRENT.sku = $('#f_sku').value.trim();
   CURRENT.category = $('#f_cat').value.trim();
   CURRENT.active = $('#f_active').checked;
   CURRENT.imageUrl = $('#f_imgurl').value.trim();
-
   const ix = ITEMS.findIndex(x=>x.id===CURRENT.id);
-  if(ix===-1) ITEMS.unshift({...CURRENT, dirty:true});
-  else ITEMS[ix] = {...CURRENT, dirty:true};
+  if(ix<0) ITEMS.unshift({...CURRENT, dirty:true}); else ITEMS[ix] = {...CURRENT, dirty:true};
+  save(LS.items, ITEMS);
+  renderAdmin(); toast('נשמר מקומית');
+}
+
+/* סנכרון (דמו) */
+function mapToMorning(i){ return { name:i.name||'', description:i.description||'', price:+(i.price||0), currency:i.currency||'ILS' }; }
+async function pushPull(){
+  if(!SETTINGS.demo){ toast('Live אינו פעיל בדמו'); return; }
+  // דחיפה
+  const dirty = ITEMS.filter(i=>i.dirty);
+  for(const it of dirty){
+    let id = it.morningId;
+    if(!id){
+      const res = await MorningMock.search(it.name);
+      const found = (res.items||[]).find(x=> (x.name||'').toLowerCase()===(it.name||'').toLowerCase());
+      if(found) id = found.id;
+    }
+    if(id){ await MorningMock.update(id, mapToMorning(it)); it.morningId=id; }
+    else{ const created=await MorningMock.create(mapToMorning(it)); it.morningId=created.id; }
+    it.dirty=false;
+  }
+  // משיכה
+  const res = await MorningMock.search($('#q').value||'');
+  const arr = res.items||[];
+  const byName = Object.fromEntries(ITEMS.map(i=>[(i.name||'').toLowerCase(),i]));
+  ITEMS = arr.map(r=>{
+    const local = byName[(r.name||'').toLowerCase()];
+    return {
+      id: local?.id||uid(), morningId: r.id,
+      name:r.name||'', description:r.description||'', price:+(r.price||0), currency:r.currency||'ILS',
+      sku: local?.sku||'', category: local?.category||'', active: local?.active ?? true,
+      imageUrl: local?.imageUrl||'', imageData: local?.imageData || svgPlaceholder(r.name,'#93c5fd'),
+      dirty:false
+    };
+  });
   save(LS.items, ITEMS);
   renderAdmin();
-  toast('Saved locally');
-  log('Saved (dirty)', CURRENT);
+  toast('סונכרן מול מורנינג (דמו)');
 }
 
-/* ---------- File/Image handling ---------- */
-const fileToDataURL = f => new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(f); });
-
-/* ---------- Sync (Demo) ---------- */
-function mapLocalToMorning(it){ return { name:it.name||'', description:it.description||'', price:Number(it.price||0), currency:it.currency||'ILS' }; }
-
-async function pull(){
-  if(SETTINGS.demo){ // from mock
-    setSync('pulling');
-    try{
-      const res = await MorningMock.search($('#q').value||'',1,400);
-      const arr = res.items||[];
-      // merge by name (stable heuristic for demo)
-      const byName = Object.fromEntries(ITEMS.map(i=>[(i.name||'').toLowerCase(), i]));
-      ITEMS = arr.map(r=>{
-        const name=(r.name||'').toLowerCase();
-        const local = byName[name];
-        return {
-          id: local?.id || uid(),
-          morningId: r.id,
-          name: r.name||'',
-          description: r.description||'',
-          price: Number(r.price||0),
-          currency: r.currency||'ILS',
-          sku: local?.sku||'',
-          category: local?.category||'',
-          active: local?.active ?? true,
-          imageUrl: local?.imageUrl||'',
-          imageData: local?.imageData || svgPlaceholder(r.name, '#10b981'),
-          dirty:false
-        };
-      });
-      save(LS.items, ITEMS);
-      renderAdmin();
-      toast(`Pulled ${arr.length} items`);
-      log('Pull (demo) OK', res);
-    }catch(e){
-      toast('Pull failed'); log('Pull failed '+e.message);
-    } finally{ setSync('idle'); }
-    return;
-  }
-  // NOTE: In real (non-demo), call Morning API with fetch() here.
-  toast('Live mode not available in demo');
-}
-
-async function push(){
-  if(SETTINGS.demo){
-    const dirty = ITEMS.filter(i=>i.dirty);
-    if(!dirty.length){ toast('No changes'); return; }
-    setSync('pushing');
-    try{
-      for(const it of dirty){
-        let remoteId = it.morningId;
-        if(!remoteId){
-          const res = await MorningMock.search(it.name,1,1);
-          const found = (res.items||[]).find(x => (x.name||'').toLowerCase() === (it.name||'').toLowerCase());
-          if(found) remoteId = found.id;
-        }
-        if(remoteId){ await MorningMock.update(remoteId, mapLocalToMorning(it)); it.morningId = remoteId; }
-        else { const created = await MorningMock.create(mapLocalToMorning(it)); it.morningId = created.id; }
-        it.dirty = false;
-      }
-      save(LS.items, ITEMS); renderAdmin();
-      toast(`Pushed ${dirty.length} items`);
-      log('Push (demo) OK', {count:dirty.length});
-    }catch(e){ toast('Push failed'); log('Push failed '+e.message);}
-    finally{ setSync('idle'); }
-    return;
-  }
-  // NOTE: In real (non-demo), call Morning API with fetch() here.
-  toast('Live mode not available in demo');
-}
-
-function setSync(state){
-  const el=$('#syncStatus'); el.textContent=state;
-  el.style.background = state==='idle' ? '#142136' : (state.includes('pull')?'#26436b':'#2f5a3c');
-}
-function startAutoSync(){
-  if(SYNC_TIMER) return;
-  SYNC_TIMER = setInterval(async ()=>{
-    if(SYNC_BUSY) return; SYNC_BUSY = true;
-    try{ await push(); await pull(); } finally{ SYNC_BUSY=false; }
-  }, 180000); // 3 min
-  log('Auto-Sync ON');
-}
-function stopAutoSync(){
-  if(SYNC_TIMER) clearInterval(SYNC_TIMER);
-  SYNC_TIMER = null; log('Auto-Sync OFF');
-}
-
-/* ---------- Publish to Store (in-memory) ---------- */
-function minifyForCatalog(i){
-  return { id:i.id, name:i.name, description:i.description, price:Number(i.price||0), currency:i.currency||'ILS', sku:i.sku||'', category:i.category||'', imageUrl:i.imageUrl||'', imageData:i.imageData||'' };
-}
+/* פרסום לחנות */
 function publish(){
-  const items = ITEMS.filter(i=>i.active).map(minifyForCatalog);
-  PUBLISHED = { meta:{ generatedAt:new Date().toISOString(), count: items.length, brand:'BulkGoods Demo' }, items };
+  PUBLISHED = { items: ITEMS.filter(i=>i.active).map(i=>({ id:i.id, name:i.name, description:i.description, price:+(i.price||0), currency:i.currency||'ILS', category:i.category||'', imageUrl:i.imageUrl||'', imageData:i.imageData||'' })) };
   save(LS.published, PUBLISHED);
-  toast(`Published ${items.length} items`);
-  log('Published to store', PUBLISHED.meta);
+  toast('פורסם לחנות');
+  if($('#view-store').classList.contains('active')) renderStore();
 }
 
-/* ---------- Store Rendering ---------- */
-function buildCategories(){
-  const cats=[...new Set((PUBLISHED.items||[]).map(i=>i.category).filter(Boolean))].sort();
-  const chips=$('#chips'); chips.innerHTML='';
-  const all=document.createElement('div'); all.className='chip'+(S_CAT===''?' active':''); all.textContent='All';
-  all.onclick=()=>{S_CAT=''; updateChips(); renderStore();};
-  chips.appendChild(all);
-  cats.forEach(c=>{
-    const el=document.createElement('div'); el.className='chip'+(S_CAT===c?' active':''); el.textContent=c;
-    el.onclick=()=>{ S_CAT = S_CAT===c ? '' : c; updateChips(); renderStore(); };
-    chips.appendChild(el);
-  });
-}
-function updateChips(){ $$('#chips .chip').forEach(ch=>{ ch.classList.toggle('active', ch.textContent===(S_CAT||'All')); }); }
-function filteredStore(){
-  const q=(S_QUERY||'').toLowerCase();
-  let arr=(PUBLISHED.items||[]).filter(i => (`${i.name} ${i.description} ${i.sku} ${i.category}`).toLowerCase().includes(q));
-  if(S_CAT) arr = arr.filter(i=>i.category===S_CAT);
-  const sort=$('#s-sort').value;
-  if(sort==='name') arr.sort((a,b)=>a.name.localeCompare(b.name));
-  if(sort==='priceAsc') arr.sort((a,b)=>(a.price||0)-(b.price||0));
-  if(sort==='priceDesc') arr.sort((a,b)=>(b.price||0)-(a.price||0));
-  return arr;
-}
+/* חנות — נקייה */
 function renderStore(){
-  $('#pubCount').textContent = (PUBLISHED.items||[]).length;
+  const q = ($('#s-q').value||'').toLowerCase();
+  const list = (PUBLISHED.items||[]).filter(i => (`${i.name} ${i.description} ${i.category}`).toLowerCase().includes(q));
   const g = $('#s-grid'); g.innerHTML='';
-  filteredStore().forEach(i=>{
-    const img = i.imageUrl || i.imageData || '';
-    const price = Number(i.price||0).toLocaleString(undefined,{style:'currency',currency:i.currency||'ILS'});
-    const el=document.createElement('div'); el.className='store-card';
+  list.forEach(i=>{
+    const el=document.createElement('div'); el.className='store-card shadow';
     el.innerHTML = `
-      <div class="image">${img?`<img src="${img}" alt="">`:`<div class="muted">No image</div>`}</div>
+      <div class="image">${(i.imageUrl||i.imageData)?`<img src="${i.imageUrl||i.imageData}" alt="">`:`<div class="muted">ללא תמונה</div>`}</div>
       <div class="meta">
-        <div class="row"><b>${escapeHTML(i.name)}</b><span class="pill">${escapeHTML(i.currency||'ILS')}</span></div>
-        <div style="color:#9db0cc;font-size:12px;height:36px;overflow:hidden">${escapeHTML(i.description||'')}</div>
-        <div class="row" style="margin-top:6px"><div style="font-weight:700">${price}</div><div style="color:#9db0cc;font-size:12px">${escapeHTML(i.category||'')}</div></div>
-        <div class="row" style="margin-top:8px">
-          <button class="primary" data-wa="${encodeURIComponent(i.name)}">WhatsApp</button>
-          <button data-share="${encodeURIComponent(i.name)}">Share</button>
-        </div>
+        <div class="row" style="justify-content:space-between"><b>${esc(i.name)}</b><span class="pill">${esc(i.currency||'ILS')}</span></div>
+        <div class="desc">${esc(i.description||'')}</div>
+        <div class="row" style="justify-content:space-between;margin-top:6px"><div style="font-weight:700">${money(i.price,i.currency)}</div><div class="muted" style="font-size:12px">${esc(i.category||'')}</div></div>
       </div>`;
     g.appendChild(el);
   });
 }
 
-/* ---------- AUTH FLOW ---------- */
-function setSignedInUI(){
-  $('#modeBadge').textContent = SETTINGS.demo ? 'Demo' : 'Live';
-  // Tabs enabled
-  $('#tab-admin').classList.remove('hidden');
-  $('#tab-store').classList.remove('hidden');
-  $('#tab-logout').classList.remove('hidden');
-}
-function signOut(){
-  USER = null; save(LS.user, null);
-  stopAutoSync(); setView('#view-auth');
-  $('#tab-admin').classList.add('active'); $('#tab-store').classList.remove('active');
-}
+/* ניווט/אימות */
+function signedInUI(){ $('#tab-logout').classList.remove('hidden'); $('#modeBadge').textContent = SETTINGS.demo ? 'דמו' : 'Live'; }
+$('#tab-admin').onclick=()=>{ $('#tab-admin').classList.add('active'); $('#tab-store').classList.remove('active'); setView('#view-admin'); };
+$('#tab-store').onclick=()=>{ $('#tab-store').classList.add('active'); $('#tab-admin').classList.remove('active'); setView('#view-store'); renderStore(); };
+$('#tab-logout').onclick=()=>{ USER=null; save(LS.user,null); setView('#view-login'); $('#tab-logout').classList.add('hidden'); };
 
-/* ---------- Events ---------- */
-$('#tab-admin').onclick = ()=>{ $$('#header .tab')?.forEach(()=>{}); $('#tab-admin').classList.add('active'); $('#tab-store').classList.remove('active'); setView('#view-admin'); };
-$('#tab-store').onclick = ()=>{ $('#tab-store').classList.add('active'); $('#tab-admin').classList.remove('active'); setView('#view-store'); renderStore(); };
-$('#tab-logout').onclick = ()=>signOut();
-
-$('#base').onchange = ()=>{ $('#baseCustom').classList.toggle('hidden', $('#base').value!=='custom'); };
-$('#mockToggle').onchange = ()=>{ SETTINGS.demo = $('#mockToggle').checked; saveSettings(); $('#modeBadge').textContent = SETTINGS.demo ? 'Demo' : 'Live'; toast(SETTINGS.demo?'Demo mode ON':'Live (not available in demo)'); };
-
-$('#btn-google').onclick = ()=>{
-  const name = ($('#demoName').value.trim()||'Demo User'), email = ($('#demoEmail').value.trim()||'demo@example.com');
-  USER = { name, email, avatar: svgPlaceholder(name,'#8b5cf6') };
-  save(LS.user, USER);
-  toast(`Signed in as ${name}`);
+/* אירועים — מסכים */
+$('#btn-google').onclick=()=>{ USER={name:'משתמש/ת', email:'demo@example.com'}; save(LS.user, USER); setView('#view-keys'); toast('מחובר/ת (דמו)'); signedInUI(); };
+$('#base').onchange=()=>{ $('#baseCustom').classList.toggle('hidden', $('#base').value!=='custom'); };
+$('#demoToggle').onchange=()=>{ SETTINGS.demo = $('#demoToggle').checked; save(LS.settings, SETTINGS); $('#modeBadge').textContent = SETTINGS.demo?'דמו':'Live'; };
+$('#btn-test').onclick=()=> toast(SETTINGS.demo ? 'בדיקה בדמו: ✓' : 'Live אינו פעיל בדמו');
+$('#btn-continue').onclick=()=>{
+  SETTINGS.base = ($('#base').value==='custom') ? ($('#baseCustom').value.trim() || SETTINGS.base) : $('#base').value;
+  SETTINGS.token = $('#token').value.trim() || '';
+  save(LS.settings, SETTINGS);
+  ensureSeed(); renderAdmin(); setView('#view-admin'); toast('ברוך הבא לניהול');
 };
 
-$('#btn-test').onclick = async ()=>{
-  if(SETTINGS.demo){ toast('Demo mode: connection simulated ✓'); log('Test OK (demo)'); return; }
-  toast('Live test not available in this demo');
-};
-
-$('#btn-enter').onclick = ()=>{
-  if(!USER){ $('#btn-google').click(); }
-  SETTINGS.base = ($('#base').value==='custom') ? ($('#baseCustom').value.trim()||SETTINGS.base) : $('#base').value;
-  SETTINGS.token = $('#token').value.trim() || 'demo-token';
-  saveSettings(); setSignedInUI();
-  ensureLocalSeed(); renderAdmin(); setView('#view-admin');
-  log('Entered admin', {user:USER?.email||'demo'});
-};
-$('#btn-enter-store').onclick = ()=>{
-  if(!USER){ $('#btn-google').click(); }
-  publish(); setSignedInUI(); renderStore(); setView('#view-store'); $('#tab-store').classList.add('active'); $('#tab-admin').classList.remove('active');
-};
-$('#btn-reset').onclick = ()=>{ if(confirm('Reset the entire demo?')) resetDemo(); };
-
-$('#q').addEventListener('input', e=>{ QUERY=e.target.value; renderAdmin(); });
-$('#newItem').onclick = ()=>openEditor();
-$('#close').onclick = ()=>closeEditor();
-$('#save').onclick = ()=>persistCurrent();
-$('#dup').onclick = ()=>{ if(!CURRENT) return; const copy={...CURRENT, id:uid(), name:CURRENT.name+' (copy)', dirty:true}; ITEMS.unshift(copy); save(LS.items, ITEMS); renderAdmin(); toast('Duplicated'); };
-$('#newFrom').onclick = ()=>{ if(!CURRENT) return; CURRENT={...CURRENT, id:uid(), name:'', sku:'', dirty:true}; $('#f_name').value=''; $('#f_sku').value=''; toast('New from template'); };
-$('#delete').onclick = (e)=>{ e.preventDefault(); if(!CURRENT) return; if(!confirm('Delete locally?')) return; ITEMS = ITEMS.filter(x=>x.id!==CURRENT.id); save(LS.items, ITEMS); renderAdmin(); closeEditor(); toast('Deleted (local)'); };
-
-$('#pull').onclick = ()=>pull();
-$('#push').onclick = ()=>push();
-$('#publish').onclick = ()=>{ publish(); if($('#view-store').classList.contains('active')) renderStore(); };
-
-$('#clearLocal').onclick=()=>{ if(confirm('Clear local cache (items only)?')){ ITEMS=[]; save(LS.items, ITEMS); renderAdmin(); } };
-$('#logClear').onclick=()=>{ $('#log').innerHTML=''; };
-$('#autoSync').onchange=()=>{ $('#autoSync').checked ? startAutoSync() : stopAutoSync(); };
-
+/* אירועים — ניהול */
+$('#q').addEventListener('input', renderAdmin);
+$('#newItem').onclick=()=>openEditor();
+$('#fabNew').onclick=()=>openEditor();
+$('#syncBtn').onclick=()=>pushPull();
+$('#publish').onclick=()=>publish();
+$('#gotoStore').onclick=()=>{ $('#tab-store').click(); };
+$('#backAdmin').onclick=()=>{ $('#tab-admin').click(); };
 document.addEventListener('keydown', e=>{
   if(e.key==='/' && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName)){ e.preventDefault(); $('#q').focus(); }
   if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s'){ e.preventDefault(); if($('#drawer').classList.contains('show')) persistCurrent(); }
-  if(e.key.toLowerCase()==='n' && !$('#drawer').classList.contains('show') && $('#view-admin').classList.contains('active')){ openEditor(); }
 });
 
+/* עריכה/תמונות/מחיקה בכרטיסים */
 document.addEventListener('change', async e=>{
   const t=e.target;
   if(t.matches('.image input[type=file]')){
-    const id = t.getAttribute('data-img');
-    const f = t.files?.[0]; if(!f) return;
-    const data = await fileToDataURL(f);
-    const it = ITEMS.find(x=>x.id===id);
-    if(it){ it.imageData=data; it.dirty=true; save(LS.items, ITEMS); renderAdmin(); toast('Image updated'); }
+    const id=t.getAttribute('data-img'); const f=t.files?.[0]; if(!f) return;
+    const data=await fileToDataURL(f); const it=ITEMS.find(x=>x.id===id);
+    if(it){ it.imageData=data; it.dirty=true; save(LS.items, ITEMS); renderAdmin(); toast('תמונה עודכנה'); }
   }
   if(t.id==='f_img'){
-    const f=t.files?.[0]; if(!f) return; const data = await fileToDataURL(f);
-    CURRENT.imageData = data; $('#preview').innerHTML=`<img src="${data}"/>`;
+    const f=t.files?.[0]; if(!f) return; const data=await fileToDataURL(f);
+    CURRENT.imageData=data; $('#preview').innerHTML=`<img src="${data}">`;
   }
 });
-
 document.addEventListener('click', async e=>{
-  const editBtn = e.target.closest('[data-edit]');
-  const delBtn = e.target.closest('[data-del]');
-  const waBtn = e.target.closest('[data-wa]');
-  const shBtn = e.target.closest('[data-share]');
-  if(editBtn) openEditor(editBtn.getAttribute('data-edit'));
-  if(delBtn){
-    const id = delBtn.getAttribute('data-del');
-    const it = ITEMS.find(x=>x.id===id);
-    if(!it) return;
-    if(confirm('Delete locally (and remote in demo)?')){
-      ITEMS = ITEMS.filter(x=>x.id!==id); save(LS.items, ITEMS); renderAdmin(); toast('Deleted (local)');
-      if(SETTINGS.demo && it.morningId){ try{ await MorningMock.remove(it.morningId); log('Remote delete OK', it);}catch(err){ log('Remote delete failed: '+err.message); } }
+  const edit=e.target.closest('[data-edit]'); const del=e.target.closest('[data-del]');
+  if(edit) openEditor(edit.getAttribute('data-edit'));
+  if(del){
+    const id=del.getAttribute('data-del');
+    if(confirm('למחוק את הפריט מקומית (ובדמו גם מהשרת המדומה)?')){
+      const it=ITEMS.find(x=>x.id===id);
+      ITEMS = ITEMS.filter(x=>x.id!==id); save(LS.items, ITEMS); renderAdmin();
+      if(it?.morningId && SETTINGS.demo){ try{ await MorningMock.remove(it.morningId); }catch{} }
+      toast('נמחק');
     }
   }
-  if(waBtn){
-    const name = decodeURIComponent(waBtn.getAttribute('data-wa'));
-    const phone = $('#s-phone').value.trim();
-    const msg = `Hi, I'm interested in "${name}"`;
-    const url = phone ? `https://wa.me/${encodeURIComponent(phone)}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
-    window.open(url,'_blank');
-  }
-  if(shBtn){
-    const url = location.href.split('#')[0];
-    const ok = await navigator.clipboard.writeText(url).then(()=>true).catch(()=>false);
-    toast(ok?'Link copied':'Share not available');
-  }
 });
+$('#save').onclick=()=>persistCurrent();
+$('#close').onclick=()=>closeEditor();
+$('#dup').onclick=()=>{ if(!CURRENT) return; const copy={...CURRENT,id:uid(),name:CURRENT.name+' (העתק)',dirty:true}; ITEMS.unshift(copy); save(LS.items, ITEMS); renderAdmin(); toast('שוכפל'); };
+$('#delete').onclick=()=>{ if(!CURRENT) return; if(confirm('למחוק פריט זה?')){ ITEMS=ITEMS.filter(x=>x.id!==CURRENT.id); save(LS.items, ITEMS); renderAdmin(); closeEditor(); toast('נמחק'); } };
 
-$('#s-q').addEventListener('input', e=>{ S_QUERY = e.target.value; renderStore(); });
-$('#s-sort').addEventListener('change', renderStore);
-$('#s-refresh').onclick = ()=>{ PUBLISHED = load(LS.published) || {meta:{},items:[]}; renderStore(); buildCategories(); toast('Reloaded published'); };
-
-/* ---------- Initialize ---------- */
+/* אתחול */
 (function init(){
-  // Restore user/settings
   USER = load(LS.user);
-  if(USER){ setSignedInUI(); }
-  $('#mockToggle').checked = SETTINGS.demo;
-  $('#token').value = SETTINGS.token || '';
-  const baseSel = $('#base'); if(SETTINGS.base && !['https://sandbox.d.greeninvoice.co.il/api/v1','https://api.greeninvoice.co.il/api/v1'].includes(SETTINGS.base)){ baseSel.value='custom'; $('#baseCustom').classList.remove('hidden'); $('#baseCustom').value=SETTINGS.base; }
-
-  // Preload admin seed if signed in and switch to admin
-  if(USER){
-    ensureLocalSeed(); renderAdmin(); setView('#view-admin');
-  }else{
-    setView('#view-auth');
-  }
-
-  // Build store from published (if exists)
-  buildCategories(); renderStore();
-
-  // Demo: occasionally mutate remote to show pull effect (only while on page)
-  setInterval(()=>{ if(SETTINGS.demo){ MorningMock.injectRandomChanges(1); } }, 30000);
+  if(USER){ signedInUI(); ensureSeed(); renderAdmin(); setView('#view-admin'); }
+  else{ setView('#view-login'); }
 })();
 </script>
 </body>
