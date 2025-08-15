@@ -48,6 +48,9 @@
             font-size: 16px;
             overflow-x: hidden;
         }
+        body.modal-open {
+            overflow: hidden;
+        }
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -111,9 +114,12 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        .whatsapp-btn-header:hover { transform: scale(1.05); }
+        .whatsapp-btn-header:hover { 
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
+        }
         .whatsapp-btn-header .bi { font-size: 1.2rem; }
         .whatsapp-btn-header span { display: none; }
 
@@ -181,7 +187,7 @@
             padding: 30px 0;
             background-color: #e9ecef;
             position: sticky;
-            top: 68px; /* Adjusted for slightly taller header */
+            top: 68px; /* Adjusted for header */
             z-index: 999;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
@@ -193,7 +199,6 @@
         }
         #search-input:focus { outline: none; box-shadow: 0 0 0 3px rgba(10, 147, 150, 0.3); }
 
-        /* Category Filter Dropdown */
         .filters-dropdown {
             position: relative;
             margin: 0 auto;
@@ -221,51 +226,147 @@
         .category-btn {
             padding: 8px 18px; font-size: 1em; font-weight: 600;
             border: 1px solid transparent; border-radius: 20px; cursor: pointer;
-            background-color: #fff; color: var(--primary-color); transition: all 0.3s;
+            background-color: #f0f0f0; color: var(--primary-color); transition: all 0.3s;
+            margin: 0;
         }
         .category-btn:hover { background-color: var(--secondary-color); color: white; }
-        .category-btn.active { background-color: var(--primary-color); color: white; }
+        .category-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
         
         .category-filters-container .category-btn {
             display: block; width: 100%; text-align: right; border-radius: 0;
-            border-bottom: 1px solid var(--border-color); margin: 0;
-            border-left: none; border-right: none; border-top: none;
+            border-bottom: 1px solid var(--border-color);
+            background-color: #fff;
         }
         .category-filters-container .category-btn:last-child { border-bottom: none; }
-        
+
         /* --- Product Catalog --- */
-        #catalog { padding: 70px 0 40px; } /* UPDATED: Increased top padding to prevent overlap */
+        #catalog { padding: 50px 0 20px; }
         #catalog-title { text-align: center; margin-bottom: 40px; font-size: 2.2em; }
         
-        .swiper-container { width: 100%; min-height: 450px; overflow: hidden; }
-        .swiper-slide { box-sizing: border-box; padding: 0 10px; height: auto; }
-        
-        /* UPDATED: Added a rule for desktop centering */
-        @media (min-width: 768px) {
-            .swiper-wrapper {
-                justify-content: center;
-            }
+        .swiper-container { 
+            width: 100%; 
+            min-height: 480px; 
+            overflow: hidden;
+            padding-bottom: 50px; /* NEW: Space for pagination */
         }
+        .swiper-slide { box-sizing: border-box; padding: 0 10px; height: auto; }
         
         .product-card {
             background-color: var(--card-bg); border-radius: 12px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             overflow: hidden; display: flex; flex-direction: column;
-            height: 100%; transition: box-shadow 0.3s ease;
+            height: 100%; transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 95, 115, 0.15);
         }
         .product-image-container { 
             width: 100%; height: 220px; background-color: #fff; padding: 10px; 
             box-sizing: border-box; display: flex; align-items: center; justify-content: center;
         }
         .product-card img { width: 100%; height: 100%; object-fit: contain; }
-        .product-info { padding: 20px; flex-grow: 1; text-align: right; }
-        .product-info h3 { margin: 0 0 10px 0; font-size: 1.2em; font-weight: 600; line-height: 1.4; min-height: 50px; }
+        .product-info { padding: 20px; flex-grow: 1; text-align: right; display: flex; flex-direction: column; }
+        .product-info h3 { margin: 0 0 10px 0; font-size: 1.2em; font-weight: 600; line-height: 1.4; min-height: 50px; flex-grow: 1; }
         .product-info .sku { font-weight: 700; color: var(--secondary-color); display: block; margin-bottom: 15px; font-size: 1em; }
-        .product-info p { font-size: 0.95em; flex-grow: 1; font-weight: 400; color: #6c757d; }
+        .product-info p { font-size: 0.95em; font-weight: 400; color: #6c757d; }
         #catalog-placeholder { text-align: center; padding: 40px; font-size: 1.2em; }
 
+        .swiper-pagination {
+            bottom: 10px !important; /* NEW: Repositioned */
+        }
         .swiper-pagination-bullet-active { background-color: var(--primary-color) !important; }
         .swiper-button-next, .swiper-button-prev { color: var(--primary-color) !important; }
+
+        /* --- Full Catalog Button --- */
+        .full-catalog-trigger-container {
+            text-align: center;
+            padding: 20px 0 40px;
+            display: none; /* Hidden on mobile by default */
+        }
+        #full-catalog-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        #full-catalog-btn:hover {
+            background-color: var(--button-hover);
+            transform: scale(1.05);
+        }
+        
+        /* --- Full Catalog Modal --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-content {
+            background-color: var(--background-color);
+            width: 90%;
+            height: 95vh;
+            max-width: 1600px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: #fff;
+        }
+        #close-modal-btn {
+            font-size: 2.5rem;
+            font-weight: 300;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: var(--primary-color);
+            line-height: 1;
+        }
+        #modal-filters {
+            padding: 15px;
+            background-color: #e9ecef;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .full-catalog-grid-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 25px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
+        }
+        /* Make product cards in grid fill the space */
+        .full-catalog-grid-container .product-card {
+            height: 100%;
+        }
+
 
         /* --- Info Section (About/Contact) --- */
         .info-section { background-color: var(--card-bg); padding: 50px 0; text-align: center; }
@@ -307,6 +408,11 @@
             .hero p { font-size: 1.3em; }
             .whatsapp-btn-header span { display: inline; }
             
+            /* Show Full Catalog Button on Desktop */
+            .full-catalog-trigger-container {
+                display: block;
+            }
+            
             /* Desktop Overrides for Filters */
             #category-filter-toggle { display: none; }
             .filters-dropdown { max-width: none; }
@@ -317,12 +423,18 @@
             }
             .category-filters-container .category-btn {
                 display: inline-block; width: auto; border-radius: 20px;
-                border: 1px solid transparent;
+                border: 1px solid var(--border-color);
+                background-color: #fff;
             }
+            .category-filters-container .category-btn:hover { background-color: var(--secondary-color); color: white; border-color: var(--secondary-color); }
+            .category-filters-container .category-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color);}
         }
         @media (min-width: 1024px) {
             .hero h1 { font-size: 3.5em; }
             .hero p { font-size: 1.4em; }
+            .full-catalog-grid-container {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
         }
     </style>
 </head>
@@ -392,6 +504,9 @@
                 <div class="swiper-button-next"></div>
                 <div class="swiper-button-prev"></div>
             </div>
+             <div class="full-catalog-trigger-container">
+                <button id="full-catalog-btn">לצפייה בקטלוג המלא</button>
+            </div>
         </section>
 
         <section id="about" class="info-section">
@@ -420,17 +535,29 @@
        <i class="bi bi-whatsapp"></i>
     </a>
 
+    <div id="full-catalog-modal" class="modal-overlay">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2 id="modal-title">קטלוג המוצרים המלא</h2>
+                <button id="close-modal-btn">&times;</button>
+            </header>
+            <div id="modal-filters" class="category-filters-container">
+                 </div>
+            <div id="full-catalog-grid" class="full-catalog-grid-container">
+                 </div>
+        </div>
+    </div>
+
+
     <template id="product-card-template">
-        <div class="swiper-slide">
-            <div class="product-card">
-                <div class="product-image-container">
-                    <img src="" alt="" class="product-image" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/400x300.png?text=תמונה+לא+זמינה';">
-                </div>
-                <div class="product-info">
-                    <h3 class="product-name"></h3>
-                    <span class="product-sku"></span>
-                    <p class="product-description"></p>
-                </div>
+         <div class="product-card">
+            <div class="product-image-container">
+                <img src="" alt="" class="product-image" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/400x300.png?text=תמונה+לא+זמינה';">
+            </div>
+            <div class="product-info">
+                <h3 class="product-name"></h3>
+                <span class="product-sku"></span>
+                <p class="product-description"></p>
             </div>
         </div>
     </template>
@@ -441,6 +568,7 @@
         document.addEventListener('DOMContentLoaded', () => {
 
             // --- DOM Elements ---
+            const body = document.body;
             const productGrid = document.getElementById('product-grid');
             const searchInput = document.getElementById('search-input');
             const categoryFiltersContainer = document.getElementById('category-filters');
@@ -450,6 +578,15 @@
             
             const categoryFilterToggle = document.getElementById('category-filter-toggle');
             const categoryFilterLabel = document.getElementById('category-filter-label');
+            const mobileDropdownContainer = document.querySelector('.filters-dropdown .category-filters-container');
+
+            // Modal elements
+            const fullCatalogModal = document.getElementById('full-catalog-modal');
+            const fullCatalogGrid = document.getElementById('full-catalog-grid');
+            const modalFiltersContainer = document.getElementById('modal-filters');
+            const fullCatalogBtn = document.getElementById('full-catalog-btn');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const modalTitle = document.getElementById('modal-title');
 
             // State variables
             let allProducts = [];
@@ -486,7 +623,11 @@
             // --- Rendering and UI Updates ---
             function renderCategories(products) {
                 const categories = ['הכל', ...new Set(products.map(p => p.category).filter(Boolean).sort())];
+                
+                // Clear all filter containers
                 categoryFiltersContainer.innerHTML = '';
+                mobileDropdownContainer.innerHTML = '';
+                modalFiltersContainer.innerHTML = '';
                 
                 categories.forEach(category => {
                     const btn = document.createElement('button');
@@ -495,7 +636,11 @@
                     if (category === 'הכל') btn.classList.add('active');
                     
                     btn.addEventListener('click', () => handleCategoryClick(category));
-                    categoryFiltersContainer.appendChild(btn);
+                    
+                    // Clone the button for each filter area
+                    categoryFiltersContainer.appendChild(btn.cloneNode(true)).addEventListener('click', () => handleCategoryClick(category));
+                    mobileDropdownContainer.appendChild(btn.cloneNode(true)).addEventListener('click', () => handleCategoryClick(category));
+                    modalFiltersContainer.appendChild(btn.cloneNode(true)).addEventListener('click', () => handleCategoryClick(category));
                 });
             }
 
@@ -509,6 +654,9 @@
                 }
 
                 productsToRender.forEach(product => {
+                    const swiperSlide = document.createElement('div');
+                    swiperSlide.className = 'swiper-slide';
+
                     const cardClone = cardTemplate.content.cloneNode(true);
                     
                     cardClone.querySelector('.product-name').textContent = product.name;
@@ -519,11 +667,36 @@
                     imgElement.src = product.imageUrl;
                     imgElement.alt = product.name;
                     
-                    productGrid.appendChild(cardClone);
+                    swiperSlide.appendChild(cardClone);
+                    productGrid.appendChild(swiperSlide);
                 });
 
                 initOrUpdateSwiper();
             }
+
+            function renderFullCatalog(productsToRender) {
+                fullCatalogGrid.innerHTML = '';
+
+                 if (productsToRender.length === 0) {
+                    fullCatalogGrid.innerHTML = '<p style="text-align:center; padding: 20px; width: 100%;">לא נמצאו מוצרים התואמים לסינון.</p>';
+                    return;
+                }
+
+                productsToRender.forEach(product => {
+                     const cardClone = cardTemplate.content.cloneNode(true);
+                    
+                    cardClone.querySelector('.product-name').textContent = product.name;
+                    cardClone.querySelector('.product-sku').textContent = `מק״ט: ${product.sku || 'N/A'}`;
+                    cardClone.querySelector('.product-description').textContent = product.description || '';
+                    
+                    const imgElement = cardClone.querySelector('.product-image');
+                    imgElement.src = product.imageUrl;
+                    imgElement.alt = product.name;
+
+                    fullCatalogGrid.appendChild(cardClone);
+                });
+            }
+
 
             // --- Unified Filtering Logic ---
             function filterAndRender() {
@@ -542,29 +715,37 @@
                 });
 
                 renderProducts(filteredProducts);
+                renderFullCatalog(filteredProducts);
                 updateUITexts(activeCategory, searchTerm);
             }
             
             function updateUITexts(category, searchTerm) {
-                if (catalogTitle) {
-                    if (searchTerm) {
-                        catalogTitle.textContent = `תוצאות חיפוש עבור "${searchTerm}"`;
-                    } else if (category !== 'הכל') {
-                        catalogTitle.textContent = `קטלוג המוצרים: ${category}`;
-                    } else {
-                        catalogTitle.textContent = 'קטלוג המוצרים';
-                    }
+                let titleText;
+                if (searchTerm) {
+                    titleText = `תוצאות חיפוש עבור "${searchTerm}"`;
+                } else if (category !== 'הכל') {
+                    titleText = `קטלוג: ${category}`;
+                } else {
+                    titleText = 'קטלוג המוצרים';
                 }
+                catalogTitle.textContent = titleText;
+                modalTitle.textContent = titleText;
             }
 
             // --- Event Handlers ---
             function handleCategoryClick(category) {
-                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-                const activeBtn = Array.from(document.querySelectorAll('.category-btn')).find(b => b.textContent === category);
-                if (activeBtn) activeBtn.classList.add('active');
+                // Update active state in all filter containers
+                document.querySelectorAll('.category-btn').forEach(b => {
+                    if (b.textContent === category) {
+                        b.classList.add('active');
+                    } else {
+                        b.classList.remove('active');
+                    }
+                });
                 
                 searchInput.value = '';
 
+                // Handle mobile dropdown UI
                 if (window.innerWidth < 768) {
                     categoryFilterLabel.textContent = category === 'הכל' ? 'סינון לפי קטגוריה' : `קטגוריה: ${category}`;
                     closeDropdown();
@@ -575,7 +756,7 @@
             
             function closeDropdown() {
                 categoryFilterToggle.classList.remove('open');
-                categoryFiltersContainer.classList.remove('open');
+                mobileDropdownContainer.classList.remove('open');
             }
 
             // --- Swiper (Slider) Functions ---
@@ -603,6 +784,22 @@
                     swiper = undefined;
                 }
             }
+            
+            // --- Modal Functions ---
+            function openModal() {
+                if (fullCatalogModal) {
+                    fullCatalogModal.classList.add('active');
+                    body.classList.add('modal-open');
+                }
+            }
+            
+            function closeModal() {
+                 if (fullCatalogModal) {
+                    fullCatalogModal.classList.remove('active');
+                    body.classList.remove('modal-open');
+                }
+            }
+
 
             // --- Mobile Navigation Setup ---
             function setupMobileNav() {
@@ -624,23 +821,33 @@
             // --- General Event Listeners Setup ---
             function setupEventListeners() {
                 searchInput.addEventListener('input', () => {
-                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-                    const allButton = Array.from(document.querySelectorAll('.category-btn')).find(b => b.textContent === 'הכל');
-                    if (allButton) allButton.classList.add('active');
-                    filterAndRender();
+                    // When searching, reset category to 'All'
+                    handleCategoryClick('הכל'); 
                 });
 
                 categoryFilterToggle.addEventListener('click', (e) => {
                     e.stopPropagation();
                     categoryFilterToggle.classList.toggle('open');
-                    categoryFiltersContainer.classList.toggle('open');
+                    mobileDropdownContainer.classList.toggle('open');
                 });
 
                 document.addEventListener('click', (e) => {
-                    if (!categoryFilterToggle.contains(e.target) && !categoryFiltersContainer.contains(e.target)) {
+                    if (!categoryFilterToggle.contains(e.target) && !mobileDropdownContainer.contains(e.target)) {
                         closeDropdown();
                     }
                 });
+
+                // Modal listeners
+                if (fullCatalogBtn) fullCatalogBtn.addEventListener('click', openModal);
+                if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+                if (fullCatalogModal) {
+                    fullCatalogModal.addEventListener('click', (e) => {
+                        // Close if clicking on the overlay, not the content
+                        if (e.target === fullCatalogModal) {
+                            closeModal();
+                        }
+                    });
+                }
             }
 
             // --- Footer Update ---
