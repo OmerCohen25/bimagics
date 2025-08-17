@@ -88,7 +88,7 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         .product-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
-        .product-card-image { width: 100%; height: 200px; object-fit: cover; background-color: #eee; padding: 0; box-sizing: border-box; }
+        .product-card-image { width: 100%; height: 200px; object-fit: cover; background-color: #eee; }
         .product-card-content { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
         .product-card-header { display: flex; justify-content: space-between; align-items: flex-start; }
         .product-card-header h3 { margin: 0; font-size: 1.3em; line-height: 1.3; }
@@ -132,12 +132,7 @@
             display: flex; flex-direction: column;
         }
         .modal.show { visibility: visible; opacity: 1; transform: translate(-50%, -50%) scale(1); transition-delay: 0s; }
-
-        .modal-header {
-            padding: 15px 25px; background-color: var(--card-bg);
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid var(--border-color);
-        }
+        .modal-header { padding: 15px 25px; background-color: var(--card-bg); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
         .modal-header h2 { margin: 0; font-size: 1.5em; }
         .modal-close-btn { background: none; border: none; font-size: 2.5em; cursor: pointer; color: var(--text-light); }
         .modal-body { padding: 25px; overflow-y: auto; }
@@ -165,17 +160,11 @@
         #editImagePreview { width: 100%; height: 180px; object-fit: cover; border-radius: 8px; border: 1px dashed var(--border-color); cursor: pointer; }
         .btn-upload { background-color: #f0f0f0; border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         #uploadOptionsModal .modal-body { display: flex; flex-direction: column; gap: 10px; }
-        #urlInputContainer { display: none; margin-top: 10px; }
+        #urlInputContainer { display: none; margin-top: 10px; gap: 5px; }
+        #urlInputContainer input { flex-grow: 1; }
         
-        .modal-footer {
-            padding: 15px 25px; border-top: 1px solid var(--border-color); background-color: var(--card-bg);
-            display: flex; justify-content: flex-end; gap: 10px;
-        }
-        .btn-save {
-            background-color: var(--success-color); color: white; padding: 12px 25px;
-            font-size: 1em; font-weight: 700; border-radius: 8px; border: none; cursor: pointer;
-            display: flex; align-items: center; gap: 8px;
-        }
+        .modal-footer { padding: 15px 25px; border-top: 1px solid var(--border-color); background-color: var(--card-bg); display: flex; justify-content: flex-end; gap: 10px; }
+        .btn-save { background-color: var(--success-color); color: white; padding: 12px 25px; font-size: 1em; font-weight: 700; border-radius: 8px; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; }
         .btn-save .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; display: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -226,30 +215,24 @@
     <div class="modal" id="uploadOptionsModal" style="max-width: 400px;"></div>
 
     <script>
-    (() => {
+    document.addEventListener('DOMContentLoaded', () => {
         // --- MOCK DATA GENERATION ---
         const customerPool = ['מסעדת החוף', 'קפה במרכז', 'מלון פאר', 'משרדי הייטק', 'פיצה כרמל'];
         
-        // Generates a stable, working image URL for a given ID
         function generateImageUrl(id) {
+            // Using a stable placeholder service
             return `https://picsum.photos/400/200?random=${id}`;
         }
 
         function generateMockData(baseProduct, id) {
             const listPrice = parseFloat((Math.random() * 40 + 10).toFixed(2));
             const costPrice = parseFloat((listPrice * (Math.random() * 0.3 + 0.5)).toFixed(2));
-            
-            const salesData = [];
-            const numSales = Math.floor(Math.random() * 5 + 3);
-            for (let i = 0; i < numSales; i++) {
-                salesData.push({
-                    customer: customerPool[Math.floor(Math.random() * customerPool.length)],
-                    date: `2025-0${Math.floor(Math.random() * 3 + 6)}-${Math.floor(Math.random() * 28 + 1).toString().padStart(2, '0')}`,
-                    qty: Math.floor(Math.random() * 20 + 5),
-                    price: parseFloat((listPrice * (1 - Math.random() * 0.15)).toFixed(2))
-                });
-            }
-
+            const salesData = Array.from({ length: Math.floor(Math.random() * 5 + 3) }, () => ({
+                customer: customerPool[Math.floor(Math.random() * customerPool.length)],
+                date: `2025-0${Math.floor(Math.random() * 3 + 6)}-${Math.floor(Math.random() * 28 + 1).toString().padStart(2, '0')}`,
+                qty: Math.floor(Math.random() * 20 + 5),
+                price: parseFloat((listPrice * (1 - Math.random() * 0.15)).toFixed(2))
+            }));
             return { ...baseProduct, id, imageUrl: generateImageUrl(id), costPrice, listPrice, morningId: `item-123${45 + id}`, salesData };
         }
 
@@ -270,14 +253,13 @@
                 setupEventListeners();
             } catch (error) {
                 productListContainer.innerHTML = `<p style="text-align:center; padding:20px; color:var(--danger-color);"><b>שגיאה:</b> לא ניתן היה לטעון את הקובץ <code>products.json</code>. אנא ודא שהוא קיים באותה התיקייה.</p>`;
-                console.error('Failed to load base products:', error);
             }
         }
         
         // --- Rendering Functions ---
         function renderProductList(productsToRender) {
             productListContainer.innerHTML = '';
-            if (productsToRender.length === 0) {
+            if (!productsToRender || productsToRender.length === 0) {
                  productListContainer.innerHTML = `<p style="text-align:center; padding: 20px;">לא נמצאו מוצרים התואמים לחיפוש.</p>`;
                  return;
             }
@@ -301,8 +283,7 @@
                             <button class="action-btn btn-edit" data-product-id="${product.id}"><i class="bi bi-pencil-square"></i> ערוך</button>
                             <button class="action-btn btn-stats" data-product-id="${product.id}"><i class="bi bi-bar-chart-line-fill"></i> נתונים</button>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 productListContainer.appendChild(cardDiv);
             });
         }
@@ -314,7 +295,7 @@
             const salesHistoryHTML = product.salesData.map(sale => `<tr><td>${sale.customer}</td><td>${sale.date}</td><td>${sale.qty}</td><td>₪${sale.price.toFixed(2)}</td></tr>`).join('');
 
             modal.innerHTML = `
-                <div class="modal-header"><h2 id="statsModalTitle">נתונים: ${product.name}</h2><button class="modal-close-btn" data-modal-id="statsModal">&times;</button></div>
+                <div class="modal-header"><h2>נתונים: ${product.name}</h2><button class="modal-close-btn" data-modal-id="statsModal">&times;</button></div>
                 <div class="modal-body">
                     <h3>מדדי רווחיות</h3>
                     <div class="stats-grid">
@@ -325,7 +306,7 @@
                     </div>
                     <h3>מכירות בחודשים האחרונים</h3><div class="chart-container"><canvas id="salesChart"></canvas></div>
                     <h3>היסטוריית מכירות אחרונות</h3>
-                    <table class="sales-history-table"><thead><tr><th>שם לקוח</th><th>תאריך</th><th>כמות</th><th>מחיר מכירה (ליח')</th></tr></thead><tbody>${salesHistoryHTML}</tbody></table>
+                    <table class="sales-history-table"><thead><tr><th>שם לקוח</th><th>תאריך</th><th>כמות</th><th>מחיר מכירה</th></tr></thead><tbody>${salesHistoryHTML}</tbody></table>
                 </div>`;
             
             const monthlySales = product.salesData.reduce((acc, sale) => {
@@ -363,8 +344,8 @@
                 <div class="modal-header"><h2>בחר מקור תמונה</h2><button class="modal-close-btn" data-modal-id="uploadOptionsModal">&times;</button></div>
                 <div class="modal-body">
                     <button class="action-btn" id="uploadFromUrlBtn"><i class="bi bi-link-45deg"></i>הזן קישור</button>
-                    <div id="urlInputContainer" style="display:none; gap:5px;"><input type="url" placeholder="הדבק קישור..." style="width:100%;"><button id="applyUrlBtn" class="action-btn">החל</button></div>
-                    <button class="action-btn" onclick="document.getElementById('fileInputDevice').click()"><i class="bi bi-upload"></i>בחר קובץ</button>
+                    <div id="urlInputContainer"><input type="url" placeholder="הדבק קישור..." style="width:100%;"><button id="applyUrlBtn" class="action-btn btn-stats">החל</button></div>
+                    <button class="action-btn" onclick="document.getElementById('fileInputDevice').click()"><i class="bi bi-upload"></i>בחר קובץ מהמכשיר</button>
                     <button class="action-btn" onclick="document.getElementById('fileInputCamera').click()"><i class="bi bi-camera-reels-fill"></i>צלם תמונה</button>
                     <input type="file" id="fileInputDevice" accept="image/*" style="display:none;">
                     <input type="file" id="fileInputCamera" accept="image/*" capture="user" style="display:none;">
@@ -373,18 +354,12 @@
         
         // --- Modal & Event Logic ---
         const modals = {
-            statsModal: document.getElementById('statsModal'),
-            editModal: document.getElementById('editModal'),
-            uploadOptionsModal: document.getElementById('uploadOptionsModal')
+            statsModal: { el: document.getElementById('statsModal'), backdrop: document.getElementById('statsModalBackdrop') },
+            editModal: { el: document.getElementById('editModal'), backdrop: document.getElementById('editModalBackdrop') },
+            uploadOptionsModal: { el: document.getElementById('uploadOptionsModal'), backdrop: document.getElementById('uploadOptionsModalBackdrop') }
         };
-        function openModal(modalName) {
-            modals[modalName].classList.add('show');
-            modals[modalName].previousElementSibling.classList.add('show');
-        }
-        function closeModal(modalName) {
-            modals[modalName].classList.remove('show');
-            modals[modalName].previousElementSibling.classList.remove('show');
-        }
+        function openModal(modalName) { modals[modalName].el.classList.add('show'); modals[modalName].backdrop.classList.add('show'); }
+        function closeModal(modalName) { modals[modalName].el.classList.remove('show'); modals[modalName].backdrop.classList.remove('show'); }
 
         function handleFormSubmit(event) {
             event.preventDefault();
@@ -418,14 +393,61 @@
         }
         
         function setupEventListeners() {
+            // Using a single, delegated event listener for all clicks for robustness
             document.body.addEventListener('click', e => {
-                // Main action buttons on cards
-                const statsBtn = e.target.closest('.btn-stats');
-                const editBtn = e.target.closest('.btn-edit');
+                const target = e.target;
+                
+                // Card buttons
+                const statsBtn = target.closest('.btn-stats');
                 if (statsBtn) {
                     const product = allProducts.find(p => p.id === parseInt(statsBtn.dataset.productId));
                     if (product) { populateStatsModal(product); openModal('statsModal'); }
                     return;
                 }
+                const editBtn = target.closest('.btn-edit');
                 if (editBtn) {
-                    const product = allProducts.find(p => p.id === parseInt(editBtn
+                    const product = allProducts.find(p => p.id === parseInt(editBtn.dataset.productId));
+                    if (product) { populateEditModal(product); openModal('editModal'); }
+                    return;
+                }
+
+                // Modal closing
+                if (target.closest('.modal-close-btn')) closeModal(target.closest('.modal-close-btn').dataset.modalId);
+                if (target.matches('.modal-backdrop')) closeModal(target.id.replace('Backdrop', ''));
+                
+                // Image Upload options
+                if (target.closest('.btn-upload, #editImagePreview')) { populateUploadOptionsModal(); openModal('uploadOptionsModal'); }
+                if (target.id === 'uploadFromUrlBtn') document.getElementById('urlInputContainer').style.display = 'flex';
+                if (target.id === 'applyUrlBtn') {
+                    const url = document.querySelector('#urlInputContainer input').value;
+                    if(url) { document.getElementById('editImagePreview').src = url; closeModal('uploadOptionsModal'); }
+                }
+            });
+
+            document.body.addEventListener('submit', e => { if (e.target.id === 'editForm') handleFormSubmit(e); });
+            
+            document.body.addEventListener('change', e => {
+                if (e.target.matches('#fileInputDevice, #fileInputCamera')) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = event => { document.getElementById('editImagePreview').src = event.target.result; };
+                        reader.readAsDataURL(file);
+                        closeModal('uploadOptionsModal');
+                    }
+                }
+            });
+
+            customerSearchInput.addEventListener('input', e => {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                const filteredProducts = !searchTerm ? allProducts : allProducts.filter(p => p.salesData.some(s => s.customer.toLowerCase().includes(searchTerm)));
+                renderProductList(filteredProducts);
+            });
+        }
+        
+        // --- Start the application ---
+        initializeApp();
+    });
+    </script>
+</body>
+</html>
