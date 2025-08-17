@@ -55,6 +55,7 @@
             align-items: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             margin-bottom: 20px;
+            border-radius: 12px;
         }
         .logo-area .logo-main { font-size: 1.8em; color: var(--primary-color); font-weight: 700; }
         .logo-area .logo-subtitle { font-size: 0.8em; color: var(--text-light); }
@@ -103,7 +104,7 @@
             justify-content: space-between;
             align-items: flex-start;
         }
-        .product-card-header h3 { margin: 0; font-size: 1.3em; }
+        .product-card-header h3 { margin: 0; font-size: 1.3em; line-height: 1.3; }
         .product-card-header .sku { font-size: 0.9em; color: var(--text-light); }
         .product-card-sync {
             display: flex; align-items: center; gap: 5px;
@@ -146,11 +147,11 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0,0,0,0.6);
             z-index: 1040;
-            display: none; /* Toggled by JS */
             opacity: 0;
-            transition: opacity 0.3s ease;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0s 0.3s;
         }
-        .modal-backdrop.show { display: block; opacity: 1; }
+        .modal-backdrop.show { visibility: visible; opacity: 1; transition-delay: 0s; }
         
         .modal {
             position: fixed; top: 50%; left: 50%;
@@ -160,13 +161,12 @@
             background-color: var(--background-color);
             border-radius: 15px;
             z-index: 1050;
-            display: none; /* Toggled by JS */
             opacity: 0;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            overflow: hidden;
+            visibility: hidden;
+            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.3s;
             display: flex; flex-direction: column;
         }
-        .modal.show { display: flex; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        .modal.show { visibility: visible; opacity: 1; transform: translate(-50%, -50%) scale(1); transition-delay: 0s; }
 
         .modal-header {
             padding: 15px 25px;
@@ -202,11 +202,15 @@
 
         .sales-history-table {
             width: 100%; border-collapse: collapse;
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
         }
         .sales-history-table th, .sales-history-table td {
             padding: 12px; text-align: right; border-bottom: 1px solid var(--border-color);
         }
-        .sales-history-table thead { background-color: var(--primary-color); color: white; }
+        .sales-history-table thead { background-color: #003f5c; color: white; }
+        .sales-history-table tbody tr:last-child td { border-bottom: none; }
         
         /* Edit Modal */
         .edit-form .form-grid {
@@ -279,7 +283,7 @@
     <div class="modal" id="statsModal">
         <div class="modal-header">
             <h2 id="statsModalTitle">נתוני מוצר</h2>
-            <button class="modal-close-btn" data-close-modal="statsModal">&times;</button>
+            <button class="modal-close-btn" data-modal-id="statsModal">&times;</button>
         </div>
         <div class="modal-body">
             <h3>מדדי רווחיות</h3>
@@ -317,8 +321,7 @@
                         <th>מחיר מכירה (ליח')</th>
                     </tr>
                 </thead>
-                <tbody id="salesHistoryBody">
-                    </tbody>
+                <tbody id="salesHistoryBody"></tbody>
             </table>
         </div>
     </div>
@@ -328,7 +331,7 @@
         <form id="editForm">
             <div class="modal-header">
                 <h2 id="editModalTitle">עריכת מוצר</h2>
-                <button type="button" class="modal-close-btn" data-close-modal="editModal">&times;</button>
+                <button type="button" class="modal-close-btn" data-modal-id="editModal">&times;</button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="editProductId">
@@ -365,20 +368,16 @@
         </form>
     </div>
 
-
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    // Self-invoking function to avoid polluting the global scope
+    (() => {
         // --- MOCK DATA (This would come from your database) ---
         const mockProducts = [
             {
-                id: 1,
-                sku: 'SKU001',
-                name: 'נוזל כלים לימון',
+                id: 1, sku: 'SKU001', name: 'נוזל כלים לימון',
                 description: 'נוזל כלים מרוכז ויעיל, מסיר שומנים בקלות. 1 ליטר.',
-                imageUrl: 'https://images.unsplash.com/photo-1627817052233-36e2a2c28636?q=80&w=800&auto=format&fit=crop',
-                costPrice: 8.50,
-                listPrice: 14.90,
-                morningId: 'item-12345',
+                imageUrl: 'https://i.imgur.com/8aVp6pA.jpeg',
+                costPrice: 8.50, listPrice: 14.90, morningId: 'item-12345',
                 salesData: [
                     { customer: 'מסעדת החוף', date: '2025-08-15', qty: 10, price: 14.90 },
                     { customer: 'קפה במרכז', date: '2025-08-12', qty: 5, price: 14.50 },
@@ -387,14 +386,10 @@
                 ]
             },
             {
-                id: 2,
-                sku: 'SKU002',
-                name: 'שקיות אשפה חזקות',
+                id: 2, sku: 'SKU002', name: 'שקיות אשפה חזקות',
                 description: '75 ליטר, חזקות במיוחד, עם שרוך לקשירה נוחה.',
-                imageUrl: 'https://images.unsplash.com/photo-1596954751798-73b0f5228514?q=80&w=800&auto=format&fit=crop',
-                costPrice: 12.00,
-                listPrice: 22.50,
-                morningId: 'item-12346',
+                imageUrl: 'https://i.imgur.com/e2a1s4n.jpeg',
+                costPrice: 12.00, listPrice: 22.50, morningId: 'item-12346',
                 salesData: [
                     { customer: 'מלון פאר', date: '2025-08-16', qty: 20, price: 21.00 },
                     { customer: 'משרדי הייטק', date: '2025-08-11', qty: 30, price: 20.50 },
@@ -402,14 +397,10 @@
                 ]
             },
             {
-                id: 3,
-                sku: 'SKU004',
-                name: 'אקונומיקה מבושמת',
+                id: 3, sku: 'SKU004', name: 'אקונומיקה מבושמת',
                 description: 'לחיטוי וניקוי כללי של משטחים ושירותים. 4 ליטר.',
-                imageUrl: 'https://images.unsplash.com/photo-1603612844435-7a6e729a7e4b?q=80&w=800&auto=format&fit=crop',
-                costPrice: 15.20,
-                listPrice: 29.90,
-                morningId: 'item-12347',
+                imageUrl: 'https://i.imgur.com/mO4Pg0d.jpeg',
+                costPrice: 15.20, listPrice: 29.90, morningId: 'item-12347',
                 salesData: [
                      { customer: 'מלון פאר', date: '2025-08-16', qty: 15, price: 28.00 },
                      { customer: 'משרדי הייטק', date: '2025-06-20', qty: 10, price: 28.50 },
@@ -419,14 +410,11 @@
 
         // --- DOM Elements ---
         const productListContainer = document.getElementById('product-list');
-        
-        // Modals
-        const statsModal = document.getElementById('statsModal');
-        const statsModalBackdrop = document.getElementById('statsModalBackdrop');
-        const editModal = document.getElementById('editModal');
-        const editModalBackdrop = document.getElementById('editModalBackdrop');
+        const modals = {
+            statsModal: { element: document.getElementById('statsModal'), backdrop: document.getElementById('statsModalBackdrop') },
+            editModal: { element: document.getElementById('editModal'), backdrop: document.getElementById('editModalBackdrop') }
+        };
         const editForm = document.getElementById('editForm');
-        
         let salesChartInstance = null;
 
         // --- Rendering Functions ---
@@ -434,58 +422,62 @@
             productListContainer.innerHTML = '';
             mockProducts.forEach(product => {
                 const profit = product.listPrice - product.costPrice;
-                const card = `
-                    <div class="product-card">
-                        <img src="${product.imageUrl}" alt="${product.name}" class="product-card-image">
-                        <div class="product-card-content">
-                            <div class="product-card-header">
-                                <div>
-                                    <h3>${product.name}</h3>
-                                    <span class="sku">מק"ט: ${product.sku}</span>
-                                </div>
-                                <div class="product-card-sync">
-                                    <i class="bi bi-cloud-check-fill"></i>
-                                    <span>Morning</span>
-                                </div>
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'product-card';
+                cardDiv.innerHTML = `
+                    <img src="${product.imageUrl}" alt="${product.name}" class="product-card-image" onerror="this.onerror=null;this.src='https://via.placeholder.com/400x200?text=Image+Not+Found'">
+                    <div class="product-card-content">
+                        <div class="product-card-header">
+                            <div>
+                                <h3>${product.name}</h3>
+                                <span class="sku">מק"ט: ${product.sku}</span>
                             </div>
-                            <div class="product-card-pricing">
-                                <div class="price-item">
-                                    <span class="price-label">מחיר עלות</span>
-                                    <span class="price-value cost">₪${product.costPrice.toFixed(2)}</span>
-                                </div>
-                                <div class="price-item">
-                                    <span class="price-label">רווח גולמי</span>
-                                    <span class="price-value" style="color: var(--success-color);">₪${profit.toFixed(2)}</span>
-                                </div>
-                                <div class="price-item">
-                                    <span class="price-label">מחיר מחירון</span>
-                                    <span class="price-value">₪${product.listPrice.toFixed(2)}</span>
-                                </div>
+                            <div class="product-card-sync" title="ID במורנינג: ${product.morningId}">
+                                <i class="bi bi-cloud-check-fill"></i>
+                                <span>Morning</span>
                             </div>
-                            <div class="product-card-actions">
-                                <button class="action-btn btn-edit" data-product-id="${product.id}"><i class="bi bi-pencil-square"></i> ערוך</button>
-                                <button class="action-btn btn-stats" data-product-id="${product.id}"><i class="bi bi-bar-chart-line-fill"></i> נתונים</button>
+                        </div>
+                        <div class="product-card-pricing">
+                            <div class="price-item">
+                                <span class="price-label">מחיר עלות</span>
+                                <span class="price-value cost">₪${product.costPrice.toFixed(2)}</span>
                             </div>
+                            <div class="price-item">
+                                <span class="price-label">רווח גולמי</span>
+                                <span class="price-value" style="color: var(--success-color);">₪${profit.toFixed(2)}</span>
+                            </div>
+                            <div class="price-item">
+                                <span class="price-label">מחיר מחירון</span>
+                                <span class="price-value">₪${product.listPrice.toFixed(2)}</span>
+                            </div>
+                        </div>
+                        <div class="product-card-actions">
+                            <button class="action-btn btn-edit" data-product-id="${product.id}"><i class="bi bi-pencil-square"></i> ערוך</button>
+                            <button class="action-btn btn-stats" data-product-id="${product.id}"><i class="bi bi-bar-chart-line-fill"></i> נתונים</button>
                         </div>
                     </div>
                 `;
-                productListContainer.innerHTML += card;
+                productListContainer.appendChild(cardDiv);
             });
         }
 
         // --- Modal Logic ---
-        function openModal(modal) {
-            const backdrop = document.getElementById(modal.id + 'Backdrop');
-            backdrop.classList.add('show');
-            modal.classList.add('show');
+        function openModal(modalName) {
+            const modal = modals[modalName];
+            if (modal) {
+                modal.backdrop.classList.add('show');
+                modal.element.classList.add('show');
+            }
         }
 
-        function closeModal(modal) {
-            const backdrop = document.getElementById(modal.id + 'Backdrop');
-            backdrop.classList.remove('show');
-            modal.classList.remove('show');
+        function closeModal(modalName) {
+            const modal = modals[modalName];
+            if (modal) {
+                modal.backdrop.classList.remove('show');
+                modal.element.classList.remove('show');
+            }
         }
-
+        
         // --- Stats Modal Functions ---
         function showStatsModal(productId) {
             const product = mockProducts.find(p => p.id === productId);
@@ -498,35 +490,23 @@
             const grossProfit = product.listPrice - product.costPrice;
             document.getElementById('statsGrossProfit').textContent = `₪${grossProfit.toFixed(2)}`;
             
-            const profitMargin = (grossProfit / product.listPrice) * 100;
+            const profitMargin = product.listPrice > 0 ? (grossProfit / product.listPrice) * 100 : 0;
             document.getElementById('statsProfitMargin').textContent = `${profitMargin.toFixed(1)}%`;
             
-            // Populate sales history table
             const salesHistoryBody = document.getElementById('salesHistoryBody');
             salesHistoryBody.innerHTML = '';
             product.salesData.forEach(sale => {
-                salesHistoryBody.innerHTML += `
-                    <tr>
-                        <td>${sale.customer}</td>
-                        <td>${sale.date}</td>
-                        <td>${sale.qty}</td>
-                        <td>₪${sale.price.toFixed(2)}</td>
-                    </tr>
-                `;
+                salesHistoryBody.innerHTML += `<tr><td>${sale.customer}</td><td>${sale.date}</td><td>${sale.qty}</td><td>₪${sale.price.toFixed(2)}</td></tr>`;
             });
             
-            // Create sales chart
-            const chartCtx = document.getElementById('salesChart').getContext('2d');
             const monthlySales = product.salesData.reduce((acc, sale) => {
                 const month = new Date(sale.date).toLocaleString('he-IL', { month: 'short', year: '2-digit'});
                 acc[month] = (acc[month] || 0) + sale.qty;
                 return acc;
             }, {});
 
-            if(salesChartInstance) {
-                salesChartInstance.destroy();
-            }
-            salesChartInstance = new Chart(chartCtx, {
+            if (salesChartInstance) salesChartInstance.destroy();
+            salesChartInstance = new Chart(document.getElementById('salesChart').getContext('2d'), {
                 type: 'bar',
                 data: {
                     labels: Object.keys(monthlySales).reverse(),
@@ -534,4 +514,103 @@
                         label: 'כמות שנמכרה',
                         data: Object.values(monthlySales).reverse(),
                         backgroundColor: 'rgba(10, 147, 150, 0.6)',
-                        borderColor: 'rgba(10
+                        borderColor: 'rgba(10, 147, 150, 1)',
+                        borderWidth: 1, borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true, title: { display: true, text: 'כמות' } }, x: { title: { display: true, text: 'חודש' } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            openModal('statsModal');
+        }
+
+        // --- Edit Modal Functions ---
+        function showEditModal(productId) {
+            const product = mockProducts.find(p => p.id === productId);
+            if (!product) return;
+            document.getElementById('editProductId').value = product.id;
+            document.getElementById('editName').value = product.name;
+            document.getElementById('editSku').value = product.sku;
+            document.getElementById('editCostPrice').value = product.costPrice.toFixed(2);
+            document.getElementById('editListPrice').value = product.listPrice.toFixed(2);
+            document.getElementById('editDescription').value = product.description;
+            openModal('editModal');
+        }
+
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            const saveButton = event.target.querySelector('.btn-save');
+            const spinner = saveButton.querySelector('.spinner');
+            const icon = saveButton.querySelector('i');
+            const text = saveButton.querySelector('span');
+            spinner.style.display = 'inline-block';
+            icon.style.display = 'none';
+            text.textContent = 'שומר ומסנכרן...';
+            saveButton.disabled = true;
+            
+            setTimeout(() => {
+                const productId = parseInt(document.getElementById('editProductId').value);
+                const productIndex = mockProducts.findIndex(p => p.id === productId);
+
+                if (productIndex > -1) {
+                    mockProducts[productIndex] = {
+                        ...mockProducts[productIndex],
+                        name: document.getElementById('editName').value,
+                        sku: document.getElementById('editSku').value,
+                        costPrice: parseFloat(document.getElementById('editCostPrice').value),
+                        listPrice: parseFloat(document.getElementById('editListPrice').value),
+                        description: document.getElementById('editDescription').value,
+                    };
+                }
+
+                spinner.style.display = 'none';
+                icon.style.display = 'inline-block';
+                text.textContent = 'שמור וסנכרן';
+                saveButton.disabled = false;
+                closeModal('editModal');
+                renderProductList();
+            }, 1500);
+        }
+
+        // --- Event Listeners ---
+        function setupEventListeners() {
+            productListContainer.addEventListener('click', (event) => {
+                const button = event.target.closest('button.action-btn');
+                if (!button) return;
+                const productId = parseInt(button.dataset.productId);
+                if (button.classList.contains('btn-stats')) showStatsModal(productId);
+                if (button.classList.contains('btn-edit')) showEditModal(productId);
+            });
+
+            document.querySelectorAll('.modal-close-btn').forEach(btn => {
+                const modalId = btn.dataset.modalId;
+                btn.addEventListener('click', () => closeModal(modalId));
+            });
+            
+            document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+                const modalId = backdrop.id.replace('Backdrop', '');
+                backdrop.addEventListener('click', () => closeModal(modalId));
+            });
+
+            editForm.addEventListener('submit', handleFormSubmit);
+        }
+
+        // --- Initializer ---
+        function init() {
+            if (!productListContainer) {
+                console.error("Critical error: product list container not found.");
+                return;
+            }
+            renderProductList();
+            setupEventListeners();
+        }
+
+        init();
+    })();
+    </script>
+</body>
+</html>
