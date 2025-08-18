@@ -30,7 +30,7 @@
         
         /* --- Filters --- */
         .filter-bar { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-        .filter-group { position: relative; display: flex; flex-direction: column; flex-grow: 1; }
+        .filter-group { position: relative; display: flex; flex-direction: column; flex-grow: 1; min-width: 200px; }
         .filter-group label { font-size: 0.8em; font-weight: 600; color: var(--text-light); margin-bottom: 5px; margin-right: 10px; }
         .filter-group input, .filter-group select { padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em; }
         #customer-suggestions { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--card-bg); border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 8px 8px; z-index: 100; max-height: 200px; overflow-y: auto; }
@@ -97,10 +97,12 @@
         .btn-save .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; display: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        @media (max-width: 992px) {
+            .filter-bar { flex-direction: column; }
+        }
         @media (max-width: 768px) {
             .container { padding: 10px; }
             .admin-header { flex-direction: column; gap: 15px; align-items: stretch; }
-            .filter-bar { flex-direction: column; }
             #product-list { grid-template-columns: 1fr; }
             .modal { width: 95%; max-height: 85vh; }
             .modal-body { padding: 15px; }
@@ -151,9 +153,10 @@
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         const customerPool = ['מסעדת החוף', 'קפה במרכז', 'מלון פאר', 'משרדי הייטק', 'פיצה כרמל'];
-        const aiImagePool = [ 'https://i.imgur.com/g63E5p8.jpeg', 'https://i.imgur.com/w1v2A68.jpeg', 'https://i.imgur.com/VpZiA84.jpeg' ];
-
+        const aiImagePool = [ 'https://i.imgur.com/g63E5p8.jpeg', 'https://i.imgur.com/w1v2A68.jpeg', 'https://i.imgur.com/VpZiA84.jpeg', 'https://i.imgur.com/sT250aD.jpeg' ];
+        
         function generateImageUrl(id) { return `https://picsum.photos/400/200?random=${id}`; }
+
         function generateMockData(baseProduct, id) {
             const listPrice = parseFloat((Math.random() * 40 + 10).toFixed(2));
             const costPrice = parseFloat((listPrice * (Math.random() * 0.3 + 0.5)).toFixed(2));
@@ -172,16 +175,17 @@
         let salesChartInstance = null;
         let currentEditingProductId = null;
 
+        const modals = { statsModal: document.getElementById('statsModal'), editModal: document.getElementById('editModal'), uploadOptionsModal: document.getElementById('uploadOptionsModal'), aiPromptModal: document.getElementById('aiPromptModal') };
+
         async function initializeApp() {
             try {
                 const response = await fetch('products.json');
                 if (!response.ok) throw new Error('Network response was not ok');
                 const baseProducts = await response.json();
                 allProducts = baseProducts.map((p, index) => generateMockData(p, index + 1));
+                uniqueCustomerNames = [...new Set(allProducts.flatMap(p => p.salesData.map(s => s.customer)))];
                 
                 populateCategoryFilter();
-                uniqueCustomerNames = [...new Set(allProducts.flatMap(p => p.salesData.map(s => s.customer)))];
-
                 renderProductList(allProducts);
                 setupEventListeners();
             } catch (error) {
@@ -229,40 +233,44 @@
             const category = categoryFilter.value;
             const productTerm = productSearchInput.value.toLowerCase().trim();
             const customerTerm = customerSearchInput.value.toLowerCase().trim();
-            
             let filtered = allProducts;
-            if (category && category !== 'כל הקטגוריות') {
-                filtered = filtered.filter(p => p.category === category);
-            }
-            if (productTerm) {
-                filtered = filtered.filter(p => 
-                    p.name.toLowerCase().includes(productTerm) ||
-                    p.sku.toLowerCase().includes(productTerm) ||
-                    p.description.toLowerCase().includes(productTerm)
-                );
-            }
-            if (customerTerm) {
-                filtered = filtered.filter(p => p.salesData.some(s => s.customer.toLowerCase().includes(customerTerm)));
-            }
+            if (category && category !== 'כל הקטגוריות') filtered = filtered.filter(p => p.category === category);
+            if (productTerm) filtered = filtered.filter(p => p.name.toLowerCase().includes(productTerm) || p.sku.toLowerCase().includes(productTerm) || p.description.toLowerCase().includes(productTerm));
+            if (customerTerm) filtered = filtered.filter(p => p.salesData.some(s => s.customer.toLowerCase().includes(customerTerm)));
             renderProductList(filtered);
         }
         
-        function populateModal(modalId, product) {
-            const modal = document.getElementById(modalId);
-            if (!product || !modal) return;
-            
-            if (modalId === 'statsModal') {
-                const grossProfit = product.listPrice - product.costPrice;
-                const profitMargin = product.listPrice > 0 ? (grossProfit / product.listPrice) * 100 : 0;
-                modal.innerHTML = `...`; // (As before)
-            } else if (modalId === 'editModal') {
-                 modal.innerHTML = `
-                <form id="editForm">
+        function populateStatsModal(product) {
+            const grossProfit = product.listPrice - product.costPrice;
+            const profitMargin = product.listPrice > 0 ? (grossProfit / product.listPrice) * 100 : 0;
+            const salesHistoryHTML = product.salesData.map(sale => `<tr><td>${sale.customer}</td><td>${sale.date}</td><td>${sale.qty}</td><td>₪${sale.price.toFixed(2)}</td></tr>`).join('');
+            modals.statsModal.innerHTML = `
+                <div class="modal-header"><h2>נתונים: ${product.name}</h2><button class="modal-close-btn" data-modal-id="statsModal">&times;</button></div>
+                <div class="modal-body">
+                    <h3>מדדי רווחיות</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card"><div class="label">מחיר עלות</div><div class="value cost">₪${product.costPrice.toFixed(2)}</div></div>
+                        <div class="stat-card"><div class="label">מחיר מחירון</div><div class="value">₪${product.listPrice.toFixed(2)}</div></div>
+                        <div class="stat-card"><div class="label">רווח גולמי</div><div class="value profit-positive">₪${grossProfit.toFixed(2)}</div></div>
+                        <div class="stat-card"><div class="label">אחוז רווח</div><div class="value profit-positive">${profitMargin.toFixed(1)}%</div></div>
+                    </div>
+                    <h3>מכירות בחודשים האחרונים</h3><div class="chart-container"><canvas id="salesChart"></canvas></div>
+                    <h3>היסטוריית מכירות אחרונות</h3>
+                    <table class="sales-history-table"><thead><tr><th>שם לקוח</th><th>תאריך</th><th>כמות</th><th>מחיר מכירה</th></tr></thead><tbody>${salesHistoryHTML}</tbody></table>
+                </div>`;
+            const monthlySales = product.salesData.reduce((acc, sale) => { const month = new Date(sale.date).toLocaleString('he-IL', { month: 'short', year: '2-digit' }); acc[month] = (acc[month] || 0) + sale.qty; return acc; }, {});
+            if (salesChartInstance) salesChartInstance.destroy();
+            salesChartInstance = new Chart(document.getElementById('salesChart').getContext('2d'), { type: 'bar', data: { labels: Object.keys(monthlySales).reverse(), datasets: [{ label: 'כמות שנמכרה', data: Object.values(monthlySales).reverse(), backgroundColor: 'rgba(10, 147, 150, 0.6)', borderRadius: 5 }] }, options: { responsive: true, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } } });
+        }
+
+        function populateEditModal(product) {
+            modals.editModal.innerHTML = `
+                <form id="editForm" novalidate>
                     <div class="modal-header"><h2>עריכת: ${product.name}</h2><button type="button" class="modal-close-btn" data-modal-id="editModal">&times;</button></div>
                     <div class="modal-body">
                         <input type="hidden" id="editProductId" value="${product.id}">
                         <div class="form-grid">
-                            <div class="image-upload-container"><img src="${product.imageUrl}" id="editImagePreview" alt="תצוגה מקדימה"><button type="button" class="btn-upload" data-product-id="${product.id}"><i class="bi bi-camera-fill"></i> שנה תמונה</button></div>
+                            <div class="image-upload-container"><img src="${product.imageUrl}" id="editImagePreview" alt="תצוגה מקדימה"><button type="button" class="btn-upload"><i class="bi bi-camera-fill"></i> שנה תמונה</button></div>
                             <div style="display: flex; flex-direction: column; gap: 20px;">
                                 <div class="form-group"><label for="editName">שם המוצר</label><input type="text" id="editName" value="${product.name}" required></div>
                                 <div class="form-group"><label for="editSku">מק"ט</label><input type="text" id="editSku" value="${product.sku}" required></div>
@@ -274,23 +282,40 @@
                     </div>
                     <div class="modal-footer"><button type="submit" class="btn-save"><div class="spinner"></div><i class="bi bi-check-circle-fill"></i><span>שמור וסנכרן</span></button></div>
                 </form>`;
-            }
-            // Populate stats and chart logic...
         }
-
-        // --- Event Listeners and Modal Logic ---
-        const modals = { statsModal: {el:document.getElementById('statsModal'), back:document.getElementById('statsModalBackdrop')}, editModal: {el:document.getElementById('editModal'), back:document.getElementById('editModalBackdrop')}, uploadOptionsModal: {el:document.getElementById('uploadOptionsModal'), back:document.getElementById('uploadOptionsModalBackdrop')}, aiPromptModal: {el:document.getElementById('aiPromptModal'), back:document.getElementById('aiPromptModalBackdrop')} };
-        function openModal(name) { modals[name].el.classList.add('show'); modals[name].back.classList.add('show'); }
-        function closeModal(name) { modals[name].el.classList.remove('show'); modals[name].back.classList.remove('show'); }
+        
+        function populateUploadOptionsModal() {
+             modals.uploadOptionsModal.innerHTML = `
+                <div class="modal-header"><h2>בחר מקור תמונה</h2><button class="modal-close-btn" data-modal-id="uploadOptionsModal">&times;</button></div>
+                <div class="modal-body">
+                    <button class="action-btn" id="generateAiImageBtn"><i class="bi bi-stars"></i> צור תמונה עם AI (דמו)</button>
+                    <button class="action-btn" id="uploadFromUrlBtn"><i class="bi bi-link-45deg"></i>הזן קישור</button>
+                    <div id="urlInputContainer"><input type="url" placeholder="הדבק קישור..." style="flex-grow:1;"><button id="applyUrlBtn" class="action-btn btn-stats">החל</button></div>
+                    <button class="action-btn" onclick="document.getElementById('fileInputDevice').click()"><i class="bi bi-upload"></i>בחר קובץ מהמכשיר</button>
+                    <button class="action-btn" onclick="document.getElementById('fileInputCamera').click()"><i class="bi bi-camera-reels-fill"></i>צלם תמונה</button>
+                    <input type="file" id="fileInputDevice" accept="image/*" style="display:none;"><input type="file" id="fileInputCamera" accept="image/*" capture="user" style="display:none;">
+                </div>`;
+        }
+        
+        function populateAiPromptModal(product) {
+            const prompt = `Realistic product photography of "${product.name}", a ${product.description}, on a clean white background, studio lighting.`;
+            modals.aiPromptModal.innerHTML = `
+                <div class="modal-header"><h2>הדגמת יצירת תמונה עם AI</h2><button class="modal-close-btn" data-modal-id="aiPromptModal">&times;</button></div>
+                <div class="modal-body">
+                    <p>בלחיצה על הכפתור, המערכת תשתמש בפרומפט הבא כדי ליצור תמונה חדשה:</p>
+                    <div id="aiPromptContainer"><code id="aiPromptText">${prompt}</code></div>
+                    <button id="generateAiBtn" class="action-btn btn-generate-ai"><div class="spinner"></div><i class="bi bi-magic"></i><span>צור תמונה (מדמה טעינה)</span></button>
+                </div>`;
+        }
+        
+        function openModal(modalName) { const m = modals[modalName]; m.el.classList.add('show'); m.back.classList.add('show'); }
+        function closeModal(modalName) { const m = modals[modalName]; m.el.classList.remove('show'); m.back.classList.remove('show'); }
 
         function handleFormSubmit(event) {
             event.preventDefault();
-            const saveButton = event.target.querySelector('.btn-save');
-            const spinner = saveButton.querySelector('.spinner');
-            spinner.style.display = 'inline-block';
-            saveButton.querySelector('i').style.display = 'none';
-            saveButton.querySelector('span').textContent = 'שומר...';
-            saveButton.disabled = true;
+            const saveButton = event.target.querySelector('.btn-save'); const spinner = saveButton.querySelector('.spinner');
+            spinner.style.display = 'inline-block'; saveButton.querySelector('i').style.display = 'none';
+            saveButton.querySelector('span').textContent = 'שומר...'; saveButton.disabled = true;
             
             setTimeout(() => {
                 const productId = parseInt(document.getElementById('editProductId').value);
@@ -298,10 +323,8 @@
                 if (productIndex > -1) {
                     allProducts[productIndex] = { ...allProducts[productIndex], name: document.getElementById('editName').value, sku: document.getElementById('editSku').value, costPrice: parseFloat(document.getElementById('editCostPrice').value), listPrice: parseFloat(document.getElementById('editListPrice').value), description: document.getElementById('editDescription').value, imageUrl: document.getElementById('editImagePreview').src };
                 }
-                spinner.style.display = 'none';
-                saveButton.querySelector('i').style.display = 'inline-block';
-                saveButton.querySelector('span').textContent = 'שמור וסנכרן';
-                saveButton.disabled = false;
+                spinner.style.display = 'none'; saveButton.querySelector('i').style.display = 'inline-block';
+                saveButton.querySelector('span').textContent = 'שמור וסנכרן'; saveButton.disabled = false;
                 closeModal('editModal');
                 applyFiltersAndRender();
             }, 1500);
@@ -310,45 +333,59 @@
         function setupEventListeners() {
             document.body.addEventListener('click', e => {
                 const target = e.target;
-                
-                // Card buttons
-                if (target.closest('.btn-stats')) {
-                    const product = allProducts.find(p => p.id === parseInt(target.closest('.btn-stats').dataset.productId));
-                    if(product) { populateModal('statsModal', product); openModal('statsModal'); }
-                } else if (target.closest('.btn-edit')) {
-                    const product = allProducts.find(p => p.id === parseInt(target.closest('.btn-edit').dataset.productId));
-                    if(product) { populateModal('editModal', product); openModal('editModal'); }
-                }
-                
-                // Modal closing
-                else if (target.closest('.modal-close-btn')) closeModal(target.closest('.modal-close-btn').dataset.modalId);
-                else if (target.matches('.modal-backdrop')) closeModal(target.id.replace('Backdrop', ''));
+                const closest = (selector) => target.closest(selector);
 
-                // Image Upload
-                else if (target.closest('.btn-upload, #editImagePreview')) {
-                    currentEditingProductId = parseInt(target.closest('[data-product-id]')?.dataset.productId || document.getElementById('editProductId').value);
-                    document.getElementById('uploadOptionsModal').innerHTML = `...`; // Populate upload options
-                    openModal('uploadOptionsModal');
-                }
-                else if (target.id === 'generateAiImageBtn') {
+                if (closest('.btn-stats')) {
+                    const product = allProducts.find(p => p.id === parseInt(closest('.btn-stats').dataset.productId));
+                    if (product) { populateStatsModal(product); openModal('statsModal'); }
+                } else if (closest('.btn-edit')) {
+                    const product = allProducts.find(p => p.id === parseInt(closest('.btn-edit').dataset.productId));
+                    if (product) { populateEditModal(product); openModal('editModal'); }
+                } else if (closest('.modal-close-btn')) {
+                    closeModal(closest('.modal-close-btn').dataset.modalId);
+                } else if (target.matches('.modal-backdrop')) {
+                    closeModal(target.id.replace('Backdrop', ''));
+                } else if (closest('.btn-upload, #editImagePreview')) {
+                    currentEditingProductId = parseInt(document.getElementById('editProductId').value);
+                    populateUploadOptionsModal(); openModal('uploadOptionsModal');
+                } else if (target.id === 'uploadFromUrlBtn') {
+                    document.getElementById('urlInputContainer').style.display = 'flex';
+                } else if (target.id === 'applyUrlBtn') {
+                    const url = document.querySelector('#urlInputContainer input').value;
+                    if(url) { document.getElementById('editImagePreview').src = url; closeModal('uploadOptionsModal'); }
+                } else if (target.id === 'generateAiImageBtn') {
                     const product = allProducts.find(p => p.id === currentEditingProductId);
-                    if (!product) return;
-                    closeModal('uploadOptionsModal');
-                    const prompt = `Realistic product photography of "${product.name}", a ${product.description}, on a clean white background, studio lighting`;
-                    document.getElementById('aiPromptModal').innerHTML = `...`; // Populate AI modal with prompt
-                    openModal('aiPromptModal');
+                    if (product) { closeModal('uploadOptionsModal'); populateAiPromptModal(product); openModal('aiPromptModal'); }
+                } else if (target.closest('#generateAiBtn')) {
+                    const btn = target.closest('#generateAiBtn'); const spinner = btn.querySelector('.spinner');
+                    spinner.style.display = 'inline-block'; btn.querySelector('i').style.display = 'none'; btn.disabled = true;
+                    setTimeout(() => {
+                        document.getElementById('editImagePreview').src = aiImagePool[Math.floor(Math.random() * aiImagePool.length)];
+                        spinner.style.display = 'none'; btn.querySelector('i').style.display = 'inline-block'; btn.disabled = false;
+                        closeModal('aiPromptModal');
+                    }, 2000);
                 }
-                // Other image upload logic...
             });
 
             document.body.addEventListener('submit', e => { if (e.target.id === 'editForm') handleFormSubmit(e); });
             
-            // Filters
-            [categoryFilter, productSearchInput, customerSearchInput].forEach(el => el.addEventListener('input', applyFiltersAndRender));
+            document.body.addEventListener('change', e => {
+                if (e.target.matches('#fileInputDevice, #fileInputCamera')) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = event => { document.getElementById('editImagePreview').src = event.target.result; };
+                        reader.readAsDataURL(file);
+                        closeModal('uploadOptionsModal');
+                    }
+                }
+            });
 
-            // Customer Autocomplete
+            [categoryFilter, productSearchInput].forEach(el => el.addEventListener('input', applyFiltersAndRender));
+            
             customerSearchInput.addEventListener('input', e => {
-                const term = e.target.value.toLowerCase();
+                const term = e.target.value.toLowerCase().trim();
+                applyFiltersAndRender();
                 if (!term) { customerSuggestions.style.display = 'none'; return; }
                 const suggestions = uniqueCustomerNames.filter(name => name.toLowerCase().includes(term));
                 if(suggestions.length > 0) {
@@ -365,6 +402,8 @@
                     applyFiltersAndRender();
                 }
             });
+            document.addEventListener('click', () => { customerSuggestions.style.display = 'none'; }); // Hide on any click
+            customerSearchInput.addEventListener('click', e => e.stopPropagation()); // Don't hide when clicking the input itself
         }
         
         initializeApp();
