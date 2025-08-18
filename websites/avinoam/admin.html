@@ -80,7 +80,7 @@
         .price-distribution-container { background-color: var(--card-bg); padding: 20px; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .price-bar { height: 12px; background: linear-gradient(to right, var(--accent-color), var(--success-color)); border-radius: 6px; position: relative; margin-top: 10px; }
         .price-marker { width: 14px; height: 14px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5); position: absolute; top: 50%; transform: translate(50%, -50%); }
-        .marker-label { position: absolute; top: 25px; transform: translateX(50%); font-size: 0.8em; font-weight: 600; white-space: nowrap; }
+        .marker-label { position: absolute; top: 25px; transform: translateX(50%); font-size: 0.8em; font-weight: 600; white-space: nowrap; text-shadow: 0 0 3px white; }
         .price-range-labels { display: flex; justify-content: space-between; font-size: 0.8em; margin-top: 5px; font-weight: 600; color: var(--text-light); }
         .chart-container { background-color: var(--card-bg); padding: 20px; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .sales-history-table { width: 100%; border-collapse: collapse; background-color: var(--card-bg); border-radius: 10px; overflow: hidden; }
@@ -157,7 +157,12 @@
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         const customerPool = ['מסעדת החוף', 'קפה במרכז', 'מלון פאר', 'משרדי הייטק', 'פיצה כרמל'];
-        const aiImagePool = [ 'https://images.pexels.com/photos/7757918/pexels-photo-7757918.jpeg?auto=compress&cs=tinysrgb&w=600', 'https://images.pexels.com/photos/7131331/pexels-photo-7131331.jpeg?auto=compress&cs=tinysrgb&w=600', 'https://images.pexels.com/photos/8439169/pexels-photo-8439169.jpeg?auto=compress&cs=tinysrgb&w=600', 'https://images.pexels.com/photos/7759445/pexels-photo-7759445.jpeg?auto=compress&cs=tinysrgb&w=600' ];
+        const aiImagePool = [
+            'https://images.pexels.com/photos/7757918/pexels-photo-7757918.jpeg?auto=compress&cs=tinysrgb&w=600',
+            'https://images.pexels.com/photos/7131331/pexels-photo-7131331.jpeg?auto=compress&cs=tinysrgb&w=600',
+            'https://images.pexels.com/photos/8439169/pexels-photo-8439169.jpeg?auto=compress&cs=tinysrgb&w=600',
+            'https://images.pexels.com/photos/7759445/pexels-photo-7759445.jpeg?auto=compress&cs=tinysrgb&w=600'
+        ];
         function generateImageUrl(id) { return `https://picsum.photos/400/200?random=${id}`; }
 
         function generateMockData(baseProduct, id) {
@@ -225,7 +230,7 @@
         function populateStatsModal(product) {
             const modal = modals.statsModal.el;
             const salePrices = product.salesData.map(s => s.price);
-            const minSalePrice = Math.min(...salePrices); const maxSalePrice = Math.max(...salePrices);
+            const minSalePrice = Math.min(...salePrices), maxSalePrice = Math.max(...salePrices);
             const avgSalePrice = salePrices.reduce((a, b) => a + b, 0) / salePrices.length;
             const grossProfit = product.listPrice - product.costPrice;
             const profitMargin = product.listPrice > 0 ? (grossProfit / product.listPrice) * 100 : 0;
@@ -240,18 +245,13 @@
                     <h3>היסטוריית מכירות אחרונות</h3><table class="sales-history-table"><thead><tr><th>שם לקוח</th><th>תאריך</th><th>כמות</th><th>מחיר מכירה</th></tr></thead><tbody>${salesHistoryHTML}</tbody></table>
                 </div>`;
             
-            // Position markers on the price bar
             const priceBar = modal.querySelector('#priceBar');
-            const range = maxSalePrice - minSalePrice;
-            if (range > 0) {
-                [{ val: product.costPrice, color: 'var(--danger-color)', label: 'עלות' }, { val: avgSalePrice, color: 'var(--primary-color)', label: 'ממוצע' }, { val: product.listPrice, color: 'var(--secondary-color)', label: 'מחירון' }]
-                .forEach(({val, color, label}) => {
-                    const pos = ((val - minSalePrice) / range) * 100;
-                    if (pos >= 0 && pos <= 100) {
-                        priceBar.innerHTML += `<div class="price-marker" style="right:${pos}%; background-color:${color};"><div class="marker-label">${label}<br>₪${val.toFixed(2)}</div></div>`;
-                    }
-                });
-            }
+            const range = maxSalePrice - minSalePrice || 1;
+            [{ val: product.costPrice, color: 'var(--danger-color)', label: 'עלות' }, { val: avgSalePrice, color: 'var(--primary-color)', label: 'ממוצע' }, { val: product.listPrice, color: 'var(--secondary-color)', label: 'מחירון' }]
+            .forEach(({val, color, label}) => {
+                const pos = Math.max(0, Math.min(100, ((val - minSalePrice) / range) * 100));
+                priceBar.innerHTML += `<div class="price-marker" style="right:${pos}%; background-color:${color};"><div class="marker-label">${label}<br>₪${val.toFixed(2)}</div></div>`;
+            });
 
             const monthlySales = product.salesData.reduce((acc, sale) => { const month = new Date(sale.date).toLocaleString('he-IL', { month: 'short', year: '2-digit' }); acc[month] = (acc[month] || 0) + sale.qty; return acc; }, {});
             if (salesChartInstance) salesChartInstance.destroy();
@@ -318,7 +318,7 @@
                 applyFiltersAndRender();
             }, 1500);
         }
-
+        
         function showToast(message, type = 'info') {
             const toastContainer = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -356,7 +356,6 @@
 
             document.body.addEventListener('submit', e => { if (e.target.id === 'editForm') handleFormSubmit(e); });
             document.body.addEventListener('change', e => { if (e.target.matches('#fileInputDevice, #fileInputCamera')) { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = event => { document.getElementById('editImagePreview').src = event.target.result; }; reader.readAsDataURL(file); closeModal('uploadOptionsModal'); } } });
-            
             [categoryFilter, productSearchInput, customerSearchInput].forEach(el => el.addEventListener('input', applyFiltersAndRender));
             
             customerSearchInput.addEventListener('input', e => {
