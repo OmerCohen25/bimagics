@@ -20,6 +20,7 @@
             --shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
         body { font-family: 'Assistant', sans-serif; margin: 0; background-color: var(--background-color); color: var(--text-color); font-size: 16px; line-height: 1.6; }
+        body.modal-open { overflow: hidden; } /* Prevents background scroll when modal is open */
         .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
         h1, h2, h3 { color: var(--primary-color); font-weight: 700; }
         input, textarea, button, select { font-family: 'Assistant', sans-serif; }
@@ -57,7 +58,7 @@
         .btn-stats { background-color: var(--secondary-color); color: white; } .btn-stats:hover { background-color: #0cabae; }
 
         /* --- Modal Styles --- */
-        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); z-index: 1040; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; }
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.75); z-index: 1040; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; }
         .modal-backdrop.show { visibility: visible; opacity: 1; transition-delay: 0s; }
         .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); width: 90%; max-width: 800px; max-height: 90vh; background-color: var(--background-color); border-radius: 15px; z-index: 1050; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.3s; display: flex; flex-direction: column; }
         .modal.show { visibility: visible; opacity: 1; transform: translate(-50%, -50%) scale(1); transition-delay: 0s; }
@@ -91,6 +92,9 @@
         #aiPromptContainer { background-color: #e9ecef; border: 1px solid #ced4da; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
         #aiPromptText { font-family: monospace; font-size: 0.9em; color: #495057; }
         .btn-generate-ai { background: linear-gradient(45deg, #6a11cb, #2575fc); color: white; }
+        #ai-generating-view { text-align: center; padding: 30px; }
+        #ai-generating-view .shimmer { width: 100%; height: 150px; background: #e0e0e0; border-radius: 8px; background-image: linear-gradient(90deg, #e0e0e0 0px, #f5f5f5 40px, #e0e0e0 80px); background-size: 600px; animation: shimmer 2s infinite linear; margin-top: 15px; }
+        @keyframes shimmer { 0% { background-position: -400px; } 100% { background-position: 400px; } }
         
         .modal-footer { padding: 15px 25px; border-top: 1px solid var(--border-color); background-color: var(--card-bg); display: flex; justify-content: flex-end; gap: 10px; }
         .btn-save { background-color: var(--success-color); color: white; padding: 12px 25px; font-size: 1em; font-weight: 700; border-radius: 8px; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; }
@@ -188,7 +192,6 @@
                 const baseProducts = await response.json();
                 allProducts = baseProducts.map((p, index) => generateMockData(p, index + 1));
                 uniqueCustomerNames = [...new Set(allProducts.flatMap(p => p.salesData.map(s => s.customer)))];
-                
                 populateCategoryFilter();
                 renderProductList(allProducts);
                 setupEventListeners();
@@ -244,6 +247,22 @@
             renderProductList(filtered);
         }
         
+        function openModal(modalName) {
+            modals[modalName].el.classList.add('show');
+            modals[modalName].backdrop.classList.add('show');
+            document.body.classList.add('modal-open');
+        }
+        
+        function closeModal(modalName) {
+            modals[modalName].el.classList.remove('show');
+            modals[modalName].backdrop.classList.remove('show');
+            // Only remove the body class if no other modals are open
+            const isAnyModalOpen = Object.values(modals).some(m => m.el.classList.contains('show'));
+            if (!isAnyModalOpen) {
+                document.body.classList.remove('modal-open');
+            }
+        }
+
         function populateStatsModal(product) {
             const modal = modals.statsModal.el;
             const grossProfit = product.listPrice - product.costPrice;
@@ -252,17 +271,11 @@
             modal.innerHTML = `
                 <div class="modal-header"><h2>נתונים: ${product.name}</h2><button class="modal-close-btn" data-modal-id="statsModal">&times;</button></div>
                 <div class="modal-body">
-                    <h3>מדדי רווחיות</h3>
-                    <div class="stats-grid">
-                        <div class="stat-card"><div class="label">מחיר עלות</div><div class="value cost">₪${product.costPrice.toFixed(2)}</div></div>
-                        <div class="stat-card"><div class="label">מחיר מחירון</div><div class="value">₪${product.listPrice.toFixed(2)}</div></div>
-                        <div class="stat-card"><div class="label">רווח גולמי</div><div class="value profit-positive">₪${grossProfit.toFixed(2)}</div></div>
-                        <div class="stat-card"><div class="label">אחוז רווח</div><div class="value profit-positive">${profitMargin.toFixed(1)}%</div></div>
-                    </div>
+                    <h3>מדדי רווחיות</h3><div class="stats-grid"><div class="stat-card"><div class="label">מחיר עלות</div><div class="value cost">₪${product.costPrice.toFixed(2)}</div></div><div class="stat-card"><div class="label">מחיר מחירון</div><div class="value">₪${product.listPrice.toFixed(2)}</div></div><div class="stat-card"><div class="label">רווח גולמי</div><div class="value profit-positive">₪${grossProfit.toFixed(2)}</div></div><div class="stat-card"><div class="label">אחוז רווח</div><div class="value profit-positive">${profitMargin.toFixed(1)}%</div></div></div>
                     <h3>מכירות בחודשים האחרונים</h3><div class="chart-container"><canvas id="salesChart"></canvas></div>
-                    <h3>היסטוריית מכירות אחרונות</h3>
-                    <table class="sales-history-table"><thead><tr><th>שם לקוח</th><th>תאריך</th><th>כמות</th><th>מחיר מכירה</th></tr></thead><tbody>${salesHistoryHTML}</tbody></table>
+                    <h3>היסטוריית מכירות אחרונות</h3><table class="sales-history-table"><thead><tr><th>שם לקוח</th><th>תאריך</th><th>כמות</th><th>מחיר מכירה</th></tr></thead><tbody>${salesHistoryHTML}</tbody></table>
                 </div>`;
+            
             const monthlySales = product.salesData.reduce((acc, sale) => { const month = new Date(sale.date).toLocaleString('he-IL', { month: 'short', year: '2-digit' }); acc[month] = (acc[month] || 0) + sale.qty; return acc; }, {});
             if (salesChartInstance) salesChartInstance.destroy();
             const chartCtx = modal.querySelector('#salesChart')?.getContext('2d');
@@ -304,33 +317,34 @@
                     <input type="file" id="fileInputDevice" accept="image/*" style="display:none;"><input type="file" id="fileInputCamera" accept="image/*" capture="user" style="display:none;">
                 </div>`;
         }
-
+        
         function populateAiPromptModal(product) {
             const prompt = `Realistic product photography of "${product.name}", a ${product.description}, on a clean white background, studio lighting.`;
             modals.aiPromptModal.el.innerHTML = `
                 <div class="modal-header"><h2>הדגמת יצירת תמונה עם AI</h2><button class="modal-close-btn" data-modal-id="aiPromptModal">&times;</button></div>
                 <div class="modal-body">
-                    <p>בלחיצה על הכפתור, המערכת תשתמש בפרומפט הבא כדי ליצור תמונה חדשה:</p>
-                    <div id="aiPromptContainer"><code id="aiPromptText">${prompt}</code></div>
-                    <button id="generateAiBtn" class="action-btn btn-generate-ai"><div class="spinner"></div><i class="bi bi-magic"></i><span>צור תמונה (מדמה טעינה)</span></button>
+                    <div id="ai-initial-view">
+                        <p>בלחיצה על הכפתור, המערכת תשתמש בפרומפט הבא כדי ליצור תמונה חדשה:</p>
+                        <div id="aiPromptContainer"><code id="aiPromptText">${prompt}</code></div>
+                        <button id="generateAiBtn" class="action-btn btn-generate-ai"><i class="bi bi-magic"></i><span>צור תמונה</span></button>
+                    </div>
+                    <div id="ai-generating-view" style="display: none;">
+                        <h3 style="text-align: center;">יוצר תמונה, אנא המתן...</h3>
+                        <p style="text-align: center; font-size: 0.9em; color: var(--text-light);">זהו דמו, התהליך מדמה יצירה של מספר שניות.</p>
+                        <div class="shimmer"></div>
+                    </div>
                 </div>`;
         }
-
-        function openModal(name) { modals[name].el.classList.add('show'); modals[name].back.classList.add('show'); }
-        function closeModal(name) { modals[name].el.classList.remove('show'); modals[name].back.classList.remove('show'); }
 
         function handleFormSubmit(event) {
             event.preventDefault();
             const saveButton = event.target.querySelector('.btn-save'); const spinner = saveButton.querySelector('.spinner');
             spinner.style.display = 'inline-block'; saveButton.querySelector('i').style.display = 'none';
             saveButton.querySelector('span').textContent = 'שומר...'; saveButton.disabled = true;
-            
             setTimeout(() => {
                 const productId = parseInt(document.getElementById('editProductId').value);
                 const productIndex = allProducts.findIndex(p => p.id === productId);
-                if (productIndex > -1) {
-                    allProducts[productIndex] = { ...allProducts[productIndex], name: document.getElementById('editName').value, sku: document.getElementById('editSku').value, costPrice: parseFloat(document.getElementById('editCostPrice').value), listPrice: parseFloat(document.getElementById('editListPrice').value), description: document.getElementById('editDescription').value, imageUrl: document.getElementById('editImagePreview').src };
-                }
+                if (productIndex > -1) { allProducts[productIndex] = { ...allProducts[productIndex], name: document.getElementById('editName').value, sku: document.getElementById('editSku').value, costPrice: parseFloat(document.getElementById('editCostPrice').value), listPrice: parseFloat(document.getElementById('editListPrice').value), description: document.getElementById('editDescription').value, imageUrl: document.getElementById('editImagePreview').src }; }
                 spinner.style.display = 'none'; saveButton.querySelector('i').style.display = 'inline-block';
                 saveButton.querySelector('span').textContent = 'שמור וסנכרן'; saveButton.disabled = false;
                 closeModal('editModal');
@@ -354,7 +368,7 @@
                     closeModal(closest('.modal-close-btn').dataset.modalId);
                 } else if (target.matches('.modal-backdrop')) {
                     closeModal(target.id.replace('Backdrop', ''));
-                } else if (closest('.btn-upload, #editImagePreview')) {
+                } else if (closest('.btn-upload') || closest('#editImagePreview')) {
                     currentEditingProductId = parseInt(document.getElementById('editProductId').value);
                     populateUploadOptionsModal(); openModal('uploadOptionsModal');
                 } else if (target.id === 'uploadFromUrlBtn') {
@@ -366,13 +380,12 @@
                     const product = allProducts.find(p => p.id === currentEditingProductId);
                     if (product) { closeModal('uploadOptionsModal'); populateAiPromptModal(product); openModal('aiPromptModal'); }
                 } else if (closest('#generateAiBtn')) {
-                    const btn = closest('#generateAiBtn'); const spinner = btn.querySelector('.spinner');
-                    spinner.style.display = 'inline-block'; btn.querySelector('i').style.display = 'none'; btn.disabled = true;
+                    modals.aiPromptModal.el.querySelector('#ai-initial-view').style.display = 'none';
+                    modals.aiPromptModal.el.querySelector('#ai-generating-view').style.display = 'block';
                     setTimeout(() => {
                         document.getElementById('editImagePreview').src = aiImagePool[Math.floor(Math.random() * aiImagePool.length)];
-                        spinner.style.display = 'none'; btn.querySelector('i').style.display = 'inline-block'; btn.disabled = false;
                         closeModal('aiPromptModal');
-                    }, 2000);
+                    }, 2500);
                 }
             });
 
@@ -384,10 +397,11 @@
                 }
             });
 
-            [categoryFilter, productSearchInput, customerSearchInput].forEach(el => el.addEventListener('input', applyFiltersAndRender));
+            [categoryFilter, productSearchInput].forEach(el => el.addEventListener('input', applyFiltersAndRender));
             
             customerSearchInput.addEventListener('input', e => {
                 const term = e.target.value.toLowerCase().trim();
+                applyFiltersAndRender();
                 if (!term) { customerSuggestions.style.display = 'none'; return; }
                 const suggestions = uniqueCustomerNames.filter(name => name.toLowerCase().includes(term));
                 customerSuggestions.innerHTML = suggestions.map(s => `<div data-name="${s}">${s}</div>`).join('');
@@ -395,17 +409,4 @@
             });
             customerSuggestions.addEventListener('click', e => {
                 if(e.target.matches('div')) {
-                    customerSearchInput.value = e.target.dataset.name;
-                    customerSuggestions.style.display = 'none';
-                    applyFiltersAndRender();
-                }
-            });
-            document.addEventListener('click', () => { customerSuggestions.style.display = 'none'; });
-            customerSearchInput.addEventListener('click', e => e.stopPropagation());
-        }
-        
-        initializeApp();
-    });
-    </script>
-</body>
-</html>
+                    customerSearchInput.value
