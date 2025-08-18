@@ -20,7 +20,7 @@
             --shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
         body { font-family: 'Assistant', sans-serif; margin: 0; background-color: var(--background-color); color: var(--text-color); font-size: 16px; line-height: 1.6; }
-        body.modal-open { overflow: hidden; } /* Prevents background scroll when modal is open */
+        body.modal-open { overflow: hidden; }
         .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
         h1, h2, h3 { color: var(--primary-color); font-weight: 700; }
         input, textarea, button, select { font-family: 'Assistant', sans-serif; }
@@ -29,14 +29,19 @@
         .user-area { display: flex; align-items: center; gap: 15px; } .user-area .user-name { font-weight: 600; }
         .user-area .bi-person-circle { font-size: 2em; color: var(--primary-color); }
         
-        /* --- Filters --- */
+        /* --- Main Actions & Filters --- */
+        .main-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        .main-action-btn { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease; }
+        .main-action-btn:hover { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+        .main-action-btn.btn-new { background-color: var(--accent-color); color: white; border-color: var(--accent-color); }
+        .main-action-btn.btn-new:hover { background-color: #d98c00; }
+        
         .filter-bar { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
         .filter-group { position: relative; display: flex; flex-direction: column; flex-grow: 1; min-width: 200px; }
         .filter-group label { font-size: 0.8em; font-weight: 600; color: var(--text-light); margin-bottom: 5px; margin-right: 10px; }
         .filter-group input, .filter-group select { padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em; }
         #customer-suggestions { display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--card-bg); border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 8px 8px; z-index: 100; max-height: 200px; overflow-y: auto; }
-        #customer-suggestions div { padding: 10px; cursor: pointer; }
-        #customer-suggestions div:hover { background-color: #f0f0f0; }
+        #customer-suggestions div { padding: 10px; cursor: pointer; } #customer-suggestions div:hover { background-color: #f0f0f0; }
 
         /* --- Product Grid --- */
         #product-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
@@ -68,10 +73,15 @@
         .modal-body { padding: 25px; overflow-y: auto; }
         
         /* Stats & Edit Modals */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-bottom: 20px; }
         .stat-card { background-color: var(--card-bg); padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .stat-card .label { font-size: 0.9em; color: var(--text-light); margin-bottom: 5px; }
         .stat-card .value { font-size: 1.8em; font-weight: 700; } .stat-card .value.profit-positive { color: var(--success-color); }
+        .price-distribution-container { background-color: var(--card-bg); padding: 20px; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .price-bar { height: 12px; background: linear-gradient(to right, var(--accent-color), var(--success-color)); border-radius: 6px; position: relative; margin-top: 10px; }
+        .price-marker { width: 14px; height: 14px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5); position: absolute; top: 50%; transform: translate(50%, -50%); }
+        .marker-label { position: absolute; top: 25px; transform: translateX(50%); font-size: 0.8em; font-weight: 600; white-space: nowrap; }
+        .price-range-labels { display: flex; justify-content: space-between; font-size: 0.8em; margin-top: 5px; font-weight: 600; color: var(--text-light); }
         .chart-container { background-color: var(--card-bg); padding: 20px; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .sales-history-table { width: 100%; border-collapse: collapse; background-color: var(--card-bg); border-radius: 10px; overflow: hidden; }
         .sales-history-table th, .sales-history-table td { padding: 12px; text-align: right; border-bottom: 1px solid var(--border-color); }
@@ -87,8 +97,6 @@
         .btn-upload { background-color: #f0f0f0; border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         #uploadOptionsModal .modal-body { display: flex; flex-direction: column; gap: 10px; }
         #urlInputContainer { display: none; margin-top: 10px; gap: 5px; } #urlInputContainer input { flex-grow: 1; }
-        
-        /* AI Prompt Modal */
         #aiPromptContainer { background-color: #e9ecef; border: 1px solid #ced4da; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
         #aiPromptText { font-family: monospace; font-size: 0.9em; color: #495057; }
         .btn-generate-ai { background: linear-gradient(45deg, #6a11cb, #2575fc); color: white; }
@@ -100,20 +108,14 @@
         .btn-save { background-color: var(--success-color); color: white; padding: 12px 25px; font-size: 1em; font-weight: 700; border-radius: 8px; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; }
         .btn-save .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; display: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        @media (max-width: 992px) {
-            .filter-bar { flex-direction: column; }
-        }
-        @media (max-width: 768px) {
-            .container { padding: 10px; }
-            .admin-header { flex-direction: column; gap: 15px; align-items: stretch; }
-            #product-list { grid-template-columns: 1fr; }
-            .modal { width: 95%; max-height: 85vh; }
-            .modal-body { padding: 15px; }
-            .modal-header h2 { font-size: 1.2em; }
-            .edit-form .form-grid { grid-template-columns: 1fr; }
-            .image-upload-container { grid-row: 1; }
-        }
+        
+        #toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+        .toast { background-color: var(--text-color); color: white; padding: 12px 25px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); font-weight: 600; opacity: 0; transform: translateY(20px); transition: all 0.3s ease; display: flex; align-items: center; gap: 10px; }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast.success { background-color: var(--success-color); }
+        
+        @media (max-width: 992px) { .filter-bar { flex-direction: column; } }
+        @media (max-width: 768px) { .container { padding: 10px; } .admin-header { flex-direction: column; gap: 15px; align-items: stretch; } #product-list { grid-template-columns: 1fr; } .modal { width: 95%; max-height: 85vh; } .modal-body { padding: 15px; } .modal-header h2 { font-size: 1.2em; } .edit-form .form-grid { grid-template-columns: 1fr; } .image-upload-container { grid-row: 1; } }
     </style>
 </head>
 <body>
@@ -130,20 +132,17 @@
             </div>
         </header>
 
+        <div class="main-actions">
+            <button class="action-btn btn-new" id="addNewProductBtn"><i class="bi bi-plus-circle-fill"></i> הוסף מוצר חדש</button>
+            <button class="action-btn" id="syncMorningBtn"><i class="bi bi-arrow-repeat"></i> סנכרון עם Morning</button>
+            <button class="action-btn" id="importMorningBtn"><i class="bi bi-cloud-download-fill"></i> ייבוא ממורנינג</button>
+            <button class="action-btn" id="updateSiteBtn"><i class="bi bi-display-fill"></i> עדכון אתר הלקוחות</button>
+        </div>
+
         <div class="filter-bar">
-            <div class="filter-group">
-                <label for="categoryFilter">סינון לפי קטגוריה</label>
-                <select id="categoryFilter"></select>
-            </div>
-            <div class="filter-group">
-                <label for="productSearchInput">חיפוש מוצר (שם, מק"ט, תיאור)</label>
-                <input type="search" id="productSearchInput" placeholder="לדוגמה: נוזל כלים">
-            </div>
-            <div class="filter-group">
-                <label for="customerSearchInput">חיפוש לפי לקוח</label>
-                <input type="search" id="customerSearchInput" placeholder="התחל להקליד שם לקוח..." autocomplete="off">
-                <div id="customer-suggestions"></div>
-            </div>
+            <div class="filter-group"><label for="categoryFilter">סינון לפי קטגוריה</label><select id="categoryFilter"></select></div>
+            <div class="filter-group"><label for="productSearchInput">חיפוש מוצר (שם, מק"ט, תיאור)</label><input type="search" id="productSearchInput" placeholder="לדוגמה: נוזל כלים"></div>
+            <div class="filter-group"><label for="customerSearchInput">חיפוש לפי לקוח</label><input type="search" id="customerSearchInput" placeholder="התחל להקליד שם לקוח..." autocomplete="off"><div id="customer-suggestions"></div></div>
         </div>
 
         <main id="product-list"></main>
@@ -153,11 +152,12 @@
     <div class="modal-backdrop" id="editModalBackdrop"></div><div class="modal" id="editModal"></div>
     <div class="modal-backdrop" id="uploadOptionsModalBackdrop"></div><div class="modal" id="uploadOptionsModal" style="max-width: 400px;"></div>
     <div class="modal-backdrop" id="aiPromptModalBackdrop"></div><div class="modal" id="aiPromptModal" style="max-width: 500px;"></div>
+    <div id="toast-container"></div>
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         const customerPool = ['מסעדת החוף', 'קפה במרכז', 'מלון פאר', 'משרדי הייטק', 'פיצה כרמל'];
-        const aiImagePool = [ 'https://i.imgur.com/g63E5p8.jpeg', 'https://i.imgur.com/w1v2A68.jpeg', 'https://i.imgur.com/VpZiA84.jpeg', 'https://i.imgur.com/sT250aD.jpeg' ];
+        const aiImagePool = [ 'https://images.pexels.com/photos/7757918/pexels-photo-7757918.jpeg?auto=compress&cs=tinysrgb&w=600', 'https://images.pexels.com/photos/7131331/pexels-photo-7131331.jpeg?auto=compress&cs=tinysrgb&w=600', 'https://images.pexels.com/photos/8439169/pexels-photo-8439169.jpeg?auto=compress&cs=tinysrgb&w=600', 'https://images.pexels.com/photos/7759445/pexels-photo-7759445.jpeg?auto=compress&cs=tinysrgb&w=600' ];
         function generateImageUrl(id) { return `https://picsum.photos/400/200?random=${id}`; }
 
         function generateMockData(baseProduct, id) {
@@ -178,12 +178,7 @@
         let salesChartInstance = null;
         let currentEditingProductId = null;
 
-        const modals = {
-            statsModal: { el: document.getElementById('statsModal'), backdrop: document.getElementById('statsModalBackdrop') },
-            editModal: { el: document.getElementById('editModal'), backdrop: document.getElementById('editModalBackdrop') },
-            uploadOptionsModal: { el: document.getElementById('uploadOptionsModal'), backdrop: document.getElementById('uploadOptionsModalBackdrop') },
-            aiPromptModal: { el: document.getElementById('aiPromptModal'), backdrop: document.getElementById('aiPromptModalBackdrop') }
-        };
+        const modals = { statsModal: { el: document.getElementById('statsModal'), backdrop: document.getElementById('statsModalBackdrop') }, editModal: { el: document.getElementById('editModal'), backdrop: document.getElementById('editModalBackdrop') }, uploadOptionsModal: { el: document.getElementById('uploadOptionsModal'), backdrop: document.getElementById('uploadOptionsModalBackdrop') }, aiPromptModal: { el: document.getElementById('aiPromptModal'), backdrop: document.getElementById('aiPromptModalBackdrop') } };
 
         async function initializeApp() {
             try {
@@ -195,38 +190,17 @@
                 populateCategoryFilter();
                 renderProductList(allProducts);
                 setupEventListeners();
-            } catch (error) {
-                productListContainer.innerHTML = `<p style="text-align:center; padding:20px; color:var(--danger-color);"><b>שגיאה:</b> לא ניתן היה לטעון את הקובץ <code>products.json</code>. אנא ודא שהוא קיים באותה התיקייה.</p>`;
-            }
+            } catch (error) { productListContainer.innerHTML = `<p style="text-align:center; padding:20px; color:var(--danger-color);"><b>שגיאה:</b> לא ניתן היה לטעון את הקובץ <code>products.json</code>. אנא ודא שהוא קיים באותה התיקייה.</p>`; }
         }
         
         function renderProductList(productsToRender) {
             productListContainer.innerHTML = '';
-            if (!productsToRender || productsToRender.length === 0) {
-                 productListContainer.innerHTML = `<p style="text-align:center; padding: 20px;">לא נמצאו מוצרים התואמים לסינון.</p>`;
-                 return;
-            }
+            if (!productsToRender || productsToRender.length === 0) { productListContainer.innerHTML = `<p style="text-align:center; padding: 20px;">לא נמצאו מוצרים התואמים לסינון.</p>`; return; }
             productsToRender.forEach(product => {
                 const profit = product.listPrice - product.costPrice;
                 const cardDiv = document.createElement('div');
                 cardDiv.className = 'product-card';
-                cardDiv.innerHTML = `
-                    <img src="${product.imageUrl}" alt="${product.name}" class="product-card-image">
-                    <div class="product-card-content">
-                        <div class="product-card-header">
-                            <div><h3>${product.name}</h3><span class="sku">מק"ט: ${product.sku}</span></div>
-                            <div class="product-card-sync" title="ID במורנינג: ${product.morningId}"><i class="bi bi-cloud-check-fill"></i><span>Morning</span></div>
-                        </div>
-                        <div class="product-card-pricing">
-                            <div class="price-item"><span class="price-label">מחיר עלות</span><span class="price-value cost">₪${product.costPrice.toFixed(2)}</span></div>
-                            <div class="price-item"><span class="price-label">רווח גולמי</span><span class="price-value" style="color: var(--success-color);">₪${profit.toFixed(2)}</span></div>
-                            <div class="price-item"><span class="price-label">מחיר מחירון</span><span class="price-value">₪${product.listPrice.toFixed(2)}</span></div>
-                        </div>
-                        <div class="product-card-actions">
-                            <button class="action-btn btn-edit" data-product-id="${product.id}"><i class="bi bi-pencil-square"></i> ערוך</button>
-                            <button class="action-btn btn-stats" data-product-id="${product.id}"><i class="bi bi-bar-chart-line-fill"></i> נתונים</button>
-                        </div>
-                    </div>`;
+                cardDiv.innerHTML = `<img src="${product.imageUrl}" alt="${product.name}" class="product-card-image"><div class="product-card-content"><div class="product-card-header"><div><h3>${product.name}</h3><span class="sku">מק"ט: ${product.sku}</span></div><div class="product-card-sync" title="ID במורנינג: ${product.morningId}"><i class="bi bi-cloud-check-fill"></i><span>Morning</span></div></div><div class="product-card-pricing"><div class="price-item"><span class="price-label">מחיר עלות</span><span class="price-value cost">₪${product.costPrice.toFixed(2)}</span></div><div class="price-item"><span class="price-label">רווח גולמי</span><span class="price-value" style="color: var(--success-color);">₪${profit.toFixed(2)}</span></div><div class="price-item"><span class="price-label">מחיר מחירון</span><span class="price-value">₪${product.listPrice.toFixed(2)}</span></div></div><div class="product-card-actions"><button class="action-btn btn-edit" data-product-id="${product.id}"><i class="bi bi-pencil-square"></i> ערוך</button><button class="action-btn btn-stats" data-product-id="${product.id}"><i class="bi bi-bar-chart-line-fill"></i> נתונים</button></div></div>`;
                 productListContainer.appendChild(cardDiv);
             });
         }
@@ -237,68 +211,69 @@
         }
 
         function applyFiltersAndRender() {
-            const category = categoryFilter.value;
-            const productTerm = productSearchInput.value.toLowerCase().trim();
-            const customerTerm = customerSearchInput.value.toLowerCase().trim();
+            const category = categoryFilter.value, productTerm = productSearchInput.value.toLowerCase().trim(), customerTerm = customerSearchInput.value.toLowerCase().trim();
             let filtered = allProducts;
-            if (category && category !== 'כל הקטגוריות') filtered = filtered.filter(p => p.category === category);
+            if (category !== 'כל הקטגוריות') filtered = filtered.filter(p => p.category === category);
             if (productTerm) filtered = filtered.filter(p => p.name.toLowerCase().includes(productTerm) || p.sku.toLowerCase().includes(productTerm) || p.description.toLowerCase().includes(productTerm));
             if (customerTerm) filtered = filtered.filter(p => p.salesData.some(s => s.customer.toLowerCase().includes(customerTerm)));
             renderProductList(filtered);
         }
         
-        function openModal(modalName) {
-            modals[modalName].el.classList.add('show');
-            modals[modalName].backdrop.classList.add('show');
-            document.body.classList.add('modal-open');
-        }
-        
-        function closeModal(modalName) {
-            modals[modalName].el.classList.remove('show');
-            modals[modalName].backdrop.classList.remove('show');
-            // Only remove the body class if no other modals are open
-            const isAnyModalOpen = Object.values(modals).some(m => m.el.classList.contains('show'));
-            if (!isAnyModalOpen) {
-                document.body.classList.remove('modal-open');
-            }
-        }
+        function openModal(modalName) { modals[modalName].el.classList.add('show'); modals[modalName].backdrop.classList.add('show'); document.body.classList.add('modal-open'); }
+        function closeModal(modalName) { modals[modalName].el.classList.remove('show'); modals[modalName].backdrop.classList.remove('show'); if (!Object.values(modals).some(m => m.el.classList.contains('show'))) document.body.classList.remove('modal-open'); }
 
         function populateStatsModal(product) {
             const modal = modals.statsModal.el;
+            const salePrices = product.salesData.map(s => s.price);
+            const minSalePrice = Math.min(...salePrices); const maxSalePrice = Math.max(...salePrices);
+            const avgSalePrice = salePrices.reduce((a, b) => a + b, 0) / salePrices.length;
             const grossProfit = product.listPrice - product.costPrice;
             const profitMargin = product.listPrice > 0 ? (grossProfit / product.listPrice) * 100 : 0;
             const salesHistoryHTML = product.salesData.map(sale => `<tr><td>${sale.customer}</td><td>${sale.date}</td><td>${sale.qty}</td><td>₪${sale.price.toFixed(2)}</td></tr>`).join('');
+            
             modal.innerHTML = `
                 <div class="modal-header"><h2>נתונים: ${product.name}</h2><button class="modal-close-btn" data-modal-id="statsModal">&times;</button></div>
                 <div class="modal-body">
                     <h3>מדדי רווחיות</h3><div class="stats-grid"><div class="stat-card"><div class="label">מחיר עלות</div><div class="value cost">₪${product.costPrice.toFixed(2)}</div></div><div class="stat-card"><div class="label">מחיר מחירון</div><div class="value">₪${product.listPrice.toFixed(2)}</div></div><div class="stat-card"><div class="label">רווח גולמי</div><div class="value profit-positive">₪${grossProfit.toFixed(2)}</div></div><div class="stat-card"><div class="label">אחוז רווח</div><div class="value profit-positive">${profitMargin.toFixed(1)}%</div></div></div>
+                    <h3>התפלגות מחירי מכירה</h3><div class="price-distribution-container"><div class="price-range-labels"><span>₪${minSalePrice.toFixed(2)}</span><span>₪${maxSalePrice.toFixed(2)}</span></div><div class="price-bar" id="priceBar"></div></div>
                     <h3>מכירות בחודשים האחרונים</h3><div class="chart-container"><canvas id="salesChart"></canvas></div>
                     <h3>היסטוריית מכירות אחרונות</h3><table class="sales-history-table"><thead><tr><th>שם לקוח</th><th>תאריך</th><th>כמות</th><th>מחיר מכירה</th></tr></thead><tbody>${salesHistoryHTML}</tbody></table>
                 </div>`;
             
+            // Position markers on the price bar
+            const priceBar = modal.querySelector('#priceBar');
+            const range = maxSalePrice - minSalePrice;
+            if (range > 0) {
+                [{ val: product.costPrice, color: 'var(--danger-color)', label: 'עלות' }, { val: avgSalePrice, color: 'var(--primary-color)', label: 'ממוצע' }, { val: product.listPrice, color: 'var(--secondary-color)', label: 'מחירון' }]
+                .forEach(({val, color, label}) => {
+                    const pos = ((val - minSalePrice) / range) * 100;
+                    if (pos >= 0 && pos <= 100) {
+                        priceBar.innerHTML += `<div class="price-marker" style="right:${pos}%; background-color:${color};"><div class="marker-label">${label}<br>₪${val.toFixed(2)}</div></div>`;
+                    }
+                });
+            }
+
             const monthlySales = product.salesData.reduce((acc, sale) => { const month = new Date(sale.date).toLocaleString('he-IL', { month: 'short', year: '2-digit' }); acc[month] = (acc[month] || 0) + sale.qty; return acc; }, {});
             if (salesChartInstance) salesChartInstance.destroy();
             const chartCtx = modal.querySelector('#salesChart')?.getContext('2d');
-            if (chartCtx) {
-                salesChartInstance = new Chart(chartCtx, { type: 'bar', data: { labels: Object.keys(monthlySales).reverse(), datasets: [{ label: 'כמות שנמכרה', data: Object.values(monthlySales).reverse(), backgroundColor: 'rgba(10, 147, 150, 0.6)', borderRadius: 5 }] }, options: { responsive: true, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } } });
-            }
+            if (chartCtx) salesChartInstance = new Chart(chartCtx, { type: 'bar', data: { labels: Object.keys(monthlySales).reverse(), datasets: [{ label: 'כמות שנמכרה', data: Object.values(monthlySales).reverse(), backgroundColor: 'rgba(10, 147, 150, 0.6)', borderRadius: 5 }] }, options: { responsive: true, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } } });
         }
 
         function populateEditModal(product) {
             modals.editModal.el.innerHTML = `
                 <form id="editForm" novalidate>
-                    <div class="modal-header"><h2>עריכת: ${product.name}</h2><button type="button" class="modal-close-btn" data-modal-id="editModal">&times;</button></div>
+                    <div class="modal-header"><h2>${product.id ? 'עריכת: ' + product.name : 'הוספת מוצר חדש'}</h2><button type="button" class="modal-close-btn" data-modal-id="editModal">&times;</button></div>
                     <div class="modal-body">
-                        <input type="hidden" id="editProductId" value="${product.id}">
+                        <input type="hidden" id="editProductId" value="${product.id || ''}">
                         <div class="form-grid">
-                            <div class="image-upload-container"><img src="${product.imageUrl}" id="editImagePreview" alt="תצוגה מקדימה"><button type="button" class="btn-upload"><i class="bi bi-camera-fill"></i> שנה תמונה</button></div>
+                            <div class="image-upload-container"><img src="${product.imageUrl || 'https://via.placeholder.com/400x200?text=העלה+תמונה'}" id="editImagePreview" alt="תצוגה מקדימה"><button type="button" class="btn-upload"><i class="bi bi-camera-fill"></i> שנה תמונה</button></div>
                             <div style="display: flex; flex-direction: column; gap: 20px;">
-                                <div class="form-group"><label for="editName">שם המוצר</label><input type="text" id="editName" value="${product.name}" required></div>
-                                <div class="form-group"><label for="editSku">מק"ט</label><input type="text" id="editSku" value="${product.sku}" required></div>
+                                <div class="form-group"><label for="editName">שם המוצר</label><input type="text" id="editName" value="${product.name || ''}" required></div>
+                                <div class="form-group"><label for="editSku">מק"ט</label><input type="text" id="editSku" value="${product.sku || ''}" required></div>
                             </div>
-                            <div class="form-group"><label for="editCostPrice">מחיר עלות (₪)</label><input type="number" step="0.01" id="editCostPrice" value="${product.costPrice.toFixed(2)}" required></div>
-                            <div class="form-group"><label for="editListPrice">מחיר מחירון (₪)</label><input type="number" step="0.01" id="editListPrice" value="${product.listPrice.toFixed(2)}" required></div>
-                            <div class="form-group full-width"><label for="editDescription">תיאור</label><textarea id="editDescription">${product.description}</textarea></div>
+                            <div class="form-group"><label for="editCostPrice">מחיר עלות (₪)</label><input type="number" step="0.01" id="editCostPrice" value="${(product.costPrice || 0).toFixed(2)}" required></div>
+                            <div class="form-group"><label for="editListPrice">מחיר מחירון (₪)</label><input type="number" step="0.01" id="editListPrice" value="${(product.listPrice || 0).toFixed(2)}" required></div>
+                            <div class="form-group full-width"><label for="editDescription">תיאור</label><textarea id="editDescription">${product.description || ''}</textarea></div>
                         </div>
                     </div>
                     <div class="modal-footer"><button type="submit" class="btn-save"><div class="spinner"></div><i class="bi bi-check-circle-fill"></i><span>שמור וסנכרן</span></button></div>
@@ -319,20 +294,12 @@
         }
         
         function populateAiPromptModal(product) {
-            const prompt = `Realistic product photography of "${product.name}", a ${product.description}, on a clean white background, studio lighting.`;
+            const prompt = `Realistic product photography of "${product.name || 'New Product'}", a ${product.description || 'high quality item'}, on a clean white background, studio lighting.`;
             modals.aiPromptModal.el.innerHTML = `
                 <div class="modal-header"><h2>הדגמת יצירת תמונה עם AI</h2><button class="modal-close-btn" data-modal-id="aiPromptModal">&times;</button></div>
                 <div class="modal-body">
-                    <div id="ai-initial-view">
-                        <p>בלחיצה על הכפתור, המערכת תשתמש בפרומפט הבא כדי ליצור תמונה חדשה:</p>
-                        <div id="aiPromptContainer"><code id="aiPromptText">${prompt}</code></div>
-                        <button id="generateAiBtn" class="action-btn btn-generate-ai"><i class="bi bi-magic"></i><span>צור תמונה</span></button>
-                    </div>
-                    <div id="ai-generating-view" style="display: none;">
-                        <h3 style="text-align: center;">יוצר תמונה, אנא המתן...</h3>
-                        <p style="text-align: center; font-size: 0.9em; color: var(--text-light);">זהו דמו, התהליך מדמה יצירה של מספר שניות.</p>
-                        <div class="shimmer"></div>
-                    </div>
+                    <div id="ai-initial-view"><p>בלחיצה, המערכת תיצור תמונה חדשה לפי הפרומפט:</p><div id="aiPromptContainer"><code id="aiPromptText">${prompt}</code></div><button id="generateAiBtn" class="action-btn btn-generate-ai"><i class="bi bi-magic"></i><span>צור תמונה</span></button></div>
+                    <div id="ai-generating-view" style="display: none;"><h3 style="text-align: center;">יוצר תמונה, אנא המתן...</h3><p style="text-align: center; font-size: 0.9em; color: var(--text-light);">זהו דמו, התהליך מדמה יצירה של מספר שניות.</p><div class="shimmer"></div></div>
                 </div>`;
         }
 
@@ -351,6 +318,16 @@
                 applyFiltersAndRender();
             }, 1500);
         }
+
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="bi bi-info-circle-fill"></i> ${message}`;
+            toastContainer.appendChild(toast);
+            setTimeout(() => { toast.classList.add('show'); }, 10);
+            setTimeout(() => { toast.classList.remove('show'); toast.addEventListener('transitionend', () => toast.remove()); }, 3000);
+        }
         
         function setupEventListeners() {
             document.body.addEventListener('click', e => {
@@ -358,68 +335,36 @@
                 const closest = (selector) => target.closest(selector);
                 const statsBtn = closest('.btn-stats'), editBtn = closest('.btn-edit');
 
-                if (statsBtn) {
-                    const product = allProducts.find(p => p.id === parseInt(statsBtn.dataset.productId));
-                    if (product) { populateStatsModal(product); openModal('statsModal'); }
-                } else if (editBtn) {
-                    const product = allProducts.find(p => p.id === parseInt(editBtn.dataset.productId));
-                    if (product) { populateEditModal(product); openModal('editModal'); }
-                } else if (closest('.modal-close-btn')) {
-                    closeModal(closest('.modal-close-btn').dataset.modalId);
-                } else if (target.matches('.modal-backdrop')) {
-                    closeModal(target.id.replace('Backdrop', ''));
-                } else if (closest('.btn-upload') || closest('#editImagePreview')) {
-                    currentEditingProductId = parseInt(document.getElementById('editProductId').value);
-                    populateUploadOptionsModal(); openModal('uploadOptionsModal');
-                } else if (target.id === 'uploadFromUrlBtn') {
-                    document.getElementById('urlInputContainer').style.display = 'flex';
-                } else if (target.id === 'applyUrlBtn') {
-                    const url = document.querySelector('#urlInputContainer input').value;
-                    if(url) { document.getElementById('editImagePreview').src = url; closeModal('uploadOptionsModal'); }
-                } else if (target.id === 'generateAiImageBtn') {
-                    const product = allProducts.find(p => p.id === currentEditingProductId);
-                    if (product) { closeModal('uploadOptionsModal'); populateAiPromptModal(product); openModal('aiPromptModal'); }
-                } else if (closest('#generateAiBtn')) {
+                if (statsBtn) { const product = allProducts.find(p => p.id === parseInt(statsBtn.dataset.productId)); if (product) { populateStatsModal(product); openModal('statsModal'); } } 
+                else if (editBtn) { const product = allProducts.find(p => p.id === parseInt(editBtn.dataset.productId)); if (product) { populateEditModal(product); openModal('editModal'); } } 
+                else if (closest('.modal-close-btn')) { closeModal(closest('.modal-close-btn').dataset.modalId); } 
+                else if (target.matches('.modal-backdrop')) { closeModal(target.id.replace('Backdrop', '')); } 
+                else if (closest('.btn-upload') || closest('#editImagePreview')) { currentEditingProductId = parseInt(document.getElementById('editProductId').value); populateUploadOptionsModal(); openModal('uploadOptionsModal'); } 
+                else if (target.id === 'uploadFromUrlBtn') { document.getElementById('urlInputContainer').style.display = 'flex'; } 
+                else if (target.id === 'applyUrlBtn') { const url = document.querySelector('#urlInputContainer input').value; if(url) { document.getElementById('editImagePreview').src = url; closeModal('uploadOptionsModal'); } } 
+                else if (target.id === 'generateAiImageBtn') { const product = allProducts.find(p => p.id === currentEditingProductId); if (product) { closeModal('uploadOptionsModal'); populateAiPromptModal(product); openModal('aiPromptModal'); } } 
+                else if (closest('#generateAiBtn')) {
                     modals.aiPromptModal.el.querySelector('#ai-initial-view').style.display = 'none';
                     modals.aiPromptModal.el.querySelector('#ai-generating-view').style.display = 'block';
-                    setTimeout(() => {
-                        document.getElementById('editImagePreview').src = aiImagePool[Math.floor(Math.random() * aiImagePool.length)];
-                        closeModal('aiPromptModal');
-                    }, 2500);
+                    setTimeout(() => { document.getElementById('editImagePreview').src = aiImagePool[Math.floor(Math.random() * aiImagePool.length)]; closeModal('aiPromptModal'); }, 2500);
                 }
+                else if (target.id === 'addNewProductBtn') { populateEditModal({}); openModal('editModal'); }
+                else if (target.id === 'syncMorningBtn') { showToast('מתחיל סנכרון עם מורנינג...', 'success'); }
+                else if (target.id === 'importMorningBtn') { showToast('מייבא נתונים חדשים ממורנינג...'); }
+                else if (target.id === 'updateSiteBtn') { showToast('מעדכן את אתר הלקוחות...', 'success'); }
             });
 
             document.body.addEventListener('submit', e => { if (e.target.id === 'editForm') handleFormSubmit(e); });
-            document.body.addEventListener('change', e => {
-                if (e.target.matches('#fileInputDevice, #fileInputCamera')) {
-                    const file = e.target.files[0];
-                    if (file) { const reader = new FileReader(); reader.onload = event => { document.getElementById('editImagePreview').src = event.target.result; }; reader.readAsDataURL(file); closeModal('uploadOptionsModal'); }
-                }
-            });
-
-            [categoryFilter, productSearchInput].forEach(el => el.addEventListener('input', applyFiltersAndRender));
+            document.body.addEventListener('change', e => { if (e.target.matches('#fileInputDevice, #fileInputCamera')) { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = event => { document.getElementById('editImagePreview').src = event.target.result; }; reader.readAsDataURL(file); closeModal('uploadOptionsModal'); } } });
+            
+            [categoryFilter, productSearchInput, customerSearchInput].forEach(el => el.addEventListener('input', applyFiltersAndRender));
             
             customerSearchInput.addEventListener('input', e => {
                 const term = e.target.value.toLowerCase().trim();
-                applyFiltersAndRender();
                 if (!term) { customerSuggestions.style.display = 'none'; return; }
                 const suggestions = uniqueCustomerNames.filter(name => name.toLowerCase().includes(term));
                 customerSuggestions.innerHTML = suggestions.map(s => `<div data-name="${s}">${s}</div>`).join('');
                 customerSuggestions.style.display = suggestions.length ? 'block' : 'none';
             });
-            customerSuggestions.addEventListener('click', e => {
-                if(e.target.matches('div')) {
-                    customerSearchInput.value = e.target.dataset.name;
-                    customerSuggestions.style.display = 'none';
-                    applyFiltersAndRender();
-                }
-            });
-            document.addEventListener('click', () => { if(customerSuggestions) customerSuggestions.style.display = 'none'; });
-            customerSearchInput.addEventListener('click', e => e.stopPropagation());
-        }
-        
-        initializeApp();
-    });
-    </script>
-</body>
-</html>
+            customerSuggestions.addEventListener('click', e => { if(e.target.matches('div')) { customerSearchInput.value = e.target.dataset.name; customerSuggestions.style.display = 'none'; applyFiltersAndRender(); } });
+            document.addEventListener('click
