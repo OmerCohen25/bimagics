@@ -154,7 +154,6 @@
     document.addEventListener('DOMContentLoaded', () => {
         const customerPool = ['מסעדת החוף', 'קפה במרכז', 'מלון פאר', 'משרדי הייטק', 'פיצה כרמל'];
         const aiImagePool = [ 'https://i.imgur.com/g63E5p8.jpeg', 'https://i.imgur.com/w1v2A68.jpeg', 'https://i.imgur.com/VpZiA84.jpeg', 'https://i.imgur.com/sT250aD.jpeg' ];
-        
         function generateImageUrl(id) { return `https://picsum.photos/400/200?random=${id}`; }
 
         function generateMockData(baseProduct, id) {
@@ -175,7 +174,12 @@
         let salesChartInstance = null;
         let currentEditingProductId = null;
 
-        const modals = { statsModal: document.getElementById('statsModal'), editModal: document.getElementById('editModal'), uploadOptionsModal: document.getElementById('uploadOptionsModal'), aiPromptModal: document.getElementById('aiPromptModal') };
+        const modals = {
+            statsModal: { el: document.getElementById('statsModal'), backdrop: document.getElementById('statsModalBackdrop') },
+            editModal: { el: document.getElementById('editModal'), backdrop: document.getElementById('editModalBackdrop') },
+            uploadOptionsModal: { el: document.getElementById('uploadOptionsModal'), backdrop: document.getElementById('uploadOptionsModalBackdrop') },
+            aiPromptModal: { el: document.getElementById('aiPromptModal'), backdrop: document.getElementById('aiPromptModalBackdrop') }
+        };
 
         async function initializeApp() {
             try {
@@ -241,10 +245,11 @@
         }
         
         function populateStatsModal(product) {
+            const modal = modals.statsModal.el;
             const grossProfit = product.listPrice - product.costPrice;
             const profitMargin = product.listPrice > 0 ? (grossProfit / product.listPrice) * 100 : 0;
             const salesHistoryHTML = product.salesData.map(sale => `<tr><td>${sale.customer}</td><td>${sale.date}</td><td>${sale.qty}</td><td>₪${sale.price.toFixed(2)}</td></tr>`).join('');
-            modals.statsModal.innerHTML = `
+            modal.innerHTML = `
                 <div class="modal-header"><h2>נתונים: ${product.name}</h2><button class="modal-close-btn" data-modal-id="statsModal">&times;</button></div>
                 <div class="modal-body">
                     <h3>מדדי רווחיות</h3>
@@ -260,11 +265,14 @@
                 </div>`;
             const monthlySales = product.salesData.reduce((acc, sale) => { const month = new Date(sale.date).toLocaleString('he-IL', { month: 'short', year: '2-digit' }); acc[month] = (acc[month] || 0) + sale.qty; return acc; }, {});
             if (salesChartInstance) salesChartInstance.destroy();
-            salesChartInstance = new Chart(document.getElementById('salesChart').getContext('2d'), { type: 'bar', data: { labels: Object.keys(monthlySales).reverse(), datasets: [{ label: 'כמות שנמכרה', data: Object.values(monthlySales).reverse(), backgroundColor: 'rgba(10, 147, 150, 0.6)', borderRadius: 5 }] }, options: { responsive: true, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } } });
+            const chartCtx = modal.querySelector('#salesChart')?.getContext('2d');
+            if (chartCtx) {
+                salesChartInstance = new Chart(chartCtx, { type: 'bar', data: { labels: Object.keys(monthlySales).reverse(), datasets: [{ label: 'כמות שנמכרה', data: Object.values(monthlySales).reverse(), backgroundColor: 'rgba(10, 147, 150, 0.6)', borderRadius: 5 }] }, options: { responsive: true, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } } });
+            }
         }
 
         function populateEditModal(product) {
-            modals.editModal.innerHTML = `
+            modals.editModal.el.innerHTML = `
                 <form id="editForm" novalidate>
                     <div class="modal-header"><h2>עריכת: ${product.name}</h2><button type="button" class="modal-close-btn" data-modal-id="editModal">&times;</button></div>
                     <div class="modal-body">
@@ -285,7 +293,7 @@
         }
         
         function populateUploadOptionsModal() {
-             modals.uploadOptionsModal.innerHTML = `
+             modals.uploadOptionsModal.el.innerHTML = `
                 <div class="modal-header"><h2>בחר מקור תמונה</h2><button class="modal-close-btn" data-modal-id="uploadOptionsModal">&times;</button></div>
                 <div class="modal-body">
                     <button class="action-btn" id="generateAiImageBtn"><i class="bi bi-stars"></i> צור תמונה עם AI (דמו)</button>
@@ -296,10 +304,10 @@
                     <input type="file" id="fileInputDevice" accept="image/*" style="display:none;"><input type="file" id="fileInputCamera" accept="image/*" capture="user" style="display:none;">
                 </div>`;
         }
-        
+
         function populateAiPromptModal(product) {
             const prompt = `Realistic product photography of "${product.name}", a ${product.description}, on a clean white background, studio lighting.`;
-            modals.aiPromptModal.innerHTML = `
+            modals.aiPromptModal.el.innerHTML = `
                 <div class="modal-header"><h2>הדגמת יצירת תמונה עם AI</h2><button class="modal-close-btn" data-modal-id="aiPromptModal">&times;</button></div>
                 <div class="modal-body">
                     <p>בלחיצה על הכפתור, המערכת תשתמש בפרומפט הבא כדי ליצור תמונה חדשה:</p>
@@ -307,9 +315,9 @@
                     <button id="generateAiBtn" class="action-btn btn-generate-ai"><div class="spinner"></div><i class="bi bi-magic"></i><span>צור תמונה (מדמה טעינה)</span></button>
                 </div>`;
         }
-        
-        function openModal(modalName) { const m = modals[modalName]; m.el.classList.add('show'); m.back.classList.add('show'); }
-        function closeModal(modalName) { const m = modals[modalName]; m.el.classList.remove('show'); m.back.classList.remove('show'); }
+
+        function openModal(name) { modals[name].el.classList.add('show'); modals[name].back.classList.add('show'); }
+        function closeModal(name) { modals[name].el.classList.remove('show'); modals[name].back.classList.remove('show'); }
 
         function handleFormSubmit(event) {
             event.preventDefault();
@@ -334,12 +342,13 @@
             document.body.addEventListener('click', e => {
                 const target = e.target;
                 const closest = (selector) => target.closest(selector);
+                const statsBtn = closest('.btn-stats'), editBtn = closest('.btn-edit');
 
-                if (closest('.btn-stats')) {
-                    const product = allProducts.find(p => p.id === parseInt(closest('.btn-stats').dataset.productId));
+                if (statsBtn) {
+                    const product = allProducts.find(p => p.id === parseInt(statsBtn.dataset.productId));
                     if (product) { populateStatsModal(product); openModal('statsModal'); }
-                } else if (closest('.btn-edit')) {
-                    const product = allProducts.find(p => p.id === parseInt(closest('.btn-edit').dataset.productId));
+                } else if (editBtn) {
+                    const product = allProducts.find(p => p.id === parseInt(editBtn.dataset.productId));
                     if (product) { populateEditModal(product); openModal('editModal'); }
                 } else if (closest('.modal-close-btn')) {
                     closeModal(closest('.modal-close-btn').dataset.modalId);
@@ -356,8 +365,8 @@
                 } else if (target.id === 'generateAiImageBtn') {
                     const product = allProducts.find(p => p.id === currentEditingProductId);
                     if (product) { closeModal('uploadOptionsModal'); populateAiPromptModal(product); openModal('aiPromptModal'); }
-                } else if (target.closest('#generateAiBtn')) {
-                    const btn = target.closest('#generateAiBtn'); const spinner = btn.querySelector('.spinner');
+                } else if (closest('#generateAiBtn')) {
+                    const btn = closest('#generateAiBtn'); const spinner = btn.querySelector('.spinner');
                     spinner.style.display = 'inline-block'; btn.querySelector('i').style.display = 'none'; btn.disabled = true;
                     setTimeout(() => {
                         document.getElementById('editImagePreview').src = aiImagePool[Math.floor(Math.random() * aiImagePool.length)];
@@ -368,42 +377,31 @@
             });
 
             document.body.addEventListener('submit', e => { if (e.target.id === 'editForm') handleFormSubmit(e); });
-            
             document.body.addEventListener('change', e => {
                 if (e.target.matches('#fileInputDevice, #fileInputCamera')) {
                     const file = e.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = event => { document.getElementById('editImagePreview').src = event.target.result; };
-                        reader.readAsDataURL(file);
-                        closeModal('uploadOptionsModal');
-                    }
+                    if (file) { const reader = new FileReader(); reader.onload = event => { document.getElementById('editImagePreview').src = event.target.result; }; reader.readAsDataURL(file); closeModal('uploadOptionsModal'); }
                 }
             });
 
-            [categoryFilter, productSearchInput].forEach(el => el.addEventListener('input', applyFiltersAndRender));
+            [categoryFilter, productSearchInput, customerSearchInput].forEach(el => el.addEventListener('input', applyFiltersAndRender));
             
             customerSearchInput.addEventListener('input', e => {
                 const term = e.target.value.toLowerCase().trim();
-                applyFiltersAndRender();
                 if (!term) { customerSuggestions.style.display = 'none'; return; }
                 const suggestions = uniqueCustomerNames.filter(name => name.toLowerCase().includes(term));
-                if(suggestions.length > 0) {
-                    customerSuggestions.innerHTML = suggestions.map(s => `<div>${s}</div>`).join('');
-                    customerSuggestions.style.display = 'block';
-                } else {
-                    customerSuggestions.style.display = 'none';
-                }
+                customerSuggestions.innerHTML = suggestions.map(s => `<div data-name="${s}">${s}</div>`).join('');
+                customerSuggestions.style.display = suggestions.length ? 'block' : 'none';
             });
             customerSuggestions.addEventListener('click', e => {
-                if(e.target.tagName === 'DIV') {
-                    customerSearchInput.value = e.target.textContent;
+                if(e.target.matches('div')) {
+                    customerSearchInput.value = e.target.dataset.name;
                     customerSuggestions.style.display = 'none';
                     applyFiltersAndRender();
                 }
             });
-            document.addEventListener('click', () => { customerSuggestions.style.display = 'none'; }); // Hide on any click
-            customerSearchInput.addEventListener('click', e => e.stopPropagation()); // Don't hide when clicking the input itself
+            document.addEventListener('click', () => { customerSuggestions.style.display = 'none'; });
+            customerSearchInput.addEventListener('click', e => e.stopPropagation());
         }
         
         initializeApp();
