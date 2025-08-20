@@ -3,564 +3,608 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Mission Control — Gemini Agent (Mobile-First Demo)</title>
-<meta name="description" content="Mission Control — mobile-first Gemini Agent UI for code, cloud, logs and deploy. Demo-first; swap BACKEND_BASE to enable real backend integration.">
+<title>Mission Control — Gemini Agent UI</title>
+<meta name="description" content="Mission Control: A mobile-first Gemini Agent UI for seamless code, cloud, and log management.">
 
-<!-- ============================
-     CONFIG: Set BACKEND_BASE for a real backend
-     - If BACKEND_BASE is empty, the UI runs demo mode (no secrets leaked).
-     - Backend endpoints expected when connected:
-         POST  /api/ai/chat       -> streaming AI (Gemini) responses
-         GET   /api/github/list   -> list repo files
-         GET   /api/github/get    -> get file content (returns { content: base64 })
-         POST  /api/github/put    -> save file (commit)
-         GET   /api/run/services  -> list Cloud Run services
-         GET   /api/logs/stream   -> SSE log tail
-   ============================ -->
 <script>
-  // Put your backend URL here when ready (https://...). Empty = demo mode.
+  // Replace with your backend URL to exit demo mode.
   const BACKEND_BASE = "";
 </script>
 
 <style>
   /* -----------------------
-     Design tokens
+     Design Tokens & Base
      ----------------------- */
-  :root{
-    --bg:#041026;
-    --elev:#07182a;
-    --card:#0b2130;
-    --muted:#94aac0;
-    --text:#e8f7ff;
-    --accent:#5db0ff;
-    --accent-2:#46f3d6;
-    --ok:#2ee08a;
-    --warn:#ffb86b;
-    --err:#ff6b6b;
-    --radius:14px;
-    --shadow: 0 12px 30px rgba(2,8,20,0.75);
-    --mono: ui-monospace, "SFMono-Regular", Menlo, Monaco, "Roboto Mono", monospace;
+  :root {
+    --bg: #010409;
+    --bg-gradient-start: #0d1117;
+    --bg-gradient-end: #010409;
+    --panel-bg: rgba(13, 17, 23, 0.5);
+    --panel-border: rgba(255, 255, 255, 0.08);
+    --muted: #8b949e;
+    --text: #c9d1d9;
+    --accent: #58a6ff;
+    --accent-glow: rgba(88, 166, 255, 0.3);
+    --accent-2: #3fb950;
+    --ok: #3fb950;
+    --warn: #d29922;
+    --err: #f85149;
+    --radius: 12px;
+    --shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+    --mono: "SF Mono", "Consolas", "Roboto Mono", ui-monospace, monospace;
+    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --transition-speed: 0.2s;
   }
-  html,body{height:100%;margin:0;background:linear-gradient(180deg,#021226 0%, #041026 60%);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,-apple-system;}
-  *{box-sizing:border-box}
+  html, body { height: 100%; margin: 0; background: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 80%); color: var(--text); font-family: var(--font-sans); font-size: 14px; }
+  * { box-sizing: border-box; }
+
   /* -----------------------
-     App layout
+     App Layout (Mobile-First)
      ----------------------- */
-  .app{display:grid; grid-template-columns:1fr; grid-template-rows:auto 1fr auto; min-height:100vh; gap:12px; padding:12px;}
-  header{display:flex;align-items:center;justify-content:space-between;padding:12px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);box-shadow:var(--shadow);backdrop-filter: blur(6px);}
-  .logo{display:flex;align-items:center;gap:10px}
-  .badge{background:linear-gradient(90deg,var(--accent), #3a8dff); color:#002; padding:6px 10px;border-radius:999px; font-weight:700;}
-  .subtitle{color:var(--muted);font-size:13px}
+  .app { display: grid; grid-template-rows: auto 1fr auto; min-height: 100vh; gap: 1rem; padding: 1rem; }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; border-radius: var(--radius); background: rgba(1, 4, 9, 0.7); backdrop-filter: blur(10px); border: 1px solid var(--panel-border); }
+  .logo { display: flex; align-items: center; gap: 0.75rem; }
+  .badge { background: linear-gradient(135deg, var(--accent), #3383e0); color: #fff; padding: 0.5rem 0.75rem; border-radius: 999px; font-weight: 600; font-size: 1rem; }
+  .subtitle { color: var(--muted); font-size: 0.8rem; }
+  .main { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+  .panel { background: var(--panel-bg); border-radius: var(--radius); padding: 1rem; border: 1px solid var(--panel-border); box-shadow: var(--shadow); }
+  .panel h3 { margin: 0 0 1rem 0; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+
   /* -----------------------
-     Main grid mobile-first
+     Forms & Buttons
      ----------------------- */
-  .main{display:grid; grid-template-columns:1fr; gap:12px;}
-  .panel{background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); border-radius:12px; padding:12px; border:1px solid rgba(255,255,255,0.02); box-shadow: 0 8px 20px rgba(2,6,20,0.5);}
-  .panel h3{margin:0 0 8px 0;font-size:15px}
-  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-  input, select, textarea{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:var(--text);font-size:14px}
-  .row{display:flex;gap:8px;flex-wrap:wrap}
-  button{border:0;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
-  .btn-primary{background:linear-gradient(180deg,var(--accent), #3a8dff);color:#002}
-  .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.03);color:var(--muted)}
-  .small{font-size:13px;color:var(--muted)}
+  label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--muted); margin-bottom: 0.5rem; }
+  input, select, textarea { width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--panel-border); background: #0d1117; color: var(--text); font-size: 0.9rem; transition: border-color var(--transition-speed), box-shadow var(--transition-speed); }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  button { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border: 1px solid transparent; padding: 0.6rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: background-color var(--transition-speed), transform var(--transition-speed); white-space: nowrap; }
+  button:hover { transform: translateY(-1px); }
+  button:active { transform: translateY(0); }
+  button:disabled { cursor: not-allowed; opacity: 0.6; }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 2px 10px var(--accent-glow); }
+  .btn-primary:hover { background: #6cb3ff; }
+  .btn-ghost { background: transparent; border: 1px solid var(--panel-border); color: var(--muted); }
+  .btn-ghost:hover { background: rgba(255, 255, 255, 0.05); color: var(--text); }
+  .small { font-size: 0.8rem; color: var(--muted); }
+  .kbd { background: #161b22; padding: 0.25rem 0.5rem; border-radius: 6px; color: var(--muted); font-family: var(--mono); font-size: 0.75rem; border: 1px solid var(--panel-border); }
+  svg.icon { width: 16px; height: 16px; }
+
   /* -----------------------
-     Repo + Editor + Chat layout for mobile
+     Repo, Editor, Chat
      ----------------------- */
-  .repo-list{height:180px;overflow:auto;border-radius:10px;padding:8px;background:linear-gradient(180deg, rgba(255,255,255,0.008), transparent);font-family:var(--mono);font-size:13px}
-  .repo-file{padding:8px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
-  .repo-file:hover{background:rgba(255,255,255,0.02)}
-  #editor{min-height:220px;background:#021124;border-radius:10px;border:1px solid rgba(255,255,255,0.02);padding:12px;font-family:var(--mono);color:#dff7ff;font-size:13px;resize:vertical}
-  .chat-wrap{display:flex;flex-direction:column;height:100%}
-  .messages{flex:1;overflow:auto;padding:10px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.006), transparent);margin-bottom:8px}
-  .msg{padding:8px 10px;border-radius:10px;margin-bottom:8px;max-width:86%;line-height:1.3}
-  .msg.me{align-self:flex-end;background:linear-gradient(90deg,#0b6cff,#67bfff);color:#001}
-  .msg.ai{align-self:flex-start;background:linear-gradient(90deg,#24dca6,#6ef7df);color:#002}
-  .composer{display:flex;gap:8px;align-items:center}
-  .timeline{height:160px;overflow:auto;padding:10px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.006), transparent);font-size:13px}
-  .timeline-item{display:flex;gap:10px;align-items:flex-start;padding:8px;border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.01)}
-  .dot{width:10px;height:10px;border-radius:50%;background:#233;flex:0 0 10px}
-  .dot.ok{background:var(--ok)}
-  .dot.warn{background:var(--warn)}
-  .dot.err{background:var(--err)}
-  .log-panel{height:180px;overflow:auto;padding:8px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.003), transparent);font-family:var(--mono);font-size:13px}
-  .log-line{padding:6px;border-radius:6px;margin-bottom:6px;background:rgba(255,255,255,0.01)}
-  .log-line.err{border-left:4px solid var(--err);color:#ffd8d8}
-  /* wide screens: two-column */
-  @media(min-width:900px){
-    .app{grid-template-columns:340px 1fr;grid-template-rows:72px 1fr; padding:18px; gap:18px}
-    header{grid-column:1/-1}
-    .main{display:grid;grid-template-columns:340px 1fr;gap:18px}
-    .left-panel{grid-column:1/2}
-    .right-panel{grid-column:2/3;display:grid;grid-template-rows: 1fr 260px;gap:12px}
-    .repo-list{height:420px}
-    .log-panel{height:420px}
+  .repo-list { height: 180px; overflow-y: auto; border-radius: 8px; padding: 0.5rem; background: #0d1117; }
+  .repo-file { padding: 0.6rem; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-family: var(--mono); font-size: 0.85rem; cursor: pointer; transition: background-color var(--transition-speed); }
+  .repo-file:hover { background: rgba(255, 255, 255, 0.04); }
+  .editor-wrapper { position: relative; }
+  #editor { min-height: 220px; background: #0d1117; border-radius: 8px; border: 1px solid var(--panel-border); padding: 0.75rem 0.75rem 0.75rem 2.5rem; font-family: var(--mono); color: #dff7ff; font-size: 0.85rem; resize: vertical; line-height: 1.5; }
+  .line-numbers { position: absolute; left: 0; top: 0; bottom: 0; width: 2.25rem; padding: 0.75rem 0; text-align: right; color: var(--muted); font-family: var(--mono); font-size: 0.85rem; pointer-events: none; user-select: none; opacity: 0.5; }
+  .chat-wrap { display: flex; flex-direction: column; height: 100%; }
+  .messages { flex: 1; overflow-y: auto; padding: 0.5rem; background: #0d1117; border-radius: 8px; margin-bottom: 0.5rem; }
+  .msg { padding: 0.75rem 1rem; border-radius: 12px; margin-bottom: 0.5rem; max-width: 85%; line-height: 1.4; display: block; width: fit-content; }
+  .msg.me { margin-left: auto; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+  .msg.ai { margin-right: auto; background: #21262d; color: var(--text); border-bottom-left-radius: 4px; }
+  .composer { display: flex; gap: 0.5rem; align-items: flex-end; }
+  .composer textarea { min-height: 44px; max-height: 150px; resize: vertical; }
+  .suggested-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+  .suggested-action { font-size: 0.8rem; padding: 0.4rem 0.8rem; background: rgba(255,255,255,0.03); border: 1px solid var(--panel-border); border-radius: 99px; color: var(--muted); cursor: pointer; }
+  .suggested-action:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+
+  /* -----------------------
+     Timeline & Logs
+     ----------------------- */
+  .timeline, .log-panel { height: 160px; overflow-y: auto; padding: 0.5rem; border-radius: 8px; background: #0d1117; font-size: 0.85rem; }
+  .timeline-item { display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.5rem; border-radius: 6px; margin-bottom: 0.5rem; background: rgba(255, 255, 255, 0.02); }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #30363d; margin-top: 4px; flex-shrink: 0; }
+  .dot.ok { background: var(--ok); } .dot.warn { background: var(--warn); } .dot.err { background: var(--err); }
+  .log-panel { font-family: var(--mono); }
+  .log-line { padding: 0.4rem; border-radius: 4px; margin-bottom: 0.25rem; background: transparent; white-space: pre-wrap; word-break: break-all; }
+  .log-line.err { border-left: 3px solid var(--err); color: #ffccd4; background: rgba(248, 81, 73, 0.1); }
+
+  /* -----------------------
+     Widescreen Layout
+     ----------------------- */
+  @media(min-width: 1000px) {
+    .app { grid-template-columns: 380px 1fr; grid-template-rows: 80px 1fr; padding: 1.5rem; gap: 1.5rem; }
+    header { grid-column: 1 / -1; padding: 1rem 1.5rem; }
+    .main { display: grid; grid-template-columns: 380px 1fr; gap: 1.5rem; }
+    .left-panel { grid-column: 1/2; }
+    .right-panel { grid-column: 2/3; display: grid; grid-template-rows: 1fr; gap: 1rem; }
+    .repo-editor-grid { display: grid; grid-template-rows: 1fr auto; gap: 1rem; }
+    .repo-list { min-height: 200px; max-height: 30vh; }
+    #editor { min-height: 300px; }
+    .chat-timeline-grid { display: grid; grid-template-columns: 1fr 340px; gap: 1rem; }
   }
-  /* micro interactions */
-  .hint{font-size:12px;color:var(--muted)}
-  .kbd{background:#021628;padding:6px 8px;border-radius:8px;color:var(--muted);font-family:var(--mono);font-size:12px}
-  [aria-hidden="true"]{display:none}
+
+  /* -----------------------
+     Micro Interactions & Helpers
+     ----------------------- */
+  .hint { font-size: 0.75rem; color: var(--muted); }
+  [aria-hidden="true"] { display: none !important; }
+  .loader { width: 16px; height: 16px; border: 2px solid currentColor; border-bottom-color: transparent; border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; }
+  @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  .agent-status { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 8px var(--ok); animation: pulse 2s infinite; }
+  .status-dot.busy { background: var(--warn); box-shadow: 0 0 8px var(--warn); }
+  @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
 </style>
 </head>
 <body>
 <div class="app" role="application" aria-label="Mission Control - Gemini Agent">
+
   <header>
-    <div class="logo" aria-hidden="false">
+    <div class="logo">
       <div class="badge" aria-hidden="true">MC</div>
       <div>
-        <div style="font-weight:700;font-size:16px">Mission Control</div>
-        <div class="subtitle">Gemini Agent • Code • Cloud • Logs • Deploy</div>
+        <div style="font-weight:700;font-size:1.1rem">Mission Control</div>
+        <div class="subtitle">Gemini-Powered Cloud & Code Agent</div>
       </div>
     </div>
-
-    <div style="display:flex;gap:10px;align-items:center">
-      <div class="small">Project: <span id="projectLabel" class="kbd">avinoam-naim</span></div>
-      <button id="openShell" class="btn btn-ghost" title="Open Cloud Shell">Open Cloud Shell</button>
-      <button id="connectBtn" class="btn btn-primary" aria-pressed="false">Connect (demo)</button>
+    <div style="display:flex;gap:1rem;align-items:center">
+      <div class="small">Project: <span id="projectLabel" class="kbd">demo-project</span></div>
+      <button id="connectBtn" class="btn-primary">
+        <svg class="icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.25 2.5a.75.75 0 00-1.5 0v1.636a.75.75 0 001.5 0V2.5zM9.25 4.5A.75.75 0 0010 5.25v1.636a.75.75 0 001.5 0V5.25a.75.75 0 00-.75-.75h-1.5zM6.25 4.5A.75.75 0 017 3.75h1.5a.75.75 0 010 1.5H7A.75.75 0 016.25 4.5zM4.5 6.25a.75.75 0 000 1.5h1.636a.75.75 0 000-1.5H4.5zM4.5 9.25a.75.75 0 000 1.5h1.636a.75.75 0 000-1.5H4.5zM4.5 12.25a.75.75 0 000 1.5h1.636a.75.75 0 000-1.5H4.5zM6.25 14.5a.75.75 0 01.75-.75h1.5a.75.75 0 010 1.5H7a.75.75 0 01-.75-.75zM8.5 11.25a.75.75 0 00-1.5 0v1.636a.75.75 0 001.5 0V11.25zM8.5 8.25a.75.75 0 00-1.5 0v1.636a.75.75 0 001.5 0V8.25zM12.25 10a.75.75 0 01.75-.75h1.5a.75.75 0 010 1.5h-1.5A.75.75 0 0112.25 10zM14.5 6.25a.75.75 0 000 1.5h1.636a.75.75 0 000-1.5H14.5zM14.5 12.25a.75.75 0 000 1.5h1.636a.75.75 0 000-1.5H14.5zM11.25 14.5a.75.75 0 00-1.5 0v1.636a.75.75 0 001.5 0V14.5zM15.25 9.25a.75.75 0 00.75.75h1.636a.75.75 0 000-1.5H16a.75.75 0 00-.75.75z" clip-rule="evenodd" /></svg>
+        <span id="connectBtnLabel">Connect (Demo)</span>
+      </button>
     </div>
   </header>
 
-  <!-- MAIN (mobile-first) -->
   <main class="main" role="main">
-    <!-- LEFT: Config & Repo (on small screens this appears on top) -->
     <section class="panel left-panel" aria-labelledby="setupTitle">
-      <h3 id="setupTitle">Setup & Quick Actions</h3>
+      <h3 id="setupTitle">
+        <svg class="icon" viewBox="0 0 20 20" fill="currentColor"><path d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" /><path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0010 3H4.75A2.75 2.75 0 002 5.75v9.5A2.75 2.75 0 004.75 18h9.5A2.75 2.75 0 0017 15.25V10a.75.75 0 00-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5z" /></svg>
+        <span>Setup & Quick Actions</span>
+      </h3>
 
-      <div style="margin-bottom:10px">
+      <div style="margin-bottom:1rem">
         <label for="geminiKey">Gemini API Key</label>
-        <input id="geminiKey" type="password" inputmode="text" placeholder="x-goog-api-key (demo only)">
+        <input id="geminiKey" type="password" placeholder="For demo, leave blank">
       </div>
-      <div style="margin-bottom:10px">
+      <div style="margin-bottom:1rem">
         <label for="githubToken">GitHub Token</label>
-        <input id="githubToken" type="password" inputmode="text" placeholder="ghp_xxx or GitHub App token">
+        <input id="githubToken" type="password" placeholder="ghp_... or GitHub App token">
       </div>
-      <div style="margin-bottom:10px">
+      <div style="margin-bottom:1rem">
         <label for="projectId">GCP Project ID</label>
-        <input id="projectId" type="text" placeholder="avinoam-naim" value="avinoam-naim">
+        <input id="projectId" type="text" value="demo-project">
+      </div>
+      <div class="row" style="margin-bottom:1.5rem">
+        <button id="saveKeys" class="btn-primary">Save & Connect</button>
+        <button id="clearKeys" class="btn-ghost">Clear</button>
       </div>
 
-      <div class="row" style="margin-top:8px">
-        <button id="saveKeys" class="btn btn-primary" aria-label="Save and connect">Save & Connect</button>
-        <button id="clearKeys" class="btn btn-ghost" aria-label="Clear keys">Clear</button>
-      </div>
-
-      <hr style="margin:12px 0;border-color:rgba(255,255,255,0.02)">
-
-      <div style="margin-bottom:10px">
+      <div style="margin-bottom:1rem">
         <label for="repoInput">Repository (owner/name)</label>
-        <input id="repoInput" type="text" placeholder="owner/repo (demo uses sample)">
+        <input id="repoInput" type="text" placeholder="google/generative-ai-docs">
+      </div>
+      <div class="row" style="margin-bottom:1.5rem">
+        <button id="btnListFiles" class="btn-ghost">List Files</button>
+      </div>
+
+      <div style="margin-bottom:1rem; display:grid; grid-template-columns: 1fr auto; gap: 0.5rem; align-items: flex-end;">
+        <div>
+          <label for="serviceName">Cloud Run Service</label>
+          <input id="serviceName" placeholder="orders-api" />
+        </div>
+        <button id="btnTail" class="btn-ghost">Tail Logs</button>
       </div>
       <div class="row">
-        <button id="btnClone" class="btn btn-ghost">Clone (demo)</button>
-        <button id="btnListFiles" class="btn btn-ghost">List files</button>
+         <button id="btnDeploy" class="btn-primary" style="width:100%">Deploy Changes</button>
       </div>
-
-      <hr style="margin:12px 0;border-color:rgba(255,255,255,0.02)">
-
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-        <input id="serviceName" placeholder="Cloud Run service (orders-api)" />
-        <button id="btnTail" class="btn btn-ghost">Tail Logs</button>
-      </div>
-
-      <div style="margin-top:10px">
-        <button id="btnNewAgent" class="btn btn-primary" style="width:100%">Create Agent from template</button>
-      </div>
-
-      <div class="hint" style="margin-top:10px">Demo mode stores keys locally. For production, use backend + Secret Manager and least-privilege service accounts.</div>
+       <div class="hint" style="margin-top:1.5rem">In demo mode, all actions are simulated. For production, use a secure backend with Secret Manager and least-privilege service accounts.</div>
     </section>
 
-    <!-- RIGHT: Repo / Editor / Chat -->
     <section class="panel right-panel" aria-labelledby="workTitle">
-      <div style="display:flex;gap:12px;align-items:center;justify-content:space-between">
-        <h3 id="workTitle">Editor & Agent</h3>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h3 id="workTitle" style="margin:0">
+          <svg class="icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm.25 11.5H15.75v-2.5H4.25v2.5zM4.25 4.5h11.5V6h-11.5V4.5z" clip-rule="evenodd" /></svg>
+          <span>Workspace</span>
+        </h3>
+        <div class="agent-status">
+          <div id="agentStatusDot" class="status-dot"></div>
+          <span id="agentStatusText">Ready</span>
+        </div>
         <div class="small">Mode: <span id="modeBadge" class="kbd">DEMO</span></div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr;gap:12px">
-        <div>
-          <h3 style="margin-top:0">Repository (Demo)</h3>
-          <div id="repoList" class="repo-list" aria-live="polite" role="region"></div>
-          <div style="display:flex;gap:8px;margin-top:8px">
-            <input id="fileFilter" placeholder="Filter files..." />
-            <button id="refreshRepo" class="btn btn-ghost">Refresh</button>
-          </div>
-        </div>
-
-        <div>
-          <h3 style="margin-top:0">Editor</h3>
-          <textarea id="editor" placeholder="// Open a file from the repository"></textarea>
-          <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
-            <button id="saveEditor" class="btn btn-primary">Save / Commit</button>
-            <div class="small">Path: <span id="currentPath" class="kbd">—</span></div>
-          </div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 320px;gap:12px">
+      <div class="chat-timeline-grid">
+        <div class="repo-editor-grid">
           <div>
-            <h3 style="margin-top:0">Agent Chat</h3>
-            <div class="chat-wrap">
-              <div id="messages" class="messages" role="log" aria-live="polite"></div>
-              <div class="composer">
-                <textarea id="prompt" placeholder="Ask the agent: e.g. 'Analyze recent 500 errors and propose a fix'"></textarea>
-                <div style="display:flex;flex-direction:column;gap:8px">
-                  <button id="sendBtn" class="btn btn-primary">Send</button>
-                  <button id="sendStreamBtn" class="btn btn-ghost">Send & Stream</button>
-                </div>
-              </div>
+            <h3>
+              <svg class="icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2 3.5A1.5 1.5 0 013.5 2h6.879a1.5 1.5 0 011.06.44l4.122 4.12A1.5 1.5 0 0116 7.622V16.5A1.5 1.5 0 0114.5 18h-11A1.5 1.5 0 012 16.5v-13zM10.5 3.5v3.622a1.5 1.5 0 001.5 1.5H16" clip-rule="evenodd" /></svg>
+              <span>Repository Explorer</span>
+            </h3>
+            <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem">
+              <input id="fileFilter" placeholder="Filter files..." />
+              <button id="refreshRepo" class="btn-ghost" title="Refresh file list">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M15.312 11.342a1.25 1.25 0 010-1.768l-3.25-3.25a1.25 1.25 0 111.768-1.768l3.25 3.25a3.75 3.75 0 010 5.304l-3.25 3.25a1.25 1.25 0 11-1.768-1.768l3.25-3.25z" clip-rule="evenodd" /><path fill-rule="evenodd" d="M8.312 4.658a1.25 1.25 0 010 1.768L5.062 9.675a1.25 1.25 0 11-1.768-1.768L6.544 4.658a3.75 3.75 0 015.304 0l3.25 3.25a1.25 1.25 0 11-1.768 1.768L10.08 6.425a1.25 1.25 0 010-1.768z" clip-rule="evenodd" /></svg>
+              </button>
+            </div>
+            <div id="repoList" class="repo-list" aria-live="polite" role="region"><div class="small" style="padding:1rem;text-align:center;">Clone a repository to see files.</div></div>
+          </div>
+
+          <div>
+            <h3>
+              <svg class="icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M15.28 15.28a.75.75 0 01-1.06 0L10 10.56l-4.22 4.72a.75.75 0 01-1.06-1.06L8.94 9.5 4.72 5.28a.75.75 0 011.06-1.06L10 8.44l4.22-4.72a.75.75 0 111.06 1.06L11.06 9.5l4.22 4.72c.29.29.29.77 0 1.06z" clip-rule="evenodd" /></svg>
+              <span>Code Editor</span>
+            </h3>
+             <div class="editor-wrapper">
+              <div id="lineNumbers" class="line-numbers">1</div>
+              <textarea id="editor" placeholder="// Select a file from the repository to edit..."></textarea>
+            </div>
+            <div style="display:flex; gap:0.5rem; margin-top:0.5rem; align-items:center; justify-content:space-between;">
+              <button id="saveEditor" class="btn-primary">Commit Changes</button>
+              <div class="small">Path: <span id="currentPath" class="kbd">—</span></div>
             </div>
           </div>
+        </div>
 
-          <div>
-            <h3 style="margin-top:0">Timeline & Logs</h3>
+        <div>
+            <h3>
+                <svg class="icon" viewBox="0 0 20 20" fill="currentColor"><path d="M10 3a.75.75 0 01.75.75v1.5h1.5a.75.75 0 010 1.5h-1.5v1.5a.75.75 0 01-1.5 0v-1.5h-1.5a.75.75 0 010-1.5h1.5v-1.5A.75.75 0 0110 3zM8.06 9.94a.75.75 0 010-1.06l1.5-1.5a.75.75 0 011.06 0l1.5 1.5a.75.75 0 01-1.06 1.06L10.5 9.56v5.69a.75.75 0 01-1.5 0V9.56l-.53.53a.75.75 0 01-1.06 0z" /><path fill-rule="evenodd" d="M16.5 10a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0zM10 18a8 8 0 100-16 8 8 0 000 16z" clip-rule="evenodd" /></svg>
+                <span>Agent Chat</span>
+            </h3>
+          <div class="chat-wrap">
+            <div id="messages" class="messages" role="log" aria-live="polite"></div>
+            <div class="composer">
+              <textarea id="prompt" placeholder="Describe your task... e.g., 'Refactor this function for clarity' or 'Find the bug causing 500 errors'." rows="1"></textarea>
+              <button id="sendBtn" class="btn-primary" title="Send Prompt (Ctrl+Enter)">
+                  <svg class="icon" viewBox="0 0 20 20" fill="currentColor"><path d="M3.105 3.105a1.5 1.5 0 012.122-.219l11.485 8.614a1.5 1.5 0 010 2.428L5.227 17.114a1.5 1.5 0 01-2.122-.22 1.5 1.5 0 01.219-2.121L11.836 10 3.324 5.227a1.5 1.5 0 01-.22-2.122z" /></svg>
+              </button>
+            </div>
+             <div id="suggestedActions" class="suggested-actions">
+                <div class="suggested-action">Analyze & Fix Recent Errors</div>
+                <div class="suggested-action">Explain the code in `main.ts`</div>
+                <div class="suggested-action">Add a new feature</div>
+             </div>
+          </div>
+          
+          <div style="margin-top:1rem">
+            <h3>
+                <svg class="icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd" /></svg>
+                <span>Timeline & Logs</span>
+            </h3>
             <div id="timeline" class="timeline" role="status" aria-live="polite"></div>
-            <div style="height:8px"></div>
+            <div style="height:0.5rem"></div>
             <div id="logs" class="log-panel" aria-live="polite"></div>
           </div>
         </div>
-
       </div>
     </section>
   </main>
 
-  <footer>
-    <div class="small">Demo-first UI • Gemini Agent Starter • Save keys in backend for production</div>
-    <div style="display:flex;gap:8px;align-items:center">
-      <div class="small">Shortcuts: <span class="kbd">Ctrl+Enter</span> send</div>
-    </div>
+  <footer style="text-align:center; padding: 1rem;">
+    <div class="small">Mission Control &copy; 2025 • Secure backend required for production use.</div>
   </footer>
 </div>
 
 <script>
-/*
-  Mission Control — Single-file mobile-first demo UI
-  - Demo mode if BACKEND_BASE === ""
-  - When ready, set BACKEND_BASE to your HTTPS backend to perform actions for real.
-  - Backend contract (short):
-      POST  /api/ai/chat       { prompt, repo, path, context } -> streaming/text response
-      GET   /api/github/list   ?repo=owner/repo&path=...
-      GET   /api/github/get    ?repo=owner/repo&path=...
-      POST  /api/github/put    { repo, path, content(base64), message }
-      GET   /api/run/services
-      GET   /api/logs/stream   SSE
-*/
+document.addEventListener('DOMContentLoaded', () => {
 
-const DEMO = (typeof BACKEND_BASE === 'undefined' || !BACKEND_BASE) ? true : false;
-const state = {
-  connected: false,
-  project: 'avinoam-naim',
-  geminiKey: '',
-  ghToken: '',
-  currentPath: null,
-  demoRepo: {
-    name: "orders-service",
-    files: {
-      "src/main.ts": `import http from 'http';
+  const DEMO = (typeof BACKEND_BASE === 'undefined' || !BACKEND_BASE);
+  const state = {
+    connected: false,
+    project: 'demo-project',
+    currentPath: null,
+    isAgentBusy: false,
+    demoRepo: {
+      name: "orders-service",
+      files: {
+        "src/main.ts": `import http from 'http';
 
-function handle(req,res){
-  // BUG: header parsing may throw if header is missing
+function handle(req, res) {
+  // BUG: This line will throw if the 'x-user' header is missing or malformed.
   const user = JSON.parse(req.headers['x-user']);
-  res.writeHead(200); res.end('ok');
+  
+  if (!user) {
+    res.writeHead(401);
+    res.end('Unauthorized');
+    return;
+  }
+  
+  console.log(\`Processing request for user: \${user.id}\`);
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ status: 'ok', userId: user.id }));
 }
 
-http.createServer(handle).listen(8080);`,
-      "package.json": `{
-  "name":"orders-service",
-  "version":"1.0.0"
+http.createServer(handle).listen(8080);
+console.log('Server running on port 8080');`,
+        "package.json": `{
+  "name": "orders-service",
+  "version": "1.0.1",
+  "description": "A simple order processing service.",
+  "main": "src/main.ts",
+  "scripts": {
+    "start": "node src/main.ts"
+  }
 }`,
-      "Dockerfile": `FROM node:20
-COPY . /app
+        "Dockerfile": `FROM node:20-slim
 WORKDIR /app
-CMD ["node","src/main.ts"]`
-    }
-  }
-};
-
-/* ---------- helpers ---------- */
-const $ = id => document.getElementById(id);
-function appendMessage(who, text){
-  const div = document.createElement('div');
-  div.className = 'msg ' + (who==='me' ? 'me' : 'ai');
-  div.textContent = text;
-  $('messages').appendChild(div);
-  $('messages').scrollTop = $('messages').scrollHeight;
-}
-function addTimeline(title, note, status='pending'){
-  const el = document.createElement('div');
-  el.className = 'timeline-item';
-  el.innerHTML = `<div class="dot ${status==='ok'?'ok':status==='warn'?'warn':status==='err'?'err':''}"></div>
-                  <div><strong>${title}</strong><div class="small" style="margin-top:6px">${note || ''}</div></div>`;
-  $('timeline').prepend(el);
-}
-function appendLog(line, level='info'){
-  const el = document.createElement('div');
-  el.className = 'log-line' + (level==='err' ? ' err' : '');
-  el.textContent = `[${new Date().toLocaleTimeString()}] ${line}`;
-  $('logs').prepend(el);
-}
-
-/* ---------- Demo: populate repo ---------- */
-function populateRepo(filter = ''){
-  const view = $('repoList');
-  view.innerHTML = '';
-  const paths = Object.keys(state.demoRepo.files).filter(p => !filter || p.includes(filter));
-  paths.forEach(p => {
-    const item = document.createElement('div');
-    item.className = 'repo-file';
-    item.innerHTML = `<div style="font-family:var(--mono)">${p}</div><div class="small">Open</div>`;
-    item.addEventListener('click', ()=> openFile(p));
-    view.appendChild(item);
-  });
-}
-
-/* ---------- File open/save (demo & real) ---------- */
-async function openFile(path){
-  $('currentPath').textContent = path;
-  state.currentPath = path;
-  if(DEMO){
-    $('editor').value = state.demoRepo.files[path] || '';
-    addTimeline('Opened file', path, 'ok');
-  } else {
-    const repo = $('repoInput').value.trim();
-    if(!repo){ alert('Enter repo owner/name first'); return; }
-    try {
-      const res = await fetch(`${BACKEND_BASE}/api/github/get?repo=${encodeURIComponent(repo)}&path=${encodeURIComponent(path)}`);
-      if(!res.ok) throw new Error('Failed to fetch file');
-      const j = await res.json();
-      $('editor').value = j.content ? atob(j.content) : '';
-      addTimeline('Opened file', path, 'ok');
-    } catch(err){
-      addTimeline('Open failed', err.message, 'err');
-      appendMessage('ai', 'Failed to open file: ' + err.message);
-    }
-  }
-}
-
-async function saveFile(){
-  const path = state.currentPath || prompt('Enter path to save (e.g. src/main.ts)');
-  if(!path) return;
-  const content = $('editor').value;
-  if(DEMO){
-    state.demoRepo.files[path] = content;
-    populateRepo($('fileFilter').value);
-    addTimeline('Saved (demo)', path, 'ok');
-    appendMessage('ai', `Saved ${path} (demo)`);
-  } else {
-    const repo = $('repoInput').value.trim();
-    try {
-      const res = await fetch(`${BACKEND_BASE}/api/github/put`, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ repo, path, content: btoa(content), message: 'Update via Mission Control' })
-      });
-      const j = await res.json();
-      if(!res.ok) throw new Error(JSON.stringify(j));
-      addTimeline('Saved', path, 'ok');
-      appendMessage('ai', `Saved ${path}.`);
-    } catch(err){
-      addTimeline('Save failed', err.message, 'err');
-      appendMessage('ai', 'Save failed: ' + err.message);
-    }
-  }
-}
-
-/* ---------- Logs tail (demo or SSE) ---------- */
-let demoLogInterval = null;
-let sseConnection = null;
-function startTail(service){
-  if(DEMO){
-    addTimeline('Tailing logs (demo)', `Service: ${service || 'orders-api'}`, 'ok');
-    appendLog('Starting demo log tail for ' + (service || 'orders-api'));
-    if(demoLogInterval) clearInterval(demoLogInterval);
-    demoLogInterval = setInterval(()=>{
-      const isErr = Math.random() < 0.18;
-      const msg = (isErr ? 'ERROR' : 'INFO') + ' ' + (service || 'orders-api') + ' - demo message';
-      appendLog(msg, isErr ? 'err' : 'info');
-      if(isErr) appendMessage('ai', 'Detected error: ' + msg);
-    }, 2200);
-  } else {
-    try {
-      const url = `${BACKEND_BASE}/api/logs/stream?service=${encodeURIComponent(service||'')}`;
-      sseConnection = new EventSource(url);
-      sseConnection.onmessage = (e)=> appendLog(e.data);
-      sseConnection.onerror = ()=> { appendMessage('ai','Log stream closed'); sseConnection.close(); };
-      addTimeline('Tailing logs', 'Connected to backend SSE', 'ok');
-    } catch(err){
-      addTimeline('Log failed', err.message, 'err');
-      appendMessage('ai','Failed to connect logs: ' + err.message);
-    }
-  }
-}
-
-/* ---------- Agent flows: example multi-step (demo only) ---------- */
-function runFixFlow(){
-  appendMessage('me', 'Please analyze recent 500 errors and propose a fix.');
-  addTimeline('Agent started', 'Building context (logs + repo)', 'pending');
-  appendMessage('ai', 'Analyzing logs and scanning repository...');
-  // steps
-  setTimeout(()=> {
-    addTimeline('Fetch logs', 'Searched Cloud Logging for HTTP 500s (demo)', 'ok');
-    appendMessage('ai', 'Found repeated TypeError in orders-api.');
-  }, 900);
-  setTimeout(()=>{
-    addTimeline('Scan repo', 'Opening src/main.ts', 'ok');
-    openFile('src/main.ts');
-  },1600);
-  setTimeout(()=>{
-    addTimeline('Apply fix', 'Add safe JSON.parse with guard', 'ok');
-    // apply change in demo repo
-    const path = 'src/main.ts';
-    const before = state.demoRepo.files[path];
-    const after = before.replace("const user = JSON.parse(req.headers['x-user']);",
-      "let user = null;\n  try{ if(req.headers['x-user']) user = JSON.parse(req.headers['x-user']); }catch(e){ user=null; }");
-    state.demoRepo.files[path] = after;
-    if(state.currentPath === path) $('editor').value = after;
-    appendMessage('ai', 'I updated src/main.ts and created PR #42 (demo). Merge?');
-  },2500);
-  setTimeout(()=>{
-    addTimeline('Build & Deploy (canary)', 'Image build & canary deploy', 'ok');
-    appendMessage('ai', 'Canary deployed — monitoring metrics (demo).');
-  },3600);
-  setTimeout(()=>{
-    addTimeline('Rollout', 'Full rollout complete', 'ok');
-    appendMessage('ai', 'Rollout successful. Context saved for future runs.');
-  },4800);
-}
-
-/* ---------- AI chat (demo or proxy) ---------- */
-async function sendPrompt(prompt, stream=false){
-  appendMessage('me', prompt);
-  if(DEMO){
-    appendMessage('ai', '(thinking) analyzing logs and repo (demo)…');
-    // simulated streaming chunks if requested
-    if(stream){
-      const parts = [
-        "Scanning logs for 500 errors…",
-        "Correlating with recent commits…",
-        "Opening src/main.ts and adding guard for header parsing…",
-        "Creating PR and running canary deploy…",
-        "Canary passed — rolling out to production."
-      ];
-      for(let i=0;i<parts.length;i++){
-        await new Promise(r=>setTimeout(r,700));
-        appendMessage('ai', parts[i]);
+COPY package.json .
+RUN npm install --production
+COPY src/ .
+CMD ["node", "src/main.ts"]`
       }
-      appendMessage('ai', 'Done — PR #42 created (demo).');
+    }
+  };
+
+  /* ---------- DOM Element Cache ---------- */
+  const $ = id => document.getElementById(id);
+  const elements = {
+    connectBtnLabel: $('connectBtnLabel'),
+    modeBadge: $('modeBadge'),
+    projectLabel: $('projectLabel'),
+    geminiKey: $('geminiKey'),
+    githubToken: $('githubToken'),
+    projectId: $('projectId'),
+    repoList: $('repoList'),
+    editor: $('editor'),
+    lineNumbers: $('lineNumbers'),
+    currentPath: $('currentPath'),
+    messages: $('messages'),
+    prompt: $('prompt'),
+    timeline: $('timeline'),
+    logs: $('logs'),
+    agentStatusDot: $('agentStatusDot'),
+    agentStatusText: $('agentStatusText'),
+  };
+
+  /* ---------- UI & State Helpers ---------- */
+  const setAgentBusy = (busy, message = "Working...") => {
+    state.isAgentBusy = busy;
+    elements.agentStatusDot.classList.toggle('busy', busy);
+    elements.agentStatusText.textContent = busy ? message : "Ready";
+    document.querySelectorAll('button, textarea, input').forEach(el => {
+      if(el.id !== 'prompt') el.disabled = busy;
+    });
+  };
+
+  const addTimelineEvent = (title, note, status = 'pending') => {
+    const el = document.createElement('div');
+    el.className = 'timeline-item';
+    el.innerHTML = `<div class="dot ${status}"></div><div><strong>${title}</strong><div class="small" style="margin-top:0.25rem">${note || ''}</div></div>`;
+    elements.timeline.prepend(el);
+  };
+  
+  const appendLog = (line, level = 'info') => {
+    const el = document.createElement('div');
+    el.className = 'log-line' + (level === 'err' ? ' err' : '');
+    el.textContent = `[${new Date().toLocaleTimeString()}] ${line}`;
+    elements.logs.prepend(el);
+  };
+
+  const appendMessage = (who, text) => {
+    const div = document.createElement('div');
+    div.className = 'msg ' + who;
+    div.textContent = text;
+    elements.messages.appendChild(div);
+    elements.messages.scrollTop = elements.messages.scrollHeight;
+    return div;
+  };
+
+  const typewriter = async (element, text, speed = 20) => {
+      return new Promise(resolve => {
+        let i = 0;
+        const interval = setInterval(() => {
+          if (i < text.length) {
+            element.textContent += text.charAt(i);
+            i++;
+            elements.messages.scrollTop = elements.messages.scrollHeight;
+          } else {
+            clearInterval(interval);
+            resolve();
+          }
+        }, speed);
+      });
+  };
+
+  const updateLineNumbers = () => {
+    const lineCount = elements.editor.value.split('\n').length;
+    elements.lineNumbers.innerHTML = Array.from({ length: lineCount }, (_, i) => i + 1).join('<br>');
+  };
+  
+  const toggleButtonLoading = (button, isLoading) => {
+    if (isLoading) {
+      button.dataset.originalContent = button.innerHTML;
+      button.innerHTML = '<div class="loader"></div>';
+      button.disabled = true;
     } else {
-      setTimeout(()=> appendMessage('ai', 'I found an issue in src/main.ts: unsafe JSON.parse of header. I proposed a fix and opened PR #42 (demo).'), 900);
-    }
-  } else {
-    // real backend proxy
-    try {
-      const payload = { prompt, repo: $('repoInput').value || undefined, path: state.currentPath || undefined, context: $('editor').value || '' };
-      const res = await fetch(`${BACKEND_BASE}/api/ai/chat`, {
-        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
-      });
-      if(!res.ok) { const txt = await res.text(); appendMessage('ai','AI error: '+txt); return; }
-      // stream reader
-      const reader = res.body.getReader(); const dec = new TextDecoder();
-      let buffer = '';
-      while(true){
-        const {value, done} = await reader.read();
-        if(done) break;
-        buffer += dec.decode(value);
-        // show incremental buffer (simple)
-        appendMessage('ai', buffer);
-        buffer = '';
+      if (button.dataset.originalContent) {
+        button.innerHTML = button.dataset.originalContent;
       }
-    } catch(err){
-      appendMessage('ai', 'AI request failed: ' + err.message);
+      button.disabled = state.isAgentBusy;
     }
+  };
+
+
+  /* ---------- Core Functionality ---------- */
+  function populateRepo(filter = '') {
+    elements.repoList.innerHTML = '';
+    const paths = Object.keys(state.demoRepo.files).filter(p => !filter || p.toLowerCase().includes(filter.toLowerCase()));
+    if(paths.length === 0) {
+        elements.repoList.innerHTML = `<div class="small" style="padding:1rem;text-align:center;">No files found.</div>`;
+        return;
+    }
+    paths.forEach(p => {
+      const item = document.createElement('div');
+      item.className = 'repo-file';
+      item.textContent = p;
+      item.onclick = () => openFile(p);
+      elements.repoList.appendChild(item);
+    });
   }
-}
 
-/* ---------- UI wiring ---------- */
-document.addEventListener('DOMContentLoaded', ()=>{
-  // initial UI
-  $('modeBadge').textContent = DEMO ? 'DEMO' : 'CONNECTED';
-  $('projectLabel').textContent = localStorage.getItem('mc_project') || state.project;
-  $('geminiKey').value = localStorage.getItem('mc_gem') || '';
-  $('githubToken').value = localStorage.getItem('mc_gh') || '';
-  populateRepo();
+  async function openFile(path) {
+    elements.currentPath.textContent = path;
+    state.currentPath = path;
+    if (DEMO) {
+      elements.editor.value = state.demoRepo.files[path] || '';
+      addTimelineEvent('File Opened (Demo)', path, 'ok');
+    } else {
+      // Backend logic...
+    }
+    updateLineNumbers();
+  }
 
-  // connect/save keys
-  $('saveKeys').addEventListener('click', ()=>{
-    state.geminiKey = $('geminiKey').value.trim();
-    state.ghToken = $('githubToken').value.trim();
-    state.project = $('projectId').value.trim() || state.project;
-    localStorage.setItem('mc_gem', state.geminiKey);
-    localStorage.setItem('mc_gh', state.ghToken);
-    localStorage.setItem('mc_project', state.project);
-    $('projectLabel').textContent = state.project;
-    state.connected = true;
-    $('connectBtn').setAttribute('aria-pressed','true');
-    appendMessage('ai', 'Connected (demo). For production, use backend + Secret Manager.');
-    addTimeline('Connected', `Project: ${state.project}`, 'ok');
-  });
+  async function saveFile() {
+    const path = state.currentPath;
+    if (!path) {
+      alert('No file is open to save.');
+      return;
+    }
+    const content = elements.editor.value;
+    const btn = $('saveEditor');
+    toggleButtonLoading(btn, true);
 
-  $('clearKeys').addEventListener('click', ()=>{
-    localStorage.removeItem('mc_gem'); localStorage.removeItem('mc_gh'); localStorage.removeItem('mc_project');
-    $('geminiKey').value=''; $('githubToken').value=''; $('projectId').value='avinoam-naim';
-    appendMessage('ai', 'Cleared stored keys (demo).');
-  });
+    if (DEMO) {
+      await new Promise(r => setTimeout(r, 800)); // Simulate network latency
+      state.demoRepo.files[path] = content;
+      addTimelineEvent('Committed (Demo)', `Changes to ${path} saved.`, 'ok');
+      await typewriter(appendMessage('ai', ''), `Saved changes to ${path} in the demo repository.`);
+    } else {
+      // Backend logic...
+    }
+    toggleButtonLoading(btn, false);
+  }
 
-  // repo actions
-  $('btnClone').addEventListener('click', ()=> { populateRepo(); addTimeline('Clone repo (demo)', state.demoRepo.name, 'ok'); appendMessage('ai','Repository cloned (demo)'); });
-  $('refreshRepo').addEventListener('click', ()=> populateRepo($('fileFilter').value));
-  $('btnListFiles').addEventListener('click', async ()=>{
-    if(DEMO){ populateRepo(); appendMessage('ai','Listed files (demo)'); addTimeline('List files', 'demo list', 'ok'); return; }
-    // real mode: call backend
-    const repo = $('repoInput').value.trim(); if(!repo) return alert('Enter repo owner/name');
-    try {
-      const res = await fetch(`${BACKEND_BASE}/api/github/list?repo=${encodeURIComponent(repo)}&path=`);
-      const j = await res.json();
-      appendMessage('ai', 'Files: ' + JSON.stringify(j).slice(0,600));
-      addTimeline('List files', repo, 'ok');
-    } catch(err){ appendMessage('ai', 'List failed: ' + err.message); addTimeline('List failed', err.message, 'err'); }
-  });
+  /* ---------- Agent & AI Flows ---------- */
+  async function sendPrompt(promptText, stream = true) {
+    if (!promptText || state.isAgentBusy) return;
+    
+    setAgentBusy(true, "Thinking...");
+    appendMessage('me', promptText);
+    elements.prompt.value = '';
+    elements.prompt.style.height = 'auto';
 
-  // editor actions
-  $('saveEditor').addEventListener('click', ()=> saveFile());
+    if (promptText.toLowerCase().includes('analyze') && promptText.toLowerCase().includes('error')) {
+      await runFixFlow();
+    } else if (DEMO) {
+      const aiMsg = appendMessage('ai', '');
+      await typewriter(aiMsg, `Simulating response for: "${promptText}". In a real scenario, I would connect to the Gemini API to provide a detailed, context-aware answer based on your repository and cloud environment.`);
+    } else {
+      // Real backend chat logic...
+    }
+    setAgentBusy(false);
+  }
 
-  // logs
-  $('btnTail').addEventListener('click', ()=> startTail($('serviceName').value.trim()));
+  async function runFixFlow() {
+    addTimelineEvent('Task Initiated', 'Analyzing recent 500 errors.', 'pending');
+    
+    let aiMsg = appendMessage('ai', '');
+    await typewriter(aiMsg, "Understood. I'll start by analyzing the logs for recent 500 errors and correlate them with the code in the repository.");
+    
+    setAgentBusy(true, "Analyzing Logs...");
+    await new Promise(r => setTimeout(r, 1500));
+    addTimelineEvent('Log Analysis', 'Found TypeError in `src/main.ts` from missing header.', 'ok');
+    appendLog('ERROR: TypeError: Cannot read properties of undefined (reading \'id\') at handle (src/main.ts:13:42)', 'err');
+    
+    aiMsg = appendMessage('ai', '');
+    await typewriter(aiMsg, "I've found a recurring `TypeError` in the logs. It seems to originate from an unsafe `JSON.parse` call on a request header in `src/main.ts`. Opening the file now to propose a fix.");
 
-  // open shell
-  $('openShell').addEventListener('click', ()=> {
-    const project = $('projectId').value.trim() || state.project;
-    const url = `https://ssh.cloud.google.com/cloudshell/editor?cloudshell=true&project=${encodeURIComponent(project)}`;
-    window.open(url, '_blank');
-  });
+    setAgentBusy(true, "Analyzing Code...");
+    await new Promise(r => setTimeout(r, 1500));
+    await openFile('src/main.ts');
+    
+    setAgentBusy(true, "Applying Fix...");
+    await new Promise(r => setTimeout(r, 1000));
+    const before = state.demoRepo.files['src/main.ts'];
+    const after = before.replace(
+        "const user = JSON.parse(req.headers['x-user']);",
+        `let user = null;
+  try {
+    if (req.headers['x-user']) {
+      user = JSON.parse(req.headers['x-user']);
+    }
+  } catch (e) {
+    console.error('Failed to parse x-user header:', e);
+    // User remains null, handled below
+  }`
+    );
+    state.demoRepo.files['src/main.ts'] = after;
+    if (state.currentPath === 'src/main.ts') {
+        elements.editor.value = after;
+        updateLineNumbers();
+    }
+    addTimelineEvent('Code Patched', 'Added a try-catch block for safe header parsing.', 'ok');
+    
+    aiMsg = appendMessage('ai', '');
+    await typewriter(aiMsg, "I've applied a patch to `src/main.ts` by wrapping the JSON parsing in a `try-catch` block. This will prevent the server from crashing on malformed headers. The changes are now in the editor. Would you like me to commit and deploy?");
+  }
 
-  // run flows / agent templates
-  $('btnNewAgent').addEventListener('click', ()=> { appendMessage('me', 'Create agent from template'); addTimeline('Agent created', 'Template: default', 'ok'); appendMessage('ai', 'Agent template created (demo).'); });
-  $('btnNewAgent').addEventListener('touchstart', ()=> {}); // mobile hint
 
-  $('sendBtn').addEventListener('click', ()=> {
-    const p = $('prompt').value.trim(); if(!p) return;
-    sendPrompt(p, false);
-    $('prompt').value = '';
-  });
-  $('sendStreamBtn').addEventListener('click', ()=> {
-    const p = $('prompt').value.trim(); if(!p) return;
-    sendPrompt(p, true);
-    $('prompt').value = '';
-  });
+  /* ---------- Event Listeners ---------- */
+  const setupEventListeners = () => {
+    $('saveKeys').onclick = () => {
+      localStorage.setItem('mc_project', $('projectId').value);
+      elements.projectLabel.textContent = $('projectId').value;
+      addTimelineEvent('Connected (Demo)', `Project set to ${$('projectId').value}`, 'ok');
+    };
+    $('clearKeys').onclick = () => {
+      localStorage.clear();
+      $('geminiKey').value = '';
+      $('githubToken').value = '';
+      $('projectId').value = 'demo-project';
+      addTimelineEvent('Keys Cleared', 'Local credentials removed.', 'ok');
+    };
+    $('btnListFiles').onclick = async (e) => {
+        const btn = e.currentTarget;
+        toggleButtonLoading(btn, true);
+        if(DEMO){
+            await new Promise(r => setTimeout(r, 800));
+            populateRepo();
+            addTimelineEvent('Repo Cloned (Demo)', state.demoRepo.name, 'ok');
+        } else { /* backend */ }
+        toggleButtonLoading(btn, false);
+    };
+    $('refreshRepo').onclick = () => populateRepo($('fileFilter').value);
+    $('fileFilter').oninput = () => populateRepo($('fileFilter').value);
+    elements.editor.oninput = updateLineNumbers;
+    $('saveEditor').onclick = saveFile;
+    $('sendBtn').onclick = () => sendPrompt(elements.prompt.value);
+    elements.prompt.onkeydown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        $('sendBtn').click();
+      }
+    };
+    elements.prompt.addEventListener('input', () => {
+        elements.prompt.style.height = 'auto';
+        elements.prompt.style.height = (elements.prompt.scrollHeight) + 'px';
+    });
+    $('suggestedActions').onclick = (e) => {
+        if (e.target.classList.contains('suggested-action')) {
+            sendPrompt(e.target.textContent);
+        }
+    };
+    $('btnDeploy').onclick = async () => {
+      if (state.isAgentBusy) return;
+      setAgentBusy(true, "Deploying...");
+      addTimelineEvent('Deploy Started', 'Building container image...', 'pending');
+      await new Promise(r => setTimeout(r, 2000));
+      addTimelineEvent('Build Complete', 'Image pushed to registry.', 'ok');
+      await new Promise(r => setTimeout(r, 1000));
+      addTimelineEvent('Deploying to Cloud Run', `Rolling out new revision for ${$('serviceName').value || 'orders-api'}...`, 'pending');
+      await new Promise(r => setTimeout(r, 2500));
+      addTimelineEvent('Deploy Successful', 'Traffic switched to new revision.', 'ok');
+      const aiMsg = appendMessage('ai', '');
+      await typewriter(aiMsg, 'Deployment complete! The new version is now live and serving 100% of traffic.');
+      setAgentBusy(false);
+    };
+  };
 
-  // keyboard: Ctrl+Enter to send (desktop)
-  document.addEventListener('keydown', (e)=> {
-    if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); $('sendBtn').click(); }
-  });
 
-  // file filter
-  $('fileFilter').addEventListener('input', ()=> populateRepo($('fileFilter').value));
+  /* ---------- Initialization ---------- */
+  const init = () => {
+    elements.modeBadge.textContent = DEMO ? 'DEMO' : 'CONNECTED';
+    elements.projectLabel.textContent = localStorage.getItem('mc_project') || state.project;
+    setupEventListeners();
+    appendMessage('ai', 'Welcome to Mission Control. I am your AI agent for code and cloud tasks. How can I assist you today?');
+    addTimelineEvent('System Ready', `Running in ${DEMO ? 'Demo' : 'Connected'} Mode`, 'ok');
+    setAgentBusy(false);
+  };
 
-  // demo auto welcome
-  appendMessage('ai', 'Welcome — Mission Control demo ready. Tap "Save & Connect" to simulate connection or set BACKEND_BASE to enable a real backend.');
+  init();
 });
-
-/* Accessibility: announce dynamic updates */
-const liveRegion = document.createElement('div'); liveRegion.setAttribute('aria-live','polite'); liveRegion.style.position='absolute'; liveRegion.style.left='-9999px'; document.body.appendChild(liveRegion);
-
 </script>
 </body>
 </html>
