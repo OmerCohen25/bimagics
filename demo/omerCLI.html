@@ -1,355 +1,566 @@
-<!DOCTYPE html>
-<html lang="he" dir="rtl">
+<!doctype html>
+<html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Demo — Mission Control עם Gemini Agent</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Mission Control — Gemini Agent (Mobile-First Demo)</title>
+<meta name="description" content="Mission Control — mobile-first Gemini Agent UI for code, cloud, logs and deploy. Demo-first; swap BACKEND_BASE to enable real backend integration.">
+
+<!-- ============================
+     CONFIG: Set BACKEND_BASE for a real backend
+     - If BACKEND_BASE is empty, the UI runs demo mode (no secrets leaked).
+     - Backend endpoints expected when connected:
+         POST  /api/ai/chat       -> streaming AI (Gemini) responses
+         GET   /api/github/list   -> list repo files
+         GET   /api/github/get    -> get file content (returns { content: base64 })
+         POST  /api/github/put    -> save file (commit)
+         GET   /api/run/services  -> list Cloud Run services
+         GET   /api/logs/stream   -> SSE log tail
+   ============================ -->
+<script>
+  // Put your backend URL here when ready (https://...). Empty = demo mode.
+  const BACKEND_BASE = "";
+</script>
+
 <style>
+  /* -----------------------
+     Design tokens
+     ----------------------- */
   :root{
-    --bg:#071226; --card:#0d1726; --muted:#9fb0c8; --accent:#6fb3ff; --ok:#3be08a; --err:#ff6b6b;
-    --glass: rgba(255,255,255,0.03);
-    --glass-2: rgba(255,255,255,0.02);
-    --glass-3: rgba(255,255,255,0.015);
-    --shadow: 0 6px 22px rgba(2,6,23,0.7);
+    --bg:#041026;
+    --elev:#07182a;
+    --card:#0b2130;
+    --muted:#94aac0;
+    --text:#e8f7ff;
+    --accent:#5db0ff;
+    --accent-2:#46f3d6;
+    --ok:#2ee08a;
+    --warn:#ffb86b;
+    --err:#ff6b6b;
     --radius:14px;
+    --shadow: 0 12px 30px rgba(2,8,20,0.75);
+    --mono: ui-monospace, "SFMono-Regular", Menlo, Monaco, "Roboto Mono", monospace;
   }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#021226 0%, #041026 60%);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,-apple-system;}
   *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:linear-gradient(180deg,#041022 0%, #071226 60%);font-family:Inter, "Segoe UI", Roboto, Arial; color:#e7f0fb}
-  .app{display:grid; grid-template-columns:320px 1fr; grid-template-rows:auto 1fr; gap:14px; height:100vh; padding:14px;}
-  header{grid-column:1/-1; display:flex; align-items:center; gap:12px; justify-content:space-between; padding:10px 16px; background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:12px; box-shadow:var(--shadow);}
-  header h1{margin:0; font-size:16px}
-  .brand-sub{font-size:13px;color:var(--muted)}
-  .left-col{background:var(--card); padding:12px; border-radius:var(--radius); box-shadow:var(--shadow); overflow:auto}
-  .box{background:linear-gradient(180deg, rgba(255,255,255,0.015), transparent); border-radius:12px; padding:10px; margin-bottom:12px; border:1px solid rgba(255,255,255,0.02)}
-  .small{font-size:12px;color:var(--muted)}
-  label{display:block;font-size:13px;margin-bottom:6px;color:#dceafc}
-  input[type=text],input[type=password],select,textarea{width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:transparent; color:#e7f0fb}
-  .row{display:flex; gap:8px}
-  button{background:linear-gradient(180deg,var(--accent), #3f9eff); color:#012; border:none; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:600}
-  button.ghost{background:transparent; color:var(--muted); border:1px solid rgba(255,255,255,0.02)}
-  .muted{color:var(--muted); font-size:13px}
-  .main{background:transparent; display:grid; grid-template-rows: 1fr 260px; gap:12px}
-  .top-row{display:grid; grid-template-columns: 1fr 460px; gap:12px}
-  .panel{background:var(--card); border-radius:12px; padding:10px; min-height:80px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.02)}
-  .panel header{font-weight:700; font-size:13px; margin-bottom:8px}
-  .repo-tree{height:420px; overflow:auto; border-radius:10px; padding:8px; background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005))}
-  .file{padding:8px; border-radius:8px; margin-bottom:6px; cursor:pointer; display:flex; justify-content:space-between; align-items:center}
-  .file:hover{background:var(--glass)}
-  #editor{width:100%; height:100%; min-height:380px; background:#021124; color:#dff0ff; border:1px solid rgba(255,255,255,0.02); padding:12px; border-radius:10px; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace; font-size:13px; resize:vertical}
-  .logs{height:100%; overflow:auto; background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); padding:10px; border-radius:10px; font-family:monospace; font-size:13px}
-  .log-line{padding:6px 8px; border-radius:8px; margin-bottom:6px; background:linear-gradient(90deg, rgba(255,255,255,0.008), transparent)}
-  .log-line.err{border-left:4px solid var(--err); color:#ffd6d6}
-  .log-line.warn{border-left:4px solid #ffd66b; color:#fff3d6}
-  .controls{display:flex; gap:8px; align-items:center; margin-top:8px}
-  .chat{display:flex; flex-direction:column; height:100%}
-  .chat-messages{flex:1; overflow:auto; padding:10px; background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); border-radius:10px; margin-bottom:8px}
-  .msg{margin-bottom:10px; padding:8px 10px; border-radius:10px; max-width:85%}
-  .msg.me{align-self:flex-end; background:linear-gradient(90deg,#0f69ff,#5fb1ff); color:#001}
-  .msg.ai{align-self:flex-start; background:#0ea875; color:#021; opacity:0.95}
-  .composer{display:flex; gap:8px}
-  .progress-step{padding:10px; border-radius:10px; background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); margin-bottom:8px}
-  .taskline{display:flex; align-items:center; gap:12px}
-  .dot{width:12px;height:12px;border-radius:50%;background:#2b3440;display:inline-block}
-  .dot.done{background:var(--ok)}
-  .dot.work{background:var(--accent)}
-  .timeline{max-height:220px; overflow:auto; padding:8px}
-  .kbd{background:#0b1220;padding:6px 8px;border-radius:8px;color:var(--muted);font-size:12px}
-  .hint{font-size:12px;color:var(--muted); margin-top:8px}
-  /* mobile */
-  @media(max-width:980px){
-    .app{grid-template-columns:1fr; grid-template-rows:auto auto 1fr; padding:8px}
-    .top-row{grid-template-columns:1fr; grid-auto-rows: auto}
-    .main{grid-template-rows: 1fr 360px}
-    .left-col{order:2}
+  /* -----------------------
+     App layout
+     ----------------------- */
+  .app{display:grid; grid-template-columns:1fr; grid-template-rows:auto 1fr auto; min-height:100vh; gap:12px; padding:12px;}
+  header{display:flex;align-items:center;justify-content:space-between;padding:12px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);box-shadow:var(--shadow);backdrop-filter: blur(6px);}
+  .logo{display:flex;align-items:center;gap:10px}
+  .badge{background:linear-gradient(90deg,var(--accent), #3a8dff); color:#002; padding:6px 10px;border-radius:999px; font-weight:700;}
+  .subtitle{color:var(--muted);font-size:13px}
+  /* -----------------------
+     Main grid mobile-first
+     ----------------------- */
+  .main{display:grid; grid-template-columns:1fr; gap:12px;}
+  .panel{background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); border-radius:12px; padding:12px; border:1px solid rgba(255,255,255,0.02); box-shadow: 0 8px 20px rgba(2,6,20,0.5);}
+  .panel h3{margin:0 0 8px 0;font-size:15px}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  input, select, textarea{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:var(--text);font-size:14px}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  button{border:0;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+  .btn-primary{background:linear-gradient(180deg,var(--accent), #3a8dff);color:#002}
+  .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.03);color:var(--muted)}
+  .small{font-size:13px;color:var(--muted)}
+  /* -----------------------
+     Repo + Editor + Chat layout for mobile
+     ----------------------- */
+  .repo-list{height:180px;overflow:auto;border-radius:10px;padding:8px;background:linear-gradient(180deg, rgba(255,255,255,0.008), transparent);font-family:var(--mono);font-size:13px}
+  .repo-file{padding:8px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .repo-file:hover{background:rgba(255,255,255,0.02)}
+  #editor{min-height:220px;background:#021124;border-radius:10px;border:1px solid rgba(255,255,255,0.02);padding:12px;font-family:var(--mono);color:#dff7ff;font-size:13px;resize:vertical}
+  .chat-wrap{display:flex;flex-direction:column;height:100%}
+  .messages{flex:1;overflow:auto;padding:10px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.006), transparent);margin-bottom:8px}
+  .msg{padding:8px 10px;border-radius:10px;margin-bottom:8px;max-width:86%;line-height:1.3}
+  .msg.me{align-self:flex-end;background:linear-gradient(90deg,#0b6cff,#67bfff);color:#001}
+  .msg.ai{align-self:flex-start;background:linear-gradient(90deg,#24dca6,#6ef7df);color:#002}
+  .composer{display:flex;gap:8px;align-items:center}
+  .timeline{height:160px;overflow:auto;padding:10px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.006), transparent);font-size:13px}
+  .timeline-item{display:flex;gap:10px;align-items:flex-start;padding:8px;border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.01)}
+  .dot{width:10px;height:10px;border-radius:50%;background:#233;flex:0 0 10px}
+  .dot.ok{background:var(--ok)}
+  .dot.warn{background:var(--warn)}
+  .dot.err{background:var(--err)}
+  .log-panel{height:180px;overflow:auto;padding:8px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.003), transparent);font-family:var(--mono);font-size:13px}
+  .log-line{padding:6px;border-radius:6px;margin-bottom:6px;background:rgba(255,255,255,0.01)}
+  .log-line.err{border-left:4px solid var(--err);color:#ffd8d8}
+  /* wide screens: two-column */
+  @media(min-width:900px){
+    .app{grid-template-columns:340px 1fr;grid-template-rows:72px 1fr; padding:18px; gap:18px}
+    header{grid-column:1/-1}
+    .main{display:grid;grid-template-columns:340px 1fr;gap:18px}
+    .left-panel{grid-column:1/2}
+    .right-panel{grid-column:2/3;display:grid;grid-template-rows: 1fr 260px;gap:12px}
+    .repo-list{height:420px}
+    .log-panel{height:420px}
   }
-  /* little sparkle */
-  .brand-bubble{background:linear-gradient(90deg,#61a9ff,#8fe6ff); color:#002a44; padding:6px 10px; border-radius:999px; font-weight:700}
-  .fancy-title{display:flex; gap:10px; align-items:center}
-  .fancy-title svg{filter:drop-shadow(0 8px 18px rgba(20,60,120,0.6))}
+  /* micro interactions */
+  .hint{font-size:12px;color:var(--muted)}
+  .kbd{background:#021628;padding:6px 8px;border-radius:8px;color:var(--muted);font-family:var(--mono);font-size:12px}
+  [aria-hidden="true"]{display:none}
 </style>
 </head>
 <body>
-<div class="app">
+<div class="app" role="application" aria-label="Mission Control - Gemini Agent">
   <header>
-    <div style="display:flex;gap:12px;align-items:center">
-      <div class="fancy-title">
-        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <rect x="1" y="1" width="22" height="22" rx="6" fill="#0f69ff"></rect>
-          <path d="M7 12h10M12 7v10" stroke="#001" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <div>
-          <h1 style="margin:0">Mission Control — Demo</h1>
-          <div class="brand-sub">Agent מבוסס Gemini • Project <span class="kbd">avinoam-naim</span></div>
-        </div>
+    <div class="logo" aria-hidden="false">
+      <div class="badge" aria-hidden="true">MC</div>
+      <div>
+        <div style="font-weight:700;font-size:16px">Mission Control</div>
+        <div class="subtitle">Gemini Agent • Code • Cloud • Logs • Deploy</div>
       </div>
     </div>
 
-    <div style="display:flex;gap:12px;align-items:center">
-      <div class="brand-bubble">Demo UI</div>
-      <div class="small muted">ממשק רספונסיבי — מדמה חיבור GitHub & GCP</div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <div class="small">Project: <span id="projectLabel" class="kbd">avinoam-naim</span></div>
+      <button id="openShell" class="btn btn-ghost" title="Open Cloud Shell">Open Cloud Shell</button>
+      <button id="connectBtn" class="btn btn-primary" aria-pressed="false">Connect (demo)</button>
     </div>
   </header>
 
-  <!-- LEFT COLUMN: CONFIG + QUICK ACTIONS -->
-  <aside class="left-col">
-    <div class="box">
-      <header class="small">חיבור ראשון — הכנס מפתחות (מבדיקה בלבד)</header>
-      <label>Gemini API Key</label>
-      <input id="key_gem" placeholder="x-goog-api-key (demo)"/>
-      <label>GitHub Token / App</label>
-      <input id="key_gh" placeholder="ghp_xxx (demo)"/>
-      <label>GCP Project ID</label>
-      <input id="project" value="avinoam-naim"/>
-      <div class="controls" style="margin-top:10px">
-        <button id="btn_connect">התחבר (דמו)</button>
-        <button class="ghost" id="btn_reset">איפוס</button>
-      </div>
-      <div class="hint">המפתחות בדמו נשמרים ב-localStorage בדפדפן לשימוש בלבד. בחיבור אמיתי — שמור בסוד ותשתמש ב-Backend מאובטח.</div>
-    </div>
+  <!-- MAIN (mobile-first) -->
+  <main class="main" role="main">
+    <!-- LEFT: Config & Repo (on small screens this appears on top) -->
+    <section class="panel left-panel" aria-labelledby="setupTitle">
+      <h3 id="setupTitle">Setup & Quick Actions</h3>
 
-    <div class="box">
-      <header class="small">פעולות מהירות</header>
-      <div class="row" style="margin-bottom:8px">
-        <button id="btn_open_shell" class="ghost">Open in Cloud Shell</button>
-        <button id="btn_list_runs" class="ghost">רשימת Cloud Run</button>
+      <div style="margin-bottom:10px">
+        <label for="geminiKey">Gemini API Key</label>
+        <input id="geminiKey" type="password" inputmode="text" placeholder="x-goog-api-key (demo only)">
       </div>
-      <div style="display:flex;gap:8px">
-        <input id="svcName" placeholder="שם שירות (orders-api)"/>
-        <button id="btn_tail" class="ghost">Tail Logs</button>
+      <div style="margin-bottom:10px">
+        <label for="githubToken">GitHub Token</label>
+        <input id="githubToken" type="password" inputmode="text" placeholder="ghp_xxx or GitHub App token">
       </div>
+      <div style="margin-bottom:10px">
+        <label for="projectId">GCP Project ID</label>
+        <input id="projectId" type="text" placeholder="avinoam-naim" value="avinoam-naim">
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <button id="saveKeys" class="btn btn-primary" aria-label="Save and connect">Save & Connect</button>
+        <button id="clearKeys" class="btn btn-ghost" aria-label="Clear keys">Clear</button>
+      </div>
+
+      <hr style="margin:12px 0;border-color:rgba(255,255,255,0.02)">
+
+      <div style="margin-bottom:10px">
+        <label for="repoInput">Repository (owner/name)</label>
+        <input id="repoInput" type="text" placeholder="owner/repo (demo uses sample)">
+      </div>
+      <div class="row">
+        <button id="btnClone" class="btn btn-ghost">Clone (demo)</button>
+        <button id="btnListFiles" class="btn btn-ghost">List files</button>
+      </div>
+
+      <hr style="margin:12px 0;border-color:rgba(255,255,255,0.02)">
+
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+        <input id="serviceName" placeholder="Cloud Run service (orders-api)" />
+        <button id="btnTail" class="btn btn-ghost">Tail Logs</button>
+      </div>
+
       <div style="margin-top:10px">
-        <button id="btn_new_agent" style="width:100%">צור Agent חדש מתוך תבנית</button>
-      </div>
-    </div>
-
-    <div class="box">
-      <header class="small">Flow & Templates</header>
-      <div class="muted">בחר תסריט מוכן:</div>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
-        <button class="ghost" data-flow="fix-500">בודק שגיאות 500 ויוצא תיקון</button>
-        <button class="ghost" data-flow="add-iam">הוסף IAM role לקריאה ל-GCS</button>
-        <button class="ghost" data-flow="deploy-canary">פרוס Canary ל-Cloud Run</button>
-      </div>
-    </div>
-
-    <div class="box">
-      <header class="small">מטרות חווית שימוש</header>
-      <ul class="muted">
-        <li>לראות את הקבצים, לערוך ולבצע commit/PR</li>
-        <li>להשאיר את ה-Agent עם כל הקונטקסט מלא</li>
-        <li>לחוות רעיון של Multi-step agent (analyze → change → deploy)</li>
-      </ul>
-    </div>
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main">
-    <div class="top-row">
-      <div class="panel">
-        <header>עורך קוד — הריפו שלך (דמו)</header>
-        <div class="repo-tree" id="repoTree">
-          <!-- file list populated by JS -->
-        </div>
-        <div style="display:flex;gap:8px;margin-top:10px">
-          <button id="btn_clone" class="ghost">Clone Repo</button>
-          <button id="btn_commit" class="ghost">Commit Changes</button>
-          <button id="btn_pr" class="ghost">Open PR</button>
-        </div>
+        <button id="btnNewAgent" class="btn btn-primary" style="width:100%">Create Agent from template</button>
       </div>
 
-      <div class="panel">
-        <header>Agent Status / Tasks</header>
-        <div class="timeline" id="timeline">
-          <!-- steps appended -->
-        </div>
-        <div style="margin-top:10px;display:flex;gap:8px">
-          <button id="btn_run_flow" class="ghost" style="flex:1">הרץ תסריט Agent</button>
-          <button id="btn_abort" class="ghost" style="width:120px">עצור</button>
-        </div>
-      </div>
-    </div>
+      <div class="hint" style="margin-top:10px">Demo mode stores keys locally. For production, use backend + Secret Manager and least-privilege service accounts.</div>
+    </section>
 
-    <div style="display:grid;grid-template-columns:1fr 420px;gap:12px">
-      <div class="panel">
-        <header>Editor</header>
-        <textarea id="editor" placeholder="// קוד יופיע כאן — בחר קובץ מהצד"></textarea>
+    <!-- RIGHT: Repo / Editor / Chat -->
+    <section class="panel right-panel" aria-labelledby="workTitle">
+      <div style="display:flex;gap:12px;align-items:center;justify-content:space-between">
+        <h3 id="workTitle">Editor & Agent</h3>
+        <div class="small">Mode: <span id="modeBadge" class="kbd">DEMO</span></div>
       </div>
 
-      <div class="panel">
-        <header>צ׳אט אינטראקטיבי — Agent (Gemini)</header>
-        <div class="chat">
-          <div class="chat-messages" id="chatMessages">
-            <div class="msg ai">שלום! אני ה-Agent שלך — כתוב בקשה או בחר תסריט. אני יכול לנתח לוגים, לשנות קוד, לפתוח PR, ולפרוס.</div>
+      <div style="display:grid;grid-template-columns:1fr;gap:12px">
+        <div>
+          <h3 style="margin-top:0">Repository (Demo)</h3>
+          <div id="repoList" class="repo-list" aria-live="polite" role="region"></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <input id="fileFilter" placeholder="Filter files..." />
+            <button id="refreshRepo" class="btn btn-ghost">Refresh</button>
           </div>
-          <div style="margin-top:8px" class="small muted">ה-Agent רואה: ריפו, לוגים, סטטוס Cloud Run — כולו בתוך הקונטקסט שלו.</div>
-          <div class="composer">
-            <textarea id="prompt" placeholder="לדוגמה: 'בדוק למה יש 500 ב-orders-api וכתוב תיקון בקובץ src/main.ts'"></textarea>
-            <button id="sendAgent" class="ghost">שלח</button>
-          </div>
-          <div style="margin-top:8px" class="hint">ב-demo: שליחת בקשה תפעיל סימולציה של תהליך מלא — צפייה ב-timeline, עריכת קובץ אוטומטית, commit ו-deploy.</div>
         </div>
+
+        <div>
+          <h3 style="margin-top:0">Editor</h3>
+          <textarea id="editor" placeholder="// Open a file from the repository"></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+            <button id="saveEditor" class="btn btn-primary">Save / Commit</button>
+            <div class="small">Path: <span id="currentPath" class="kbd">—</span></div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 320px;gap:12px">
+          <div>
+            <h3 style="margin-top:0">Agent Chat</h3>
+            <div class="chat-wrap">
+              <div id="messages" class="messages" role="log" aria-live="polite"></div>
+              <div class="composer">
+                <textarea id="prompt" placeholder="Ask the agent: e.g. 'Analyze recent 500 errors and propose a fix'"></textarea>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <button id="sendBtn" class="btn btn-primary">Send</button>
+                  <button id="sendStreamBtn" class="btn btn-ghost">Send & Stream</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 style="margin-top:0">Timeline & Logs</h3>
+            <div id="timeline" class="timeline" role="status" aria-live="polite"></div>
+            <div style="height:8px"></div>
+            <div id="logs" class="log-panel" aria-live="polite"></div>
+          </div>
+        </div>
+
       </div>
-    </div>
+    </section>
   </main>
+
+  <footer>
+    <div class="small">Demo-first UI • Gemini Agent Starter • Save keys in backend for production</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="small">Shortcuts: <span class="kbd">Ctrl+Enter</span> send</div>
+    </div>
+  </footer>
 </div>
 
 <script>
-/* ===============================
-   Demo data + helpers
-   =============================== */
-const demoRepo = {
-  name: "orders-service",
-  files: {
-    "src/main.ts":"import http from 'http';\n\nfunction handle(req,res){\n  // BUG: missing null check\n  const user = JSON.parse(req.headers['x-user']);\n  res.writeHead(200); res.end('ok');\n}\n\nhttp.createServer(handle).listen(8080);\n",
-    "package.json":'{ "name":"orders-service", "version":"1.0.0" }',
-    "Dockerfile":"FROM node:20\nCOPY . /app\nWORKDIR /app\nCMD [\"node\",\"src/main.ts\"]"
+/*
+  Mission Control — Single-file mobile-first demo UI
+  - Demo mode if BACKEND_BASE === ""
+  - When ready, set BACKEND_BASE to your HTTPS backend to perform actions for real.
+  - Backend contract (short):
+      POST  /api/ai/chat       { prompt, repo, path, context } -> streaming/text response
+      GET   /api/github/list   ?repo=owner/repo&path=...
+      GET   /api/github/get    ?repo=owner/repo&path=...
+      POST  /api/github/put    { repo, path, content(base64), message }
+      GET   /api/run/services
+      GET   /api/logs/stream   SSE
+*/
+
+const DEMO = (typeof BACKEND_BASE === 'undefined' || !BACKEND_BASE) ? true : false;
+const state = {
+  connected: false,
+  project: 'avinoam-naim',
+  geminiKey: '',
+  ghToken: '',
+  currentPath: null,
+  demoRepo: {
+    name: "orders-service",
+    files: {
+      "src/main.ts": `import http from 'http';
+
+function handle(req,res){
+  // BUG: header parsing may throw if header is missing
+  const user = JSON.parse(req.headers['x-user']);
+  res.writeHead(200); res.end('ok');
+}
+
+http.createServer(handle).listen(8080);`,
+      "package.json": `{
+  "name":"orders-service",
+  "version":"1.0.0"
+}`,
+      "Dockerfile": `FROM node:20
+COPY . /app
+WORKDIR /app
+CMD ["node","src/main.ts"]`
+    }
   }
 };
 
-const chatEl = document.getElementById('chatMessages');
-const timelineEl = document.getElementById('timeline');
-const repoTree = document.getElementById('repoTree');
-const editor = document.getElementById('editor');
-let connected=false;
-
-/* localStorage helpers (simulate secure store for demo) */
-function saveKeys(){ localStorage.setItem('demo_gem_key', document.getElementById('key_gem').value); localStorage.setItem('demo_gh', document.getElementById('key_gh').value); localStorage.setItem('demo_proj', document.getElementById('project').value); }
-function loadKeys(){ document.getElementById('key_gem').value = localStorage.getItem('demo_gem_key') || ''; document.getElementById('key_gh').value = localStorage.getItem('demo_gh') || ''; document.getElementById('project').value = localStorage.getItem('demo_proj') || 'avinoam-naim'; }
-
-/* ===============================
-   UI functions
-   =============================== */
-function addChat(who, text){
-  const d=document.createElement('div'); d.className='msg '+(who==='me'?'me':'ai'); d.textContent=text; chatEl.appendChild(d); chatEl.scrollTop = chatEl.scrollHeight;
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+function appendMessage(who, text){
+  const div = document.createElement('div');
+  div.className = 'msg ' + (who==='me' ? 'me' : 'ai');
+  div.textContent = text;
+  $('messages').appendChild(div);
+  $('messages').scrollTop = $('messages').scrollHeight;
 }
-function addTimelineStep(title, status='work', note=''){ const el = document.createElement('div'); el.className='progress-step'; el.innerHTML = `<div class="taskline"><div class="dot ${status==='done'?'done':(status==='work'?'work':'')}"></div><div><strong>${title}</strong><div class="small muted">${note}</div></div></div>`; timelineEl.prepend(el); }
-function clearTimeline(){ timelineEl.innerHTML=''; }
-function populateRepo(){
-  repoTree.innerHTML='';
-  for(const p in demoRepo.files){
-    const f=document.createElement('div'); f.className='file'; f.innerHTML=`<div>${p}</div><div class="small muted">edit</div>`;
-    f.onclick=()=>{ editor.value = demoRepo.files[p]; editor.dataset.path=p; addTimelineStep('פתח קובץ: '+p,'done'); }
-    repoTree.appendChild(f);
+function addTimeline(title, note, status='pending'){
+  const el = document.createElement('div');
+  el.className = 'timeline-item';
+  el.innerHTML = `<div class="dot ${status==='ok'?'ok':status==='warn'?'warn':status==='err'?'err':''}"></div>
+                  <div><strong>${title}</strong><div class="small" style="margin-top:6px">${note || ''}</div></div>`;
+  $('timeline').prepend(el);
+}
+function appendLog(line, level='info'){
+  const el = document.createElement('div');
+  el.className = 'log-line' + (level==='err' ? ' err' : '');
+  el.textContent = `[${new Date().toLocaleTimeString()}] ${line}`;
+  $('logs').prepend(el);
+}
+
+/* ---------- Demo: populate repo ---------- */
+function populateRepo(filter = ''){
+  const view = $('repoList');
+  view.innerHTML = '';
+  const paths = Object.keys(state.demoRepo.files).filter(p => !filter || p.includes(filter));
+  paths.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'repo-file';
+    item.innerHTML = `<div style="font-family:var(--mono)">${p}</div><div class="small">Open</div>`;
+    item.addEventListener('click', ()=> openFile(p));
+    view.appendChild(item);
+  });
+}
+
+/* ---------- File open/save (demo & real) ---------- */
+async function openFile(path){
+  $('currentPath').textContent = path;
+  state.currentPath = path;
+  if(DEMO){
+    $('editor').value = state.demoRepo.files[path] || '';
+    addTimeline('Opened file', path, 'ok');
+  } else {
+    const repo = $('repoInput').value.trim();
+    if(!repo){ alert('Enter repo owner/name first'); return; }
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/github/get?repo=${encodeURIComponent(repo)}&path=${encodeURIComponent(path)}`);
+      if(!res.ok) throw new Error('Failed to fetch file');
+      const j = await res.json();
+      $('editor').value = j.content ? atob(j.content) : '';
+      addTimeline('Opened file', path, 'ok');
+    } catch(err){
+      addTimeline('Open failed', err.message, 'err');
+      appendMessage('ai', 'Failed to open file: ' + err.message);
+    }
   }
-  addTimelineStep('ריפו נטען (דמו)', 'done', demoRepo.name);
 }
 
-/* ===============================
-   Simulated agent flows
-   =============================== */
-function runFlow(flow){
-  clearTimeline();
-  addTimelineStep('Agent התחיל עבודה', 'work', 'מאפס קלט וגורס קונטקסט');
-  addTimelineStep('טוען לוגים מה-Cloud Logging', 'work', 'fetched 120 lines');
-  setTimeout(()=> addTimelineStep('מנתח שגיאות 500 לאחרונה', 'work', 'found 3 occurrences'),900);
-  setTimeout(()=> addTimelineStep('סורק ריפו עבור src/main.ts', 'work', '...'),1600);
+async function saveFile(){
+  const path = state.currentPath || prompt('Enter path to save (e.g. src/main.ts)');
+  if(!path) return;
+  const content = $('editor').value;
+  if(DEMO){
+    state.demoRepo.files[path] = content;
+    populateRepo($('fileFilter').value);
+    addTimeline('Saved (demo)', path, 'ok');
+    appendMessage('ai', `Saved ${path} (demo)`);
+  } else {
+    const repo = $('repoInput').value.trim();
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/github/put`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ repo, path, content: btoa(content), message: 'Update via Mission Control' })
+      });
+      const j = await res.json();
+      if(!res.ok) throw new Error(JSON.stringify(j));
+      addTimeline('Saved', path, 'ok');
+      appendMessage('ai', `Saved ${path}.`);
+    } catch(err){
+      addTimeline('Save failed', err.message, 'err');
+      appendMessage('ai', 'Save failed: ' + err.message);
+    }
+  }
+}
 
-  // simulated multi-step with edits
-  setTimeout(()=>{
-    addTimelineStep('מצא בעיה: JSON.parse על header לא בטוח', 'done', 'null/empty headers lead to crash');
-    addChat('ai','מצאתי סיבה לשגיאות 500: header x-user חסר לעיתים. אני אוסיף בדיקה בקובץ src/main.ts ואפתח PR.');
-  },2400);
+/* ---------- Logs tail (demo or SSE) ---------- */
+let demoLogInterval = null;
+let sseConnection = null;
+function startTail(service){
+  if(DEMO){
+    addTimeline('Tailing logs (demo)', `Service: ${service || 'orders-api'}`, 'ok');
+    appendLog('Starting demo log tail for ' + (service || 'orders-api'));
+    if(demoLogInterval) clearInterval(demoLogInterval);
+    demoLogInterval = setInterval(()=>{
+      const isErr = Math.random() < 0.18;
+      const msg = (isErr ? 'ERROR' : 'INFO') + ' ' + (service || 'orders-api') + ' - demo message';
+      appendLog(msg, isErr ? 'err' : 'info');
+      if(isErr) appendMessage('ai', 'Detected error: ' + msg);
+    }, 2200);
+  } else {
+    try {
+      const url = `${BACKEND_BASE}/api/logs/stream?service=${encodeURIComponent(service||'')}`;
+      sseConnection = new EventSource(url);
+      sseConnection.onmessage = (e)=> appendLog(e.data);
+      sseConnection.onerror = ()=> { appendMessage('ai','Log stream closed'); sseConnection.close(); };
+      addTimeline('Tailing logs', 'Connected to backend SSE', 'ok');
+    } catch(err){
+      addTimeline('Log failed', err.message, 'err');
+      appendMessage('ai','Failed to connect logs: ' + err.message);
+    }
+  }
+}
 
+/* ---------- Agent flows: example multi-step (demo only) ---------- */
+function runFixFlow(){
+  appendMessage('me', 'Please analyze recent 500 errors and propose a fix.');
+  addTimeline('Agent started', 'Building context (logs + repo)', 'pending');
+  appendMessage('ai', 'Analyzing logs and scanning repository...');
+  // steps
+  setTimeout(()=> {
+    addTimeline('Fetch logs', 'Searched Cloud Logging for HTTP 500s (demo)', 'ok');
+    appendMessage('ai', 'Found repeated TypeError in orders-api.');
+  }, 900);
   setTimeout(()=>{
-    // modify file
-    const path='src/main.ts';
-    let content = demoRepo.files[path];
-    content = content.replace("const user = JSON.parse(req.headers['x-user']);", "let user=null;\n  try{ if(req.headers['x-user']) user = JSON.parse(req.headers['x-user']); }catch(e){ user=null; }");
-    demoRepo.files[path]=content;
-    if(editor.dataset.path===path) editor.value = content;
-    addTimelineStep('שיניתי קוד ב-src/main.ts', 'done', 'הוספתי בדיקות null/try-catch');
-    addChat('ai','עדכנתי את הקובץ — הוספתי טיפול בשגיאות JSON ובמקרה של header חסר.');
+    addTimeline('Scan repo', 'Opening src/main.ts', 'ok');
+    openFile('src/main.ts');
+  },1600);
+  setTimeout(()=>{
+    addTimeline('Apply fix', 'Add safe JSON.parse with guard', 'ok');
+    // apply change in demo repo
+    const path = 'src/main.ts';
+    const before = state.demoRepo.files[path];
+    const after = before.replace("const user = JSON.parse(req.headers['x-user']);",
+      "let user = null;\n  try{ if(req.headers['x-user']) user = JSON.parse(req.headers['x-user']); }catch(e){ user=null; }");
+    state.demoRepo.files[path] = after;
+    if(state.currentPath === path) $('editor').value = after;
+    appendMessage('ai', 'I updated src/main.ts and created PR #42 (demo). Merge?');
+  },2500);
+  setTimeout(()=>{
+    addTimeline('Build & Deploy (canary)', 'Image build & canary deploy', 'ok');
+    appendMessage('ai', 'Canary deployed — monitoring metrics (demo).');
   },3600);
-
   setTimeout(()=>{
-    addTimelineStep('ביצע commit ויצר PR (דמו)', 'done', 'PR #42 — fix/null-check');
-    addChat('ai','יצרתי PR #42 עם השינויים. רוצה שאבצע merge ופרוס ל-staging?');
+    addTimeline('Rollout', 'Full rollout complete', 'ok');
+    appendMessage('ai', 'Rollout successful. Context saved for future runs.');
   },4800);
-
-  setTimeout(()=>{
-    addTimelineStep('ממזג PR ויוצר build Docker', 'work', 'building image: orders-service:canary');
-  },6200);
-
-  setTimeout(()=>{
-    addTimelineStep('דחיפת image ל־Container Registry', 'done', 'gcr.io/avinoam-naim/orders-service:canary');
-  },8200);
-
-  setTimeout(()=>{
-    addTimelineStep('פריסה Canary ל-Cloud Run', 'work', 'deploying to us-central1');
-  },9400);
-
-  setTimeout(()=>{
-    addTimelineStep('בדיקות אנד־טו־אנד — passed', 'done', 'all checks green');
-    addChat('ai','ה-canary עבר את הבדיקות. מבצע rollout ל-production?');
-  },11200);
-
-  setTimeout(()=>{
-    addTimelineStep('Rollout ל-production (מבוצע)', 'work', 'progress 35%');
-  },12500);
-
-  setTimeout(()=>{
-    addTimelineStep('Rollout ל-production (מושלם)', 'done', 'deployment successful ✅');
-    addChat('ai','הכל פרוס בהצלחה. אני מוסיף את המידע ל-context שלי כדי לזכור להבא.');
-  },14500);
 }
 
-/* ===============================
-   Wire UI actions
-   =============================== */
-loadKeys(); populateRepo();
+/* ---------- AI chat (demo or proxy) ---------- */
+async function sendPrompt(prompt, stream=false){
+  appendMessage('me', prompt);
+  if(DEMO){
+    appendMessage('ai', '(thinking) analyzing logs and repo (demo)…');
+    // simulated streaming chunks if requested
+    if(stream){
+      const parts = [
+        "Scanning logs for 500 errors…",
+        "Correlating with recent commits…",
+        "Opening src/main.ts and adding guard for header parsing…",
+        "Creating PR and running canary deploy…",
+        "Canary passed — rolling out to production."
+      ];
+      for(let i=0;i<parts.length;i++){
+        await new Promise(r=>setTimeout(r,700));
+        appendMessage('ai', parts[i]);
+      }
+      appendMessage('ai', 'Done — PR #42 created (demo).');
+    } else {
+      setTimeout(()=> appendMessage('ai', 'I found an issue in src/main.ts: unsafe JSON.parse of header. I proposed a fix and opened PR #42 (demo).'), 900);
+    }
+  } else {
+    // real backend proxy
+    try {
+      const payload = { prompt, repo: $('repoInput').value || undefined, path: state.currentPath || undefined, context: $('editor').value || '' };
+      const res = await fetch(`${BACKEND_BASE}/api/ai/chat`, {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+      });
+      if(!res.ok) { const txt = await res.text(); appendMessage('ai','AI error: '+txt); return; }
+      // stream reader
+      const reader = res.body.getReader(); const dec = new TextDecoder();
+      let buffer = '';
+      while(true){
+        const {value, done} = await reader.read();
+        if(done) break;
+        buffer += dec.decode(value);
+        // show incremental buffer (simple)
+        appendMessage('ai', buffer);
+        buffer = '';
+      }
+    } catch(err){
+      appendMessage('ai', 'AI request failed: ' + err.message);
+    }
+  }
+}
 
-document.getElementById('btn_connect').onclick = ()=>{
-  saveKeys(); connected=true; addChat('me','התחברתי (דמו)'); addTimelineStep('התחברות ל-Gemini/GitHub/GCP (דמו)','done','keys saved locally');
-};
+/* ---------- UI wiring ---------- */
+document.addEventListener('DOMContentLoaded', ()=>{
+  // initial UI
+  $('modeBadge').textContent = DEMO ? 'DEMO' : 'CONNECTED';
+  $('projectLabel').textContent = localStorage.getItem('mc_project') || state.project;
+  $('geminiKey').value = localStorage.getItem('mc_gem') || '';
+  $('githubToken').value = localStorage.getItem('mc_gh') || '';
+  populateRepo();
 
-document.getElementById('btn_reset').onclick = ()=>{
-  localStorage.removeItem('demo_gem_key'); localStorage.removeItem('demo_gh'); localStorage.removeItem('demo_proj'); loadKeys(); addChat('ai','איפוס מפתחות הושלם');
-};
+  // connect/save keys
+  $('saveKeys').addEventListener('click', ()=>{
+    state.geminiKey = $('geminiKey').value.trim();
+    state.ghToken = $('githubToken').value.trim();
+    state.project = $('projectId').value.trim() || state.project;
+    localStorage.setItem('mc_gem', state.geminiKey);
+    localStorage.setItem('mc_gh', state.ghToken);
+    localStorage.setItem('mc_project', state.project);
+    $('projectLabel').textContent = state.project;
+    state.connected = true;
+    $('connectBtn').setAttribute('aria-pressed','true');
+    appendMessage('ai', 'Connected (demo). For production, use backend + Secret Manager.');
+    addTimeline('Connected', `Project: ${state.project}`, 'ok');
+  });
 
-document.getElementById('btn_open_shell').onclick = ()=>{
-  alert('במציאות: כפתור זה יפתח Cloud Shell בעמוד נפרד עם פרויקט מתאים ו-git clone לריפו. בדמו — עותק מקומי ייפתח.');
-  addChat('ai','Open in Cloud Shell invoked (דמו).');
-};
+  $('clearKeys').addEventListener('click', ()=>{
+    localStorage.removeItem('mc_gem'); localStorage.removeItem('mc_gh'); localStorage.removeItem('mc_project');
+    $('geminiKey').value=''; $('githubToken').value=''; $('projectId').value='avinoam-naim';
+    appendMessage('ai', 'Cleared stored keys (demo).');
+  });
 
-document.getElementById('btn_tail').onclick = ()=>{
-  const svc=document.getElementById('svcName').value || 'orders-api';
-  addTimelineStep('חיבור ל־Cloud Logging (tail '+svc+')','work','waiting for logs...');
-  // simulate incoming logs
-  setTimeout(()=> { const l=`[${new Date().toLocaleTimeString()}] ERROR orders-api - TypeError: Cannot read property 'split' of undefined`; const el=document.createElement('div'); el.className='log-line err'; el.textContent=l; document.querySelector('.logs')?.prepend(el); addChat('ai','גיליתי שגיאה חדשה ב־orders-api: '+l); },800);
-  // add to logs panel
-  const logsPanel = document.querySelector('.logs');
-  if(!logsPanel){ const p=document.createElement('div'); p.className='logs'; p.innerHTML='<div class="log-line">starting log tail (demo)</div>'; document.querySelector('#repoTree').after(p); }
-};
+  // repo actions
+  $('btnClone').addEventListener('click', ()=> { populateRepo(); addTimeline('Clone repo (demo)', state.demoRepo.name, 'ok'); appendMessage('ai','Repository cloned (demo)'); });
+  $('refreshRepo').addEventListener('click', ()=> populateRepo($('fileFilter').value));
+  $('btnListFiles').addEventListener('click', async ()=>{
+    if(DEMO){ populateRepo(); appendMessage('ai','Listed files (demo)'); addTimeline('List files', 'demo list', 'ok'); return; }
+    // real mode: call backend
+    const repo = $('repoInput').value.trim(); if(!repo) return alert('Enter repo owner/name');
+    try {
+      const res = await fetch(`${BACKEND_BASE}/api/github/list?repo=${encodeURIComponent(repo)}&path=`);
+      const j = await res.json();
+      appendMessage('ai', 'Files: ' + JSON.stringify(j).slice(0,600));
+      addTimeline('List files', repo, 'ok');
+    } catch(err){ appendMessage('ai', 'List failed: ' + err.message); addTimeline('List failed', err.message, 'err'); }
+  });
 
-document.getElementById('btn_clone').onclick = ()=>{ addChat('me','clone repo'); populateRepo(); addTimelineStep('git clone (דמו)','done','cloned '+demoRepo.name); };
-document.getElementById('btn_commit').onclick = ()=>{ addChat('me','commit changes'); addTimelineStep('git commit -m "fix null check"','done','commit created 0f3a2'); };
-document.getElementById('btn_pr').onclick = ()=>{ addChat('me','open PR'); addTimelineStep('open PR #42','done','PR created: fix/null-check'); };
+  // editor actions
+  $('saveEditor').addEventListener('click', ()=> saveFile());
 
-document.getElementById('btn_run_flow').onclick = ()=>{ addChat('me','הרץ תסריט: fix-500'); runFlow('fix-500'); };
-document.getElementById('btn_abort').onclick = ()=>{ addChat('me','עצור'); addTimelineStep('Agent aborted by user','done','manual stop'); };
+  // logs
+  $('btnTail').addEventListener('click', ()=> startTail($('serviceName').value.trim()));
 
-document.getElementById('sendAgent').onclick = ()=>{
-  const text = document.getElementById('prompt').value.trim();
-  if(!text) return;
-  addChat('me', text);
-  // simulate agent reply + flow detection
-  addChat('ai','מנתח בקשה: "'+text+'" — מנגנון דמו מפעיל תהליך מול הקוד והלוגים...');
-  runFlow('ad_hoc');
-};
+  // open shell
+  $('openShell').addEventListener('click', ()=> {
+    const project = $('projectId').value.trim() || state.project;
+    const url = `https://ssh.cloud.google.com/cloudshell/editor?cloudshell=true&project=${encodeURIComponent(project)}`;
+    window.open(url, '_blank');
+  });
 
-document.querySelectorAll('[data-flow]').forEach(b=> b.onclick = (e)=> {
-  const f = e.currentTarget.dataset.flow;
-  addChat('me','בחר תסריט: '+f);
-  runFlow(f);
+  // run flows / agent templates
+  $('btnNewAgent').addEventListener('click', ()=> { appendMessage('me', 'Create agent from template'); addTimeline('Agent created', 'Template: default', 'ok'); appendMessage('ai', 'Agent template created (demo).'); });
+  $('btnNewAgent').addEventListener('touchstart', ()=> {}); // mobile hint
+
+  $('sendBtn').addEventListener('click', ()=> {
+    const p = $('prompt').value.trim(); if(!p) return;
+    sendPrompt(p, false);
+    $('prompt').value = '';
+  });
+  $('sendStreamBtn').addEventListener('click', ()=> {
+    const p = $('prompt').value.trim(); if(!p) return;
+    sendPrompt(p, true);
+    $('prompt').value = '';
+  });
+
+  // keyboard: Ctrl+Enter to send (desktop)
+  document.addEventListener('keydown', (e)=> {
+    if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); $('sendBtn').click(); }
+  });
+
+  // file filter
+  $('fileFilter').addEventListener('input', ()=> populateRepo($('fileFilter').value));
+
+  // demo auto welcome
+  appendMessage('ai', 'Welcome — Mission Control demo ready. Tap "Save & Connect" to simulate connection or set BACKEND_BASE to enable a real backend.');
 });
 
-/* Extra: clicking file opens code into editor */
-repoTree.onclick = (ev)=>{
-  // handled per file element; noop
-}
+/* Accessibility: announce dynamic updates */
+const liveRegion = document.createElement('div'); liveRegion.setAttribute('aria-live','polite'); liveRegion.style.position='absolute'; liveRegion.style.left='-9999px'; document.body.appendChild(liveRegion);
 
-/* demo initial timeline */
-addTimelineStep('דמו מוכן — לחץ "התחבר" כדי להתחיל','done','מצב: offline');
 </script>
 </body>
 </html>
