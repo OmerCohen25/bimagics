@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Demo — Mission Control עם Gemini Agent</title>
+<style>
+  :root{
+    --bg:#071226; --card:#0d1726; --muted:#9fb0c8; --accent:#6fb3ff; --ok:#3be08a; --err:#ff6b6b;
+    --glass: rgba(255,255,255,0.03);
+    --glass-2: rgba(255,255,255,0.02);
+    --glass-3: rgba(255,255,255,0.015);
+    --shadow: 0 6px 22px rgba(2,6,23,0.7);
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#041022 0%, #071226 60%);font-family:Inter, "Segoe UI", Roboto, Arial; color:#e7f0fb}
+  .app{display:grid; grid-template-columns:320px 1fr; grid-template-rows:auto 1fr; gap:14px; height:100vh; padding:14px;}
+  header{grid-column:1/-1; display:flex; align-items:center; gap:12px; justify-content:space-between; padding:10px 16px; background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:12px; box-shadow:var(--shadow);}
+  header h1{margin:0; font-size:16px}
+  .brand-sub{font-size:13px;color:var(--muted)}
+  .left-col{background:var(--card); padding:12px; border-radius:var(--radius); box-shadow:var(--shadow); overflow:auto}
+  .box{background:linear-gradient(180deg, rgba(255,255,255,0.015), transparent); border-radius:12px; padding:10px; margin-bottom:12px; border:1px solid rgba(255,255,255,0.02)}
+  .small{font-size:12px;color:var(--muted)}
+  label{display:block;font-size:13px;margin-bottom:6px;color:#dceafc}
+  input[type=text],input[type=password],select,textarea{width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:transparent; color:#e7f0fb}
+  .row{display:flex; gap:8px}
+  button{background:linear-gradient(180deg,var(--accent), #3f9eff); color:#012; border:none; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:600}
+  button.ghost{background:transparent; color:var(--muted); border:1px solid rgba(255,255,255,0.02)}
+  .muted{color:var(--muted); font-size:13px}
+  .main{background:transparent; display:grid; grid-template-rows: 1fr 260px; gap:12px}
+  .top-row{display:grid; grid-template-columns: 1fr 460px; gap:12px}
+  .panel{background:var(--card); border-radius:12px; padding:10px; min-height:80px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.02)}
+  .panel header{font-weight:700; font-size:13px; margin-bottom:8px}
+  .repo-tree{height:420px; overflow:auto; border-radius:10px; padding:8px; background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005))}
+  .file{padding:8px; border-radius:8px; margin-bottom:6px; cursor:pointer; display:flex; justify-content:space-between; align-items:center}
+  .file:hover{background:var(--glass)}
+  #editor{width:100%; height:100%; min-height:380px; background:#021124; color:#dff0ff; border:1px solid rgba(255,255,255,0.02); padding:12px; border-radius:10px; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace; font-size:13px; resize:vertical}
+  .logs{height:100%; overflow:auto; background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); padding:10px; border-radius:10px; font-family:monospace; font-size:13px}
+  .log-line{padding:6px 8px; border-radius:8px; margin-bottom:6px; background:linear-gradient(90deg, rgba(255,255,255,0.008), transparent)}
+  .log-line.err{border-left:4px solid var(--err); color:#ffd6d6}
+  .log-line.warn{border-left:4px solid #ffd66b; color:#fff3d6}
+  .controls{display:flex; gap:8px; align-items:center; margin-top:8px}
+  .chat{display:flex; flex-direction:column; height:100%}
+  .chat-messages{flex:1; overflow:auto; padding:10px; background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); border-radius:10px; margin-bottom:8px}
+  .msg{margin-bottom:10px; padding:8px 10px; border-radius:10px; max-width:85%}
+  .msg.me{align-self:flex-end; background:linear-gradient(90deg,#0f69ff,#5fb1ff); color:#001}
+  .msg.ai{align-self:flex-start; background:#0ea875; color:#021; opacity:0.95}
+  .composer{display:flex; gap:8px}
+  .progress-step{padding:10px; border-radius:10px; background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); margin-bottom:8px}
+  .taskline{display:flex; align-items:center; gap:12px}
+  .dot{width:12px;height:12px;border-radius:50%;background:#2b3440;display:inline-block}
+  .dot.done{background:var(--ok)}
+  .dot.work{background:var(--accent)}
+  .timeline{max-height:220px; overflow:auto; padding:8px}
+  .kbd{background:#0b1220;padding:6px 8px;border-radius:8px;color:var(--muted);font-size:12px}
+  .hint{font-size:12px;color:var(--muted); margin-top:8px}
+  /* mobile */
+  @media(max-width:980px){
+    .app{grid-template-columns:1fr; grid-template-rows:auto auto 1fr; padding:8px}
+    .top-row{grid-template-columns:1fr; grid-auto-rows: auto}
+    .main{grid-template-rows: 1fr 360px}
+    .left-col{order:2}
+  }
+  /* little sparkle */
+  .brand-bubble{background:linear-gradient(90deg,#61a9ff,#8fe6ff); color:#002a44; padding:6px 10px; border-radius:999px; font-weight:700}
+  .fancy-title{display:flex; gap:10px; align-items:center}
+  .fancy-title svg{filter:drop-shadow(0 8px 18px rgba(20,60,120,0.6))}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div style="display:flex;gap:12px;align-items:center">
+      <div class="fancy-title">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <rect x="1" y="1" width="22" height="22" rx="6" fill="#0f69ff"></rect>
+          <path d="M7 12h10M12 7v10" stroke="#001" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <h1 style="margin:0">Mission Control — Demo</h1>
+          <div class="brand-sub">Agent מבוסס Gemini • Project <span class="kbd">avinoam-naim</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;align-items:center">
+      <div class="brand-bubble">Demo UI</div>
+      <div class="small muted">ממשק רספונסיבי — מדמה חיבור GitHub & GCP</div>
+    </div>
+  </header>
+
+  <!-- LEFT COLUMN: CONFIG + QUICK ACTIONS -->
+  <aside class="left-col">
+    <div class="box">
+      <header class="small">חיבור ראשון — הכנס מפתחות (מבדיקה בלבד)</header>
+      <label>Gemini API Key</label>
+      <input id="key_gem" placeholder="x-goog-api-key (demo)"/>
+      <label>GitHub Token / App</label>
+      <input id="key_gh" placeholder="ghp_xxx (demo)"/>
+      <label>GCP Project ID</label>
+      <input id="project" value="avinoam-naim"/>
+      <div class="controls" style="margin-top:10px">
+        <button id="btn_connect">התחבר (דמו)</button>
+        <button class="ghost" id="btn_reset">איפוס</button>
+      </div>
+      <div class="hint">המפתחות בדמו נשמרים ב-localStorage בדפדפן לשימוש בלבד. בחיבור אמיתי — שמור בסוד ותשתמש ב-Backend מאובטח.</div>
+    </div>
+
+    <div class="box">
+      <header class="small">פעולות מהירות</header>
+      <div class="row" style="margin-bottom:8px">
+        <button id="btn_open_shell" class="ghost">Open in Cloud Shell</button>
+        <button id="btn_list_runs" class="ghost">רשימת Cloud Run</button>
+      </div>
+      <div style="display:flex;gap:8px">
+        <input id="svcName" placeholder="שם שירות (orders-api)"/>
+        <button id="btn_tail" class="ghost">Tail Logs</button>
+      </div>
+      <div style="margin-top:10px">
+        <button id="btn_new_agent" style="width:100%">צור Agent חדש מתוך תבנית</button>
+      </div>
+    </div>
+
+    <div class="box">
+      <header class="small">Flow & Templates</header>
+      <div class="muted">בחר תסריט מוכן:</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+        <button class="ghost" data-flow="fix-500">בודק שגיאות 500 ויוצא תיקון</button>
+        <button class="ghost" data-flow="add-iam">הוסף IAM role לקריאה ל-GCS</button>
+        <button class="ghost" data-flow="deploy-canary">פרוס Canary ל-Cloud Run</button>
+      </div>
+    </div>
+
+    <div class="box">
+      <header class="small">מטרות חווית שימוש</header>
+      <ul class="muted">
+        <li>לראות את הקבצים, לערוך ולבצע commit/PR</li>
+        <li>להשאיר את ה-Agent עם כל הקונטקסט מלא</li>
+        <li>לחוות רעיון של Multi-step agent (analyze → change → deploy)</li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="top-row">
+      <div class="panel">
+        <header>עורך קוד — הריפו שלך (דמו)</header>
+        <div class="repo-tree" id="repoTree">
+          <!-- file list populated by JS -->
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button id="btn_clone" class="ghost">Clone Repo</button>
+          <button id="btn_commit" class="ghost">Commit Changes</button>
+          <button id="btn_pr" class="ghost">Open PR</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <header>Agent Status / Tasks</header>
+        <div class="timeline" id="timeline">
+          <!-- steps appended -->
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button id="btn_run_flow" class="ghost" style="flex:1">הרץ תסריט Agent</button>
+          <button id="btn_abort" class="ghost" style="width:120px">עצור</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 420px;gap:12px">
+      <div class="panel">
+        <header>Editor</header>
+        <textarea id="editor" placeholder="// קוד יופיע כאן — בחר קובץ מהצד"></textarea>
+      </div>
+
+      <div class="panel">
+        <header>צ׳אט אינטראקטיבי — Agent (Gemini)</header>
+        <div class="chat">
+          <div class="chat-messages" id="chatMessages">
+            <div class="msg ai">שלום! אני ה-Agent שלך — כתוב בקשה או בחר תסריט. אני יכול לנתח לוגים, לשנות קוד, לפתוח PR, ולפרוס.</div>
+          </div>
+          <div style="margin-top:8px" class="small muted">ה-Agent רואה: ריפו, לוגים, סטטוס Cloud Run — כולו בתוך הקונטקסט שלו.</div>
+          <div class="composer">
+            <textarea id="prompt" placeholder="לדוגמה: 'בדוק למה יש 500 ב-orders-api וכתוב תיקון בקובץ src/main.ts'"></textarea>
+            <button id="sendAgent" class="ghost">שלח</button>
+          </div>
+          <div style="margin-top:8px" class="hint">ב-demo: שליחת בקשה תפעיל סימולציה של תהליך מלא — צפייה ב-timeline, עריכת קובץ אוטומטית, commit ו-deploy.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ===============================
+   Demo data + helpers
+   =============================== */
+const demoRepo = {
+  name: "orders-service",
+  files: {
+    "src/main.ts":"import http from 'http';\n\nfunction handle(req,res){\n  // BUG: missing null check\n  const user = JSON.parse(req.headers['x-user']);\n  res.writeHead(200); res.end('ok');\n}\n\nhttp.createServer(handle).listen(8080);\n",
+    "package.json":'{ "name":"orders-service", "version":"1.0.0" }',
+    "Dockerfile":"FROM node:20\nCOPY . /app\nWORKDIR /app\nCMD [\"node\",\"src/main.ts\"]"
+  }
+};
+
+const chatEl = document.getElementById('chatMessages');
+const timelineEl = document.getElementById('timeline');
+const repoTree = document.getElementById('repoTree');
+const editor = document.getElementById('editor');
+let connected=false;
+
+/* localStorage helpers (simulate secure store for demo) */
+function saveKeys(){ localStorage.setItem('demo_gem_key', document.getElementById('key_gem').value); localStorage.setItem('demo_gh', document.getElementById('key_gh').value); localStorage.setItem('demo_proj', document.getElementById('project').value); }
+function loadKeys(){ document.getElementById('key_gem').value = localStorage.getItem('demo_gem_key') || ''; document.getElementById('key_gh').value = localStorage.getItem('demo_gh') || ''; document.getElementById('project').value = localStorage.getItem('demo_proj') || 'avinoam-naim'; }
+
+/* ===============================
+   UI functions
+   =============================== */
+function addChat(who, text){
+  const d=document.createElement('div'); d.className='msg '+(who==='me'?'me':'ai'); d.textContent=text; chatEl.appendChild(d); chatEl.scrollTop = chatEl.scrollHeight;
+}
+function addTimelineStep(title, status='work', note=''){ const el = document.createElement('div'); el.className='progress-step'; el.innerHTML = `<div class="taskline"><div class="dot ${status==='done'?'done':(status==='work'?'work':'')}"></div><div><strong>${title}</strong><div class="small muted">${note}</div></div></div>`; timelineEl.prepend(el); }
+function clearTimeline(){ timelineEl.innerHTML=''; }
+function populateRepo(){
+  repoTree.innerHTML='';
+  for(const p in demoRepo.files){
+    const f=document.createElement('div'); f.className='file'; f.innerHTML=`<div>${p}</div><div class="small muted">edit</div>`;
+    f.onclick=()=>{ editor.value = demoRepo.files[p]; editor.dataset.path=p; addTimelineStep('פתח קובץ: '+p,'done'); }
+    repoTree.appendChild(f);
+  }
+  addTimelineStep('ריפו נטען (דמו)', 'done', demoRepo.name);
+}
+
+/* ===============================
+   Simulated agent flows
+   =============================== */
+function runFlow(flow){
+  clearTimeline();
+  addTimelineStep('Agent התחיל עבודה', 'work', 'מאפס קלט וגורס קונטקסט');
+  addTimelineStep('טוען לוגים מה-Cloud Logging', 'work', 'fetched 120 lines');
+  setTimeout(()=> addTimelineStep('מנתח שגיאות 500 לאחרונה', 'work', 'found 3 occurrences'),900);
+  setTimeout(()=> addTimelineStep('סורק ריפו עבור src/main.ts', 'work', '...'),1600);
+
+  // simulated multi-step with edits
+  setTimeout(()=>{
+    addTimelineStep('מצא בעיה: JSON.parse על header לא בטוח', 'done', 'null/empty headers lead to crash');
+    addChat('ai','מצאתי סיבה לשגיאות 500: header x-user חסר לעיתים. אני אוסיף בדיקה בקובץ src/main.ts ואפתח PR.');
+  },2400);
+
+  setTimeout(()=>{
+    // modify file
+    const path='src/main.ts';
+    let content = demoRepo.files[path];
+    content = content.replace("const user = JSON.parse(req.headers['x-user']);", "let user=null;\n  try{ if(req.headers['x-user']) user = JSON.parse(req.headers['x-user']); }catch(e){ user=null; }");
+    demoRepo.files[path]=content;
+    if(editor.dataset.path===path) editor.value = content;
+    addTimelineStep('שיניתי קוד ב-src/main.ts', 'done', 'הוספתי בדיקות null/try-catch');
+    addChat('ai','עדכנתי את הקובץ — הוספתי טיפול בשגיאות JSON ובמקרה של header חסר.');
+  },3600);
+
+  setTimeout(()=>{
+    addTimelineStep('ביצע commit ויצר PR (דמו)', 'done', 'PR #42 — fix/null-check');
+    addChat('ai','יצרתי PR #42 עם השינויים. רוצה שאבצע merge ופרוס ל-staging?');
+  },4800);
+
+  setTimeout(()=>{
+    addTimelineStep('ממזג PR ויוצר build Docker', 'work', 'building image: orders-service:canary');
+  },6200);
+
+  setTimeout(()=>{
+    addTimelineStep('דחיפת image ל־Container Registry', 'done', 'gcr.io/avinoam-naim/orders-service:canary');
+  },8200);
+
+  setTimeout(()=>{
+    addTimelineStep('פריסה Canary ל-Cloud Run', 'work', 'deploying to us-central1');
+  },9400);
+
+  setTimeout(()=>{
+    addTimelineStep('בדיקות אנד־טו־אנד — passed', 'done', 'all checks green');
+    addChat('ai','ה-canary עבר את הבדיקות. מבצע rollout ל-production?');
+  },11200);
+
+  setTimeout(()=>{
+    addTimelineStep('Rollout ל-production (מבוצע)', 'work', 'progress 35%');
+  },12500);
+
+  setTimeout(()=>{
+    addTimelineStep('Rollout ל-production (מושלם)', 'done', 'deployment successful ✅');
+    addChat('ai','הכל פרוס בהצלחה. אני מוסיף את המידע ל-context שלי כדי לזכור להבא.');
+  },14500);
+}
+
+/* ===============================
+   Wire UI actions
+   =============================== */
+loadKeys(); populateRepo();
+
+document.getElementById('btn_connect').onclick = ()=>{
+  saveKeys(); connected=true; addChat('me','התחברתי (דמו)'); addTimelineStep('התחברות ל-Gemini/GitHub/GCP (דמו)','done','keys saved locally');
+};
+
+document.getElementById('btn_reset').onclick = ()=>{
+  localStorage.removeItem('demo_gem_key'); localStorage.removeItem('demo_gh'); localStorage.removeItem('demo_proj'); loadKeys(); addChat('ai','איפוס מפתחות הושלם');
+};
+
+document.getElementById('btn_open_shell').onclick = ()=>{
+  alert('במציאות: כפתור זה יפתח Cloud Shell בעמוד נפרד עם פרויקט מתאים ו-git clone לריפו. בדמו — עותק מקומי ייפתח.');
+  addChat('ai','Open in Cloud Shell invoked (דמו).');
+};
+
+document.getElementById('btn_tail').onclick = ()=>{
+  const svc=document.getElementById('svcName').value || 'orders-api';
+  addTimelineStep('חיבור ל־Cloud Logging (tail '+svc+')','work','waiting for logs...');
+  // simulate incoming logs
+  setTimeout(()=> { const l=`[${new Date().toLocaleTimeString()}] ERROR orders-api - TypeError: Cannot read property 'split' of undefined`; const el=document.createElement('div'); el.className='log-line err'; el.textContent=l; document.querySelector('.logs')?.prepend(el); addChat('ai','גיליתי שגיאה חדשה ב־orders-api: '+l); },800);
+  // add to logs panel
+  const logsPanel = document.querySelector('.logs');
+  if(!logsPanel){ const p=document.createElement('div'); p.className='logs'; p.innerHTML='<div class="log-line">starting log tail (demo)</div>'; document.querySelector('#repoTree').after(p); }
+};
+
+document.getElementById('btn_clone').onclick = ()=>{ addChat('me','clone repo'); populateRepo(); addTimelineStep('git clone (דמו)','done','cloned '+demoRepo.name); };
+document.getElementById('btn_commit').onclick = ()=>{ addChat('me','commit changes'); addTimelineStep('git commit -m "fix null check"','done','commit created 0f3a2'); };
+document.getElementById('btn_pr').onclick = ()=>{ addChat('me','open PR'); addTimelineStep('open PR #42','done','PR created: fix/null-check'); };
+
+document.getElementById('btn_run_flow').onclick = ()=>{ addChat('me','הרץ תסריט: fix-500'); runFlow('fix-500'); };
+document.getElementById('btn_abort').onclick = ()=>{ addChat('me','עצור'); addTimelineStep('Agent aborted by user','done','manual stop'); };
+
+document.getElementById('sendAgent').onclick = ()=>{
+  const text = document.getElementById('prompt').value.trim();
+  if(!text) return;
+  addChat('me', text);
+  // simulate agent reply + flow detection
+  addChat('ai','מנתח בקשה: "'+text+'" — מנגנון דמו מפעיל תהליך מול הקוד והלוגים...');
+  runFlow('ad_hoc');
+};
+
+document.querySelectorAll('[data-flow]').forEach(b=> b.onclick = (e)=> {
+  const f = e.currentTarget.dataset.flow;
+  addChat('me','בחר תסריט: '+f);
+  runFlow(f);
+});
+
+/* Extra: clicking file opens code into editor */
+repoTree.onclick = (ev)=>{
+  // handled per file element; noop
+}
+
+/* demo initial timeline */
+addTimelineStep('דמו מוכן — לחץ "התחבר" כדי להתחיל','done','מצב: offline');
+</script>
+</body>
+</html>
