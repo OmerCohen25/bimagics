@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול תקציב משק הבית</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #1f2a36;
+            --font-family: 'Rubik', sans-serif;
+            --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            --border-radius: 10px;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--light-color);
+            color: var(--primary-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            letter-spacing: 1px;
+        }
+
+        .card {
+            background-color: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        h2 {
+            border-bottom: 3px solid var(--secondary-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            text-align: center;
+        }
+
+        .summary-box {
+            padding: 20px;
+            border-radius: var(--border-radius);
+            color: white;
+            font-size: 1.2em;
+        }
+
+        .summary-box h3 {
+            margin-top: 0;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .summary-box p {
+            margin-bottom: 0;
+            font-size: 2em;
+            font-weight: 700;
+        }
+
+        #balance { background-color: var(--secondary-color); }
+        #income { background-color: var(--success-color); }
+        #expense { background-color: var(--danger-color); }
+
+        .form-control {
+            margin-bottom: 15px;
+        }
+
+        .form-control label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-control input, .form-control select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-family: var(--font-family);
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--secondary-color);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 500;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-delete {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        ul li {
+            background-color: #fff;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-right: 5px solid;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        ul li:hover .btn-delete {
+            opacity: 1;
+        }
+
+        ul li.income { border-color: var(--success-color); }
+        ul li.expense { border-color: var(--danger-color); }
+        
+        .transaction-text {
+            flex-grow: 1;
+        }
+        
+        .transaction-amount {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-left: 20px;
+        }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .tip-card {
+            background-color: #fff3cd;
+            border-left: 5px solid #ffeeba;
+            padding: 20px;
+            border-radius: var(--border-radius);
+        }
+        
+        .tip-card h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+        
+        .tip-card p {
+            margin-bottom: 0;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            opacity: 0.6;
+        }
+
+        /* Responsive Design */
+        @media (min-width: 992px) {
+            .container {
+                grid-template-columns: 350px 1fr;
+            }
+            header {
+                grid-column: 1 / -1;
+            }
+            .main-content {
+                grid-column: 2 / 3;
+            }
+            .sidebar {
+                grid-column: 1 / 2;
+                grid-row: 2 / 4;
+            }
+        }
+        
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>📈 ניהול תקציב משק הבית</h1>
+            <p>המקום המרכזי למעקב, ניתוח ושיפור המצב הכלכלי שלכם</p>
+        </header>
+
+        <aside class="sidebar">
+            <div class="card">
+                <h2>🖋️ הוסף עסקה חדשה</h2>
+                <form id="form">
+                    <div class="form-control">
+                        <label for="type">סוג</label>
+                        <select id="type" required>
+                            <option value="income">הכנסה</option>
+                            <option value="expense">הוצאה</option>
+                        </select>
+                    </div>
+                    <div class="form-control">
+                        <label for="text">תיאור</label>
+                        <input type="text" id="text" placeholder="הכנס תיאור..." required>
+                    </div>
+                    <div class="form-control">
+                        <label for="amount">סכום (בש"ח)</label>
+                        <input type="number" id="amount" placeholder="הכנס סכום..." required>
+                    </div>
+                    <div class="form-control">
+                        <label for="category">קטגוריה</label>
+                        <select id="category" required>
+                            <optgroup label="הוצאות">
+                                <option value="דיור">דיור</option>
+                                <option value="מזון">מזון</option>
+                                <option value="תחבורה">תחבורה</option>
+                                <option value="בילויים">בילויים</option>
+                                <option value="בריאות">בריאות</option>
+                                <option value="חינוך">חינוך</option>
+                                <option value="ביגוד">ביגוד</option>
+                                <option value="אחר">אחר</option>
+                            </optgroup>
+                            <optgroup label="הכנסות">
+                                <option value="משכורת">משכורת</option>
+                                <option value="עסק">עסק</option>
+                                <option value="מתנות">מתנות</option>
+                                <option value="אחר">הכנסה אחרת</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                     <div class="form-control">
+                        <label for="is-fixed">סוג תשלום</label>
+                        <select id="is-fixed">
+                            <option value="false">מזדמן</option>
+                            <option value="true">קבוע (חודשי)</option>
+                        </select>
+                    </div>
+                    <button class="btn">הוסף עסקה</button>
+                </form>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <section class="card summary">
+                <div class="summary-box" id="balance">
+                    <h3>יתרה נוכחית</h3>
+                    <p id="balance-val">₪0.00</p>
+                </div>
+                <div class="summary-box" id="income">
+                    <h3>סך הכנסות</h3>
+                    <p id="income-val">₪0.00</p>
+                </div>
+                <div class="summary-box" id="expense">
+                    <h3>סך הוצאות</h3>
+                    <p id="expense-val">₪0.00</p>
+                </div>
+            </section>
+            
+            <section class="card">
+                <h2>📊 ניתוח וטיפים</h2>
+                <div id="analysis-content" class="analysis-grid">
+                    <div class="empty-state" id="analysis-empty-state">
+                        <p>התחילו להוסיף הכנסות והוצאות כדי לראות ניתוחים וטיפים מותאמים אישית.</p>
+                    </div>
+                    <div id="chart-container" class="hidden">
+                        <h3>התפלגות הוצאות לפי קטגוריה</h3>
+                        <canvas id="expenseChart"></canvas>
+                    </div>
+                    <div id="tip-container" class="hidden">
+                        </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>📜 היסטוריית עסקאות</h2>
+                <ul id="list" class="list">
+                   </ul>
+                 <div class="empty-state" id="transactions-empty-state">
+                    <p>אין עדיין עסקאות. הוסיפו עסקה חדשה כדי להתחיל.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const balance = document.getElementById('balance-val');
+        const incomeVal = document.getElementById('income-val');
+        const expenseVal = document.getElementById('expense-val');
+        const list = document.getElementById('list');
+        const form = document.getElementById('form');
+        const type = document.getElementById('type');
+        const text = document.getElementById('text');
+        const amount = document.getElementById('amount');
+        const category = document.getElementById('category');
+        const isFixed = document.getElementById('is-fixed');
+        const transactionsEmptyState = document.getElementById('transactions-empty-state');
+        const analysisEmptyState = document.getElementById('analysis-empty-state');
+        const chartContainer = document.getElementById('chart-container');
+        const tipContainer = document.getElementById('tip-container');
+
+        const localStorageTransactions = JSON.parse(localStorage.getItem('transactions'));
+        let transactions = localStorage.getItem('transactions') !== null ? localStorageTransactions : [];
+        let expenseChart;
+
+        function addTransaction(e) {
+            e.preventDefault();
+
+            if (text.value.trim() === '' || amount.value.trim() === '') {
+                alert('נא למלא את כל השדות');
+            } else {
+                const transaction = {
+                    id: generateID(),
+                    type: type.value,
+                    text: text.value,
+                    amount: +amount.value,
+                    category: category.value,
+                    isFixed: isFixed.value === 'true'
+                };
+
+                transactions.push(transaction);
+                addTransactionDOM(transaction);
+                updateValues();
+                updateLocalStorage();
+                form.reset();
+            }
+        }
+
+        function generateID() {
+            return Math.floor(Math.random() * 1000000000);
+        }
+
+        function addTransactionDOM(transaction) {
+            const item = document.createElement('li');
+            const sign = transaction.type === 'expense' ? '-' : '+';
+            item.classList.add(transaction.type);
+
+            item.innerHTML = `
+                <span class="transaction-text">${transaction.text} <em>(${transaction.category}) ${transaction.isFixed ? '[קבוע]' : ''}</em></span>
+                <span class="transaction-amount">${sign}₪${Math.abs(transaction.amount).toFixed(2)}</span>
+                <button class="btn-delete" onclick="removeTransaction(${transaction.id})">x</button>
+            `;
+            list.appendChild(item);
+        }
+
+        function updateValues() {
+            const amounts = transactions.map(transaction => transaction.type === 'expense' ? -transaction.amount : transaction.amount);
+            const total = amounts.reduce((acc, item) => (acc += item), 0).toFixed(2);
+            
+            const income = amounts
+                .filter(item => item > 0)
+                .reduce((acc, item) => (acc += item), 0)
+                .toFixed(2);
+
+            const expense = (amounts
+                .filter(item => item < 0)
+                .reduce((acc, item) => (acc += item), 0) * -1)
+                .toFixed(2);
+
+            balance.innerText = `₪${total}`;
+            incomeVal.innerText = `₪${income}`;
+            expenseVal.innerText = `₪${expense}`;
+            
+            updateUI();
+            updateAnalysis(income, expense);
+        }
+
+        function updateUI() {
+            if (transactions.length > 0) {
+                transactionsEmptyState.classList.add('hidden');
+                analysisEmptyState.classList.add('hidden');
+                chartContainer.classList.remove('hidden');
+                tipContainer.classList.remove('hidden');
+            } else {
+                transactionsEmptyState.classList.remove('hidden');
+                analysisEmptyState.classList.remove('hidden');
+                chartContainer.classList.add('hidden');
+                tipContainer.classList.add('hidden');
+            }
+        }
+
+        function removeTransaction(id) {
+            transactions = transactions.filter(transaction => transaction.id !== id);
+            updateLocalStorage();
+            init();
+        }
+
+        function updateLocalStorage() {
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+        }
+        
+        function updateAnalysis(totalIncome, totalExpense) {
+            const expenses = transactions.filter(t => t.type === 'expense');
+            if (expenses.length === 0) {
+                 if (expenseChart) {
+                    expenseChart.destroy();
+                }
+                tipContainer.innerHTML = '';
+                return;
+            };
+
+            const expenseByCategory = expenses.reduce((acc, transaction) => {
+                acc[transaction.category] = (acc[transaction.category] || 0) + transaction.amount;
+                return acc;
+            }, {});
+
+            const categories = Object.keys(expenseByCategory);
+            const amounts = Object.values(expenseByCategory);
+            
+            // Update Chart
+            const chartData = {
+                labels: categories,
+                datasets: [{
+                    label: 'הוצאות לפי קטגוריה',
+                    data: amounts,
+                    backgroundColor: [
+                        '#3498db', '#e74c3c', '#9b59b6', '#f1c40f', '#2ecc71', '#1abc9c', '#e67e22', '#34495e'
+                    ],
+                    hoverOffset: 4
+                }]
+            };
+            
+            const ctx = document.getElementById('expenseChart').getContext('2d');
+            if (expenseChart) {
+                expenseChart.destroy();
+            }
+            expenseChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: false,
+                            text: 'התפלגות הוצאות'
+                        }
+                    }
+                }
+            });
+            
+            // Update Tips
+            generateTips(expenseByCategory, totalIncome, totalExpense);
+        }
+
+        function generateTips(expenseByCategory, totalIncome, totalExpense) {
+            tipContainer.innerHTML = ''; // Clear old tips
+            let tips = [];
+
+            const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpense) / totalIncome) * 100 : 0;
+            
+            let tipCard = document.createElement('div');
+            tipCard.className = 'tip-card';
+            let tipTitle = '💡 טיפ כללי';
+            let tipText = '';
+
+            if (savingsRate < 10 && savingsRate >= 0) {
+                tipText = `שיעור החיסכון שלכם עומד על ${savingsRate.toFixed(1)}%. זהו שיעור נמוך יחסית. נסו לבחון את ההוצאות ולראות איפה ניתן לקצץ כדי להגדיל את החיסכון לפחות ל-15%.`;
+            } else if (savingsRate >= 10 && savingsRate < 20) {
+                tipText = `כל הכבוד! אתם חוסכים ${savingsRate.toFixed(1)}% מההכנסה שלכם. המשיכו כך, ואולי תמצאו דרכים נוספות להגדיל את החיסכון.`;
+            } else if (savingsRate >= 20) {
+                tipText = `מצוין! שיעור חיסכון של ${savingsRate.toFixed(1)}% הוא מעולה ומראה על שליטה פיננסית גבוהה. ודאו שאתם משקיעים את החיסכון בתבונה.`;
+            } else {
+                 tipTitle = '⚠️ שימו לב';
+                 tipText = `אתם במינוס! ההוצאות שלכם גבוהות מההכנסות. זה מצב מסוכן שדורש טיפול מיידי. עברו על רשימת ההוצאות וחפשו היכן ניתן לקצץ באופן דחוף.`;
+            }
+            
+            tipCard.innerHTML = `<h3>${tipTitle}</h3><p>${tipText}</p>`;
+            tipContainer.appendChild(tipCard);
+            
+            // Tip based on highest expense category
+            const categories = Object.keys(expenseByCategory);
+            if(categories.length > 0) {
+                const highestCategory = categories.reduce((a, b) => expenseByCategory[a] > expenseByCategory[b] ? a : b);
+                const highestAmount = expenseByCategory[highestCategory];
+                const percentageOfTotal = (highestAmount / totalExpense) * 100;
+
+                if (percentageOfTotal > 25) { // If one category is more than 25% of expenses
+                    let specificTipCard = document.createElement('div');
+                    specificTipCard.className = 'tip-card';
+                    let specificTipText = `נראה שההוצאה הגדולה ביותר שלכם היא על <b>${highestCategory}</b>, המהווה ${percentageOfTotal.toFixed(1)}% מסך ההוצאות. כדאי לבדוק אם יש דרכים לצמצם את ההוצאות בקטגוריה זו. למשל, השוואת מחירים, חיפוש מבצעים או מציאת חלופות זולות יותר.`;
+                    specificTipCard.innerHTML = `<h3>🎯 התמקדות בקטגוריה מובילה</h3><p>${specificTipText}</p>`;
+                    tipContainer.appendChild(specificTipCard);
+                }
+            }
+             // Tip for fixed vs. occasional expenses
+            const fixedExpenses = transactions.filter(t => t.isFixed && t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+            if (totalIncome > 0 && fixedExpenses / totalIncome > 0.5) {
+                let fixedExpenseTipCard = document.createElement('div');
+                fixedExpenseTipCard.className = 'tip-card';
+                let fixedExpenseTipText = `יותר מ-50% מההכנסה שלכם הולכת להוצאות קבועות. זה עלול להקשות על הגמישות הפיננסית שלכם. בדקו אם ניתן להוזיל חוזים קיימים (כמו אינטרנט, טלוויזיה, ביטוחים) או למצוא חלופות זולות יותר.`;
+                fixedExpenseTipCard.innerHTML = `<h3>🔗 בחינת הוצאות קבועות</h3><p>${fixedExpenseTipText}</p>`;
+                tipContainer.appendChild(fixedExpenseTipCard);
+            }
+        }
+
+
+        function init() {
+            list.innerHTML = '';
+            transactions.forEach(addTransactionDOM);
+            updateValues();
+        }
+
+        init();
+        form.addEventListener('submit', addTransaction);
+    </script>
+</body>
+</html>
