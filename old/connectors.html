@@ -1,127 +1,143 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Connect Your Data | BI Magics</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <title>חבר את הדאטה שלך | BI Magics</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Assistant', 'Inter', sans-serif;
       background: #0f1115;
       color: white;
       padding: 20px;
     }
     h1 {
-      font-size: 2rem;
+      font-size: 2.5rem;
       margin-bottom: 10px;
       text-align: center;
       color: #74f2ce;
+      font-weight: 800;
     }
     p.description {
       text-align: center;
       margin-bottom: 30px;
       color: #aaa;
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
     }
     #searchBar {
       display: block;
-      margin: 0 auto 30px auto;
-      padding: 10px;
+      margin: 0 auto 40px auto;
+      padding: 12px 20px;
       width: 100%;
-      max-width: 360px;
-      border-radius: 10px;
-      border: none;
+      max-width: 400px;
+      border-radius: 25px;
+      border: 1px solid #333;
       font-size: 1rem;
       background-color: #1a1c22;
       color: white;
+      transition: all 0.3s ease;
     }
     #searchBar::placeholder {
-        color: #ccc;
+      color: #ccc;
+    }
+    #searchBar:focus {
+        outline: none;
+        border-color: #74f2ce;
+        box-shadow: 0 0 10px rgba(116, 242, 206, 0.2);
     }
     .connectors-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 25px;
       justify-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
     }
     .connector {
       background: #1a1c22;
       border-radius: 16px;
-      padding: 20px 10px;
+      padding: 25px 15px;
       text-align: center;
       width: 100%;
-      max-width: 160px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      max-width: 170px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
       transition: transform 0.2s ease, background-color 0.3s ease;
       position: relative;
-      cursor: pointer; /* Indicate clickable */
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 180px;
     }
     .connector:hover {
-      transform: translateY(-4px);
+      transform: translateY(-5px);
       background-color: #252831;
     }
     .connector img {
-      width: 50px;
-      height: 50px;
+      width: 60px;
+      height: 60px;
       object-fit: contain;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
     }
     .connector-name {
-      font-size: 0.9rem;
+      font-size: 1rem;
       font-weight: 600;
-      margin-bottom: 8px;
-      word-break: break-word; /* Prevent overflow for long names */
+      margin-bottom: 12px;
+      word-break: break-word;
+      flex-grow: 1;
     }
     .connect-btn {
-      font-size: 0.75rem;
-      padding: 6px 10px;
+      font-size: 0.85rem;
+      padding: 8px 16px;
       border: none;
-      border-radius: 12px;
+      border-radius: 20px;
       background: #74f2ce;
       color: #000;
       cursor: pointer;
       transition: background 0.2s ease;
-      font-weight: 600;
+      font-weight: 700;
+      width: 100%;
     }
     .connect-btn:hover {
       background: #5ae6bb;
     }
     .connector.connected {
       background-color: #134d38;
-      /* Optional: Add a visual indicator for connected state */
-      /* border: 2px solid #74f2ce; */
+      border: 1px solid #74f2ce;
     }
-     .connector.connected .connect-btn {
+    .connector.connected .connect-btn {
       background: #33ff99;
       color: #000;
-     }
+    }
   </style>
   <script>
     function toggleConnect(el) {
       const card = el.closest('.connector');
       card.classList.toggle('connected');
-      el.innerText = card.classList.contains('connected') ? 'Connected ✨' : 'Connect';
+      el.innerText = card.classList.contains('connected') ? 'מחובר ✨' : 'התחבר';
     }
     function filterConnectors() {
       const input = document.getElementById('searchBar').value.toLowerCase();
       const connectors = document.querySelectorAll('.connector');
       connectors.forEach(connector => {
         const name = connector.querySelector('.connector-name').innerText.toLowerCase();
-        // Check if the name includes the search input
         if (name.includes(input)) {
-          connector.style.display = 'block';
+          connector.style.display = 'flex';
         } else {
           connector.style.display = 'none';
         }
       });
     }
 
-    // Optional: Add click handler to the whole card
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.connector').forEach(card => {
             card.addEventListener('click', (event) => {
-                // Only toggle if the click target is not the button itself
                 if (!event.target.classList.contains('connect-btn')) {
                     const button = card.querySelector('.connect-btn');
                     toggleConnect(button);
@@ -132,224 +148,225 @@
   </script>
 </head>
 <body>
-  <h1>Connect Your Data</h1>
-  <p class="description">Instantly integrate with your tools. Connect your data sources and start asking magical questions.</p>
-  <input type="text" id="searchBar" placeholder="Search integrations..." oninput="filterConnectors()">
+  <h1>חבר את הדאטה שלך</h1>
+  <p class="description">התממשק בקלות למערכות שלך. חבר את מקורות המידע והתחל לשאול שאלות חכמות.</p>
+  <input type="text" id="searchBar" placeholder="חיפוש אינטגרציות..." oninput="filterConnectors()">
 
   <div class="connectors-grid">
     <div class="connector">
       <img src="https://www.gstatic.com/images/branding/product/1x/sheets_2020q4_48dp.png" alt="Google Sheets">
       <div class="connector-name">Google Sheets</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
     <div class="connector">
-      <img src="https://static.cdnlogo.com/logos/m/19/microsoft-excel.svg" alt="Excel">
-      <div class="connector-name">Excel / OneDrive</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Microsoft_Office_Excel_(2019%E2%80%93present).svg/48px-Microsoft_Office_Excel_(2019%E2%80%93present).svg.png" alt="Excel">
+        <div class="connector-name">Excel / OneDrive</div>
+        <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
     <div class="connector">
       <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/Airtable_Logo.svg" alt="Airtable">
       <div class="connector-name">Airtable</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
      <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/google-drive.svg" alt="Google Drive">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/Google_Drive_Logo.svg" alt="Google Drive">
       <div class="connector-name">Google Drive</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
     <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/dropbox-2.svg" alt="Dropbox">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Dropbox_logo_2017.svg" alt="Dropbox">
       <div class="connector-name">Dropbox</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
 
     <div class="connector">
       <img src="https://cdn.worldvectorlogo.com/logos/quickbooks-1.svg" alt="QuickBooks">
       <div class="connector-name">QuickBooks</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
     <div class="connector">
       <img src="https://cdn.worldvectorlogo.com/logos/xero-1.svg" alt="Xero">
       <div class="connector-name">Xero</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
     <div class="connector">
       <img src="https://cdn.worldvectorlogo.com/logos/zoho.svg" alt="Zoho Books">
       <div class="connector-name">Zoho Books</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
     <div class="connector">
-      <img src="https://www.greeninvoice.co.il/assets/img/logo_en.svg" alt="Green Invoice">
-      <div class="connector-name">Green Invoice</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+        <img src="https://www.greeninvoice.co.il/assets/img/logo_en.svg" alt="Green Invoice">
+        <div class="connector-name">Green Invoice</div>
+        <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
     <div class="connector">
-      <img src="https://icount.co.il/wp-content/uploads/2023/05/logo-blue.svg" alt="iCount">
-      <div class="connector-name">iCount</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
-    </div>
-     <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/stripe-3.svg" alt="Stripe">
-      <div class="connector-name">Stripe</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
-    </div>
-     <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/paypal-3.svg" alt="PayPal">
-      <div class="connector-name">PayPal</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+        <img src="https://icount.co.il/wp-content/uploads/2023/05/logo-blue.svg" alt="iCount">
+        <div class="connector-name">iCount</div>
+        <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
 
     <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/shopify.svg" alt="Shopify">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" alt="Stripe">
+      <div class="connector-name">Stripe</div>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
+    </div>
+     <div class="connector">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal">
+      <div class="connector-name">PayPal</div>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
+    </div>
+
+    <div class="connector">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Shopify_logo_2018.svg" alt="Shopify">
       <div class="connector-name">Shopify</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
     <div class="connector">
       <img src="https://cdn.worldvectorlogo.com/logos/wix.svg" alt="Wix">
       <div class="connector-name">Wix Stores</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
     <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/square.svg" alt="Square POS">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/c/c8/Square_Inc._logo.svg" alt="Square POS">
       <div class="connector-name">Square POS</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
 
     <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/salesforce-2.svg" alt="Salesforce">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/f/f9/Salesforce.com_logo.svg" alt="Salesforce">
       <div class="connector-name">Salesforce</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
      <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/hubspot-1.svg" alt="HubSpot">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/1/1f/HubSpot_Logo.svg" alt="HubSpot">
       <div class="connector-name">HubSpot</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
      <div class="connector">
       <img src="https://cdn.worldvectorlogo.com/logos/pipedrive-1.svg" alt="Pipedrive">
       <div class="connector-name">Pipedrive</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
 
     <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/google-analytics-logo.svg" alt="Google Analytics">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Google_Analytics_logo.svg" alt="Google Analytics">
       <div class="connector-name">Google Analytics</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
      <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/facebook-ads.svg" alt="Facebook Ads">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/Facebook_Ads_logo.svg" alt="Facebook Ads">
       <div class="connector-name">Facebook Ads</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
      <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/google-ads.svg" alt="Google Ads">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/2/2b/Google_Ads_logo.svg" alt="Google Ads">
       <div class="connector-name">Google Ads</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
      <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/mailchimp.svg" alt="Mailchimp">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/Mailchimp_logo.svg" alt="Mailchimp">
       <div class="connector-name">Mailchimp</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
       <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/klaviyo-logo.svg" alt="Klaviyo">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Klaviyo_logo.svg" alt="Klaviyo">
       <div class="connector-name">Klaviyo</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
 
     <div class="connector">
       <img src="https://upload.wikimedia.org/wikipedia/commons/2/29/Postgresql_elephant.svg" alt="PostgreSQL">
       <div class="connector-name">PostgreSQL</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
      <div class="connector">
       <img src="https://upload.wikimedia.org/wikipedia/en/d/dd/MySQL_logo.svg" alt="MySQL">
       <div class="connector-name">MySQL</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
      <div class="connector">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Microsoft_SQL_Server_Logo.svg" alt="SQL Server">
+      <img src="https://upload.wikimedia.org/wikipedia/de/8/8c/Microsoft_SQL_Server_Logo.svg" alt="SQL Server">
       <div class="connector-name">SQL Server</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
     <div class="connector">
       <img src="https://upload.wikimedia.org/wikipedia/commons/f/fb/Google_BigQuery_Logo.svg" alt="BigQuery">
       <div class="connector-name">BigQuery</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
       <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/snowflake.svg" alt="Snowflake">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/c/c3/Snowflake_Logo.svg" alt="Snowflake">
       <div class="connector-name">Snowflake</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
      <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/amazon-web-services-2.svg" alt="Amazon S3">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/1/11/Amazon_S3_Logo.svg" alt="Amazon S3">
       <div class="connector-name">Amazon S3</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
      <div class="connector">
       <img src="https://cdn.worldvectorlogo.com/logos/firebase-1.svg" alt="Firebase">
       <div class="connector-name">Firebase</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
 
 
     <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/slack-new-logo.svg" alt="Slack">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg" alt="Slack">
       <div class="connector-name">Slack</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
      <div class="connector">
-      <img src="https://seeklogo.com/images/M/monday-com-logo-560DCE63C7-seeklogo.com.png" alt="Monday.com">
+      <img src="https://cdn.worldvectorlogo.com/logos/monday-com.svg" alt="Monday.com">
       <div class="connector-name">Monday.com</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
      <div class="connector">
-      <img src="https://upload.wikimedia.org/wikipedia/en/8/8c/Trello_logo.svg" alt="Trello">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Trello_logo.svg" alt="Trello">
       <div class="connector-name">Trello</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
      <div class="connector">
       <img src="https://cdn.worldvectorlogo.com/logos/jira-1.svg" alt="Jira">
       <div class="connector-name">Jira</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
       <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/asana-1.svg" alt="Asana">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/a/a0/Asana_logo.svg" alt="Asana">
       <div class="connector-name">Asana</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
       <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/clickup-1.svg" alt="ClickUp">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/1/1a/ClickUp_logo.svg" alt="ClickUp">
       <div class="connector-name">ClickUp</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
 
     <div class="connector">
       <img src="https://cdn.worldvectorlogo.com/logos/zapier.svg" alt="Zapier">
       <div class="connector-name">Zapier</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
      <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/segment.svg" alt="Segment">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/Segment_logo.svg" alt="Segment">
       <div class="connector-name">Segment</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
 
     <div class="connector">
       <img src="https://cdn.worldvectorlogo.com/logos/oracle-netsuite-1.svg" alt="NetSuite">
       <div class="connector-name">NetSuite</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
      <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/zendesk-2.svg" alt="Zendesk">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/a/a8/Zendesk_logo.svg" alt="Zendesk">
       <div class="connector-name">Zendesk</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
      <div class="connector">
-      <img src="https://cdn.worldvectorlogo.com/logos/intercom-2.svg" alt="Intercom">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/c/c9/Intercom_logo.svg" alt="Intercom">
       <div class="connector-name">Intercom</div>
-      <button class="connect-btn" onclick="toggleConnect(this)">Connect</button>
+      <button class="connect-btn" onclick="toggleConnect(this)">התחבר</button>
     </div>
 
   </div>
