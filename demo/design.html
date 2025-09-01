@@ -193,7 +193,6 @@
             textInput: document.getElementById('textInput'),
         };
 
-        // Images hosted on ImgBB - guaranteed to work
         const scenarios = [
             {
                 userImg: "https://i.ibb.co/L5dDBM5/pexels-eberhard-grossgasteiger-1624438.jpg",
@@ -210,7 +209,7 @@
                 userText: "תשני את הסגנון לציור אנימה יפני",
                 botImg: "https://i.ibb.co/Q8Qf7C0/pexels-jess-loiterton-4321077-anime.jpg"
             },
-            {
+             {
                 userImg: "https://i.ibb.co/8YnK4hP/pexels-jaime-reimer-1528641.jpg",
                 userText: "הוסף שביל של כוכבים נופלים בשמיים",
                 botImg: "https://i.ibb.co/7j550p8/pexels-jaime-reimer-1528641-stars.jpg"
@@ -246,7 +245,7 @@
         }
 
         function setInputState(state) {
-            ['attachBtn', 'textInput', 'sendBtn'].forEach(el => el.classList.remove('pulsate-glow'));
+            ['attachBtn', 'textInput', 'sendBtn'].forEach(el => dom[el].classList.remove('pulsate-glow'));
             if (state === 'awaitingImage') {
                 dom.textInput.placeholder = 'לחץ על 📎 כדי לשלוח תמונה...';
                 dom.textInput.readOnly = true;
@@ -283,7 +282,8 @@
             
             const currentScenario = scenarios[gameState.currentScenario];
             
-            if (gameState.imageCredits <= 0) {
+            if (gameState.imageCredits <= 0 && !gameState.awaitingPayment) { // Added a check to prevent re-triggering paywall
+                gameState.awaitingPayment = true; // Flag to indicate we are waiting for payment
                 // Paywall Logic
                 await appendMessage('bot', `
                     <div class="image-container">
@@ -307,11 +307,12 @@
                 });
             } else {
                 // Standard Logic
+                gameState.imageCredits--;
                 await appendMessage('bot', `בטח, בבקשה:
                     <img src="${currentScenario.botImg}" alt="Processed Image">
                 `);
                 await delay(500);
-                await appendMessage('bot', `נהדר! נשאר לך עוד <b>${gameState.imageCredits}</b> קרדיט${gameState.imageCredits > 1 ? 'ים' : ''}.`);
+                await appendMessage('bot', `נהדר! נשאר לך עוד <b>${gameState.imageCredits}</b> קרדיט${gameState.imageCredits !== 1 ? 'ים' : ''}.`);
                 setInputState('awaitingImage');
                 gameState.currentScenario = (gameState.currentScenario + 1) % scenarios.length;
             }
@@ -334,19 +335,20 @@
             await appendMessage('bot', `מצוין! נוספו לך ${creditsToAdd} קרדיטים. סה"כ יש לך <b>${gameState.imageCredits}</b> קרדיטים. אפשר להמשיך ליצירה הבאה.`);
             
             gameState.currentScenario = (gameState.currentScenario + 1) % scenarios.length;
+            gameState.awaitingPayment = false; // Reset the payment flag
             setInputState('awaitingImage');
         }
         
         async function handleAttach() {
             if (!gameState.awaitingImage) return;
-            
+
             if (gameState.imageCredits > 0) {
-                 gameState.imageCredits--;
                  const currentScenario = scenarios[gameState.currentScenario];
                  await appendMessage('user', `<img src="${currentScenario.userImg}" alt="User Image">`);
                  setInputState('awaitingText');
             } else {
-                await processBotResponse(); // Trigger paywall directly if no credits
+                // if no credits, show the paywall *before* sending a new image.
+                await processBotResponse(); 
             }
         }
         
