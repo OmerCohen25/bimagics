@@ -1,372 +1,522 @@
 <!DOCTYPE html>
-<html lang="he">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>דמו סופי - בוט תמונות AI עם חבילות</title>
+    <title>AI Image Bot - מעצב התמונות האישי שלך בווצאפ</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap');
-        
+        /* --- Global Styles --- */
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;900&display=swap');
+
         :root {
-            --whatsapp-bg: #e5ddd5;
-            --header-bg: #008069;
-            --user-bubble: #dcf8c6;
-            --bot-bubble: #ffffff;
-            --phone-frame: #111b21;
-            --action-color: #25d366;
-            --action-color-hover: #128c7e;
-            --secondary-action-color: #075e54;
+            --primary-color: #25d366; /* WhatsApp Green */
+            --secondary-color: #128C7E;
+            --dark-color: #075E54;
+            --background-color: #f7f9fc;
+            --text-color: #333;
+            --light-gray: #eaf0f2;
+            --white: #ffffff;
+            --special-blue: #34B7F1;
         }
 
-        html, body {
-            height: 100%;
-            margin: 0;
-            overflow: hidden;
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
             font-family: 'Heebo', sans-serif;
-            background-color: #f0f2f5;
-            display: grid;
-            place-items: center;
-            height: 100svh;
-            max-height: 100vh; /* Ensure it doesn't exceed viewport height */
-            direction: rtl;
+            margin: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            text-align: right;
         }
 
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h1, h2, h3 {
+            font-weight: 900;
+        }
+
+        h1 { font-size: 3em; }
+        h2 { font-size: 2.2em; text-align: center; margin-bottom: 40px; }
+
+        .cta-button {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1em;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+        }
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
+        }
+
+        /* --- Header --- */
+        header {
+            background: var(--white);
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        header .logo {
+            font-size: 1.8em;
+            font-weight: 900;
+            color: var(--dark-color);
+        }
+
+        /* --- Hero Section --- */
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+            background: linear-gradient(135deg, var(--dark-color), var(--secondary-color));
+            color: var(--white);
+        }
+        .hero h1 {
+            margin-bottom: 15px;
+        }
+        .hero p {
+            font-size: 1.4em;
+            font-weight: 400;
+            margin-bottom: 30px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .hero .cta-button {
+            background-color: var(--white);
+            color: var(--primary-color);
+        }
+        
+        /* --- Demo Section --- */
+        #demo-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 40px;
+        }
+        .demo-explanation {
+            flex-basis: 45%;
+            min-width: 320px;
+        }
+        .demo-explanation h3 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+        .demo-explanation li {
+            list-style: none;
+            padding: 15px 0;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+        }
+        .demo-explanation .icon {
+            font-size: 1.5em;
+            margin-left: 15px;
+            color: var(--primary-color);
+        }
+
+        /* --- Phone Mockup Styles (Scoped) --- */
+        .phone-mockup-container {
+            flex-basis: 45%;
+            min-width: 380px;
+        }
         .phone-mockup {
-            width: 390px;
-            max-width: 95vw;
-            height: 95svh;
-            max-height: 850px;
-            background-color: var(--phone-frame);
+            width: 380px;
+            height: 700px; /* Adjusted for landing page */
+            background: #111b21;
             border-radius: 40px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.35);
-            padding: 18px;
-            box-sizing: border-box;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            padding: 15px;
             display: flex;
             flex-direction: column;
+            margin: 0 auto;
         }
-
         .screen {
-            background-color: var(--whatsapp-bg);
-            background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAABZohJdAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABtSURBVHja7cEBDQAAAMKg909tDwcUAAAAAAB8Dc2AARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARgYgAEA92sDxwTpJ8YAAAAASUVORK5CYII=");
-            flex-grow: 1;
-            border-radius: 22px;
+            flex: 1;
+            background: #e5ddd5;
+            border-radius: 25px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            position: relative;
         }
-
-        .header {
-            background-color: var(--header-bg);
-            color: white;
-            padding: 15px 20px;
+        .header-demo {
+            background: #008069;
+            color: #fff;
+            padding: 12px;
             display: flex;
             align-items: center;
             flex-shrink: 0;
-            z-index: 10;
         }
-        
         .avatar {
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
-            background-color: #ccc;
-            margin-left: 15px;
-            background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Google_Gemini_logo.svg/1200px-Google_Gemini_logo.svg.png');
+            margin-left: 10px;
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/a/a0/Google_Gemini_logo.svg');
             background-size: cover;
-            background-position: center;
         }
-
-        .chat-info .name { font-weight: 500; }
-        .chat-info .status { font-size: 0.8em; opacity: 0.8; }
-
         .chat-window {
-            flex-grow: 1;
-            padding: 20px;
+            flex: 1;
+            padding: 12px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
         }
-        
         .message {
-            max-width: 85%;
+            max-width: 80%;
             padding: 8px 12px;
             border-radius: 8px;
             margin-bottom: 10px;
+            font-size: 0.9em;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            animation: fadeIn 0.4s ease forwards;
             position: relative;
-            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
-            opacity: 0;
-            transform: translateY(10px);
-            animation: fadeIn 0.5s forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .bot { background: #ffffff; align-self: flex-start; border-top-left-radius: 0; }
+        .user { background: #dcf8c6; align-self: flex-end; border-top-right-radius: 0; }
+        .message img { max-width: 100%; border-radius: 6px; margin-top: 5px; }
+        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-20deg); color: rgba(255,0,0,0.5); font-size: 1.8em; font-weight: 900; pointer-events: none; }
+        .packages-container { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+        .package-button { background: #075e54; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: bold; text-align: right; cursor: pointer; display: flex; justify-content: space-between; transition: background-color 0.2s; }
+        .package-button:hover { background-color: var(--secondary-color); }
+        .package-button.popular { background: var(--primary-color); }
+
+        /* --- Business Plan Section --- */
+        .business-section { background: var(--white); }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        .grid-item {
+            background: var(--background-color);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--light-gray);
+        }
+        .grid-item h3 {
+            color: var(--dark-color);
+            font-size: 1.5em;
+            margin-top: 0;
+        }
+        .grid-item ul {
+            padding-right: 20px;
+        }
+        .grid-item li {
+            margin-bottom: 10px;
         }
 
-        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
-
-        .message.bot { background-color: var(--bot-bubble); align-self: flex-start; border-top-left-radius: 0; }
-        .message.user { background-color: var(--user-bubble); align-self: flex-end; border-top-right-radius: 0; }
-        .message img { max-width: 100%; border-radius: 6px; margin-top: 5px; display: block; }
-        
-        .image-container { position: relative; cursor: pointer; }
-        
-        .watermark {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) rotate(-20deg);
-            color: rgba(255, 0, 0, 0.6); font-size: 2.2em; font-weight: 900;
-            pointer-events: none; text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
-            -webkit-text-stroke: 1px rgba(0,0,0,0.2);
-        }
-
-        .packages-container {
+        /* --- Pricing Section --- */
+        .pricing-container {
             display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
         }
-        .package-button {
-            background-color: var(--secondary-action-color);
-            color: white; border: none; padding: 12px 15px;
-            border-radius: 8px; font-weight: bold; cursor: pointer;
-            text-align: right; font-size: 1em; transition: background-color 0.2s;
-            display: block;
+        .pricing-card {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+            flex: 1;
+            min-width: 250px;
+            max-width: 300px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
         }
-        .package-button:hover { background-color: var(--header-bg); }
-        .package-button .price { font-size: 0.9em; opacity: 0.8; }
-
-        .input-area {
-            background-color: #f0f2f5; padding: 10px; display: flex;
-            align-items: center; flex-shrink: 0; border-top: 1px solid #ddd;
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 35px rgba(0,0,0,0.12);
         }
-        .input-box {
-            flex-grow: 1; background-color: white; border-radius: 20px;
-            padding: 8px 15px; border: 2px solid transparent; transition: all 0.3s;
+        .popular-badge {
+            position: absolute;
+            top: -1px;
+            right: -1px;
+            background: var(--special-blue);
+            color: white;
+            padding: 8px 30px;
+            font-weight: bold;
+            transform: rotate(45deg) translate(28%, -10%);
+            transform-origin: center;
+            width: 150px;
         }
-        .action-button {
-            width: 45px; height: 45px; border-radius: 50%; border: none;
-            margin: 0 5px; display: flex; justify-content: center; align-items: center;
-            cursor: pointer; background-color: var(--header-bg); color: white;
-            font-size: 20px; transition: all 0.3s;
-        }
+        .pricing-card h3 { font-size: 1.6em; }
+        .price { font-size: 3em; font-weight: 900; color: var(--dark-color); }
+        .price span { font-size: 0.5em; font-weight: 400; }
+        .pricing-card ul { list-style: none; padding: 0; margin: 20px 0; }
+        .pricing-card li { margin-bottom: 10px; }
+        .pricing-card .cta-button { width: 80%; }
         
-        .pulsate-glow { animation: pulsate 2s infinite; }
-        @keyframes pulsate {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
-            70% { transform: scale(1.05); box-shadow: 0 0 10px 15px rgba(37, 211, 102, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        .pricing-card.popular {
+            border: 2px solid var(--primary-color);
         }
-        .input-box.pulsate-glow { border: 2px solid var(--action-color); }
+        .pricing-card.popular .cta-button {
+            background: var(--primary-color);
+            color: var(--white);
+        }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            background: var(--dark-color);
+            color: rgba(255,255,255,0.8);
+        }
     </style>
 </head>
 <body>
-    <div class="phone-mockup">
-        <div class="screen">
-            <div class="header">
-                <div class="avatar"></div>
-                <div class="chat-info">
-                    <div class="name">AI Image Bot</div>
-                    <div class="status">מקוון</div>
+
+    <header>
+        <div class="logo">🖼️ AI Image Bot</div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1>מעצב התמונות האישי שלך. ישירות בווצאפ.</h1>
+            <p>שלח תמונה והוראה פשוטה, וקבל תוצאה מדהימה תוך שניות. בלי אפליקציות, בלי סיבוכים. הכל קורה בשיחה.</p>
+            <a href="https://wa.me/972500000000?text=היי%2C+אני+רוצה+להתנסות+בבוט+התמונות" target="_blank" class="cta-button">
+                🚀 התנסה בחינם בווצאפ
+            </a>
+        </section>
+
+        <section class="container" id="demo">
+            <h2>זה עד כדי כך פשוט. צפו בדמו:</h2>
+            <div id="demo-section">
+                <div class="demo-explanation">
+                    <h3>איך הקסם עובד?</h3>
+                    <ul>
+                        <li><span class="icon">1️⃣</span> <b>שולחים תמונה:</b> בחרו כל תמונה מהגלריה שלכם.</li>
+                        <li><span class="icon">2️⃣</span> <b>רושמים הוראה:</b> תארו מה תרצו לשנות. "הפוך לציור אנימה", "תוסיף שלג", "שנה רקע לחוף ים".</li>
+                        <li><span class="icon">3️⃣</span> <b>מקבלים תוצאה:</b> תוך שניות, ה-AI שלנו שולח לכם את התמונה החדשה, ערוכה באופן מקצועי.</li>
+                    </ul>
+                     <a href="https://wa.me/972500000000?text=היי%2C+אני+רוצה+להתנסות+בבוט+התמונות" target="_blank" class="cta-button" style="margin-top: 20px;">
+                        בואו נתחיל! שלח לי הודעה
+                    </a>
+                </div>
+
+                <div class="phone-mockup-container">
+                    <div class="phone-mockup">
+                        <div class="screen">
+                            <div class="header-demo">
+                                <div class="avatar"></div>
+                                <div>
+                                    <div><b>AI Image Bot</b></div>
+                                    <small>מקוון</small>
+                                </div>
+                            </div>
+                            <div class="chat-window" id="chatWindow">
+                                </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="chat-window" id="chatWindow"></div>
-            <div class="input-area">
-                <button class="action-button" id="attachBtn" title="צרף תמונה">📎</button>
-                <input type="text" class="input-box" id="textInput" placeholder="כתוב הודעה..." readonly>
-                <button class="action-button" id="sendBtn" title="שלח">➤</button>
+        </section>
+
+        <section class="business-section">
+            <div class="container">
+                <h2>החזון והפתרון העסקי</h2>
+                <div class="grid-container">
+                    <div class="grid-item">
+                        <h3>🎯 החזון</h3>
+                        <p>להפוך כל שיחת ווצאפ לסטודיו עיצוב אישי. אנו מספקים כלי AI מתקדם ואינטואיטיבי בתוך הפלטפורמה הכי נגישה בעולם, ומאפשרים למיליוני משתמשים לשדרג את התמונות שלהם בקלות ובמהירות.</p>
+                    </div>
+                    <div class="grid-item">
+                        <h3>🏗️ תכנית פעולה</h3>
+                        <ul>
+                            <li><b>טכנולוגיה:</b> חיבור WhatsApp Business API למנוע AI מהיר (Gemini Flash 2.5) על תשתית ענן אמינה.</li>
+                            <li><b>ניהול משתמשים:</b> זיהוי אוטומטי לפי מספר טלפון ושמירת קרדיטים מאובטחת.</li>
+                            <li><b>תשלום מיידי:</b> אינטגרציה עם ספקי תשלום מובילים לעדכון קרדיטים מיידי לאחר רכישה.</li>
+                        </ul>
+                    </div>
+                    <div class="grid-item">
+                        <h3>💰 מודל עסקי</h3>
+                        <ul>
+                            <li><b>חבילות קרדיטים:</b> מודל Pay-as-you-go עם חבילות קטנות ונגישות.</li>
+                            <li><b>צמיחה ויראלית:</b> כל תמונה שנוצרת יכולה לכלול סימן מים (Watermark) עדין המעודד משתמשים חדשים להצטרף.</li>
+                            <li><b>ערוצים נוספים:</b> בעתיד - אפשרות למנוי חודשי למשתמשים כבדים ועסקים.</li>
+                        </ul>
+                    </div>
+                     <div class="grid-item">
+                        <h3>📢 אסטרטגיה שיווקית</h3>
+                         <p>ההתמקדות היא בצמיחה אורגנית וויראלית, המבוססת על מוצר שאנשים אוהבים ורוצים לשתף.</p>
+                        <ul>
+                            <li><b>קהלי יעד:</b> יוצרי תוכן, בעלי עסקים קטנים, חנויות איקומרס וכל מי שרוצה תמונות יפות יותר.</li>
+                            <li><b>ערוצים:</b> קבוצות ווצאפ, קמפיינים באינסטגרם וטיקטוק, ושיתופי פעולה עם משפיענים.</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
+        </section>
+        
+        <section class="container">
+             <h2>חבילות תשלום</h2>
+             <div class="pricing-container">
+                 <div class="pricing-card">
+                     <h3>חבילת התחלה</h3>
+                     <div class="price">₪9<span> / $3</span></div>
+                     <p style="font-size: 2.5em; margin: 5px 0;">🎁</p>
+                     <p><strong>10</strong> תמונות</p>
+                     <ul>
+                         <li>✅ תמיכה מלאה</li>
+                         <li>✅ שמירה ללא הגבלה</li>
+                         <li>✅ אידיאלי להתנסות</li>
+                     </ul>
+                     <a href="#" class="cta-button">בחר חבילה</a>
+                 </div>
+                 <div class="pricing-card popular">
+                     <div class="popular-badge">הכי פופולרי</div>
+                     <h3>החבילה המשתלמת</h3>
+                     <div class="price">₪19<span> / $6</span></div>
+                     <p style="font-size: 2.5em; margin: 5px 0;">⭐</p>
+                     <p><strong>25</strong> תמונות</p>
+                     <ul>
+                         <li>✅ תמיכה מלאה</li>
+                         <li>✅ שמירה ללא הגבלה</li>
+                         <li>✅ מושלם ליוצרי תוכן</li>
+                     </ul>
+                     <a href="#" class="cta-button">בחר חבילה</a>
+                 </div>
+                 <div class="pricing-card">
+                     <h3>חבילת PRO</h3>
+                     <div class="price">₪29<span> / $9</span></div>
+                     <p style="font-size: 2.5em; margin: 5px 0;">🚀</p>
+                     <p><strong>50</strong> תמונות</p>
+                     <ul>
+                         <li>✅ תמיכה מלאה</li>
+                         <li>✅ שמירה ללא הגבלה</li>
+                         <li>✅ לעסקים ומשתמשים כבדים</li>
+                     </ul>
+                     <a href="#" class="cta-button">בחר חבילה</a>
+                 </div>
+             </div>
+        </section>
+        
+    </main>
+
+    <footer>
+        <p>&copy; 2025 AI Image Bot. כל הזכויות שמורות.</p>
+    </footer>
 
     <script>
-        const gameState = {
-            imageCredits: 2,
-            awaitingImage: false,
-            awaitingText: false,
-            currentScenario: 0,
-        };
-
-        const dom = {
-            chatWindow: document.getElementById('chatWindow'),
-            attachBtn: document.getElementById('attachBtn'),
-            sendBtn: document.getElementById('sendBtn'),
-            textInput: document.getElementById('textInput'),
-        };
-
+        const chat = document.getElementById('chatWindow');
+        let credits = 2;
+        let currentScenario = 0;
+        
         const scenarios = [
             {
-                userImg: "https://i.ibb.co/L5dDBM5/pexels-eberhard-grossgasteiger-1624438.jpg",
-                userText: "הפוך את התמונה הזו לסצנת לילה עם ירח מלא",
+                userImg: "https://images.pexels.com/photos/1624438/pexels-photo-1624438.jpeg?auto=compress&cs=tinysrgb&w=600",
+                userText: "הפוך את התמונה ללילה עם ירח מלא 🌙",
                 botImg: "https://i.ibb.co/GHY0G6p/pexels-eberhard-grossgasteiger-1624438-night.jpg"
             },
             {
-                userImg: "https://i.ibb.co/p1Ytq0D/pexels-alizee-marchand-931018.jpg",
-                userText: "תוסיפי ספינת פיראטים שטה במים",
+                userImg: "https://images.pexels.com/photos/931018/pexels-photo-931018.jpeg?auto=compress&cs=tinysrgb&w=600",
+                userText: "תוסיפי בבקשה ספינת פיראטים באופק 🚢",
                 botImg: "https://i.ibb.co/3cq6p6s/pexels-alizee-marchand-931018-pirate.jpg"
-            },
-            {
-                userImg: "https://i.ibb.co/58FvX7k/pexels-jess-loiterton-4321077.jpg",
-                userText: "תשני את הסגנון לציור אנימה יפני",
-                botImg: "https://i.ibb.co/Q8Qf7C0/pexels-jess-loiterton-4321077-anime.jpg"
-            },
-             {
-                userImg: "https://i.ibb.co/8YnK4hP/pexels-jaime-reimer-1528641.jpg",
-                userText: "הוסף שביל של כוכבים נופלים בשמיים",
-                botImg: "https://i.ibb.co/7j550p8/pexels-jaime-reimer-1528641-stars.jpg"
-            },
-            {
-                userImg: "https://i.ibb.co/2Z5qfL6/pexels-andrea-piacquadio-845451.jpg",
-                userText: "הפוך את הרקע לעיר עתידנית בסגנון סייברפאנק",
-                botImg: "https://i.ibb.co/c1t2x1h/pexels-andrea-piacquadio-845451-cyber.jpg"
             }
         ];
-        
-        function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-        
-        function scrollToBottom() { dom.chatWindow.scrollTop = dom.chatWindow.scrollHeight; }
 
-        async function appendMessage(sender, content) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', sender);
-            messageDiv.innerHTML = content;
-            dom.chatWindow.appendChild(messageDiv);
-            scrollToBottom();
-            await delay(100);
+        function appendMessage(sender, html) {
+            const div = document.createElement('div');
+            div.className = "message " + sender;
+            div.innerHTML = html;
+            chat.appendChild(div);
+            // Scroll to the latest message
+            chat.scrollTop = chat.scrollHeight;
         }
 
-        async function showTyping(duration = 2000) {
-            const indicator = document.createElement('div');
-            indicator.classList.add('message', 'bot');
-            indicator.innerHTML = `<span>.</span><span>.</span><span>.</span>`;
-            dom.chatWindow.appendChild(indicator);
-            scrollToBottom();
-            await delay(duration);
-            indicator.remove();
-        }
-
-        function setInputState(state) {
-            ['attachBtn', 'textInput', 'sendBtn'].forEach(el => dom[el].classList.remove('pulsate-glow'));
-            if (state === 'awaitingImage') {
-                dom.textInput.placeholder = 'לחץ על 📎 כדי לשלוח תמונה...';
-                dom.textInput.readOnly = true;
-                gameState.awaitingImage = true;
-                gameState.awaitingText = false;
-                dom.attachBtn.classList.add('pulsate-glow');
-            } else if (state === 'awaitingText') {
-                dom.textInput.placeholder = `לדוגמה: "${scenarios[gameState.currentScenario].userText}"`;
-                dom.textInput.readOnly = false;
-                gameState.awaitingImage = false;
-                gameState.awaitingText = true;
-                dom.textInput.classList.add('pulsate-glow');
-                dom.sendBtn.classList.add('pulsate-glow');
-                dom.textInput.focus();
-            } else { // Idle
-                dom.textInput.placeholder = 'הבוט מעבד...';
-                dom.textInput.readOnly = true;
-                gameState.awaitingImage = false;
-                gameState.awaitingText = false;
-            }
-        }
-
-        async function handleSend() {
-            if (!gameState.awaitingText) return;
-            const userText = dom.textInput.value || scenarios[gameState.currentScenario].userText;
-            await appendMessage('user', userText);
-            dom.textInput.value = '';
-            setInputState('idle');
-            await processBotResponse();
+        async function botSay(text, delay = 1000) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    appendMessage("bot", text);
+                    resolve();
+                }, delay);
+            });
         }
         
-        async function processBotResponse() {
-            await showTyping(2500);
+        async function userSay(html, delay = 500) {
+             return new Promise(resolve => {
+                setTimeout(() => {
+                    appendMessage("user", html);
+                    resolve();
+                }, delay);
+            });
+        }
+
+        async function processScenario() {
+            if (currentScenario >= scenarios.length) return; // Stop after last scenario for demo
             
-            const currentScenario = scenarios[gameState.currentScenario];
+            const sc = scenarios[currentScenario];
+            await userSay(`<img src="${sc.userImg}" alt="User submitted image"><br>${sc.userText}`);
             
-            if (gameState.imageCredits <= 0 && !gameState.awaitingPayment) { // Added a check to prevent re-triggering paywall
-                gameState.awaitingPayment = true; // Flag to indicate we are waiting for payment
-                // Paywall Logic
-                await appendMessage('bot', `
-                    <div class="image-container">
-                        <img src="${currentScenario.botImg}" alt="Watermarked Image">
-                        <div class="watermark">דוגמה</div>
-                    </div>
-                `);
-                await delay(500);
-                await appendMessage('bot', 'אופס! נגמרו לך הקרדיטים. כדי לקבל את התמונה הזו וליצור עוד, בחר אחת מהחבילות:');
-                
-                const packagesHtml = `
-                    <div class="packages-container">
-                        <button class="package-button" data-credits="10"><b>10 תמונות</b> <span class="price">- 9 ₪</span></button>
-                        <button class="package-button" data-credits="30"><b>30 תמונות</b> <span class="price">- 19 ₪</span></button>
-                        <button class="package-button" data-credits="100"><b>100 תמונות</b> <span class="price">- 49 ₪</span></button>
-                    </div>
-                `;
-                await appendMessage('bot', packagesHtml);
-                document.querySelectorAll('.package-button').forEach(button => {
-                    button.addEventListener('click', () => handlePayment(parseInt(button.dataset.credits)));
-                });
+            await botSay("קיבלתי. מעבד את הבקשה שלך...");
+
+            if (credits > 0) {
+                credits--;
+                await botSay(`הנה התמונה שלך:<br><img src="${sc.botImg}" alt="AI generated image">`, 1500);
+                await botSay(`נשארו לך עוד <strong>${credits}</strong> קרדיטים.`, 500);
+                currentScenario++;
             } else {
-                // Standard Logic
-                gameState.imageCredits--;
-                await appendMessage('bot', `בטח, בבקשה:
-                    <img src="${currentScenario.botImg}" alt="Processed Image">
-                `);
-                await delay(500);
-                await appendMessage('bot', `נהדר! נשאר לך עוד <b>${gameState.imageCredits}</b> קרדיט${gameState.imageCredits !== 1 ? 'ים' : ''}.`);
-                setInputState('awaitingImage');
-                gameState.currentScenario = (gameState.currentScenario + 1) % scenarios.length;
+                await botSay(`הנה דוגמה עם סימן מים:<div style="position:relative;"><img src="${sc.botImg}" alt="AI generated watermarked image"><div class="watermark">דוגמה</div></div>`, 1500);
+                await botSay("אוי, נגמרו לך הקרדיטים ⚡<br>כדי להמשיך ולקבל תמונות ללא סימן מים, בחר/י חבילה:", 500);
+                showPackages();
             }
         }
 
-        async function handlePayment(creditsToAdd) {
-            document.querySelectorAll('.package-button').forEach(b => b.disabled = true);
-            await appendMessage('user', `רכשתי חבילה של ${creditsToAdd} תמונות.`);
-            await showTyping(3000);
-
-            gameState.imageCredits += creditsToAdd;
-            const currentScenario = scenarios[gameState.currentScenario];
-            
-            await appendMessage('bot', '✅ תודה רבה! הרכישה בוצעה בהצלחה.');
-            await delay(800);
-            await appendMessage('bot', `הנה התמונה שלך ללא סימן המים:
-                    <img src="${currentScenario.botImg}" alt="Clean Image">
-                `);
-            await delay(800);
-            await appendMessage('bot', `מצוין! נוספו לך ${creditsToAdd} קרדיטים. סה"כ יש לך <b>${gameState.imageCredits}</b> קרדיטים. אפשר להמשיך ליצירה הבאה.`);
-            
-            gameState.currentScenario = (gameState.currentScenario + 1) % scenarios.length;
-            gameState.awaitingPayment = false; // Reset the payment flag
-            setInputState('awaitingImage');
+        function showPackages() {
+            const packagesHtml = `
+                <div class="packages-container">
+                    <button class="package-button" onclick="buy(10, '₪9')">🎁 ₪9 → 10 תמונות</button>
+                    <button class="package-button popular" onclick="buy(25, '₪19')">⭐ ₪19 → 25 תמונות</button>
+                    <button class="package-button" onclick="buy(50, '₪29')">🚀 ₪29 → 50 תמונות</button>
+                </div>
+                <div class="packages-container">
+                    <button class="package-button" onclick="buy(10, '$3')">$3 → 10 Images</button>
+                    <button class="package-button popular" onclick="buy(25, '$6')">$6 → 25 Images</button>
+                    <button class="package-button" onclick="buy(50, '$9')">$9 → 50 Images</button>
+                </div>`;
+            appendMessage("bot", packagesHtml);
         }
-        
-        async function handleAttach() {
-            if (!gameState.awaitingImage) return;
 
-            if (gameState.imageCredits > 0) {
-                 const currentScenario = scenarios[gameState.currentScenario];
-                 await appendMessage('user', `<img src="${currentScenario.userImg}" alt="User Image">`);
-                 setInputState('awaitingText');
-            } else {
-                // if no credits, show the paywall *before* sending a new image.
-                await processBotResponse(); 
-            }
+        async function buy(amount, price) {
+            // Clear existing package buttons
+            const existingPackages = chat.querySelectorAll('.packages-container');
+            existingPackages.forEach(el => el.parentElement.removeChild(el));
+
+            await userSay(`בחרתי את חבילת ה-${amount} ב-${price} ✅`);
+            credits += amount;
+            await botSay(`מעולה! תודה רבה. נוספו לך ${amount} קרדיטים. 🥳<br>היתרה שלך היא <strong>${credits}</strong> קרדיטים.`);
+            await botSay("עכשיו אפשר להמשיך. שלח/י את התמונה הבאה שלך!");
         }
-        
+
         async function startDemo() {
-            await showTyping(1500);
-            await appendMessage('bot', 'שלום! 👋 אני בוט עריכת תמונות מבוסס AI.');
-            await delay(1200);
-            await appendMessage('bot', `כדי להתחיל, שלח לי תמונה (לחץ על 📎) ואז כתוב מה תרצה לשנות. יש לך <b>${gameState.imageCredits} קרדיטים</b> חינם להתנסות!`);
-            setInputState('awaitingImage');
+            await botSay("שלום! 👋 אני בוט עריכת תמונות מבוסס AI.", 500);
+            await botSay(`יש לך ${credits} קרדיטים חינם להתנסות. בוא נתחיל.`, 1200);
+            
+            // Start the scenarios
+            await processScenario(); // First image
+            setTimeout(processScenario, 4000); // Second image
+            setTimeout(processScenario, 8000); // Third attempt (triggers paywall)
         }
 
-        // --- Event Listeners & Initialization ---
-        dom.attachBtn.addEventListener('click', handleAttach);
-        dom.sendBtn.addEventListener('click', handleSend);
-        dom.textInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleSend();
-        });
-        window.onload = startDemo;
+        // Start the demo when the page loads
+        startDemo();
     </script>
 </body>
 </html>
