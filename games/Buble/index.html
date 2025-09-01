@@ -1,518 +1,716 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🔥 באבל של השטן (גרסה משופרת) 🔥</title>
-    <style>
-        :root {
-            --bg-color: #0d0d0d;
-            --primary-color: #e53935;
-            --secondary-color: #ffb300;
-            --text-color: #f5f5f5;
-            --container-bg: #1a1a1a;
-        }
-
-        html, body {
-            height: 100%;
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            touch-action: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #game-area {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            max-width: 500px;
-            height: 100%;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.5);
-        }
-        
-        #header {
-            text-align: center;
-            padding: 10px;
-            background: var(--container-bg);
-        }
-
-        h1 {
-            font-size: clamp(1.5rem, 5vw, 2.2rem);
-            text-shadow: 2px 2px 4px #000;
-            margin: 0;
-            color: var(--primary-color);
-        }
-
-        #game-container {
-            position: relative;
-            flex-grow: 1;
-            background-color: var(--container-bg);
-            border-left: 2px solid var(--primary-color);
-            border-right: 2px solid var(--primary-color);
-        }
-
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
-
-        .overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.88);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            color: white;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s, visibility 0.3s;
-            z-index: 100;
-        }
-
-        .overlay.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .overlay h2 {
-            font-size: clamp(2.5rem, 12vw, 4rem);
-            margin: 0;
-            color: var(--primary-color);
-        }
-
-        .overlay p {
-            font-size: clamp(1rem, 5vw, 1.5rem);
-            margin: 20px 0;
-        }
-
-        .restart-button {
-            padding: 15px 35px;
-            font-size: clamp(1.1rem, 5vw, 1.3rem);
-            cursor: pointer;
-            border: 2px solid var(--secondary-color);
-            background-color: var(--primary-color);
-            color: white;
-            border-radius: 50px;
-            transition: all 0.2s ease-in-out;
-            font-weight: bold;
-        }
-
-        .restart-button:hover, .restart-button:active {
-            background-color: var(--secondary-color);
-            border-color: var(--primary-color);
-            color: var(--bg-color);
-            transform: scale(1.1);
-        }
-
-        #info-panel {
-            display: flex;
-            justify-content: space-around;
-            width: 100%;
-            padding: 12px 0;
-            font-size: clamp(1rem, 4vw, 1.2rem);
-            font-weight: bold;
-            background: var(--container-bg);
-            border-bottom: 2px solid var(--primary-color);
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover"
+  />
+  <title>🔥 באבל של השטן 🔥</title>
+  <meta name="theme-color" content="#1a1a1a" />
+  <style>
+    :root{
+      --bg:#111;
+      --card:#1d1d1d;
+      --primary:#ff5722;
+      --secondary:#ffc107;
+      --text:#fafafa;
+      --muted:#b7b7b7;
+      --border:#333;
+      --shadow:0 10px 30px rgba(0,0,0,.4);
+      --vh:100svh; /* מתעדכן ב-JS למובייל */
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+      background:radial-gradient(1000px 600px at 50% -10%, rgba(255,87,34,.08), transparent 70%), var(--bg);
+      color:var(--text);
+      display:flex;align-items:center;justify-content:center;
+      padding: max(env(safe-area-inset-top),12px) max(env(safe-area-inset-right),12px) max(env(safe-area-inset-bottom),12px) max(env(safe-area-inset-left),12px);
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .app{
+      width:min(96vw, 560px);
+      display:flex;flex-direction:column;gap:10px;
+    }
+    h1{
+      margin:0;
+      text-align:center;
+      font-weight:800;
+      letter-spacing:.5px;
+      color:var(--secondary);
+      text-shadow:2px 2px 0 #000;
+      font-size:clamp(1.4rem, 4.8vw, 2.2rem);
+    }
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;
+      gap:8px;
+      font-weight:700;
+      background:linear-gradient(180deg, #222 0%, #1a1a1a 100%);
+      border:1px solid #2a2a2a;
+      border-radius:14px;
+      padding:10px 12px;
+      box-shadow:var(--shadow);
+    }
+    .pill{display:flex;align-items:center;gap:8px}
+    .pill span{opacity:.85}
+    .tag{
+      font-variant-numeric:tabular-nums;
+      background:#262626;border:1px solid #2e2e2e;color:#fff;
+      padding:6px 10px;border-radius:999px;min-width:54px;text-align:center;
+    }
+    .container{
+      position:relative;
+      border-radius:14px;
+      background:linear-gradient(180deg, #1e1e1e 0%, #161616 100%);
+      border:1px solid #2a2a2a;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    canvas{
+      display:block;width:100%;height:auto;touch-action:none;
+    }
+    .overlay{
+      position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+      background:rgba(0,0,0,.84);backdrop-filter:saturate(1.1) blur(2px);
+      text-align:center;padding:20px;
+    }
+    .overlay h2{margin:0;color:var(--primary);font-size:clamp(1.8rem,6vw,2.6rem);text-shadow:2px 2px 0 #000}
+    .overlay p{margin:0;color:#fff;opacity:.9}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center}
+    .btn{
+      appearance:none;border:none;cursor:pointer;
+      background:linear-gradient(180deg, #ff7a50, #ff5722);
+      color:#fff;font-weight:800;letter-spacing:.3px;
+      padding:12px 18px;border-radius:12px;box-shadow:0 6px 18px rgba(255,87,34,.3);
+      transition:transform .12s ease, filter .12s ease;
+    }
+    .btn.secondary{background:linear-gradient(180deg, #ffd44a, #ffb300);color:#1a1a1a;box-shadow:0 6px 18px rgba(255,193,7,.35)}
+    .btn.ghost{background:#262626;border:1px solid #333;color:#eee;box-shadow:none}
+    .btn:active{transform:translateY(1px)}
+    .meta{font-size:.9rem;color:var(--muted)}
+    .next-wrap{
+      position:absolute;left:10px;bottom:10px;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:.95
+    }
+    .next-label{font-size:.8rem;color:#ddd;background:#0008;padding:3px 7px;border-radius:8px;border:1px solid #333}
+    .aim-hint{
+      position:absolute;right:10px;bottom:10px;font-size:.8rem;color:#ddd;background:#0008;padding:3px 7px;border-radius:8px;border:1px solid #333
+    }
+  </style>
 </head>
 <body>
+  <div class="app">
+    <h1>🔥 באבל של השטן 🔥</h1>
 
-    <div id="game-area">
-        <div id="header">
-            <h1>🔥 באבל של השטן 🔥</h1>
-        </div>
-        <div id="info-panel">
-            <div id="score-display">ניקוד: <span id="score">0</span></div>
-            <div id="misses-display">החטאות: <span id="misses-left">5</span></div>
-        </div>
-        <div id="game-container">
-            <canvas id="gameCanvas"></canvas>
-            <div id="game-over-screen" class="overlay">
-                <h2>הפסדת!</h2>
-                <p id="final-score-lose"></p>
-                <button class="restart-button">שחק שוב</button>
-            </div>
-            <div id="win-screen" class="overlay">
-                <h2>ניצחת!</h2>
-                <p id="final-score-win"></p>
-                <button class="restart-button">שחק שוב</button>
-            </div>
-        </div>
+    <div class="topbar" id="topbar">
+      <div class="pill">
+        <span>ניקוד</span>
+        <div class="tag" id="score">0</div>
+      </div>
+      <div class="pill">
+        <span>החטאות</span>
+        <div class="tag" id="missesLeft">5</div>
+      </div>
+      <div class="pill">
+        <span>שיא</span>
+        <div class="tag" id="best">0</div>
+      </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const canvas = document.getElementById('gameCanvas');
-            const ctx = canvas.getContext('2d');
-            const container = document.getElementById('game-container');
-            
-            // DOM Elements
-            const gameOverScreen = document.getElementById('game-over-screen');
-            const winScreen = document.getElementById('win-screen');
-            const scoreElement = document.getElementById('score');
-            const missesLeftElement = document.getElementById('misses-left');
-            const finalScoreLoseElement = document.getElementById('final-score-lose');
-            const finalScoreWinElement = document.getElementById('final-score-win');
-            
-            // Game Constants
-            const COLS = 11;
-            const START_ROWS = 6;
-            const MISSES_ALLOWED = 5;
-            const BUBBLE_COLORS = ['#d32f2f', '#f57c00', '#fbc02d', '#388e3c', '#1976d2', '#7b1fa2'];
+    <div class="container" id="gameContainer">
+      <canvas id="game"></canvas>
 
-            // Dynamic Sizing
-            let BUBBLE_RADIUS, ROW_HEIGHT;
-            let grid = [], projectile, nextProjectile;
-            let score = 0, misses = 0;
-            let isShooting = false, gameOver = true;
-            let shooter = { x: 0, y: 0, angle: -Math.PI / 2 };
-            let aimLine = [];
-            let animationFrameId;
+      <!-- מסך פתיחה -->
+      <div class="overlay" id="startOverlay">
+        <h2>מוכן/ה לקרב? 👹</h2>
+        <p class="meta">כוון/ני למעלה עם האצבע וגע/י לשיגור. פגיעה ב-3+ בועות מאותו צבע תפוצץ אותן.</p>
+        <div class="row">
+          <button class="btn" id="startBtn">התחל משחק</button>
+          <button class="btn ghost" id="muteBtn">צליל: כבוי</button>
+        </div>
+      </div>
 
-            function setCanvasDimensions() {
-                canvas.width = container.clientWidth;
-                canvas.height = container.clientHeight;
-                BUBBLE_RADIUS = canvas.width / (COLS * 2);
-                ROW_HEIGHT = BUBBLE_RADIUS * Math.sqrt(3);
-                shooter.x = canvas.width / 2;
-                shooter.y = canvas.height - BUBBLE_RADIUS * 2;
-            }
+      <!-- מסך הפסד -->
+      <div class="overlay" id="loseOverlay" style="display:none">
+        <h2>הפסד! 💥</h2>
+        <p id="finalLose" class="meta"></p>
+        <div class="row">
+          <button class="btn secondary" id="retryLose">שחק שוב</button>
+          <button class="btn ghost" id="homeLose">ראשי</button>
+        </div>
+      </div>
 
-            function init() {
-                if (animationFrameId) cancelAnimationFrame(animationFrameId);
-                
-                gameOver = false;
-                isShooting = false;
-                score = 0;
-                misses = 0;
+      <!-- מסך ניצחון -->
+      <div class="overlay" id="winOverlay" style="display:none">
+        <h2>ניצחון! 🏆</h2>
+        <p id="finalWin" class="meta"></p>
+        <div class="row">
+          <button class="btn secondary" id="retryWin">שחק שוב</button>
+          <button class="btn ghost" id="homeWin">ראשי</button>
+        </div>
+      </div>
 
-                setCanvasDimensions();
-                
-                gameOverScreen.classList.remove('visible');
-                winScreen.classList.remove('visible');
+      <div class="next-wrap">
+        <canvas id="nextCanvas" width="64" height="64" style="width:48px;height:48px"></canvas>
+        <div class="next-label">הבא</div>
+      </div>
 
-                updateInfoPanel();
-                createGrid();
-                createProjectile();
-                createProjectile();
+      <div class="aim-hint">גרור/י לכיוון, הקש/י לשיגור</div>
+    </div>
+  </div>
 
-                animationFrameId = requestAnimationFrame(gameLoop);
-            }
+  <script>
+  (() => {
+    "use strict";
 
-            function createGrid() {
-                grid = [];
-                for (let r = 0; r < START_ROWS; r++) {
-                    const row = [];
-                    const colsInRow = (r % 2 === 0) ? COLS : COLS - 1;
-                    for (let c = 0; c < colsInRow; c++) {
-                        row.push({
-                            color: BUBBLE_COLORS[Math.floor(Math.random() * BUBBLE_COLORS.length)],
-                            visible: true, r, c
-                        });
-                    }
-                    grid.push(row);
-                }
-                updateBubblePositions();
-            }
+    /*** ---- Utilities ---- ***/
+    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+    const randOf = (arr) => arr[Math.floor(Math.random()*arr.length)];
+    const vibrate = (ms=30) => { try{ if(navigator.vibrate) navigator.vibrate(ms); }catch{} };
 
-            function updateBubblePositions(shiftDown = false) {
-                if (shiftDown) {
-                   grid.forEach(row => row.forEach(bubble => bubble && (bubble.r++)));
-                }
-                grid.forEach((row, r) => {
-                    row.forEach((bubble, c) => {
-                        if (bubble) {
-                            bubble.x = (r % 2 === 0) ? (c + 1) * BUBBLE_RADIUS * 2 - BUBBLE_RADIUS : (c + 1) * BUBBLE_RADIUS * 2;
-                            bubble.y = r * ROW_HEIGHT + BUBBLE_RADIUS;
-                        }
-                    });
-                });
-            }
+    // שמירה/שליפה של שיא
+    const BEST_KEY = "devil-bubble-best";
+    const getBest = () => Number(localStorage.getItem(BEST_KEY) || 0);
+    const setBest = (v) => localStorage.setItem(BEST_KEY, String(v));
 
-            function getAvailableColors() {
-                const colors = new Set(grid.flat().filter(b => b && b.visible).map(b => b.color));
-                return colors.size > 0 ? Array.from(colors) : BUBBLE_COLORS;
-            }
+    // גובה מסך אמיתי למובייל (מסייע ל-UI יציב)
+    const setVH = () => {
+      const vh = Math.max(window.innerHeight, document.documentElement.clientHeight);
+      document.documentElement.style.setProperty("--vh", vh + "px");
+    };
+    setVH();
+    window.addEventListener("resize", setVH);
 
-            function createProjectile() {
-                projectile = nextProjectile;
-                const availableColors = getAvailableColors();
-                const color = availableColors[Math.floor(Math.random() * availableColors.length)];
-                nextProjectile = { x: shooter.x, y: shooter.y, color: color, speed: canvas.height / 50 };
-                if (!projectile) projectile = { ...nextProjectile, color: availableColors[Math.floor(Math.random() * availableColors.length)] };
-            }
+    /*** ---- DOM ---- ***/
+    const container = document.getElementById("gameContainer");
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const nextCanvas = document.getElementById("nextCanvas");
+    const nextCtx = nextCanvas.getContext("2d");
 
-            // --- Drawing ---
-            function draw() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                drawAimLine();
-                grid.flat().forEach(bubble => bubble && bubble.visible && drawBubble(bubble));
-                drawShooter();
-            }
-            
-            function drawBubble(bubble) {
-                ctx.beginPath();
-                ctx.arc(bubble.x, bubble.y, BUBBLE_RADIUS, 0, Math.PI * 2);
-                const gradient = ctx.createRadialGradient(bubble.x - BUBBLE_RADIUS/3, bubble.y - BUBBLE_RADIUS/3, 1, bubble.x, bubble.y, BUBBLE_RADIUS);
-                gradient.addColorStop(0, 'rgba(255,255,255,0.7)');
-                gradient.addColorStop(1, bubble.color);
-                ctx.fillStyle = gradient;
-                ctx.fill();
-            }
+    const startOverlay = document.getElementById("startOverlay");
+    const loseOverlay  = document.getElementById("loseOverlay");
+    const winOverlay   = document.getElementById("winOverlay");
+    const startBtn     = document.getElementById("startBtn");
+    const retryLose    = document.getElementById("retryLose");
+    const homeLose     = document.getElementById("homeLose");
+    const retryWin     = document.getElementById("retryWin");
+    const homeWin      = document.getElementById("homeWin");
+    const muteBtn      = document.getElementById("muteBtn");
 
-            function drawShooter() {
-                // Current projectile
-                if (!isShooting && projectile) drawBubble(projectile);
-                // Next projectile preview
-                if (nextProjectile) drawBubble({...nextProjectile, x: BUBBLE_RADIUS * 2, y: shooter.y, radius: BUBBLE_RADIUS * 0.7});
-            }
-            
-            function drawAimLine() {
-                if(isShooting || aimLine.length === 0) return;
-                ctx.save();
-                ctx.beginPath();
-                ctx.moveTo(aimLine[0].x, aimLine[0].y);
-                for(let i = 1; i < aimLine.length; i++){
-                    ctx.lineTo(aimLine[i].x, aimLine[i].y);
-                }
-                ctx.setLineDash([4, 8]);
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-                ctx.stroke();
-                ctx.restore();
-            }
+    const scoreEl  = document.getElementById("score");
+    const bestEl   = document.getElementById("best");
+    const missesEl = document.getElementById("missesLeft");
+    const finalLose= document.getElementById("finalLose");
+    const finalWin = document.getElementById("finalWin");
 
-            // --- Game Logic ---
-            function update() {
-                if (gameOver) return;
-                if (!isShooting || !projectile) return;
-                
-                projectile.x += projectile.dx;
-                projectile.y += projectile.dy;
+    bestEl.textContent = getBest();
 
-                // Collision detection
-                if (projectile.x <= BUBBLE_RADIUS || projectile.x >= canvas.width - BUBBLE_RADIUS) { projectile.dx *= -1; }
-                if (projectile.y <= BUBBLE_RADIUS) { snapProjectile(projectile); return; }
+    /*** ---- Audio (פשוט, אופציונלי) ---- ***/
+    let muted = true;
+    const play = (freq=440, dur=80, type="sine", gain=0.03) => {
+      if(muted) return;
+      try{
+        const ac = new (window.AudioContext||window.webkitAudioContext)();
+        const o = ac.createOscillator();
+        const g = ac.createGain();
+        o.type = type; o.frequency.value = freq;
+        o.connect(g); g.connect(ac.destination);
+        g.gain.value = gain; o.start();
+        setTimeout(()=>{ g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + 0.04); o.stop(ac.currentTime + 0.05) }, dur);
+      }catch{}
+    };
+    muteBtn.onclick = () => {
+      muted = !muted;
+      muteBtn.textContent = "צליל: " + (muted ? "כבוי" : "פועל");
+      vibrate(10);
+    };
 
-                for (let r = 0; r < grid.length; r++) {
-                    for (let c = 0; c < grid[r].length; c++) {
-                        const bubble = grid[r][c];
-                        if (bubble && bubble.visible && Math.hypot(projectile.x - bubble.x, projectile.y - bubble.y) < BUBBLE_RADIUS * 2) {
-                            snapProjectile(projectile); return;
-                        }
-                    }
-                }
-            }
-            
-            function snapProjectile(proj) {
-                isShooting = false;
-                
-                let bestFit = { r: -1, c: -1, dist: Infinity };
-                for (let r = 0; r < grid.length + 1; r++) {
-                    const colsInRow = (r % 2 === 0) ? COLS : COLS - 1;
-                    for (let c = 0; c < colsInRow; c++) {
-                        const x = (r % 2 === 0) ? (c + 1) * BUBBLE_RADIUS * 2 - BUBBLE_RADIUS : (c + 1) * BUBBLE_RADIUS * 2;
-                        const y = r * ROW_HEIGHT + BUBBLE_RADIUS;
+    /*** ---- Game State ---- ***/
+    const COLORS = ["#ff4136","#ff851b","#ffd700","#2ecc40","#0074d9","#b10dc9"];
+    const COLS = 12;
+    const START_ROWS = 7;
+    const MISSES_ALLOWED = 5;
 
-                        if (!grid[r] || !grid[r][c] || !grid[r][c].visible) {
-                            const dist = Math.hypot(proj.x - x, proj.y - y);
-                            if (dist < BUBBLE_RADIUS * 2 && dist < bestFit.dist) {
-                                // Check for neighbors or if it's the top row
-                                if (r === 0 || getNeighbors(r, c).some(n => grid[n.r] && grid[n.r][n.c] && grid[n.r][n.c].visible)) {
-                                    bestFit = { r, c, dist };
-                                }
-                            }
-                        }
-                    }
-                }
+    let DPR=1, W=0, H=0;
+    let BUBBLE_RADIUS=14, BUBBLE_DIAMETER=28, ROW_H=24;
+    let grid = []; // rows of bubbles (even rows: COLS, odd rows: COLS-1)
+    let score=0, misses=0, over=false, running=false;
+    let projectile=null, nextProjectile=null;
+    const shooter = { x:0, y:0, angle:-Math.PI/2 };
 
-                const {r, c} = bestFit;
-                if (r === -1) { triggerGameOver(false); return; } // Should not happen
+    // גודל קנבס רספונסיבי
+    const resizeCanvas = () => {
+      const cw = container.clientWidth;
+      // יחס אנכי נעים למשחק בועות: ~1.35
+      const targetH = Math.min(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--vh')), Math.round(cw*1.35));
+      DPR = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+      canvas.width = Math.floor(cw * DPR);
+      canvas.height= Math.floor(targetH * DPR);
+      canvas.style.width  = cw + "px";
+      canvas.style.height = targetH + "px";
+      W = canvas.width; H = canvas.height;
 
-                if (!grid[r]) {
-                    while(grid.length <= r) grid.push([]);
-                }
-                grid[r][c] = { color: proj.color, visible: true, r, c };
-                updateBubblePositions();
+      // מידה לוגית (בפיקסלים "וירטואליים")
+      const logicalW = cw;
+      const logicalH = targetH;
+      BUBBLE_DIAMETER = logicalW / COLS;
+      BUBBLE_RADIUS   = BUBBLE_DIAMETER/2;
+      ROW_H           = BUBBLE_DIAMETER * 0.866; // חפיפת חלת-דבש
+      shooter.x = (W/DPR)/2;
+      shooter.y = (H/DPR) - (BUBBLE_RADIUS*2.4);
 
-                const matches = findMatches(r, c);
-                if (matches.length >= 3) {
-                    matches.forEach(b => { grid[b.r][b.c] = null; });
-                    score += matches.length * 10;
-                    const floating = findFloating();
-                    floating.forEach(b => { grid[b.r][b.c] = null; score += 20; });
-                    misses = 0;
-                } else {
-                    misses++;
-                }
-                
-                checkGameState();
-                if (!gameOver) createProjectile();
-            }
+      // עדכון מיקומים המבוססים על גדלים
+      updateBubblePositions();
+    };
 
-            function getNeighbors(r, c) {
-                const isEvenRow = r % 2 === 0;
-                const neighborDefs = [
-                    { dr: 0, dc: -1 }, { dr: 0, dc: 1 },
-                    { dr: -1, dc: isEvenRow ? -1 : 0 }, { dr: -1, dc: isEvenRow ? 0 : 1 },
-                    { dr: 1, dc: isEvenRow ? -1 : 0 }, { dr: 1, dc: isEvenRow ? 0 : 1 }
-                ];
-                return neighborDefs.map(def => ({ r: r + def.dr, c: c + def.dc }))
-                    .filter(n => n.r >= 0 && n.r < grid.length && n.c >= 0 && grid[n.r] && n.c < grid[n.r].length);
-            }
+    const evenRowLen = () => COLS;
+    const oddRowLen  = () => COLS - 1;
 
-            function findMatches(startR, startC) {
-                if (!grid[startR] || !grid[startR][startC]) return [];
-                const targetColor = grid[startR][startC].color;
-                const toVisit = [{ r: startR, c: startC }];
-                const visited = new Set([`${startR},${startC}`]);
-                const matches = [];
-
-                while (toVisit.length > 0) {
-                    const current = toVisit.pop();
-                    matches.push(current);
-                    getNeighbors(current.r, current.c).forEach(n => {
-                        if (grid[n.r][n.c] && grid[n.r][n.c].visible && grid[n.r][n.c].color === targetColor && !visited.has(`${n.r},${n.c}`)) {
-                            visited.add(`${n.r},${n.c}`); toVisit.push(n);
-                        }
-                    });
-                }
-                return matches;
-            }
-
-            function findFloating() {
-                const connected = new Set();
-                const toVisit = grid[0].map((b,c) => b && {r:0,c}).filter(Boolean);
-                toVisit.forEach(b => connected.add(`${b.r},${b.c}`));
-                
-                while(toVisit.length > 0) {
-                    const current = toVisit.pop();
-                    getNeighbors(current.r, current.c).forEach(n => {
-                        if (grid[n.r][n.c] && !connected.has(`${n.r},${n.c}`)) {
-                            connected.add(`${n.r},${n.c}`); toVisit.push(n);
-                        }
-                    });
-                }
-                return grid.flat().filter(b => b && !connected.has(`${b.r},${b.c}`));
-            }
-
-            function addNewRow() {
-                updateBubblePositions(true); // Shift all rows down
-                const newRow = Array.from({length: COLS}, (_, c) => ({
-                    color: BUBBLE_COLORS[Math.floor(Math.random() * BUBBLE_COLORS.length)],
-                    visible: true, r: 0, c
-                }));
-                grid.unshift(newRow);
-                misses = 0;
-                updateBubblePositions();
-            }
-
-            function checkGameState() {
-                if (grid.flat().filter(b => b && b.visible).length === 0) { triggerGameOver(true); return; }
-                const lastRow = grid[grid.length-1];
-                if (lastRow && lastRow.some(b => b && b.visible && b.y + BUBBLE_RADIUS >= shooter.y - BUBBLE_RADIUS)) { triggerGameOver(false); return; }
-                if (misses >= MISSES_ALLOWED) addNewRow();
-                updateInfoPanel();
-            }
-
-            function triggerGameOver(isWin) {
-                gameOver = true;
-                cancelAnimationFrame(animationFrameId);
-                const screen = isWin ? winScreen : gameOverScreen;
-                const scoreEl = isWin ? finalScoreWinElement : finalScoreLoseElement;
-                scoreEl.textContent = `ניקוד סופי: ${score}`;
-                screen.classList.add('visible');
-            }
-
-            function updateInfoPanel() {
-                scoreElement.textContent = score;
-                missesLeftElement.textContent = `${MISSES_ALLOWED - misses}`;
-            }
-
-            function gameLoop() {
-                update();
-                draw();
-                if (!gameOver) animationFrameId = requestAnimationFrame(gameLoop);
-            }
-
-            // --- Controls ---
-            function handleAim(x, y) {
-                if (gameOver || isShooting) return;
-                const rect = canvas.getBoundingClientRect();
-                const mouseX = x - rect.left; const mouseY = y - rect.top;
-                
-                if (mouseY >= shooter.y) return;
-                
-                shooter.angle = Math.atan2(mouseY - shooter.y, mouseX - shooter.x);
-                if(shooter.angle > -0.1) shooter.angle = -0.1;
-                if(shooter.angle < -Math.PI + 0.1) shooter.angle = -Math.PI + 0.1;
-
-                // Calculate aim line with bounces
-                aimLine = [{x: shooter.x, y: shooter.y}];
-                let currentPos = {x: shooter.x, y: shooter.y};
-                let currentAngle = shooter.angle;
-                for(let i=0; i < 3; i++) { // Max 2 bounces
-                    const dx = Math.cos(currentAngle);
-                    const dy = Math.sin(currentAngle);
-                    let nextX, nextY;
-                    let t = Infinity;
-
-                    // Wall collision
-                    if (dx > 0) t = Math.min(t, (canvas.width - BUBBLE_RADIUS - currentPos.x) / dx);
-                    else if (dx < 0) t = Math.min(t, (BUBBLE_RADIUS - currentPos.x) / dx);
-
-                    nextX = currentPos.x + t * dx;
-                    nextY = currentPos.y + t * dy;
-
-                    aimLine.push({x: nextX, y: nextY});
-
-                    if (nextX <= BUBBLE_RADIUS || nextX >= canvas.width - BUBBLE_RADIUS) {
-                        currentPos = {x: nextX, y: nextY};
-                        currentAngle = Math.PI - currentAngle;
-                    } else {
-                        break;
-                    }
-                }
-            }
-
-            function handleShoot() {
-                if (isShooting || gameOver) return;
-                isShooting = true;
-                projectile.dx = Math.cos(shooter.angle) * projectile.speed;
-                projectile.dy = Math.sin(shooter.angle) * projectile.speed;
-                aimLine = [];
-            }
-            
-            // Event Listeners
-            let isPointerDown = false;
-            container.addEventListener('pointerdown', e => { isPointerDown = true; handleAim(e.clientX, e.clientY); });
-            container.addEventListener('pointermove', e => { if(isPointerDown) handleAim(e.clientX, e.clientY); });
-            container.addEventListener('pointerup', () => { if(isPointerDown) handleShoot(); isPointerDown = false; });
-            container.addEventListener('pointerleave', () => { isPointerDown = false; });
-            
-            document.querySelectorAll('.restart-button').forEach(btn => btn.addEventListener('click', init));
-            window.addEventListener('resize', init);
-            
-            init(); // Start game on load
+    const createGrid = () => {
+      grid = [];
+      for(let r=0;r<START_ROWS;r++){
+        const isEven = (r%2===0);
+        const cols = isEven ? evenRowLen() : oddRowLen();
+        const row = new Array(cols).fill(null).map((_,c)=>{
+          if(Math.random()>0.1){
+            return { color: randOf(COLORS), visible:true, r, c, x:0, y:0 };
+          }
+          return null;
         });
-    </script>
+        grid.push(row);
+      }
+      updateBubblePositions();
+    };
 
+    const updateBubblePositions = () => {
+      if(!grid.length) return;
+      for(let r=0;r<grid.length;r++){
+        const isEven = (r%2===0);
+        const cols = grid[r].length;
+        for(let c=0;c<cols;c++){
+          const b = grid[r][c];
+          if(b && b.visible){
+            const x = (isEven ? (c*BUBBLE_DIAMETER + BUBBLE_RADIUS) : (c*BUBBLE_DIAMETER + BUBBLE_DIAMETER));
+            const y = r*ROW_H + BUBBLE_RADIUS;
+            b.x = x; b.y = y;
+            b.r = r; b.c = c;
+          }
+        }
+      }
+    };
+
+    const getAvailableColors = () => {
+      const s = new Set();
+      for(const row of grid){
+        for(const b of row){
+          if(b && b.visible) s.add(b.color);
+        }
+      }
+      const arr = Array.from(s);
+      return arr.length ? arr : COLORS.slice(0,3);
+    };
+
+    const makeProjectile = () => {
+      // זריקה נוכחית מקבלת את "הבא" וקובעים הבא חדש
+      if(projectile==null){
+        // בשיגור הראשון – צור גם נוכחי וגם הבא
+        const avail = getAvailableColors();
+        projectile = { x:shooter.x, y:shooter.y, dx:0, dy:0, speed: (H/DPR)/45, color: randOf(avail) };
+        nextProjectile = { x:shooter.x, y:shooter.y, dx:0, dy:0, speed: (H/DPR)/45, color: randOf(avail) };
+      }else{
+        projectile = nextProjectile;
+        const avail = getAvailableColors();
+        nextProjectile = { x:shooter.x, y:shooter.y, dx:0, dy:0, speed: (H/DPR)/45, color: randOf(avail) };
+      }
+      drawNextPreview();
+    };
+
+    const drawNextPreview = () => {
+      const r = Math.min(nextCanvas.width, nextCanvas.height) / 2 - 6;
+      nextCtx.clearRect(0,0,nextCanvas.width,nextCanvas.height);
+      if(!nextProjectile) return;
+      nextCtx.save();
+      nextCtx.scale(devicePixelRatio||1, devicePixelRatio||1);
+      const cx = (nextCanvas.width/(devicePixelRatio||1))/2;
+      const cy = (nextCanvas.height/(devicePixelRatio||1))/2;
+      drawBubbleOn(nextCtx, cx, cy, r, nextProjectile.color);
+      nextCtx.restore();
+    };
+
+    /*** ---- Drawing ---- ***/
+    const clear = () => { ctx.clearRect(0,0,W,H); };
+    const toPx = (v) => v * DPR;
+
+    const drawBubble = (b, radius=BUBBLE_RADIUS) => {
+      if(!b || !b.visible) return;
+      drawBubbleOn(ctx, toPx(b.x), toPx(b.y), toPx(radius), b.color);
+    };
+    function drawBubbleOn(context, cx, cy, r, color){
+      context.beginPath();
+      context.arc(cx, cy, r, 0, Math.PI*2);
+      context.fillStyle = color; context.fill();
+      context.lineWidth = Math.max(1, r*0.06);
+      context.strokeStyle = "rgba(0,0,0,.25)"; context.stroke();
+      // highlight
+      context.beginPath();
+      context.arc(cx - r*0.35, cy - r*0.35, r*0.28, 0, Math.PI*2);
+      context.fillStyle = "rgba(255,255,255,.35)";
+      context.fill();
+    }
+
+    const drawShooter = () => {
+      const x = toPx(shooter.x), y = toPx(shooter.y);
+      const r = toPx(BUBBLE_RADIUS);
+
+      // גוף "שד"
+      ctx.fillStyle = "#d90429";
+      ctx.beginPath();
+      ctx.moveTo(x, y - r*0.9);
+      ctx.bezierCurveTo(x - r*1.5, y, x - r, y + r, x, y + r);
+      ctx.bezierCurveTo(x + r, y + r, x + r*1.5, y, x, y - r*0.9);
+      ctx.fill();
+
+      // קו כיוון
+      ctx.save();
+      ctx.setLineDash([8*DPR, 12*DPR]);
+      ctx.lineWidth = Math.max(2, 2*DPR);
+      ctx.strokeStyle = "rgba(255,255,255,.35)";
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      const dx = Math.sin(shooter.angle), dy = -Math.cos(shooter.angle);
+      ctx.lineTo(x + dx * toPx((H/DPR)), y + dy * toPx((H/DPR)));
+      ctx.stroke();
+      ctx.restore();
+
+      // כדור מוכן
+      if(projectile && !runningShot){
+        const pb = {x: shooter.x, y: shooter.y, color: projectile.color, visible:true};
+        drawBubble(pb);
+      }
+    };
+
+    /*** ---- Input / Aim / Shoot ---- ***/
+    let runningShot = false;
+    const ANGLE_MIN = -Math.PI/2 - 1.42;
+    const ANGLE_MAX = -Math.PI/2 + 1.42;
+
+    const aimAt = (clientX, clientY) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = clientX - rect.left;
+      const my = clientY - rect.top;
+      if(my > shooter.y) return; // לא לאפשר לכוון למטה
+      let ang = Math.atan2(my - shooter.y, mx - shooter.x) + Math.PI/2;
+      shooter.angle = clamp(ang, ANGLE_MIN, ANGLE_MAX);
+    };
+
+    const shoot = () => {
+      if(over || runningShot || !projectile) return;
+      runningShot = true;
+      const dx = Math.sin(shooter.angle), dy = -Math.cos(shooter.angle);
+      projectile.x = shooter.x; projectile.y = shooter.y;
+      projectile.dx = dx * projectile.speed;
+      projectile.dy = dy * projectile.speed;
+      play(740,60,"triangle",0.02);
+    };
+
+    // Pointer events
+    let aiming=false;
+    canvas.addEventListener("pointerdown", (e)=>{ aiming=true; aimAt(e.clientX, e.clientY); });
+    canvas.addEventListener("pointermove", (e)=>{ if(aiming) aimAt(e.clientX, e.clientY); });
+    canvas.addEventListener("pointerup",   (e)=>{ aiming=false; shoot(); });
+    canvas.addEventListener("pointercancel",(e)=>{ aiming=false; });
+
+    // מניעת גלילה במשטח המשחק
+    canvas.addEventListener('touchmove', e=>{ e.preventDefault(); }, {passive:false});
+
+    /*** ---- Collisions & Grid math ---- ***/
+    const neighborsOf = (r,c) => {
+      const even = (r%2===0);
+      const defs = [
+        {dr:0,dc:-1},{dr:0,dc:1},
+        {dr:-1,dc: even?-1:0},{dr:-1,dc: even?0:1},
+        {dr: 1,dc: even?-1:0},{dr: 1,dc: even?0:1},
+      ];
+      const out=[];
+      for(const d of defs){
+        const nr=r+d.dr, nc=c+d.dc;
+        if(nr>=0 && nr<grid.length && nc>=0 && grid[nr] && nc<grid[nr].length) out.push({r:nr,c:nc});
+      }
+      return out;
+    };
+
+    const findClusterSameColor = (sr,sc) => {
+      const start = grid[sr]?.[sc];
+      if(!start || !start.visible) return [];
+      const color = start.color;
+      const stack=[{r:sr,c:sc}], seen=new Set([`${sr},${sc}`]), res=[];
+      while(stack.length){
+        const cur = stack.pop();
+        res.push(cur);
+        for(const nb of neighborsOf(cur.r, cur.c)){
+          const b = grid[nb.r][nb.c];
+          const key = `${nb.r},${nb.c}`;
+          if(b && b.visible && b.color===color && !seen.has(key)){
+            seen.add(key); stack.push(nb);
+          }
+        }
+      }
+      return res;
+    };
+
+    const findFloating = () => {
+      const connected = new Set();
+      const stack=[];
+      if(grid[0]){
+        for(let c=0;c<grid[0].length;c++){
+          const b=grid[0][c];
+          if(b && b.visible){ connected.add(`0,${c}`); stack.push({r:0,c}); }
+        }
+      }
+      while(stack.length){
+        const cur=stack.pop();
+        for(const nb of neighborsOf(cur.r, cur.c)){
+          const b = grid[nb.r][nb.c];
+          const key = `${nb.r},${nb.c}`;
+          if(b && b.visible && !connected.has(key)){
+            connected.add(key); stack.push(nb);
+          }
+        }
+      }
+      const floating=[];
+      for(let r=0;r<grid.length;r++){
+        for(let c=0;c<grid[r].length;c++){
+          const b = grid[r][c];
+          if(b && b.visible && !connected.has(`${r},${c}`)) floating.push({r,c});
+        }
+      }
+      return floating;
+    };
+
+    const snapProjectile = () => {
+      // חשב תא הרשת הקרוב
+      let r = Math.round((projectile.y - BUBBLE_RADIUS) / ROW_H);
+      r = Math.max(0, r);
+      while(grid.length <= r){
+        const len = (grid.length%2===0) ? evenRowLen() : oddRowLen();
+        grid.push(new Array(len).fill(null));
+      }
+      const even = (r%2===0);
+      const colsInRow = grid[r].length;
+      let c = even
+        ? Math.round((projectile.x - BUBBLE_RADIUS) / BUBBLE_DIAMETER)
+        : Math.round((projectile.x - BUBBLE_DIAMETER) / BUBBLE_DIAMETER);
+      c = clamp(c, 0, colsInRow-1);
+
+      // אם תפוס – מצא תא פנוי סמוך
+      if(grid[r][c]){
+        let placed=false;
+        outer: for(let ring=1; ring<=2 && !placed; ring++){
+          for(let dr=-ring; dr<=ring; dr++){
+            for(let dc=-ring; dc<=ring; dc++){
+              const nr=r+dr, nc=c+dc;
+              if(nr>=0 && nr<grid.length && nc>=0 && grid[nr] && nc<grid[nr].length && !grid[nr][nc]){
+                r=nr; c=nc; placed=true; break outer;
+              }
+            }
+          }
+        }
+      }
+
+      grid[r][c] = { color: projectile.color, visible:true, r, c, x:0, y:0 };
+      updateBubblePositions();
+
+      // בדוק קבוצות
+      const cluster = findClusterSameColor(r,c);
+      if(cluster.length>=3){
+        for(const p of cluster){ grid[p.r][p.c].visible=false; }
+        score += cluster.length * 10;
+        play(880,70,"sawtooth",0.015);
+        vibrate(20);
+
+        const floaters = findFloating();
+        for(const p of floaters){ grid[p.r][p.c].visible=false; score += 20; }
+        if(floaters.length){ play(520,100,"square",0.015); vibrate(25); }
+
+        misses=0;
+      }else{
+        misses++;
+        play(220,50,"sine",0.012);
+      }
+
+      runningShot=false;
+      projectile=null;
+      makeProjectile();
+      updateHUD();
+      checkState();
+    };
+
+    /*** ---- Game Flow ---- ***/
+    const updateHUD = () => {
+      scoreEl.textContent = score;
+      missesEl.textContent = Math.max(0, MISSES_ALLOWED - misses);
+      const best = getBest();
+      if(score>best){ setBest(score); bestEl.textContent = score; }
+    };
+
+    const addNewRow = () => {
+      // שורה חדשה למעלה (פריטי even)
+      const newRow = new Array(evenRowLen()).fill(null).map(()=>({
+        color: randOf(COLORS), visible:true, x:0, y:0, r:0, c:0
+      }));
+      grid.unshift(newRow);
+      // עבור על השורות ועדכן רפרנסים+מיקומים
+      updateBubblePositions();
+      misses=0;
+    };
+
+    const visibleCount = () => {
+      let n=0;
+      for(const row of grid){ for(const b of row){ if(b && b.visible) n++; } }
+      return n;
+    };
+
+    const checkState = () => {
+      // הפסד: הבועה הנמוכה חוצה את קו היורה
+      let lowest=null;
+      for(const row of grid){
+        for(const b of row){
+          if(b && b.visible){ if(!lowest || b.y>lowest.y) lowest=b; }
+        }
+      }
+      if(lowest && (lowest.y + BUBBLE_RADIUS) >= (shooter.y - BUBBLE_RADIUS*1.9)){
+        return gameOver(false);
+      }
+      // ניצחון: אין בועות
+      if(visibleCount()===0) return gameOver(true);
+
+      // הוספת שורה אחרי החטאות
+      if(misses>=MISSES_ALLOWED){
+        addNewRow();
+        if(visibleCount()===0) return gameOver(true);
+      }
+    };
+
+    const gameOver = (win) => {
+      over=true; running=false;
+      if(win){
+        finalWin.textContent = `ניקוד סופי: ${score}`;
+        winOverlay.style.display="flex";
+        play(1040,160,"triangle",0.02);
+      }else{
+        finalLose.textContent = `ניקוד סופי: ${score}`;
+        loseOverlay.style.display="flex";
+      }
+    };
+
+    const reset = () => {
+      over=false; running=false; runningShot=false;
+      score=0; misses=0;
+      shooter.angle = -Math.PI/2;
+      createGrid();
+      makeProjectile();
+      updateHUD();
+      drawNextPreview();
+    };
+
+    /*** ---- Loop ---- ***/
+    const step = () => {
+      if(!running) return;
+      // Physics update
+      if(runningShot && projectile){
+        projectile.x += projectile.dx;
+        projectile.y += projectile.dy;
+
+        // קירות
+        if(projectile.x - BUBBLE_RADIUS < 0){
+          projectile.x = BUBBLE_RADIUS;
+          projectile.dx *= -1; play(360,35,"sine",0.01);
+        }else if(projectile.x + BUBBLE_RADIUS > (W/DPR)){
+          projectile.x = (W/DPR) - BUBBLE_RADIUS;
+          projectile.dx *= -1; play(360,35,"sine",0.01);
+        }
+        // תקרה
+        if(projectile.y - BUBBLE_RADIUS <= 0){
+          snapProjectile(); // ייקבע בתא העליון
+        }else{
+          // התנגשות עם בועה קיימת
+          outer:
+          for(let r=0;r<grid.length;r++){
+            for(let c=0;c<grid[r].length;c++){
+              const b = grid[r][c];
+              if(!b || !b.visible) continue;
+              const dx = projectile.x - b.x;
+              const dy = projectile.y - b.y;
+              const dist = Math.hypot(dx,dy);
+              if(dist < BUBBLE_DIAMETER * 0.9){
+                snapProjectile();
+                break outer;
+              }
+            }
+          }
+        }
+      }
+
+      // Draw
+      clear();
+      // draw grid
+      for(const row of grid){ for(const b of row){ if(b && b.visible) drawBubble(b); } }
+      // draw projectile in motion
+      if(projectile && runningShot){ drawBubble(projectile); }
+      // shooter
+      drawShooter();
+
+      if(!over) requestAnimationFrame(step);
+    };
+
+    /*** ---- Sizing/Start ---- ***/
+    const initAndRun = () => {
+      resizeCanvas();
+      reset();
+      running = true;
+      requestAnimationFrame(step);
+    };
+
+    // שמור משחק בעת שינוי גודל
+    const ro = new ResizeObserver(()=>{ resizeCanvas(); });
+    ro.observe(container);
+    window.addEventListener("orientationchange", ()=>{ setTimeout(resizeCanvas, 120); });
+
+    // Pause on tab hidden (חיסכון סוללה)
+    document.addEventListener("visibilitychange", ()=>{
+      if(document.hidden){ running=false; }
+      else if(!over){ running=true; requestAnimationFrame(step); }
+    });
+
+    /*** ---- Buttons ---- ***/
+    startBtn.onclick = () => {
+      startOverlay.style.display="none";
+      initAndRun();
+    };
+    retryLose.onclick = retryWin.onclick = () => {
+      winOverlay.style.display="none";
+      loseOverlay.style.display="none";
+      initAndRun();
+    };
+    homeLose.onclick = homeWin.onclick = () => {
+      winOverlay.style.display="none";
+      loseOverlay.style.display="none";
+      startOverlay.style.display="flex";
+      running=false;
+    };
+
+    // התחלה אוטומטית בדסקטופ (אופציונלי)
+    if(!/Mobi|Android/i.test(navigator.userAgent)){
+      // הצג מסך פתיחה אך אפשר להתחיל גם בלחיצה בקנבס
+      canvas.addEventListener("click", function once(){
+        canvas.removeEventListener("click", once); 
+        if(startOverlay.style.display!=="none"){ startOverlay.style.display="none"; initAndRun(); }
+      });
+    }
+  })();
+  </script>
 </body>
 </html>
