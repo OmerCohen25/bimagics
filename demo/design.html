@@ -1,522 +1,249 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Image Bot - מעצב התמונות האישי שלך בווצאפ</title>
-    <style>
-        /* --- Global Styles --- */
-        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;900&display=swap');
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>AI Image Bot - מעצב התמונות שלך בווצאפ</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;900&display=swap');
 
-        :root {
-            --primary-color: #25d366; /* WhatsApp Green */
-            --secondary-color: #128C7E;
-            --dark-color: #075E54;
-            --background-color: #f7f9fc;
-            --text-color: #333;
-            --light-gray: #eaf0f2;
-            --white: #ffffff;
-            --special-blue: #34B7F1;
-        }
+    :root {
+      --primary: #25d366;
+      --secondary: #128C7E;
+      --dark: #075E54;
+      --bg: #f7f9fc;
+      --white: #fff;
+      --text: #222;
+    }
 
-        html {
-            scroll-behavior: smooth;
-        }
+    body {
+      margin: 0;
+      font-family: 'Heebo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      text-align: right;
+    }
 
-        body {
-            font-family: 'Heebo', sans-serif;
-            margin: 0;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            text-align: right;
-        }
+    header {
+      text-align: center;
+      padding: 15px;
+      background: var(--white);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    header .logo {
+      font-size: 1.6em;
+      font-weight: 900;
+      color: var(--dark);
+    }
 
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
+    .hero {
+      padding: 60px 20px;
+      text-align: center;
+      background: linear-gradient(135deg, var(--dark), var(--secondary));
+      color: var(--white);
+    }
+    .hero h1 { font-size: 2.2em; margin-bottom: 10px; }
+    .hero p { font-size: 1.2em; margin-bottom: 25px; }
+    .cta-button {
+      display: inline-block;
+      padding: 15px 28px;
+      border-radius: 50px;
+      font-weight: 700;
+      text-decoration: none;
+      background: var(--primary);
+      color: var(--white);
+      box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+      transition: transform .2s;
+    }
+    .cta-button:hover { transform: translateY(-3px); }
 
-        h1, h2, h3 {
-            font-weight: 900;
-        }
+    /* Demo Section */
+    #demo {
+      padding: 40px 20px;
+      text-align: center;
+    }
+    #demo h2 { margin-bottom: 25px; font-size: 1.8em; }
+    .phone {
+      width: 320px;
+      max-width: 90%;
+      margin: auto;
+      background: #111b21;
+      border-radius: 30px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    .screen {
+      background: #e5ddd5;
+      height: 550px;
+      display: flex;
+      flex-direction: column;
+      font-size: 0.9em;
+    }
+    .chat {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .msg {
+      max-width: 80%;
+      margin-bottom: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      line-height: 1.4;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      animation: fade .4s ease forwards;
+    }
+    .msg.user { background: #dcf8c6; align-self: flex-end; border-top-right-radius: 0; }
+    .msg.bot { background: var(--white); align-self: flex-start; border-top-left-radius: 0; }
+    .msg img { max-width: 100%; border-radius: 6px; margin-top: 5px; }
+    @keyframes fade { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
 
-        h1 { font-size: 3em; }
-        h2 { font-size: 2.2em; text-align: center; margin-bottom: 40px; }
+    /* Pricing */
+    #pricing {
+      padding: 50px 20px;
+      text-align: center;
+    }
+    #pricing h2 { margin-bottom: 30px; }
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+    }
+    .card {
+      flex: 1;
+      min-width: 220px;
+      max-width: 280px;
+      background: var(--white);
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    }
+    .card h3 { margin: 0 0 10px; }
+    .card .price { font-size: 2em; font-weight: 900; margin: 10px 0; color: var(--dark); }
+    .card .cta-button { margin-top: 15px; width: 100%; }
 
-        .cta-button {
-            display: inline-block;
-            background-color: var(--primary-color);
-            color: var(--white);
-            padding: 15px 30px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 1.1em;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
-        }
-        .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
-        }
+    /* Share */
+    #share {
+      text-align: center;
+      padding: 40px 20px;
+      background: #fff;
+    }
+    #share h3 { margin-bottom: 20px; }
+    .share-buttons a {
+      margin: 0 10px;
+      font-size: 1.6em;
+      text-decoration: none;
+      color: var(--primary);
+    }
 
-        /* --- Header --- */
-        header {
-            background: var(--white);
-            padding: 15px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            text-align: center;
-        }
-        header .logo {
-            font-size: 1.8em;
-            font-weight: 900;
-            color: var(--dark-color);
-        }
-
-        /* --- Hero Section --- */
-        .hero {
-            text-align: center;
-            padding: 80px 20px;
-            background: linear-gradient(135deg, var(--dark-color), var(--secondary-color));
-            color: var(--white);
-        }
-        .hero h1 {
-            margin-bottom: 15px;
-        }
-        .hero p {
-            font-size: 1.4em;
-            font-weight: 400;
-            margin-bottom: 30px;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .hero .cta-button {
-            background-color: var(--white);
-            color: var(--primary-color);
-        }
-        
-        /* --- Demo Section --- */
-        #demo-section {
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            gap: 40px;
-        }
-        .demo-explanation {
-            flex-basis: 45%;
-            min-width: 320px;
-        }
-        .demo-explanation h3 {
-            font-size: 1.8em;
-            margin-bottom: 20px;
-        }
-        .demo-explanation li {
-            list-style: none;
-            padding: 15px 0;
-            font-size: 1.1em;
-            display: flex;
-            align-items: center;
-        }
-        .demo-explanation .icon {
-            font-size: 1.5em;
-            margin-left: 15px;
-            color: var(--primary-color);
-        }
-
-        /* --- Phone Mockup Styles (Scoped) --- */
-        .phone-mockup-container {
-            flex-basis: 45%;
-            min-width: 380px;
-        }
-        .phone-mockup {
-            width: 380px;
-            height: 700px; /* Adjusted for landing page */
-            background: #111b21;
-            border-radius: 40px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            margin: 0 auto;
-        }
-        .screen {
-            flex: 1;
-            background: #e5ddd5;
-            border-radius: 25px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .header-demo {
-            background: #008069;
-            color: #fff;
-            padding: 12px;
-            display: flex;
-            align-items: center;
-            flex-shrink: 0;
-        }
-        .avatar {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            margin-left: 10px;
-            background-image: url('https://upload.wikimedia.org/wikipedia/commons/a/a0/Google_Gemini_logo.svg');
-            background-size: cover;
-        }
-        .chat-window {
-            flex: 1;
-            padding: 12px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-        .message {
-            max-width: 80%;
-            padding: 8px 12px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            font-size: 0.9em;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
-            animation: fadeIn 0.4s ease forwards;
-            position: relative;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .bot { background: #ffffff; align-self: flex-start; border-top-left-radius: 0; }
-        .user { background: #dcf8c6; align-self: flex-end; border-top-right-radius: 0; }
-        .message img { max-width: 100%; border-radius: 6px; margin-top: 5px; }
-        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-20deg); color: rgba(255,0,0,0.5); font-size: 1.8em; font-weight: 900; pointer-events: none; }
-        .packages-container { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
-        .package-button { background: #075e54; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: bold; text-align: right; cursor: pointer; display: flex; justify-content: space-between; transition: background-color 0.2s; }
-        .package-button:hover { background-color: var(--secondary-color); }
-        .package-button.popular { background: var(--primary-color); }
-
-        /* --- Business Plan Section --- */
-        .business-section { background: var(--white); }
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-        }
-        .grid-item {
-            background: var(--background-color);
-            padding: 25px;
-            border-radius: 12px;
-            border: 1px solid var(--light-gray);
-        }
-        .grid-item h3 {
-            color: var(--dark-color);
-            font-size: 1.5em;
-            margin-top: 0;
-        }
-        .grid-item ul {
-            padding-right: 20px;
-        }
-        .grid-item li {
-            margin-bottom: 10px;
-        }
-
-        /* --- Pricing Section --- */
-        .pricing-container {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        .pricing-card {
-            background: var(--white);
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.08);
-            flex: 1;
-            min-width: 250px;
-            max-width: 300px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            position: relative;
-            overflow: hidden;
-        }
-        .pricing-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 35px rgba(0,0,0,0.12);
-        }
-        .popular-badge {
-            position: absolute;
-            top: -1px;
-            right: -1px;
-            background: var(--special-blue);
-            color: white;
-            padding: 8px 30px;
-            font-weight: bold;
-            transform: rotate(45deg) translate(28%, -10%);
-            transform-origin: center;
-            width: 150px;
-        }
-        .pricing-card h3 { font-size: 1.6em; }
-        .price { font-size: 3em; font-weight: 900; color: var(--dark-color); }
-        .price span { font-size: 0.5em; font-weight: 400; }
-        .pricing-card ul { list-style: none; padding: 0; margin: 20px 0; }
-        .pricing-card li { margin-bottom: 10px; }
-        .pricing-card .cta-button { width: 80%; }
-        
-        .pricing-card.popular {
-            border: 2px solid var(--primary-color);
-        }
-        .pricing-card.popular .cta-button {
-            background: var(--primary-color);
-            color: var(--white);
-        }
-
-        /* --- Footer --- */
-        footer {
-            text-align: center;
-            padding: 30px 20px;
-            background: var(--dark-color);
-            color: rgba(255,255,255,0.8);
-        }
-    </style>
+    footer {
+      padding: 20px;
+      text-align: center;
+      background: var(--dark);
+      color: rgba(255,255,255,0.8);
+      font-size: 0.9em;
+    }
+  </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo">🖼️ AI Image Bot</div>
-    </header>
+<header>
+  <div class="logo">🖼️ AI Image Bot</div>
+</header>
 
-    <main>
-        <section class="hero">
-            <h1>מעצב התמונות האישי שלך. ישירות בווצאפ.</h1>
-            <p>שלח תמונה והוראה פשוטה, וקבל תוצאה מדהימה תוך שניות. בלי אפליקציות, בלי סיבוכים. הכל קורה בשיחה.</p>
-            <a href="https://wa.me/972500000000?text=היי%2C+אני+רוצה+להתנסות+בבוט+התמונות" target="_blank" class="cta-button">
-                🚀 התנסה בחינם בווצאפ
-            </a>
-        </section>
+<section class="hero">
+  <h1>מעצב התמונות שלך בווצאפ</h1>
+  <p>בלי מנוי. בלי התחייבות. רק שולחים תמונה ומקבלים קסם 🎉</p>
+  <a href="https://wa.me/972500000000?text=אני+רוצה+לנסות+את+הבוט" target="_blank" class="cta-button">🚀 נסו עכשיו בחינם</a>
+</section>
 
-        <section class="container" id="demo">
-            <h2>זה עד כדי כך פשוט. צפו בדמו:</h2>
-            <div id="demo-section">
-                <div class="demo-explanation">
-                    <h3>איך הקסם עובד?</h3>
-                    <ul>
-                        <li><span class="icon">1️⃣</span> <b>שולחים תמונה:</b> בחרו כל תמונה מהגלריה שלכם.</li>
-                        <li><span class="icon">2️⃣</span> <b>רושמים הוראה:</b> תארו מה תרצו לשנות. "הפוך לציור אנימה", "תוסיף שלג", "שנה רקע לחוף ים".</li>
-                        <li><span class="icon">3️⃣</span> <b>מקבלים תוצאה:</b> תוך שניות, ה-AI שלנו שולח לכם את התמונה החדשה, ערוכה באופן מקצועי.</li>
-                    </ul>
-                     <a href="https://wa.me/972500000000?text=היי%2C+אני+רוצה+להתנסות+בבוט+התמונות" target="_blank" class="cta-button" style="margin-top: 20px;">
-                        בואו נתחיל! שלח לי הודעה
-                    </a>
-                </div>
+<section id="demo">
+  <h2>איך זה עובד?</h2>
+  <div class="phone">
+    <div class="screen">
+      <div class="chat" id="chatWindow"></div>
+    </div>
+  </div>
+</section>
 
-                <div class="phone-mockup-container">
-                    <div class="phone-mockup">
-                        <div class="screen">
-                            <div class="header-demo">
-                                <div class="avatar"></div>
-                                <div>
-                                    <div><b>AI Image Bot</b></div>
-                                    <small>מקוון</small>
-                                </div>
-                            </div>
-                            <div class="chat-window" id="chatWindow">
-                                </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+<section id="pricing">
+  <h2>כמה זה עולה?</h2>
+  <div class="cards">
+    <div class="card">
+      <h3>🎁 התחלה</h3>
+      <div class="price">₪9</div>
+      <p>10 תמונות</p>
+      <a href="#" class="cta-button">בחר</a>
+    </div>
+    <div class="card">
+      <h3>⭐ פופולרי</h3>
+      <div class="price">₪19</div>
+      <p>25 תמונות</p>
+      <a href="#" class="cta-button">בחר</a>
+    </div>
+    <div class="card">
+      <h3>🚀 PRO</h3>
+      <div class="price">₪29</div>
+      <p>50 תמונות</p>
+      <a href="#" class="cta-button">בחר</a>
+    </div>
+  </div>
+</section>
 
-        <section class="business-section">
-            <div class="container">
-                <h2>החזון והפתרון העסקי</h2>
-                <div class="grid-container">
-                    <div class="grid-item">
-                        <h3>🎯 החזון</h3>
-                        <p>להפוך כל שיחת ווצאפ לסטודיו עיצוב אישי. אנו מספקים כלי AI מתקדם ואינטואיטיבי בתוך הפלטפורמה הכי נגישה בעולם, ומאפשרים למיליוני משתמשים לשדרג את התמונות שלהם בקלות ובמהירות.</p>
-                    </div>
-                    <div class="grid-item">
-                        <h3>🏗️ תכנית פעולה</h3>
-                        <ul>
-                            <li><b>טכנולוגיה:</b> חיבור WhatsApp Business API למנוע AI מהיר (Gemini Flash 2.5) על תשתית ענן אמינה.</li>
-                            <li><b>ניהול משתמשים:</b> זיהוי אוטומטי לפי מספר טלפון ושמירת קרדיטים מאובטחת.</li>
-                            <li><b>תשלום מיידי:</b> אינטגרציה עם ספקי תשלום מובילים לעדכון קרדיטים מיידי לאחר רכישה.</li>
-                        </ul>
-                    </div>
-                    <div class="grid-item">
-                        <h3>💰 מודל עסקי</h3>
-                        <ul>
-                            <li><b>חבילות קרדיטים:</b> מודל Pay-as-you-go עם חבילות קטנות ונגישות.</li>
-                            <li><b>צמיחה ויראלית:</b> כל תמונה שנוצרת יכולה לכלול סימן מים (Watermark) עדין המעודד משתמשים חדשים להצטרף.</li>
-                            <li><b>ערוצים נוספים:</b> בעתיד - אפשרות למנוי חודשי למשתמשים כבדים ועסקים.</li>
-                        </ul>
-                    </div>
-                     <div class="grid-item">
-                        <h3>📢 אסטרטגיה שיווקית</h3>
-                         <p>ההתמקדות היא בצמיחה אורגנית וויראלית, המבוססת על מוצר שאנשים אוהבים ורוצים לשתף.</p>
-                        <ul>
-                            <li><b>קהלי יעד:</b> יוצרי תוכן, בעלי עסקים קטנים, חנויות איקומרס וכל מי שרוצה תמונות יפות יותר.</li>
-                            <li><b>ערוצים:</b> קבוצות ווצאפ, קמפיינים באינסטגרם וטיקטוק, ושיתופי פעולה עם משפיענים.</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <section class="container">
-             <h2>חבילות תשלום</h2>
-             <div class="pricing-container">
-                 <div class="pricing-card">
-                     <h3>חבילת התחלה</h3>
-                     <div class="price">₪9<span> / $3</span></div>
-                     <p style="font-size: 2.5em; margin: 5px 0;">🎁</p>
-                     <p><strong>10</strong> תמונות</p>
-                     <ul>
-                         <li>✅ תמיכה מלאה</li>
-                         <li>✅ שמירה ללא הגבלה</li>
-                         <li>✅ אידיאלי להתנסות</li>
-                     </ul>
-                     <a href="#" class="cta-button">בחר חבילה</a>
-                 </div>
-                 <div class="pricing-card popular">
-                     <div class="popular-badge">הכי פופולרי</div>
-                     <h3>החבילה המשתלמת</h3>
-                     <div class="price">₪19<span> / $6</span></div>
-                     <p style="font-size: 2.5em; margin: 5px 0;">⭐</p>
-                     <p><strong>25</strong> תמונות</p>
-                     <ul>
-                         <li>✅ תמיכה מלאה</li>
-                         <li>✅ שמירה ללא הגבלה</li>
-                         <li>✅ מושלם ליוצרי תוכן</li>
-                     </ul>
-                     <a href="#" class="cta-button">בחר חבילה</a>
-                 </div>
-                 <div class="pricing-card">
-                     <h3>חבילת PRO</h3>
-                     <div class="price">₪29<span> / $9</span></div>
-                     <p style="font-size: 2.5em; margin: 5px 0;">🚀</p>
-                     <p><strong>50</strong> תמונות</p>
-                     <ul>
-                         <li>✅ תמיכה מלאה</li>
-                         <li>✅ שמירה ללא הגבלה</li>
-                         <li>✅ לעסקים ומשתמשים כבדים</li>
-                     </ul>
-                     <a href="#" class="cta-button">בחר חבילה</a>
-                 </div>
-             </div>
-        </section>
-        
-    </main>
+<section id="share">
+  <h3>שתפו עם חברים</h3>
+  <div class="share-buttons">
+    <a href="https://wa.me/?text=תראו+איזה+בוט+מטורף+לווצאפ!+AI+Image+Bot+מעצב+לך+תמונות+בשניות!+👉+https://your-landing.com" target="_blank">💬 WhatsApp</a>
+    <a href="https://www.facebook.com/sharer/sharer.php?u=https://your-landing.com" target="_blank">📘 Facebook</a>
+    <a href="https://www.instagram.com/?url=https://your-landing.com" target="_blank">📸 Instagram</a>
+  </div>
+</section>
 
-    <footer>
-        <p>&copy; 2025 AI Image Bot. כל הזכויות שמורות.</p>
-    </footer>
+<footer>
+  &copy; 2025 AI Image Bot. כל הזכויות שמורות.
+</footer>
 
-    <script>
-        const chat = document.getElementById('chatWindow');
-        let credits = 2;
-        let currentScenario = 0;
-        
-        const scenarios = [
-            {
-                userImg: "https://images.pexels.com/photos/1624438/pexels-photo-1624438.jpeg?auto=compress&cs=tinysrgb&w=600",
-                userText: "הפוך את התמונה ללילה עם ירח מלא 🌙",
-                botImg: "https://i.ibb.co/GHY0G6p/pexels-eberhard-grossgasteiger-1624438-night.jpg"
-            },
-            {
-                userImg: "https://images.pexels.com/photos/931018/pexels-photo-931018.jpeg?auto=compress&cs=tinysrgb&w=600",
-                userText: "תוסיפי בבקשה ספינת פיראטים באופק 🚢",
-                botImg: "https://i.ibb.co/3cq6p6s/pexels-alizee-marchand-931018-pirate.jpg"
-            }
-        ];
+<script>
+const chat = document.getElementById('chatWindow');
+const scenarios = [
+  {
+    userImg: "https://images.pexels.com/photos/1624438/pexels-photo-1624438.jpeg?auto=compress&w=400",
+    userText: "הפוך את התמונה ללילה 🌙",
+    botImg: "https://i.ibb.co/GHY0G6p/pexels-eberhard-grossgasteiger-1624438-night.jpg"
+  },
+  {
+    userImg: "https://images.pexels.com/photos/931018/pexels-photo-931018.jpeg?auto=compress&w=400",
+    userText: "תוסיפי ספינת פיראטים 🚢",
+    botImg: "https://i.ibb.co/3cq6p6s/pexels-alizee-marchand-931018-pirate.jpg"
+  }
+];
+let i = 0;
 
-        function appendMessage(sender, html) {
-            const div = document.createElement('div');
-            div.className = "message " + sender;
-            div.innerHTML = html;
-            chat.appendChild(div);
-            // Scroll to the latest message
-            chat.scrollTop = chat.scrollHeight;
-        }
+function append(sender, html) {
+  const div = document.createElement('div');
+  div.className = "msg " + sender;
+  div.innerHTML = html;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
 
-        async function botSay(text, delay = 1000) {
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    appendMessage("bot", text);
-                    resolve();
-                }, delay);
-            });
-        }
-        
-        async function userSay(html, delay = 500) {
-             return new Promise(resolve => {
-                setTimeout(() => {
-                    appendMessage("user", html);
-                    resolve();
-                }, delay);
-            });
-        }
+async function showScenario() {
+  if (i >= scenarios.length) return;
+  const sc = scenarios[i];
+  append("user", `<img src="${sc.userImg}"><br>${sc.userText}`);
+  setTimeout(()=>append("bot", `קיבלתי ✅<br><img src="${sc.botImg}">`),1500);
+  i++;
+  setTimeout(showScenario, 4000);
+}
 
-        async function processScenario() {
-            if (currentScenario >= scenarios.length) return; // Stop after last scenario for demo
-            
-            const sc = scenarios[currentScenario];
-            await userSay(`<img src="${sc.userImg}" alt="User submitted image"><br>${sc.userText}`);
-            
-            await botSay("קיבלתי. מעבד את הבקשה שלך...");
-
-            if (credits > 0) {
-                credits--;
-                await botSay(`הנה התמונה שלך:<br><img src="${sc.botImg}" alt="AI generated image">`, 1500);
-                await botSay(`נשארו לך עוד <strong>${credits}</strong> קרדיטים.`, 500);
-                currentScenario++;
-            } else {
-                await botSay(`הנה דוגמה עם סימן מים:<div style="position:relative;"><img src="${sc.botImg}" alt="AI generated watermarked image"><div class="watermark">דוגמה</div></div>`, 1500);
-                await botSay("אוי, נגמרו לך הקרדיטים ⚡<br>כדי להמשיך ולקבל תמונות ללא סימן מים, בחר/י חבילה:", 500);
-                showPackages();
-            }
-        }
-
-        function showPackages() {
-            const packagesHtml = `
-                <div class="packages-container">
-                    <button class="package-button" onclick="buy(10, '₪9')">🎁 ₪9 → 10 תמונות</button>
-                    <button class="package-button popular" onclick="buy(25, '₪19')">⭐ ₪19 → 25 תמונות</button>
-                    <button class="package-button" onclick="buy(50, '₪29')">🚀 ₪29 → 50 תמונות</button>
-                </div>
-                <div class="packages-container">
-                    <button class="package-button" onclick="buy(10, '$3')">$3 → 10 Images</button>
-                    <button class="package-button popular" onclick="buy(25, '$6')">$6 → 25 Images</button>
-                    <button class="package-button" onclick="buy(50, '$9')">$9 → 50 Images</button>
-                </div>`;
-            appendMessage("bot", packagesHtml);
-        }
-
-        async function buy(amount, price) {
-            // Clear existing package buttons
-            const existingPackages = chat.querySelectorAll('.packages-container');
-            existingPackages.forEach(el => el.parentElement.removeChild(el));
-
-            await userSay(`בחרתי את חבילת ה-${amount} ב-${price} ✅`);
-            credits += amount;
-            await botSay(`מעולה! תודה רבה. נוספו לך ${amount} קרדיטים. 🥳<br>היתרה שלך היא <strong>${credits}</strong> קרדיטים.`);
-            await botSay("עכשיו אפשר להמשיך. שלח/י את התמונה הבאה שלך!");
-        }
-
-        async function startDemo() {
-            await botSay("שלום! 👋 אני בוט עריכת תמונות מבוסס AI.", 500);
-            await botSay(`יש לך ${credits} קרדיטים חינם להתנסות. בוא נתחיל.`, 1200);
-            
-            // Start the scenarios
-            await processScenario(); // First image
-            setTimeout(processScenario, 4000); // Second image
-            setTimeout(processScenario, 8000); // Third attempt (triggers paywall)
-        }
-
-        // Start the demo when the page loads
-        startDemo();
-    </script>
+window.onload = () => {
+  append("bot","שלום! 👋 אני הבוט שמעצב לך תמונות בווצאפ.");
+  setTimeout(()=>append("bot","שלח תמונה ותקבל קסם ✨"),1500);
+  setTimeout(showScenario, 2500);
+}
+</script>
 </body>
 </html>
