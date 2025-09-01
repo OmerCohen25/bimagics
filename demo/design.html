@@ -3,27 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>דמו - בוט ווטסאפ ליצירת תמונות</title>
+    <title>דמו משופר - בוט ווטסאפ AI</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap');
         
+        :root {
+            --whatsapp-bg: #e5ddd5;
+            --header-bg: #008069;
+            --user-bubble: #dcf8c6;
+            --bot-bubble: #ffffff;
+            --phone-frame: #111b21;
+            --action-color: #25d366;
+            --action-color-hover: #128c7e;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden; /* Prevent scrolling on the body */
+        }
+
         body {
             font-family: 'Heebo', sans-serif;
             background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
+            display: grid;
+            place-items: center;
+            height: 100svh; /* Use small viewport height to fit screen */
             direction: rtl;
         }
 
         .phone-mockup {
-            width: 380px;
-            height: 800px;
-            background-color: #111b21;
+            width: 390px;
+            max-width: 95vw;
+            height: 95svh; /* Fit within the viewport */
+            max-height: 850px;
+            background-color: var(--phone-frame);
             border-radius: 40px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.35);
             padding: 18px;
             box-sizing: border-box;
             display: flex;
@@ -31,22 +47,24 @@
         }
 
         .screen {
-            background-color: #e5ddd5;
+            background-color: var(--whatsapp-bg);
             background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAABZohJdAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABtSURBVHja7cEBDQAAAMKg909tDwcUAAAAAAB8Dc2AARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARiAARgYgAEA92sDxwTpJ8YAAAAASUVORK5CYII=");
             flex-grow: 1;
             border-radius: 22px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative;
         }
 
         .header {
-            background-color: #008069;
+            background-color: var(--header-bg);
             color: white;
             padding: 15px 20px;
             display: flex;
             align-items: center;
             flex-shrink: 0;
+            z-index: 10;
         }
         
         .avatar {
@@ -60,18 +78,8 @@
             background-position: center;
         }
 
-        .chat-info {
-            flex-grow: 1;
-        }
-        
-        .chat-info .name {
-            font-weight: 500;
-        }
-        
-        .chat-info .status {
-            font-size: 0.8em;
-            opacity: 0.8;
-        }
+        .chat-info .name { font-weight: 500; }
+        .chat-info .status { font-size: 0.8em; opacity: 0.8; }
 
         .chat-window {
             flex-grow: 1;
@@ -88,100 +96,75 @@
             margin-bottom: 10px;
             position: relative;
             box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeIn 0.5s forwards;
         }
 
-        .message.bot {
-            background-color: #ffffff;
-            align-self: flex-start;
-            border-top-left-radius: 0;
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .message.user {
-            background-color: #dcf8c6;
-            align-self: flex-end;
-            border-top-right-radius: 0;
-        }
+        .message.bot { background-color: var(--bot-bubble); align-self: flex-start; border-top-left-radius: 0; }
+        .message.user { background-color: var(--user-bubble); align-self: flex-end; border-top-right-radius: 0; }
+        .message img { max-width: 100%; border-radius: 6px; margin-top: 5px; display: block; }
         
-        .message img {
-            max-width: 100%;
-            border-radius: 6px;
-            margin-top: 5px;
-        }
-        
-        .image-container {
-            position: relative;
-            cursor: pointer;
-        }
+        .image-container { position: relative; cursor: pointer; }
         
         .watermark {
             position: absolute;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%) rotate(-20deg);
             color: rgba(255, 0, 0, 0.6);
-            font-size: 32px;
-            font-weight: bold;
+            font-size: 2.2em;
+            font-weight: 900;
             pointer-events: none;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+            -webkit-text-stroke: 1px rgba(0,0,0,0.2);
         }
 
         .pay-button {
-            background-color: #25d366;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            display: block;
-            text-align: center;
-            font-size: 1em;
-            transition: background-color 0.2s;
+            background-color: var(--action-color);
+            color: white; border: none; padding: 10px 15px;
+            border-radius: 20px; font-weight: bold; cursor: pointer;
+            margin-top: 10px; display: block; text-align: center;
+            font-size: 1em; transition: background-color 0.2s;
         }
-
-        .pay-button:hover {
-            background-color: #128c7e;
-        }
+        .pay-button:hover { background-color: var(--action-color-hover); }
 
         .input-area {
-            background-color: #f0f2f5;
-            padding: 10px;
-            display: flex;
-            align-items: center;
-            flex-shrink: 0;
-            border-top: 1px solid #ddd;
+            background-color: #f0f2f5; padding: 10px;
+            display: flex; align-items: center;
+            flex-shrink: 0; border-top: 1px solid #ddd;
         }
 
         .input-box {
-            flex-grow: 1;
-            background-color: white;
-            border-radius: 20px;
-            padding: 8px 15px;
-            border: none;
+            flex-grow: 1; background-color: white;
+            border-radius: 20px; padding: 8px 15px;
+            border: 2px solid transparent; transition: all 0.3s;
         }
 
         .action-button {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            border: none;
-            margin: 0 5px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            background-color: #008069;
-            color: white;
-            font-size: 20px;
+            width: 45px; height: 45px; border-radius: 50%;
+            border: none; margin: 0 5px; display: flex;
+            justify-content: center; align-items: center;
+            cursor: pointer; background-color: var(--header-bg);
+            color: white; font-size: 20px; transition: all 0.3s;
         }
         
-        .typing-indicator {
-            display: none;
-            font-style: italic;
-            color: #666;
-            padding: 5px 0;
+        /* Pulsating Animation */
+        .pulsate-glow {
+            animation: pulsate 2s infinite;
         }
+        @keyframes pulsate {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 10px 15px rgba(37, 211, 102, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        }
+        .input-box.pulsate-glow { border: 2px solid var(--action-color); }
     </style>
 </head>
 <body>
@@ -191,12 +174,11 @@
             <div class="header">
                 <div class="avatar"></div>
                 <div class="chat-info">
-                    <div class="name">בוט התמונות שלי</div>
+                    <div class="name">AI Image Bot</div>
                     <div class="status">מקוון</div>
                 </div>
             </div>
-            <div class="chat-window" id="chatWindow">
-                </div>
+            <div class="chat-window" id="chatWindow"></div>
             <div class="input-area">
                 <button class="action-button" id="attachBtn" title="צרף תמונה">📎</button>
                 <input type="text" class="input-box" id="textInput" placeholder="כתוב הודעה..." readonly>
@@ -212,6 +194,7 @@
             isPaid: false,
             awaitingImage: false,
             awaitingText: false,
+            currentScenario: 0,
         };
 
         // --- DOM Elements ---
@@ -220,132 +203,181 @@
         const sendBtn = document.getElementById('sendBtn');
         const textInput = document.getElementById('textInput');
 
-        // --- Sample Images (Using Placeholders) ---
-        const sampleImages = {
-            user: "https://images.pexels.com/photos/3225517/pexels-photo-3225517.jpeg?auto=compress&cs=tinysrgb&w=400",
-            bot_processed: "https://images.pexels.com/photos/3225517/pexels-photo-3225517.jpeg?auto=compress&cs=tinysrgb&w=400&sat=-100&bri=20",
-        };
-
-        // --- Functions ---
+        // --- Diverse Image Scenarios ---
+        const scenarios = [
+            {
+                userImg: "https://images.pexels.com/photos/167699/pexels-photo-167699.jpeg?auto=compress&cs=tinysrgb&w=600",
+                userText: "תהפוך את התמונה הזו לסצנת לילה קסומה",
+                botImg: "https://images.pexels.com/photos/305821/pexels-photo-305821.jpeg?auto=compress&cs=tinysrgb&w=600"
+            },
+            {
+                userImg: "https://images.pexels.com/photos/931018/pexels-photo-931018.jpeg?auto=compress&cs=tinysrgb&w=600",
+                userText: "תוסיפי ספינת פיראטים במים",
+                botImg: "https://i.imgur.com/uG9XJt2.jpeg" // Custom edit for demo
+            },
+            {
+                userImg: "https://images.pexels.com/photos/36717/amazing-animal-beautiful-beautifull.jpg?auto=compress&cs=tinysrgb&w=600",
+                userText: "תשני את הסגנון לציור ואן גוך",
+                botImg: "https://i.imgur.com/8QWvY3A.jpeg" // Custom edit for demo
+            },
+             {
+                userImg: "https://images.pexels.com/photos/1528641/pexels-photo-1528641.jpeg?auto=compress&cs=tinysrgb&w=600",
+                userText: "הוסף שביל של כוכבים נופלים בשמיים",
+                botImg: "https://i.imgur.com/7b7f9Ua.jpeg" // Custom edit for demo
+            },
+            {
+                userImg: "https://images.pexels.com/photos/1191531/pexels-photo-1191531.jpeg?auto=compress&cs=tinysrgb&w=600",
+                userText: "הפוך את הרקע לעיר עתידנית",
+                botImg: "https://i.imgur.com/bW3g7u0.jpeg" // Custom edit for demo
+            }
+        ];
         
-        function appendMessage(sender, content) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', sender);
-            messageDiv.innerHTML = content;
-            chatWindow.appendChild(messageDiv);
-            scrollToBottom();
+        // --- Core Functions ---
+        
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
         }
-
+        
         function scrollToBottom() {
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
-        function showTypingIndicator() {
-            let indicator = document.getElementById('typingIndicator');
-            if (!indicator) {
-                indicator = document.createElement('div');
-                indicator.id = 'typingIndicator';
-                indicator.classList.add('message', 'bot', 'typing-indicator');
-                indicator.textContent = 'הבוט מקליד...';
-                chatWindow.appendChild(indicator);
+        async function appendMessage(sender, content, instant = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender);
+            messageDiv.innerHTML = content;
+            if (instant) {
+                messageDiv.style.animation = 'none';
+                messageDiv.style.opacity = '1';
+                messageDiv.style.transform = 'translateY(0)';
             }
-            indicator.style.display = 'block';
+            chatWindow.appendChild(messageDiv);
             scrollToBottom();
-            return indicator;
+            await delay(100); // Small delay for animation
         }
 
-        function hideTypingIndicator(indicator) {
-            if (indicator) {
-                indicator.style.display = 'none';
+        async function showTyping(duration = 2000) {
+            const indicator = document.createElement('div');
+            indicator.classList.add('message', 'bot');
+            indicator.innerHTML = `<div class="typing-indicator"><span>.</span><span>.</span><span>.</span></div>`;
+            chatWindow.appendChild(indicator);
+            scrollToBottom();
+            
+            await delay(duration);
+            indicator.remove();
+        }
+
+        function setInputState(state) {
+            attachBtn.classList.remove('pulsate-glow');
+            textInput.classList.remove('pulsate-glow');
+            sendBtn.classList.remove('pulsate-glow');
+
+            if (state === 'awaitingImage') {
+                textInput.placeholder = 'לחץ על 📎 כדי לשלוח תמונה...';
+                textInput.readOnly = true;
+                gameState.awaitingImage = true;
+                gameState.awaitingText = false;
+                attachBtn.classList.add('pulsate-glow');
+            } else if (state === 'awaitingText') {
+                const currentScenario = scenarios[gameState.currentScenario];
+                textInput.placeholder = `לדוגמה: "${currentScenario.userText}"`;
+                textInput.readOnly = false;
+                gameState.awaitingImage = false;
+                gameState.awaitingText = true;
+                textInput.classList.add('pulsate-glow');
+                sendBtn.classList.add('pulsate-glow');
+                textInput.focus();
+            } else { // Idle
+                textInput.placeholder = 'הבוט מעבד...';
+                textInput.readOnly = true;
+                gameState.awaitingImage = false;
+                gameState.awaitingText = false;
             }
         }
-        
-        function handleSend() {
+
+        async function handleSend() {
             if (!gameState.awaitingText) return;
             
-            const userText = textInput.value || "שנה את השמיים לכחולים יותר";
-            if(userText) {
-                appendMessage('user', userText);
-                textInput.value = '';
-                gameState.awaitingText = false;
-                processBotResponse();
-            }
-        }
-        
-        function processBotResponse() {
-            const indicator = showTypingIndicator();
-            setTimeout(() => {
-                hideTypingIndicator(indicator);
-                
-                if (gameState.imageCount >= 3 && !gameState.isPaid) {
-                    // --- Paywall Logic ---
-                    appendMessage('bot', `
-                        <div class="image-container">
-                            <img src="${sampleImages.bot_processed}" alt="Processed Image with Watermark">
-                            <div class="watermark">סימן מים</div>
-                        </div>
-                    `);
-                    appendMessage('bot', 'הגעת למגבלה החינמית של 2 תמונות. כדי לקבל את התמונה הזו ללא סימן המים וליצור תמונות נוספות, יש לבצע תשלום.');
-                    const payButtonHtml = '<button class="pay-button" id="payBtn">לתשלום מאובטח (10 ₪)</button>';
-                    appendMessage('bot', payButtonHtml);
-                    document.getElementById('payBtn').addEventListener('click', handlePayment);
-
-                } else {
-                    // --- Standard Logic ---
-                    appendMessage('bot', `קיבלתי! הנה התמונה שלך:
-                        <img src="${sampleImages.bot_processed}" alt="Processed Image">
-                    `);
-                     if (gameState.imageCount < 3) {
-                         appendMessage('bot', `זו התמונה החינמית מספר ${gameState.imageCount} מתוך 2.`);
-                     } else {
-                         appendMessage('bot', 'תודה שרכשת! אתה יכול להמשיך ליצור.');
-                     }
-                }
-                
-                resetInputState();
-
-            }, 2000); // Simulate processing time
-        }
-
-        function handlePayment() {
-            appendMessage('user', 'ביצוע תשלום...');
-            const indicator = showTypingIndicator();
+            const currentScenario = scenarios[gameState.currentScenario];
+            const userText = textInput.value || currentScenario.userText;
             
-            setTimeout(() => {
-                hideTypingIndicator(indicator);
-                gameState.isPaid = true;
-                appendMessage('bot', '✅ תודה רבה! התשלום בוצע בהצלחה.');
-                appendMessage('bot', `הנה התמונה שלך ללא סימן המים:
-                        <img src="${sampleImages.bot_processed}" alt="Clean Processed Image">
-                    `);
-                appendMessage('bot', 'עכשיו תוכל להמשיך וליצור כמה תמונות שתרצה. פשוט שלח לי תמונה חדשה והוראה.');
-                // Reset counter after payment for a new package
-                gameState.imageCount = 0;
-            }, 2500); // Simulate payment processing
+            await appendMessage('user', userText);
+            textInput.value = '';
+            setInputState('idle');
+            await processBotResponse();
         }
         
-        function handleAttach() {
-            if(gameState.awaitingImage) {
-                 gameState.imageCount++;
-                 appendMessage('user', `
-                    <img src="${sampleImages.user}" alt="User Uploaded Image">
-                 `);
-                 gameState.awaitingImage = false;
-                 gameState.awaitingText = true;
-                 textInput.placeholder = 'איך תרצה לערוך את התמונה?';
-                 textInput.readOnly = false;
-                 textInput.focus();
+        async function processBotResponse() {
+            await showTyping(2500);
+            
+            const currentScenario = scenarios[gameState.currentScenario];
+            
+            if (gameState.imageCount >= 3 && !gameState.isPaid) {
+                // Paywall Logic
+                await appendMessage('bot', `
+                    <div class="image-container">
+                        <img src="${currentScenario.botImg}" alt="Processed Image with Watermark">
+                        <div class="watermark">דוגמה</div>
+                    </div>
+                `);
+                await delay(500);
+                await appendMessage('bot', 'הגעת למגבלה החינמית. כדי לקבל את התמונה הזו ללא סימן המים וליצור עוד, יש לבצע תשלום.');
+                await delay(500);
+                const payButtonHtml = '<button class="pay-button" id="payBtn">תשלום מאובטח (10 ₪)</button>';
+                await appendMessage('bot', payButtonHtml);
+                document.getElementById('payBtn').addEventListener('click', handlePayment);
+            } else {
+                // Standard Logic
+                await appendMessage('bot', `בטח, בבקשה:
+                    <img src="${currentScenario.botImg}" alt="Processed Image">
+                `);
+                 if (gameState.imageCount < 3) {
+                     await delay(500);
+                     await appendMessage('bot', `זו התמונה החינמית שלך, מספר ${gameState.imageCount} מתוך 2.`);
+                 } else {
+                     await delay(500);
+                     await appendMessage('bot', 'תודה שרכשת! אפשר להמשיך ליצירה הבאה.');
+                 }
+                setInputState('awaitingImage');
+                // Move to next scenario
+                gameState.currentScenario = (gameState.currentScenario + 1) % scenarios.length;
             }
         }
-        
-        function resetInputState() {
-             textInput.placeholder = 'שלח תמונה והודעה...';
-             textInput.readOnly = true;
-             gameState.awaitingImage = true;
-             gameState.awaitingText = false;
-        }
 
-        // --- Event Listeners ---
+        async function handlePayment() {
+            await appendMessage('user', 'ביצוע תשלום...', true);
+            await showTyping(3000);
+
+            gameState.isPaid = true; // In real app, this would be set by a webhook
+            const currentScenario = scenarios[gameState.currentScenario];
+            
+            await appendMessage('bot', '✅ תודה רבה! התשלום בוצע בהצלחה.');
+            await delay(800);
+            await appendMessage('bot', `הנה התמונה שלך, נקייה מסימן המים:
+                    <img src="${currentScenario.botImg}" alt="Clean Processed Image">
+                `);
+            await delay(800);
+            await appendMessage('bot', 'עכשיו חבילת התמונות שלך התאפסה. אפשר להתחיל מחדש, פשוט שלח לי תמונה והוראה.');
+            
+            // Reset counter and move to the next visual example
+            gameState.imageCount = 0; // Or set to a new limit
+            gameState.isPaid = false; // Reset for next paywall cycle
+            gameState.currentScenario = (gameState.currentScenario + 1) % scenarios.length;
+            setInputState('awaitingImage');
+        }
+        
+        async function handleAttach() {
+            if (!gameState.awaitingImage) return;
+            
+            gameState.imageCount++;
+            const currentScenario = scenarios[gameState.currentScenario];
+            await appendMessage('user', `
+                <img src="${currentScenario.userImg}" alt="User Uploaded Image">
+            `);
+            setInputState('awaitingText');
+        }
+        
+        // --- Event Listeners & Initialization ---
         attachBtn.addEventListener('click', handleAttach);
         sendBtn.addEventListener('click', handleSend);
         textInput.addEventListener('keypress', (e) => {
@@ -354,18 +386,15 @@
             }
         });
 
-        // --- Initializing the Demo ---
-        function startDemo() {
-            const indicator = showTypingIndicator();
-            setTimeout(() => {
-                hideTypingIndicator(indicator);
-                appendMessage('bot', 'שלום! 👋 אני בוט שיכול לערוך לך תמונות.');
-                appendMessage('bot', 'פשוט שלח לי תמונה (לחץ על 📎) ואז כתוב לי מה תרצה לשנות בה. שתי התמונות הראשונות הן בחינם להתנסות!');
-                resetInputState();
-            }, 1500);
+        async function startDemo() {
+            await showTyping(1500);
+            await appendMessage('bot', 'שלום! 👋 אני בוט עריכת תמונות מבוסס AI.');
+            await delay(1200);
+            await appendMessage('bot', 'שלח לי תמונה (לחץ על 📎) ואז כתוב מה תרצה לשנות. 2 התמונות הראשונות הן חינם לגמרי להתנסות!');
+            setInputState('awaitingImage');
         }
 
-        startDemo();
+        window.onload = startDemo;
     </script>
 
 </body>
