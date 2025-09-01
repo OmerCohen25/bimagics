@@ -2,25 +2,28 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>🔥 באבל של השטן 🔥</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🔥 באבל של השטן (גרסה משופרת) 🔥</title>
     <style>
         :root {
-            --bg-color: #1a1a1a;
-            --primary-color: #ff5722;
-            --secondary-color: #ffc107;
-            --text-color: #f0f0f0;
-            --border-color: #ff5722;
+            --bg-color: #0d0d0d;
+            --primary-color: #e53935;
+            --secondary-color: #ffb300;
+            --text-color: #f5f5f5;
+            --container-bg: #1a1a1a;
         }
 
         html, body {
             height: 100%;
+            width: 100%;
             margin: 0;
             padding: 0;
             overflow: hidden;
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-family: 'Arial', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -28,102 +31,113 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            -webkit-tap-highlight-color: transparent; /* מונע הבהוב בלחיצה במובייל */
+        }
+
+        #game-area {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 500px;
+            height: 100%;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+        }
+        
+        #header {
+            text-align: center;
+            padding: 10px;
+            background: var(--container-bg);
         }
 
         h1 {
-            font-size: clamp(1.5rem, 6vw, 2.5rem);
+            font-size: clamp(1.5rem, 5vw, 2.2rem);
             text-shadow: 2px 2px 4px #000;
-            margin: 10px 0;
-            color: var(--secondary-color);
-        }
-
-        #game-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 500px; /* רוחב מקסימלי למסכים גדולים */
+            margin: 0;
+            color: var(--primary-color);
         }
 
         #game-container {
             position: relative;
-            border: 4px solid var(--border-color);
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(255, 87, 34, 0.7);
-            background-color: #2b2b2b;
-            touch-action: none; /* מונע גלילה של הדפדפן בזמן משחק */
+            flex-grow: 1;
+            background-color: var(--container-bg);
+            border-left: 2px solid var(--primary-color);
+            border-right: 2px solid var(--primary-color);
         }
 
         canvas {
             display: block;
             width: 100%;
-            height: auto;
-            border-radius: 6px;
+            height: 100%;
         }
 
         .overlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
-            display: none; /* מוסתר כברירת מחדל */
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.88);
+            display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
             color: white;
-            padding: 20px;
-            box-sizing: border-box;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            z-index: 100;
+        }
+
+        .overlay.visible {
+            opacity: 1;
+            visibility: visible;
         }
 
         .overlay h2 {
-            font-size: clamp(2.5rem, 10vw, 4rem);
+            font-size: clamp(2.5rem, 12vw, 4rem);
             margin: 0;
             color: var(--primary-color);
-            text-shadow: 2px 2px 5px black;
         }
 
         .overlay p {
-            font-size: clamp(1rem, 4vw, 1.5rem);
+            font-size: clamp(1rem, 5vw, 1.5rem);
             margin: 20px 0;
         }
 
         .restart-button {
-            padding: 15px 30px;
-            font-size: clamp(1rem, 5vw, 1.2rem);
+            padding: 15px 35px;
+            font-size: clamp(1.1rem, 5vw, 1.3rem);
             cursor: pointer;
             border: 2px solid var(--secondary-color);
             background-color: var(--primary-color);
             color: white;
-            border-radius: 8px;
-            transition: all 0.3s ease;
+            border-radius: 50px;
+            transition: all 0.2s ease-in-out;
+            font-weight: bold;
         }
 
         .restart-button:hover, .restart-button:active {
             background-color: var(--secondary-color);
             border-color: var(--primary-color);
             color: var(--bg-color);
-            transform: scale(1.05);
+            transform: scale(1.1);
         }
 
         #info-panel {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-around;
             width: 100%;
-            padding: 10px 0;
-            font-size: clamp(0.9rem, 4vw, 1.2rem);
+            padding: 12px 0;
+            font-size: clamp(1rem, 4vw, 1.2rem);
             font-weight: bold;
+            background: var(--container-bg);
+            border-bottom: 2px solid var(--primary-color);
         }
     </style>
 </head>
 <body>
 
-    <h1>🔥 באבל של השטן 🔥</h1>
-    
-    <div id="game-wrapper">
+    <div id="game-area">
+        <div id="header">
+            <h1>🔥 באבל של השטן 🔥</h1>
+        </div>
         <div id="info-panel">
             <div id="score-display">ניקוד: <span id="score">0</span></div>
             <div id="misses-display">החטאות: <span id="misses-left">5</span></div>
@@ -132,13 +146,11 @@
             <canvas id="gameCanvas"></canvas>
             <div id="game-over-screen" class="overlay">
                 <h2>הפסדת!</h2>
-                <p>הכדורים הגיעו לתחתית.</p>
                 <p id="final-score-lose"></p>
                 <button class="restart-button">שחק שוב</button>
             </div>
             <div id="win-screen" class="overlay">
-                <h2>ניצחון מוחץ!</h2>
-                <p>ניקית את כל הכדורים!</p>
+                <h2>ניצחת!</h2>
                 <p id="final-score-win"></p>
                 <button class="restart-button">שחק שוב</button>
             </div>
@@ -151,6 +163,7 @@
             const ctx = canvas.getContext('2d');
             const container = document.getElementById('game-container');
             
+            // DOM Elements
             const gameOverScreen = document.getElementById('game-over-screen');
             const winScreen = document.getElementById('win-screen');
             const scoreElement = document.getElementById('score');
@@ -158,52 +171,49 @@
             const finalScoreLoseElement = document.getElementById('final-score-lose');
             const finalScoreWinElement = document.getElementById('final-score-win');
             
-            // Game settings
-            const COLS = 12;
-            const START_ROWS = 7;
+            // Game Constants
+            const COLS = 11;
+            const START_ROWS = 6;
             const MISSES_ALLOWED = 5;
-            const BUBBLE_COLORS = ['#ff4136', '#ff851b', '#ffd700', '#2ecc40', '#0074d9', '#b10dc9'];
-            
-            let BUBBLE_RADIUS;
-            let BUBBLE_DIAMETER;
-            let ROW_HEIGHT;
+            const BUBBLE_COLORS = ['#d32f2f', '#f57c00', '#fbc02d', '#388e3c', '#1976d2', '#7b1fa2'];
 
-            let grid = [];
-            let projectile;
-            let nextProjectile;
-            let score = 0;
-            let misses = 0;
-            let isShooting = false;
-            let gameOver = false;
-            
-            const devil = { x: 0, y: 0, angle: -Math.PI / 2 };
+            // Dynamic Sizing
+            let BUBBLE_RADIUS, ROW_HEIGHT;
+            let grid = [], projectile, nextProjectile;
+            let score = 0, misses = 0;
+            let isShooting = false, gameOver = true;
+            let shooter = { x: 0, y: 0, angle: -Math.PI / 2 };
+            let aimLine = [];
+            let animationFrameId;
 
             function setCanvasDimensions() {
-                const containerWidth = container.clientWidth;
-                BUBBLE_DIAMETER = containerWidth / COLS;
-                BUBBLE_RADIUS = BUBBLE_DIAMETER / 2;
-                ROW_HEIGHT = BUBBLE_DIAMETER * 0.866; // Based on hexagon packing
-
-                canvas.width = containerWidth;
-                canvas.height = window.innerHeight * 0.7;
-                
-                devil.x = canvas.width / 2;
-                devil.y = canvas.height - BUBBLE_RADIUS * 2.5;
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+                BUBBLE_RADIUS = canvas.width / (COLS * 2);
+                ROW_HEIGHT = BUBBLE_RADIUS * Math.sqrt(3);
+                shooter.x = canvas.width / 2;
+                shooter.y = canvas.height - BUBBLE_RADIUS * 2;
             }
 
             function init() {
-                setCanvasDimensions();
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                
+                gameOver = false;
+                isShooting = false;
                 score = 0;
                 misses = 0;
-                isShooting = false;
-                gameOver = false;
-                gameOverScreen.style.display = 'none';
-                winScreen.style.display = 'none';
+
+                setCanvasDimensions();
+                
+                gameOverScreen.classList.remove('visible');
+                winScreen.classList.remove('visible');
+
                 updateInfoPanel();
                 createGrid();
-                createProjectile(); // Creates 'nextProjectile'
-                createProjectile(); // Moves 'next' to 'current' and creates new 'next'
-                requestAnimationFrame(gameLoop);
+                createProjectile();
+                createProjectile();
+
+                animationFrameId = requestAnimationFrame(gameLoop);
             }
 
             function createGrid() {
@@ -212,118 +222,100 @@
                     const row = [];
                     const colsInRow = (r % 2 === 0) ? COLS : COLS - 1;
                     for (let c = 0; c < colsInRow; c++) {
-                         if (Math.random() > 0.1) {
-                            row.push({
-                                color: BUBBLE_COLORS[Math.floor(Math.random() * BUBBLE_COLORS.length)],
-                                visible: true,
-                                r: r, c: c
-                            });
-                        } else {
-                            row.push(null);
-                        }
+                        row.push({
+                            color: BUBBLE_COLORS[Math.floor(Math.random() * BUBBLE_COLORS.length)],
+                            visible: true, r, c
+                        });
                     }
                     grid.push(row);
                 }
                 updateBubblePositions();
             }
 
-            function updateBubblePositions() {
-                for (let r = 0; r < grid.length; r++) {
-                    const colsInRow = (r % 2 === 0) ? COLS : COLS - 1;
-                    for (let c = 0; c < colsInRow; c++) {
-                        if (grid[r][c]) {
-                            grid[r][c].x = (r % 2 === 0) ? c * BUBBLE_DIAMETER + BUBBLE_RADIUS : c * BUBBLE_DIAMETER + BUBBLE_DIAMETER;
-                            grid[r][c].y = r * ROW_HEIGHT + BUBBLE_RADIUS;
-                        }
-                    }
+            function updateBubblePositions(shiftDown = false) {
+                if (shiftDown) {
+                   grid.forEach(row => row.forEach(bubble => bubble && (bubble.r++)));
                 }
+                grid.forEach((row, r) => {
+                    row.forEach((bubble, c) => {
+                        if (bubble) {
+                            bubble.x = (r % 2 === 0) ? (c + 1) * BUBBLE_RADIUS * 2 - BUBBLE_RADIUS : (c + 1) * BUBBLE_RADIUS * 2;
+                            bubble.y = r * ROW_HEIGHT + BUBBLE_RADIUS;
+                        }
+                    });
+                });
             }
 
             function getAvailableColors() {
-                const colors = new Set();
-                grid.flat().filter(b => b && b.visible).forEach(b => colors.add(b.color));
-                return colors.size > 0 ? Array.from(colors) : BUBBLE_COLORS.slice(0, 3);
+                const colors = new Set(grid.flat().filter(b => b && b.visible).map(b => b.color));
+                return colors.size > 0 ? Array.from(colors) : BUBBLE_COLORS;
             }
 
             function createProjectile() {
                 projectile = nextProjectile;
                 const availableColors = getAvailableColors();
                 const color = availableColors[Math.floor(Math.random() * availableColors.length)];
-                nextProjectile = {
-                    x: devil.x, y: devil.y,
-                    color: color,
-                    dx: 0, dy: 0,
-                    speed: canvas.height / 40
-                };
-                if (!projectile) { // First run
-                    projectile = { ...nextProjectile, color: availableColors[Math.floor(Math.random() * availableColors.length)] };
-                }
+                nextProjectile = { x: shooter.x, y: shooter.y, color: color, speed: canvas.height / 50 };
+                if (!projectile) projectile = { ...nextProjectile, color: availableColors[Math.floor(Math.random() * availableColors.length)] };
             }
 
-            function drawBubble(bubble) {
-                if (!bubble) return;
-                ctx.beginPath();
-                ctx.arc(bubble.x, bubble.y, BUBBLE_RADIUS, 0, Math.PI * 2);
-                ctx.fillStyle = bubble.color;
-                ctx.fill();
-                ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-                ctx.stroke();
-                // Shine effect
-                ctx.beginPath();
-                ctx.arc(bubble.x - BUBBLE_RADIUS / 3, bubble.y - BUBBLE_RADIUS / 3, BUBBLE_RADIUS / 4, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-                ctx.fill();
-            }
-
+            // --- Drawing ---
             function draw() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                grid.flat().forEach(bubble => {
-                    if (bubble && bubble.visible) drawBubble(bubble);
-                });
-                drawDevilShooter();
-                if (isShooting && projectile) drawBubble(projectile);
+                drawAimLine();
+                grid.flat().forEach(bubble => bubble && bubble.visible && drawBubble(bubble));
+                drawShooter();
             }
             
-            function drawDevilShooter() {
-                const x = devil.x; const y = devil.y;
-                // Devil Body
-                ctx.fillStyle = '#d90429'; ctx.beginPath();
-                ctx.moveTo(x, y - BUBBLE_RADIUS); ctx.bezierCurveTo(x - BUBBLE_RADIUS * 1.5, y, x - BUBBLE_RADIUS, y + BUBBLE_RADIUS, x, y + BUBBLE_RADIUS);
-                ctx.bezierCurveTo(x + BUBBLE_RADIUS, y + BUBBLE_RADIUS, x + BUBBLE_RADIUS * 1.5, y, x, y - BUBBLE_RADIUS); ctx.fill();
-                
-                // Draw current projectile in position
-                if (!isShooting && projectile) drawBubble({ ...projectile, x: x, y: y });
+            function drawBubble(bubble) {
+                ctx.beginPath();
+                ctx.arc(bubble.x, bubble.y, BUBBLE_RADIUS, 0, Math.PI * 2);
+                const gradient = ctx.createRadialGradient(bubble.x - BUBBLE_RADIUS/3, bubble.y - BUBBLE_RADIUS/3, 1, bubble.x, bubble.y, BUBBLE_RADIUS);
+                gradient.addColorStop(0, 'rgba(255,255,255,0.7)');
+                gradient.addColorStop(1, bubble.color);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+            }
 
-                // Draw aiming line
-                ctx.save(); ctx.beginPath(); ctx.moveTo(x, y);
-                ctx.lineTo(x + Math.sin(devil.angle) * (canvas.height), y - Math.cos(devil.angle) * (canvas.height));
-                ctx.setLineDash([5, 10]); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'; ctx.stroke(); ctx.restore();
-
-                // Draw next projectile preview
-                if (nextProjectile) {
-                    ctx.globalAlpha = 0.8;
-                    drawBubble({ ...nextProjectile, x: BUBBLE_RADIUS * 2, y: devil.y, radius: BUBBLE_RADIUS / 1.5 });
-                    ctx.globalAlpha = 1.0;
+            function drawShooter() {
+                // Current projectile
+                if (!isShooting && projectile) drawBubble(projectile);
+                // Next projectile preview
+                if (nextProjectile) drawBubble({...nextProjectile, x: BUBBLE_RADIUS * 2, y: shooter.y, radius: BUBBLE_RADIUS * 0.7});
+            }
+            
+            function drawAimLine() {
+                if(isShooting || aimLine.length === 0) return;
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(aimLine[0].x, aimLine[0].y);
+                for(let i = 1; i < aimLine.length; i++){
+                    ctx.lineTo(aimLine[i].x, aimLine[i].y);
                 }
+                ctx.setLineDash([4, 8]);
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.stroke();
+                ctx.restore();
             }
-            
+
+            // --- Game Logic ---
             function update() {
-                if (gameOver || !isShooting || !projectile) return;
+                if (gameOver) return;
+                if (!isShooting || !projectile) return;
                 
                 projectile.x += projectile.dx;
                 projectile.y += projectile.dy;
 
-                if (projectile.x - BUBBLE_RADIUS < 0 || projectile.x + BUBBLE_RADIUS > canvas.width) { projectile.dx *= -1; }
-                if (projectile.y - BUBBLE_RADIUS < 0) { snapProjectile(projectile); return; }
+                // Collision detection
+                if (projectile.x <= BUBBLE_RADIUS || projectile.x >= canvas.width - BUBBLE_RADIUS) { projectile.dx *= -1; }
+                if (projectile.y <= BUBBLE_RADIUS) { snapProjectile(projectile); return; }
 
                 for (let r = 0; r < grid.length; r++) {
-                    const colsInRow = (r % 2 === 0) ? COLS : COLS - 1;
-                    for (let c = 0; c < colsInRow; c++) {
+                    for (let c = 0; c < grid[r].length; c++) {
                         const bubble = grid[r][c];
-                        if (bubble && bubble.visible) {
-                            if (Math.hypot(projectile.x - bubble.x, projectile.y - bubble.y) < BUBBLE_DIAMETER * 0.9) {
-                                snapProjectile(projectile); return;
-                            }
+                        if (bubble && bubble.visible && Math.hypot(projectile.x - bubble.x, projectile.y - bubble.y) < BUBBLE_RADIUS * 2) {
+                            snapProjectile(projectile); return;
                         }
                     }
                 }
@@ -332,70 +324,58 @@
             function snapProjectile(proj) {
                 isShooting = false;
                 
-                const gridR = Math.round((proj.y - BUBBLE_RADIUS) / ROW_HEIGHT);
-                const colsInRow = (gridR % 2 === 0) ? COLS : COLS - 1;
-                let gridC;
-                if(gridR % 2 === 0){
-                    gridC = Math.round((proj.x - BUBBLE_RADIUS) / BUBBLE_DIAMETER);
-                } else {
-                    gridC = Math.round((proj.x - BUBBLE_DIAMETER) / BUBBLE_DIAMETER);
-                }
-                
-                if (gridR < 0) gridR = 0;
-                if (gridC < 0) gridC = 0;
-                if (gridC >= colsInRow) gridC = colsInRow - 1;
-                
-                while(grid.length <= gridR) { grid.push(new Array((grid.length % 2 === 0) ? COLS : COLS - 1).fill(null)); }
-                if(grid[gridR][gridC]){
-                    // Simple collision resolution: find nearest empty slot
-                    let found = false;
-                    for (let i = -1; i <= 1 && !found; i++) {
-                        for (let j = -1; j <= 1 && !found; j++) {
-                            const newR = gridR + i;
-                            const newC = gridC + j;
-                            if (newR >= 0 && newR < grid.length && newC >= 0 && newC < grid[newR].length && !grid[newR][newC]) {
-                                gridR = newR; gridC = newC; found = true;
+                let bestFit = { r: -1, c: -1, dist: Infinity };
+                for (let r = 0; r < grid.length + 1; r++) {
+                    const colsInRow = (r % 2 === 0) ? COLS : COLS - 1;
+                    for (let c = 0; c < colsInRow; c++) {
+                        const x = (r % 2 === 0) ? (c + 1) * BUBBLE_RADIUS * 2 - BUBBLE_RADIUS : (c + 1) * BUBBLE_RADIUS * 2;
+                        const y = r * ROW_HEIGHT + BUBBLE_RADIUS;
+
+                        if (!grid[r] || !grid[r][c] || !grid[r][c].visible) {
+                            const dist = Math.hypot(proj.x - x, proj.y - y);
+                            if (dist < BUBBLE_RADIUS * 2 && dist < bestFit.dist) {
+                                // Check for neighbors or if it's the top row
+                                if (r === 0 || getNeighbors(r, c).some(n => grid[n.r] && grid[n.r][n.c] && grid[n.r][n.c].visible)) {
+                                    bestFit = { r, c, dist };
+                                }
                             }
                         }
                     }
                 }
 
-                grid[gridR][gridC] = { color: proj.color, visible: true, r: gridR, c: gridC };
+                const {r, c} = bestFit;
+                if (r === -1) { triggerGameOver(false); return; } // Should not happen
+
+                if (!grid[r]) {
+                    while(grid.length <= r) grid.push([]);
+                }
+                grid[r][c] = { color: proj.color, visible: true, r, c };
                 updateBubblePositions();
 
-                const matches = findMatches(gridR, gridC);
+                const matches = findMatches(r, c);
                 if (matches.length >= 3) {
-                    matches.forEach(b => { grid[b.r][b.c].visible = false; });
+                    matches.forEach(b => { grid[b.r][b.c] = null; });
                     score += matches.length * 10;
-                    
                     const floating = findFloating();
-                    floating.forEach(b => {
-                        grid[b.r][b.c].visible = false;
-                        score += 20;
-                    });
+                    floating.forEach(b => { grid[b.r][b.c] = null; score += 20; });
                     misses = 0;
                 } else {
                     misses++;
                 }
+                
                 checkGameState();
                 if (!gameOver) createProjectile();
             }
-            
+
             function getNeighbors(r, c) {
                 const isEvenRow = r % 2 === 0;
                 const neighborDefs = [
-                    { dr: 0, dc: -1 }, { dr: 0, dc: 1 }, // Left, Right
-                    { dr: -1, dc: isEvenRow ? -1 : 0 }, { dr: -1, dc: isEvenRow ? 0 : 1 }, // Top-Left, Top-Right
-                    { dr: 1, dc: isEvenRow ? -1 : 0 }, { dr: 1, dc: isEvenRow ? 0 : 1 }  // Bottom-Left, Bottom-Right
+                    { dr: 0, dc: -1 }, { dr: 0, dc: 1 },
+                    { dr: -1, dc: isEvenRow ? -1 : 0 }, { dr: -1, dc: isEvenRow ? 0 : 1 },
+                    { dr: 1, dc: isEvenRow ? -1 : 0 }, { dr: 1, dc: isEvenRow ? 0 : 1 }
                 ];
-                const neighbors = [];
-                neighborDefs.forEach(def => {
-                    const nr = r + def.dr; const nc = c + def.dc;
-                    if (nr >= 0 && nr < grid.length && nc >= 0 && grid[nr] && nc < grid[nr].length) {
-                        neighbors.push({ r: nr, c: nc });
-                    }
-                });
-                return neighbors;
+                return neighborDefs.map(def => ({ r: r + def.dr, c: c + def.dc }))
+                    .filter(n => n.r >= 0 && n.r < grid.length && n.c >= 0 && grid[n.r] && n.c < grid[n.r].length);
             }
 
             function findMatches(startR, startC) {
@@ -410,80 +390,55 @@
                     matches.push(current);
                     getNeighbors(current.r, current.c).forEach(n => {
                         if (grid[n.r][n.c] && grid[n.r][n.c].visible && grid[n.r][n.c].color === targetColor && !visited.has(`${n.r},${n.c}`)) {
-                            visited.add(`${n.r},${n.c}`);
-                            toVisit.push(n);
+                            visited.add(`${n.r},${n.c}`); toVisit.push(n);
                         }
                     });
                 }
                 return matches;
             }
-            
+
             function findFloating() {
                 const connected = new Set();
-                const toVisit = [];
-                if (grid[0]) {
-                    grid[0].forEach((bubble, c) => {
-                        if (bubble && bubble.visible) {
-                            toVisit.push({ r: 0, c: c });
-                            connected.add(`0,${c}`);
-                        }
-                    });
-                }
+                const toVisit = grid[0].map((b,c) => b && {r:0,c}).filter(Boolean);
+                toVisit.forEach(b => connected.add(`${b.r},${b.c}`));
+                
                 while(toVisit.length > 0) {
                     const current = toVisit.pop();
                     getNeighbors(current.r, current.c).forEach(n => {
-                        if (grid[n.r][n.c] && grid[n.r][n.c].visible && !connected.has(`${n.r},${n.c}`)) {
+                        if (grid[n.r][n.c] && !connected.has(`${n.r},${n.c}`)) {
                             connected.add(`${n.r},${n.c}`); toVisit.push(n);
                         }
                     });
                 }
-                const floating = [];
-                for (let r = 0; r < grid.length; r++) {
-                    for (let c = 0; c < grid[r].length; c++) {
-                        if(grid[r][c] && grid[r][c].visible && !connected.has(`${r},${c}`)) {
-                            floating.push({r, c});
-                        }
-                    }
-                }
-                return floating;
+                return grid.flat().filter(b => b && !connected.has(`${b.r},${b.c}`));
             }
-            
+
             function addNewRow() {
-                const newRow = [];
-                for (let c = 0; c < COLS; c++) {
-                    newRow.push({
-                        color: BUBBLE_COLORS[Math.floor(Math.random() * BUBBLE_COLORS.length)],
-                        visible: true
-                    });
-                }
+                updateBubblePositions(true); // Shift all rows down
+                const newRow = Array.from({length: COLS}, (_, c) => ({
+                    color: BUBBLE_COLORS[Math.floor(Math.random() * BUBBLE_COLORS.length)],
+                    visible: true, r: 0, c
+                }));
                 grid.unshift(newRow);
                 misses = 0;
                 updateBubblePositions();
             }
 
             function checkGameState() {
-                // Loss condition
-                const lastBubble = grid.flat().filter(b => b && b.visible).sort((a,b) => b.y - a.y)[0];
-                if (lastBubble && lastBubble.y + BUBBLE_RADIUS >= devil.y - BUBBLE_RADIUS*2) {
-                    triggerGameOver(false); return;
-                }
-                // Win condition
-                if (grid.flat().filter(b => b && b.visible).length === 0) {
-                    triggerGameOver(true); return;
-                }
+                if (grid.flat().filter(b => b && b.visible).length === 0) { triggerGameOver(true); return; }
+                const lastRow = grid[grid.length-1];
+                if (lastRow && lastRow.some(b => b && b.visible && b.y + BUBBLE_RADIUS >= shooter.y - BUBBLE_RADIUS)) { triggerGameOver(false); return; }
                 if (misses >= MISSES_ALLOWED) addNewRow();
                 updateInfoPanel();
             }
 
             function triggerGameOver(isWin) {
                 gameOver = true;
-                if (isWin) {
-                    finalScoreWinElement.textContent = `ניקוד סופי: ${score}`;
-                    winScreen.style.display = 'flex';
-                } else {
-                    finalScoreLoseElement.textContent = `ניקוד סופי: ${score}`;
-                    gameOverScreen.style.display = 'flex';
-                }
+                cancelAnimationFrame(animationFrameId);
+                const screen = isWin ? winScreen : gameOverScreen;
+                const scoreEl = isWin ? finalScoreWinElement : finalScoreLoseElement;
+                scoreEl.textContent = `ניקוד סופי: ${score}`;
+                screen.classList.add('visible');
             }
 
             function updateInfoPanel() {
@@ -494,35 +449,68 @@
             function gameLoop() {
                 update();
                 draw();
-                if (!gameOver) requestAnimationFrame(gameLoop);
+                if (!gameOver) animationFrameId = requestAnimationFrame(gameLoop);
             }
 
+            // --- Controls ---
             function handleAim(x, y) {
-                if (gameOver || y > devil.y) return;
+                if (gameOver || isShooting) return;
                 const rect = canvas.getBoundingClientRect();
                 const mouseX = x - rect.left; const mouseY = y - rect.top;
-                let angle = Math.atan2(mouseY - devil.y, mouseX - devil.x) + Math.PI / 2;
-                const minAngle = -Math.PI / 2 - 1.45; const maxAngle = -Math.PI / 2 + 1.45;
-                devil.angle = Math.max(minAngle, Math.min(maxAngle, angle));
+                
+                if (mouseY >= shooter.y) return;
+                
+                shooter.angle = Math.atan2(mouseY - shooter.y, mouseX - shooter.x);
+                if(shooter.angle > -0.1) shooter.angle = -0.1;
+                if(shooter.angle < -Math.PI + 0.1) shooter.angle = -Math.PI + 0.1;
+
+                // Calculate aim line with bounces
+                aimLine = [{x: shooter.x, y: shooter.y}];
+                let currentPos = {x: shooter.x, y: shooter.y};
+                let currentAngle = shooter.angle;
+                for(let i=0; i < 3; i++) { // Max 2 bounces
+                    const dx = Math.cos(currentAngle);
+                    const dy = Math.sin(currentAngle);
+                    let nextX, nextY;
+                    let t = Infinity;
+
+                    // Wall collision
+                    if (dx > 0) t = Math.min(t, (canvas.width - BUBBLE_RADIUS - currentPos.x) / dx);
+                    else if (dx < 0) t = Math.min(t, (BUBBLE_RADIUS - currentPos.x) / dx);
+
+                    nextX = currentPos.x + t * dx;
+                    nextY = currentPos.y + t * dy;
+
+                    aimLine.push({x: nextX, y: nextY});
+
+                    if (nextX <= BUBBLE_RADIUS || nextX >= canvas.width - BUBBLE_RADIUS) {
+                        currentPos = {x: nextX, y: nextY};
+                        currentAngle = Math.PI - currentAngle;
+                    } else {
+                        break;
+                    }
+                }
             }
 
             function handleShoot() {
                 if (isShooting || gameOver) return;
                 isShooting = true;
-                projectile.dx = Math.sin(devil.angle) * projectile.speed;
-                projectile.dy = -Math.cos(devil.angle) * projectile.speed;
+                projectile.dx = Math.cos(shooter.angle) * projectile.speed;
+                projectile.dy = Math.sin(shooter.angle) * projectile.speed;
+                aimLine = [];
             }
-
+            
             // Event Listeners
-            canvas.addEventListener('mousemove', e => handleAim(e.clientX, e.clientY));
-            canvas.addEventListener('touchmove', e => { e.preventDefault(); handleAim(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
-            canvas.addEventListener('click', handleShoot);
-            canvas.addEventListener('touchend', handleShoot);
+            let isPointerDown = false;
+            container.addEventListener('pointerdown', e => { isPointerDown = true; handleAim(e.clientX, e.clientY); });
+            container.addEventListener('pointermove', e => { if(isPointerDown) handleAim(e.clientX, e.clientY); });
+            container.addEventListener('pointerup', () => { if(isPointerDown) handleShoot(); isPointerDown = false; });
+            container.addEventListener('pointerleave', () => { isPointerDown = false; });
             
             document.querySelectorAll('.restart-button').forEach(btn => btn.addEventListener('click', init));
             window.addEventListener('resize', init);
-
-            init();
+            
+            init(); // Start game on load
         });
     </script>
 
