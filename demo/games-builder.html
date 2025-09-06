@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>WizBI — AI Game Builder (Demo)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="description" content="Build, publish, and share AI-generated web games. End-to-end demo: landing → studio → game." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect rx='12' ry='12' width='64' height='64' fill='%23000'/%3E%3Cpath d='M12 44 L24 20 L32 36 L40 20 L52 44' stroke='%23fff' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <style>
+    :root{
+      --bg: #0b0d10;
+      --card: #11141a;
+      --muted: #94a3b8;
+      --text: #e6edf3;
+      --brand: #7c5cff;
+      --brand-2: #00e7d4;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --err: #ef4444;
+      --shadow: 0 10px 30px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.05) inset;
+      --radius: 16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font:16px/1.5 Inter,system-ui,Segoe UI,Roboto,Apple Color Emoji,Segoe UI Emoji,Arial,sans-serif;
+      background: radial-gradient(1200px 600px at 80% -10%, rgba(124,92,255,.2), transparent 50%),
+                  radial-gradient(900px 400px at 10% -10%, rgba(0,231,212,.18), transparent 50%), var(--bg);
+      color:var(--text);
+    }
+    a{color:inherit;text-decoration:none}
+    .container{max-width:1100px;margin:0 auto;padding:24px}
+    .stack{display:flex;gap:16px;flex-wrap:wrap}
+    .row{display:flex;gap:16px;align-items:center}
+    .col{display:flex;flex-direction:column;gap:12px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+          border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); box-shadow:var(--shadow);}
+    .glass{backdrop-filter: saturate(1.2) blur(8px)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+         padding:12px 16px;border-radius:999px;font-weight:600;border:1px solid rgba(255,255,255,.14);
+         background: linear-gradient(180deg, rgba(124,92,255,.15), rgba(124,92,255,.06));
+         color:#fff; cursor:pointer; transition:transform .06s ease, box-shadow .2s ease;
+         box-shadow:0 8px 20px rgba(124,92,255,.25), 0 0 0 1px rgba(255,255,255,.06) inset}
+    .btn:hover{transform:translateY(-1px)}
+    .btn.secondary{background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); color:var(--text)}
+    .chip{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);font-size:12px}
+    .muted{color:var(--muted)}
+    .hero{
+      padding:60px 24px 26px; text-align:center;
+      background: radial-gradient(600px 300px at 50% -20%, rgba(124,92,255,.28), transparent 60%),
+                  linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0));
+      border-bottom:1px solid rgba(255,255,255,.07)
+    }
+    h1{font-size:clamp(28px, 3.4vw, 44px); line-height:1.1; margin:0}
+    h2{font-size:clamp(20px, 2.4vw, 28px); line-height:1.15; margin:0}
+    .grid{display:grid; gap:16px}
+    @media(min-width:860px){ .grid-3{grid-template-columns:repeat(3, 1fr)} .grid-2{grid-template-columns:1.2fr 1fr} }
+    .pill{border-radius:999px;padding:6px 10px;background:rgba(0,231,212,.12);border:1px solid rgba(0,231,212,.25); color: #ccfff8; font-weight:600}
+    .input, select, textarea{
+      width:100%; padding:12px 14px;border-radius:12px; border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.04); color:var(--text); outline:none
+    }
+    label{font-size:12px; color:var(--muted)}
+    .kpi{display:flex;align-items:center;justify-content:space-between;padding:14px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+    .kpi b{font-size:18px}
+    .divider{height:1px;background:linear-gradient(90deg, rgba(255,255,255,.05), rgba(255,255,255,.1), rgba(255,255,255,.05));border:0}
+    .footer{padding:24px;text-align:center;color:var(--muted);font-size:13px}
+    .hidden{display:none !important}
+    .tag{font-size:11px;opacity:.9;border:1px solid rgba(255,255,255,.12);padding:4px 8px;border-radius:999px}
+    .ad-slot{height:90px;border-radius:12px;border:1px dashed rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;color:#d1d5db;background:rgba(255,255,255,.04)}
+    .badge{font-size:11px;padding:4px 8px;border-radius:999px;background:rgba(124,92,255,.25);border:1px solid rgba(124,92,255,.5)}
+    .link{color:#b7c8ff; text-decoration:underline}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+    /* mobile header */
+    .topbar{position:sticky;top:0;z-index:30;background:rgba(11,13,16,.8);backdrop-filter: blur(8px);border-bottom:1px solid rgba(255,255,255,.07)}
+    .topbar .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+    .topnav{display:flex;gap:8px;flex-wrap:wrap}
+    .topnav .btn{padding:8px 12px;font-size:14px}
+    /* game canvas wrapper */
+    #gameCanvas{background:linear-gradient(180deg,#0f172a,#0b1220);border-radius:12px;border:1px solid rgba(255,255,255,.12);width:100%;height:360px;display:block}
+    @media(min-width:860px){ #gameCanvas{height:420px}}
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#0f172a;color:#e6edf3;border:1px solid rgba(255,255,255,.1);padding:12px 16px;border-radius:999px;box-shadow:var(--shadow);z-index:50;opacity:0;pointer-events:none;transition:opacity .25s}
+    .toast.show{opacity:1}
+  </style>
+</head>
+<body>
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="container row" style="justify-content:space-between;padding:10px 24px">
+      <div class="brand">
+        <svg width="28" height="28" viewBox="0 0 64 64" aria-hidden="true"><rect rx="12" ry="12" width="64" height="64" fill="#7c5cff"/><path d="M12 44 L24 20 L32 36 L40 20 L52 44" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>WizBI • <span class="muted">AI Game Builder</span></span>
+      </div>
+      <div class="topnav">
+        <button class="btn secondary" onclick="route('home')">Home</button>
+        <button class="btn secondary" onclick="route('studio')">Studio</button>
+        <button class="btn secondary" onclick="route('market')">Market</button>
+        <button class="btn" onclick="fakeSignIn()"><span id="authBtn">Sign in</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Views -->
+  <main id="view-home">
+    <section class="hero">
+      <div class="container col" style="gap:22px">
+        <span class="pill">From idea → playable game in 2 minutes</span>
+        <h1>Build, publish & share AI-generated web games — end-to-end.</h1>
+        <p class="muted" style="max-width:780px;margin:0 auto">
+          Describe your game. Our AI crafts code, art & sounds, wires analytics and monetization, and publishes a shareable link.
+          Pay creators fairly, track performance, and grow with referrals — all in a single click.
+        </p>
+        <div class="row" style="justify-content:center;gap:10px">
+          <button class="btn" onclick="route('studio')">Start for free</button>
+          <button class="btn secondary" onclick="scrollToId('features')">See how it works</button>
+        </div>
+        <div class="row" style="justify-content:center;gap:8px;margin-top:10px">
+          <span class="chip">No installs</span>
+          <span class="chip">Mobile-ready</span>
+          <span class="chip">Ads & Tips built-in</span>
+          <span class="chip">Analytics & A/B</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="container grid grid-3" id="features" style="margin-top:22px">
+      <div class="card glass col" style="padding:18px">
+        <h2>01 — Describe</h2>
+        <p class="muted">Write a short prompt. Choose a genre. AI drafts mechanics, levels and assets with safe defaults.</p>
+        <div class="kpi"><span class="muted">Avg. spec time</span><b>42s</b></div>
+      </div>
+      <div class="card glass col" style="padding:18px">
+        <h2>02 — Build</h2>
+        <p class="muted">We generate clean HTML5/Canvas code, wire telemetry and ad slots (off by default), then sandbox-test it.</p>
+        <div class="kpi"><span class="muted">Code coverage (smoke)</span><b>95%</b></div>
+      </div>
+      <div class="card glass col" style="padding:18px">
+        <h2>03 — Publish</h2>
+        <p class="muted">Get a link you can share. Enable tips or ads later. Referral links reward your first players.</p>
+        <div class="kpi"><span class="muted">Time to share</span><b>&lt; 2m</b></div>
+      </div>
+    </section>
+
+    <section class="container grid grid-2" style="margin-top:22px;align-items:start">
+      <div class="card glass col" style="padding:18px">
+        <h2>Live demo</h2>
+        <p class="muted">Skip straight to a playable sample game. This is what a freshly published link looks like.</p>
+        <div class="row" style="gap:10px">
+          <button class="btn" onclick="route('play-demo')">Play sample game</button>
+          <button class="btn secondary" onclick="copyDemo()">Copy public link</button>
+        </div>
+        <small class="muted">Share it with friends — the more they play, the more you earn (when monetization is on).</small>
+      </div>
+      <div class="card glass col" style="padding:18px">
+        <h2>Creator earnings</h2>
+        <p class="muted">Creators can receive tips immediately, and enable revenue share from ads after review.</p>
+        <div class="grid" style="grid-template-columns:1fr 1fr;gap:8px">
+          <div class="kpi"><span class="muted">Tips</span><b>$124</b></div>
+          <div class="kpi"><span class="muted">eCPM</span><b>$4.10</b></div>
+          <div class="kpi"><span class="muted">7-day plays</span><b>3.2k</b></div>
+          <div class="kpi"><span class="muted">Share rate</span><b>28%</b></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="container footer">
+      <hr class="divider">
+      <div>Built on GCP • Cloud Run • Firebase • Privacy-first • Demo only — no real payments/ads here</div>
+    </section>
+  </main>
+
+  <!-- Studio -->
+  <main id="view-studio" class="hidden">
+    <section class="container grid grid-2" style="margin-top:22px">
+      <div class="card glass col" style="padding:18px">
+        <h2>Studio — Generate your game</h2>
+        <label>Game idea</label>
+        <textarea id="idea" class="input" rows="4" placeholder="e.g., A neon endless runner where a cube jumps over obstacles."></textarea>
+        <div class="row" style="gap:10px">
+          <div class="col" style="flex:1">
+            <label>Genre</label>
+            <select id="genre" class="input">
+              <option value="runner">Endless Runner</option>
+              <option value="trivia">Trivia</option>
+              <option value="puzzle">Puzzle</option>
+            </select>
+          </div>
+          <div class="col" style="flex:1">
+            <label>Difficulty</label>
+            <select id="difficulty" class="input">
+              <option value="easy">Easy</option>
+              <option value="normal" selected>Normal</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+        </div>
+        <div class="row" style="gap:10px;flex-wrap:wrap">
+          <button class="btn" onclick="generateGame()">Generate</button>
+          <button class="btn secondary" onclick="prefill()">Surprise me</button>
+          <span class="chip">Safe content • Zero PII</span>
+        </div>
+        <div id="genLog" class="mono muted" style="white-space:pre-wrap;min-height:80px;margin-top:8px"></div>
+      </div>
+
+      <div class="card glass col" style="padding:18px">
+        <h2>Monetization & sharing</h2>
+        <div class="row" style="gap:10px;flex-wrap:wrap">
+          <span class="tag">Tips (mock)</span>
+          <span class="tag">Ad slot prepared</span>
+          <span class="tag">Referral link</span>
+          <span class="tag">Server events</span>
+        </div>
+        <div class="ad-slot" style="margin:10px 0">Ad slot — 728×90 (placeholder)</div>
+        <div class="row" style="gap:10px;flex-wrap:wrap">
+          <button class="btn" onclick="mockCheckout()">Enable tips</button>
+          <button class="btn secondary" onclick="enableAds()">Request ads review</button>
+        </div>
+        <small class="muted">In production we’d connect Stripe/Rapyd and Google Ad Manager. Here it’s a safe demo.</small>
+        <hr class="divider" style="margin:14px 0">
+        <div class="row" style="gap:10px;flex-wrap:wrap">
+          <button class="btn secondary" onclick="shareLink()">Share</button>
+          <button class="btn secondary" onclick="copyLink()">Copy link</button>
+        </div>
+        <div id="pubUrl" class="mono" style="word-break:break-all;margin-top:8px"></div>
+      </div>
+    </section>
+
+    <section class="container grid grid-2" style="margin-top:22px">
+      <div class="card glass col" style="padding:18px">
+        <h2>Preview</h2>
+        <canvas id="gameCanvas" width="800" height="420" aria-label="Game canvas"></canvas>
+        <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px">
+          <button class="btn" onclick="startGame()">▶ Play</button>
+          <button class="btn secondary" onclick="pauseGame()">⏸ Pause</button>
+          <button class="btn secondary" onclick="resetGame()">↺ Reset</button>
+          <span class="chip">Jump: tap / space</span>
+        </div>
+      </div>
+      <div class="card glass col" style="padding:18px">
+        <h2>Analytics (mock)</h2>
+        <div class="kpi"><span class="muted">Plays</span><b id="kpiPlays">0</b></div>
+        <div class="kpi"><span class="muted">Best score</span><b id="kpiBest">0</b></div>
+        <div class="kpi"><span class="muted">Shares</span><b id="kpiShares">0</b></div>
+        <div class="kpi"><span class="muted">Tips (simulated)</span><b id="kpiTips">$0.00</b></div>
+        <small class="muted">In real life we’d stream events to BigQuery and GA4 (server + client). Here we store to localStorage.</small>
+      </div>
+    </section>
+
+    <section class="container footer">
+      <hr class="divider"><div>Need help? Press “Surprise me”, then Generate → Play → Publish.</div>
+    </section>
+  </main>
+
+  <!-- Market (gallery placeholder) -->
+  <main id="view-market" class="hidden">
+    <section class="container" style="margin-top:22px">
+      <div class="row" style="justify-content:space-between">
+        <h2>Market — featured games</h2>
+        <span class="badge">Demo feed</span>
+      </div>
+      <div id="marketGrid" class="grid grid-3" style="margin-top:12px"></div>
+      <section class="footer"><hr class="divider"><div class="muted">Creators keep 60% after fees. Ads only after review.</div></section>
+    </section>
+  </main>
+
+  <!-- Play page (public link simulation) -->
+  <main id="view-play" class="hidden">
+    <section class="container grid grid-2" style="margin-top:22px">
+      <div class="card glass col" style="padding:18px">
+        <h2 id="playTitle">Neon Runner — demo</h2>
+        <canvas id="pubCanvas" width="800" height="420"></canvas>
+        <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px">
+          <button class="btn" onclick="pubStart()">▶ Play</button>
+          <button class="btn secondary" onclick="pubPause()">⏸ Pause</button>
+          <button class="btn secondary" onclick="pubReset()">↺ Reset</button>
+          <button class="btn secondary" onclick="shareLink()">Share</button>
+        </div>
+        <div class="ad-slot" style="margin-top:10px">Ad slot — 728×90 (placeholder)</div>
+      </div>
+      <div class="card glass col" style="padding:18px">
+        <h2>About this game</h2>
+        <div id="playDesc" class="muted"></div>
+        <hr class="divider" style="margin:12px 0">
+        <div class="kpi"><span class="muted">Total plays</span><b id="playPlays">0</b></div>
+        <div class="kpi"><span class="muted">Best score</span><b id="playBest">0</b></div>
+        <div class="row" style="gap:10px;flex-wrap:wrap;margin-top:10px">
+          <button class="btn" onclick="mockCheckout()">Tip the creator</button>
+          <button class="btn secondary" onclick="copyLink()">Copy link</button>
+        </div>
+      </div>
+    </section>
+    <section class="container footer"><hr class="divider"><div class="muted">Public link demo. Analytics persisted locally per browser.</div></section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    /***********************
+     * SPA Router & State  *
+     ***********************/
+    const views = {
+      home: document.getElementById('view-home'),
+      studio: document.getElementById('view-studio'),
+      market: document.getElementById('view-market'),
+      play: document.getElementById('view-play'),
+    };
+    const authBtn = document.getElementById('authBtn');
+    let currentRoute = 'home';
+    function route(name){
+      Object.values(views).forEach(v => v.classList.add('hidden'));
+      if(name === 'play-demo'){ name = 'play'; ensureDemoPublished(); }
+      views[name]?.classList.remove('hidden');
+      currentRoute = name;
+      if(name==='studio'){ resizeGameCanvas(); }
+      if(name==='market'){ renderMarket(); }
+      if(name==='play'){ loadPublicMeta(); resizePubCanvas(); }
+      stopAllGames();
+      location.hash = '#' + name;
+    }
+    window.addEventListener('hashchange',()=>{
+      const r = location.hash.replace('#','')||'home';
+      route(r);
+    });
+    // init
+    if(location.hash){ route(location.hash.replace('#','')); }
+
+    /***********************
+     * Auth (mock)         *
+     ***********************/
+    function fakeSignIn(){
+      const u = JSON.parse(localStorage.getItem('demo_user')||'null');
+      if(u){ localStorage.removeItem('demo_user'); authBtn.textContent = 'Sign in'; toast('Signed out.'); return; }
+      const demo = { uid: 'u_'+Math.random().toString(36).slice(2,8), name: 'Creator', plan: 'free' };
+      localStorage.setItem('demo_user', JSON.stringify(demo));
+      authBtn.textContent = 'Creator (free)';
+      toast('Signed in as Creator (demo)');
+    }
+    (function syncAuthBtn(){
+      if(localStorage.getItem('demo_user')) authBtn.textContent = 'Creator (free)';
+    })();
+
+    /***********************
+     * Studio: Generation  *
+     ***********************/
+    const genLog = document.getElementById('genLog');
+    const ideaEl = document.getElementById('idea');
+    const genreEl = document.getElementById('genre');
+    const diffEl = document.getElementById('difficulty');
+    const pubUrlEl = document.getElementById('pubUrl');
+
+    function prefill(){
+      const samples = [
+        'A neon endless runner in space with synthwave vibes.',
+        'A cozy forest runner, jump over logs and rivers.',
+        'A trivia rush: answer quickly to keep running.'
+      ];
+      ideaEl.value = samples[Math.floor(Math.random()*samples.length)];
+      genreEl.value = 'runner';
+      diffEl.value = ['easy','normal','hard'][Math.floor(Math.random()*3)];
+    }
+
+    function generateGame(){
+      const idea = ideaEl.value.trim() || 'A neon endless runner where a cube jumps over obstacles.';
+      const genre = genreEl.value;
+      const diff = diffEl.value;
+      genLog.textContent = '';
+      step('Analyzing idea...');
+      setTimeout(()=>{ step('Creating design doc...'); }, 400);
+      setTimeout(()=>{ step('Generating HTML5/Canvas code (safe defaults)...'); }, 900);
+      setTimeout(()=>{ step('Sandbox test: OK (60 FPS baseline)'); }, 1450);
+      setTimeout(()=>{ step('Wiring analytics & ad slots (disabled)...'); }, 1900);
+      setTimeout(()=>{ step('Ready. Click “Play”, then “Publish”.'); }, 2300);
+
+      // Save "spec" in localStorage
+      const spec = {
+        id: 'g_'+Date.now(),
+        title: idea.slice(0, 36),
+        genre, diff,
+        desc: idea,
+        createdAt: new Date().toISOString(),
+        plays: 0, best: 0, shares: 0,
+        monetization: { tips: false, ads: false }
+      };
+      localStorage.setItem('draft_game', JSON.stringify(spec));
+      // Setup game engine params from difficulty
+      setDifficulty(diff);
+      toast('Draft ready in Studio.');
+    }
+    function step(line){ genLog.textContent += (genLog.textContent?'\n':'') + '• ' + line; }
+
+    /***********************
+     * Monetization (mock) *
+     ***********************/
+    function mockCheckout(){
+      const tips = parseFloat(localStorage.getItem('tips_total')||'0') + 4.99;
+      localStorage.setItem('tips_total', tips.toFixed(2));
+      document.getElementById('kpiTips')?.textContent = '$'+tips.toFixed(2);
+      toast('Tip processed (mock) — $4.99');
+    }
+    function enableAds(){
+      const draft = JSON.parse(localStorage.getItem('draft_game')||'null');
+      if(!draft){ toast('Generate a game first.'); return; }
+      draft.monetization.ads = true;
+      localStorage.setItem('draft_game', JSON.stringify(draft));
+      toast('Ads review requested (simulated).');
+    }
+
+    /***********************
+     * Publish & Sharing   *
+     ***********************/
+    function publishNow(){
+      const draft = JSON.parse(localStorage.getItem('draft_game')||'null');
+      if(!draft){ toast('Generate a game first.'); return; }
+      const slug = draft.id;
+      const url = location.origin + location.pathname + '#play?g=' + slug;
+      draft.url = url;
+      localStorage.setItem('public_'+slug, JSON.stringify(draft));
+      localStorage.setItem('last_pub', slug);
+      pubUrlEl.textContent = url;
+      upsertMarket(draft);
+      toast('Published! Public link ready.');
+    }
+    function copyLink(){
+      const slug = localStorage.getItem('last_pub');
+      const draft = slug ? JSON.parse(localStorage.getItem('public_'+slug)||'null') : null;
+      const url = draft?.url || (location.origin + location.pathname + '#play?g=demo');
+      navigator.clipboard.writeText(url).then(()=>toast('Link copied.'));
+    }
+    async function shareLink(){
+      const slug = localStorage.getItem('last_pub');
+      const draft = slug ? JSON.parse(localStorage.getItem('public_'+slug)||'null') : null;
+      const url = draft?.url || (location.origin + location.pathname + '#play?g=demo');
+      const title = draft?.title || 'Neon Runner';
+      try{
+        if(navigator.share){
+          await navigator.share({ title, text: 'Play my new AI-built game!', url });
+        }else{
+          await navigator.clipboard.writeText(url);
+          toast('Link copied (no Web Share on this device).');
+        }
+        incShares();
+      }catch(e){ /* user canceled */ }
+    }
+    function incShares(){
+      const draft = JSON.parse(localStorage.getItem('draft_game')||'null');
+      if(draft){ draft.shares++; localStorage.setItem('draft_game', JSON.stringify(draft)); }
+      const slug = localStorage.getItem('last_pub');
+      if(slug){
+        const pub = JSON.parse(localStorage.getItem('public_'+slug)||'null');
+        if(pub){ pub.shares++; localStorage.setItem('public_'+slug, JSON.stringify(pub)); }
+      }
+      document.getElementById('kpiShares')?.textContent = (parseInt(document.getElementById('kpiShares')?.textContent||'0')+1);
+    }
+
+    /***********************
+     * Market (gallery)    *
+     ***********************/
+    function upsertMarket(game){
+      const list = JSON.parse(localStorage.getItem('market_list')||'[]');
+      const idx = list.findIndex(x=>x.id===game.id);
+      if(idx>=0) list[idx]=game; else list.unshift(game);
+      localStorage.setItem('market_list', JSON.stringify(list.slice(0,12)));
+    }
+    function renderMarket(){
+      const grid = document.getElementById('marketGrid');
+      grid.innerHTML = '';
+      const list = JSON.parse(localStorage.getItem('market_list')||'[]');
+      if(list.length===0){ ensureDemoPublished(); }
+      (JSON.parse(localStorage.getItem('market_list')||'[]')).forEach(g=>{
+        const card = document.createElement('div');
+        card.className = 'card glass col';
+        card.style.padding='14px';
+        card.innerHTML = `
+          <div class="row" style="justify-content:space-between">
+            <b>${esc(g.title||'Untitled')}</b>
+            <span class="tag">${g.genre}</span>
+          </div>
+          <div class="muted" style="min-height:40px">${esc(g.desc||'—')}</div>
+          <div class="row" style="gap:8px;flex-wrap:wrap">
+            <span class="chip">Plays: ${g.plays||0}</span>
+            <span class="chip">Best: ${g.best||0}</span>
+            <span class="chip">Shares: ${g.shares||0}</span>
+          </div>
+          <div class="row" style="gap:8px;margin-top:8px">
+            <button class="btn" onclick="openGame('${g.id}')">Play</button>
+            <button class="btn secondary" onclick="copySpecific('${g.id}')">Copy link</button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+    function openGame(id){
+      localStorage.setItem('last_pub', id);
+      location.hash = '#play?g='+id;
+      route('play');
+    }
+    function copySpecific(id){
+      const pub = JSON.parse(localStorage.getItem('public_'+id)||'null');
+      const url = pub?.url || (location.origin + location.pathname + '#play?g='+id);
+      navigator.clipboard.writeText(url).then(()=>toast('Link copied.'));
+    }
+
+    /***********************
+     * Public Play View    *
+     ***********************/
+    function ensureDemoPublished(){
+      if(!localStorage.getItem('public_demo')){
+        const demo = {
+          id: 'demo',
+          title: 'Neon Runner — Demo',
+          genre: 'runner', diff: 'normal',
+          desc: 'A neon endless runner demo generated by AI.',
+          url: location.origin + location.pathname + '#play?g=demo',
+          plays: 0, best: 0, shares: 0,
+          monetization: { tips: true, ads: false }
+        };
+        localStorage.setItem('public_demo', JSON.stringify(demo));
+        upsertMarket(demo);
+      }
+      localStorage.setItem('last_pub', 'demo');
+    }
+    function loadPublicMeta(){
+      const q = new URLSearchParams((location.hash.split('?')[1]||''));
+      const id = q.get('g') || localStorage.getItem('last_pub') || 'demo';
+      const meta = JSON.parse(localStorage.getItem('public_'+id) || localStorage.getItem('public_demo'));
+      document.getElementById('playTitle').textContent = meta?.title || 'Untitled';
+      document.getElementById('playDesc').textContent = meta?.desc || '—';
+      document.getElementById('playPlays').textContent = meta?.plays||0;
+      document.getElementById('playBest').textContent = meta?.best||0;
+      // set difficulty for public engine
+      setDifficulty(meta?.diff||'normal', true);
+    }
+
+    /***********************
+     * Mini Game Engine    *
+     * HTML5 Canvas Runner *
+     ***********************/
+    // Shared params
+    let cfg = { speed: 5, gapMin: 120, gravity: 0.7, jump: 13 };
+    function setDifficulty(level, isPublic=false){
+      const base = { easy:{speed:4,gapMin:140,gravity:.68,jump:12}, normal:{speed:5,gapMin:120,gravity:.7,jump:13}, hard:{speed:6.2,gapMin:110,gravity:.72,jump:13.8} };
+      cfg = base[level] || base.normal;
+      (isPublic ? pubReset : resetGame)();
+    }
+
+    // Studio canvas
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let raf, t=0, player, obstacles, score, best=0, playing=false, groundY=0;
+    function resizeGameCanvas(){
+      // responsive sizing handled by CSS; we trust canvas size attr
+    }
+    function initGame(){
+      groundY = canvas.height - 60;
+      player = {x: 80, y: groundY, vy: 0, w: 24, h: 24, onGround:true};
+      obstacles = [];
+      score = 0;
+      t = 0;
+    }
+    function spawnObstacle(){
+      const w = 20 + Math.random()*24;
+      obstacles.push({x: canvas.width+10, y: groundY, w, h: 20 + Math.random()*20});
+    }
+    function stepGame(){
+      if(!playing) return;
+      t++;
+      // background
+      const g = ctx.createLinearGradient(0,0,0,canvas.height);
+      g.addColorStop(0,'#0b1220'); g.addColorStop(1,'#0a0f1a');
+      ctx.fillStyle = g; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+      // neon grid
+      ctx.strokeStyle = 'rgba(124,92,255,.15)'; ctx.lineWidth = 1;
+      for(let y=groundY+20;y<canvas.height;y+=18){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+      // ground
+      ctx.fillStyle = 'rgba(255,255,255,.06)'; ctx.fillRect(0, groundY+1, canvas.width, 4);
+
+      // player physics
+      player.vy += cfg.gravity;
+      player.y += player.vy;
+      if(player.y >= groundY){ player.y = groundY; player.vy = 0; player.onGround = true; }
+      // obstacles
+      if(t%Math.max(40, Math.floor(cfg.gapMin - score/5))===0) spawnObstacle();
+      ctx.fillStyle = '#7c5cff';
+      for(let i=obstacles.length-1;i>=0;i--){
+        const o = obstacles[i];
+        o.x -= cfg.speed + Math.min(6, score/120);
+        ctx.fillRect(o.x, o.y - o.h, o.w, o.h);
+        if(o.x + o.w < 0) obstacles.splice(i,1);
+        // collision
+        if(o.x < player.x+player.w && o.x+o.w > player.x && player.y > o.y - o.h){
+          gameOver();
+          return;
+        }
+      }
+      // player draw
+      ctx.fillStyle = '#00e7d4';
+      ctx.fillRect(player.x, player.y - player.h, player.w, player.h);
+      // score
+      score += 1;
+      ctx.fillStyle = 'rgba(255,255,255,.8)';
+      ctx.font = 'bold 18px ui-monospace, monospace';
+      ctx.fillText('Score: ' + score, 14, 26);
+      raf = requestAnimationFrame(stepGame);
+    }
+    function jump(){ if(player?.onGround){ player.vy = -cfg.jump; player.onGround=false; } }
+    function startGame(){ if(!player){ initGame(); } playing = true; cancelAnimationFrame(raf); raf = requestAnimationFrame(stepGame); incPlays(); }
+    function pauseGame(){ playing=false; cancelAnimationFrame(raf); }
+    function resetGame(){ pauseGame(); initGame(); drawIdle(ctx, canvas); }
+    function gameOver(){
+      playing=false; cancelAnimationFrame(raf);
+      best = Math.max(best, score);
+      document.getElementById('kpiBest').textContent = best;
+      toast('Game over — score '+score);
+      drawGameOver(ctx, canvas, score, best);
+    }
+    canvas.addEventListener('pointerdown', jump);
+    window.addEventListener('keydown', (e)=>{ if(e.code==='Space'){ e.preventDefault(); jump(); }});
+
+    // Public canvas (separate state)
+    const pubCanvas = document.getElementById('pubCanvas');
+    const ptx = pubCanvas.getContext('2d');
+    let pRaf, pT=0, pPlayer, pObs, pScore=0, pBest=0, pPlaying=false, pGround=0;
+    function pubInit(){
+      pGround = pubCanvas.height - 60;
+      pPlayer = {x: 80, y: pGround, vy:0, w:24, h:24, onGround:true};
+      pObs = []; pScore=0; pT=0;
+    }
+    function pubSpawn(){ const w=20+Math.random()*24; pObs.push({x: pubCanvas.width+10, y: pGround, w, h: 20+Math.random()*20});}
+    function pubStep(){
+      if(!pPlaying) return;
+      pT++;
+      const g = ptx.createLinearGradient(0,0,0,pubCanvas.height);
+      g.addColorStop(0,'#090f19'); g.addColorStop(1,'#0a0f1a'); ptx.fillStyle=g; ptx.fillRect(0,0,pubCanvas.width,pubCanvas.height);
+      ptx.strokeStyle='rgba(124,92,255,.15)'; for(let y=pGround+20;y<pubCanvas.height;y+=18){ ptx.beginPath(); ptx.moveTo(0,y); ptx.lineTo(pubCanvas.width,y); ptx.stroke(); }
+      ptx.fillStyle='rgba(255,255,255,.06)'; ptx.fillRect(0,pGround+1,pubCanvas.width,4);
+
+      pPlayer.vy += cfg.gravity; pPlayer.y += pPlayer.vy;
+      if(pPlayer.y>=pGround){ pPlayer.y=pGround; pPlayer.vy=0; pPlayer.onGround=true; }
+      if(pT%Math.max(40, Math.floor(cfg.gapMin - pScore/5))===0) pubSpawn();
+
+      ptx.fillStyle='#7c5cff';
+      for(let i=pObs.length-1;i>=0;i--){
+        const o=pObs[i]; o.x -= cfg.speed + Math.min(6, pScore/120);
+        ptx.fillRect(o.x, o.y-o.h, o.w, o.h);
+        if(o.x+o.w<0) pObs.splice(i,1);
+        if(o.x < pPlayer.x+pPlayer.w && o.x+o.w > pPlayer.x && pPlayer.y>o.y-o.h){ pubOver(); return; }
+      }
+      ptx.fillStyle='#00e7d4'; ptx.fillRect(pPlayer.x, pPlayer.y-pPlayer.h, pPlayer.w, pPlayer.h);
+      pScore+=1; ptx.fillStyle='rgba(255,255,255,.85)'; ptx.font='bold 18px ui-monospace, monospace'; ptx.fillText('Score: '+pScore, 14, 26);
+      pRaf = requestAnimationFrame(pubStep);
+    }
+    function pubJump(){ if(pPlayer?.onGround){ pPlayer.vy=-cfg.jump; pPlayer.onGround=false; } }
+    function pubStart(){ if(!pPlayer){ pubInit(); } pPlaying=true; cancelAnimationFrame(pRaf); pRaf=requestAnimationFrame(pubStep); incPublicPlay(); }
+    function pubPause(){ pPlaying=false; cancelAnimationFrame(pRaf); }
+    function pubReset(){ pubPause(); pubInit(); drawIdle(ptx, pubCanvas); }
+    function pubOver(){
+      pubPause(); pBest=Math.max(pBest, pScore);
+      document.getElementById('playBest').textContent = pBest;
+      drawGameOver(ptx, pubCanvas, pScore, pBest);
+      toast('Thanks for playing — score '+pScore);
+    }
+    pubCanvas.addEventListener('pointerdown', pubJump);
+    window.addEventListener('keydown', (e)=>{ if(currentRoute==='play' && e.code==='Space'){ e.preventDefault(); pubJump(); }});
+
+    function drawIdle(ctx, cvs){
+      const g = ctx.createLinearGradient(0,0,0,cvs.height);
+      g.addColorStop(0,'#0b1220'); g.addColorStop(1,'#0a0f1a');
+      ctx.fillStyle=g; ctx.fillRect(0,0,cvs.width,cvs.height);
+      ctx.fillStyle='rgba(255,255,255,.85)';
+      ctx.font='600 18px ui-monospace, monospace';
+      ctx.fillText('Tap or press Space to jump', 14, 26);
+    }
+    function drawGameOver(ctx, cvs, score, best){
+      ctx.fillStyle='rgba(0,0,0,.45)'; ctx.fillRect(0,0,cvs.width,cvs.height);
+      ctx.fillStyle='#fff'; ctx.font='bold 22px ui-monospace, monospace';
+      ctx.fillText('Game Over', 20, 60);
+      ctx.font='16px ui-monospace, monospace';
+      ctx.fillText('Score: '+score+'   Best: '+best, 20, 86);
+      ctx.fillText('Tap to retry', 20, 112);
+    }
+    function stopAllGames(){ pauseGame(); pubPause(); }
+
+    /***********************
+     * Telemetry (local)   *
+     ***********************/
+    function incPlays(){
+      const c = document.getElementById('kpiPlays');
+      c.textContent = (parseInt(c.textContent||'0')+1);
+    }
+    function incPublicPlay(){
+      const q = new URLSearchParams((location.hash.split('?')[1]||''));
+      const id = q.get('g') || 'demo';
+      const key = (id==='demo'?'public_demo':'public_'+id);
+      const meta = JSON.parse(localStorage.getItem(key));
+      meta.plays = (meta.plays||0)+1;
+      localStorage.setItem(key, JSON.stringify(meta));
+      document.getElementById('playPlays').textContent = meta.plays;
+    }
+
+    /***********************
+     * Layout helpers      *
+     ***********************/
+    function scrollToId(id){ document.getElementById(id)?.scrollIntoView({behavior:'smooth'}); }
+    function esc(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m])); }
+    function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'), 1800); }
+
+    /***********************
+     * CTA wiring          *
+     ***********************/
+    // Add publish button in Studio footer area
+    (function addPublishCTA(){
+      const parent = document.getElementById('view-studio').querySelector('.footer');
+      const wrap = document.createElement('div');
+      wrap.className = 'row';
+      wrap.style.justifyContent = 'center';
+      wrap.style.gap='10px';
+      wrap.innerHTML = `
+        <button class="btn" onclick="publishNow()">Publish</button>
+        <button class="btn secondary" onclick="route('play')">Open public link</button>
+      `;
+      parent.appendChild(wrap);
+    })();
+
+    /***********************
+     * Public meta on load *
+     ***********************/
+    function resizePubCanvas(){ /* css-driven height; attributes fixed */ }
+    function copyDemo(){
+      ensureDemoPublished();
+      navigator.clipboard.writeText(location.origin + location.pathname + '#play?g=demo').then(()=>toast('Demo link copied.'));
+    }
+
+    // Initialize canvases idle
+    drawIdle(ctx, canvas);
+    drawIdle(ptx, pubCanvas);
+
+    // Populate market on first load
+    ensureDemoPublished();
+    if(location.hash==='' || location.hash==='#home'){ route('home'); }
+
+    // Accessibility small tweak: focus restore on route change could be added if needed
+  </script>
+</body>
+</html>
