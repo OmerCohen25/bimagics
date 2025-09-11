@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#111b21">
 <title>AI Store Bot — WhatsApp Weekly Demo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,27 +29,44 @@
     --radius:18px;
   }
   *{box-sizing:border-box}
-  html,body{height:100%}
+  html,body{height:100%;}
   body{
     margin:0;
     background: radial-gradient(1200px 800px at 15% -10%, #203a43, #0f2027 35%, #081418 60%, #05090c 100%) fixed;
     font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     color:var(--ink);
-    display:flex; align-items:center; justify-content:center; padding:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overscroll-behavior-y: contain; /* Prevents pull-to-refresh */
   }
   /* Phone frame */
   .phone{
-    width: 420px; max-width:100%; height: 820px;
-    background:var(--bg-2); border-radius:32px; box-shadow: var(--shadow);
-    position:relative; overflow:hidden; border:1px solid #1d2a30;
+    width: 420px;
+    max-width:100%;
+    height: 820px; /* Default for desktop */
+    max-height: calc(100vh - 40px); /* Responsive height for mobile */
+    background:var(--bg-2);
+    border-radius:32px;
+    box-shadow: var(--shadow);
+    position:relative;
+    overflow:hidden;
+    border:1px solid #1d2a30;
+    display: flex; /* Use flexbox for vertical structure */
+    flex-direction: column;
   }
   .statusbar{
     height: 32px; display:flex; align-items:center; justify-content:space-between;
     padding:0 14px; color:var(--ink-dim); font-size:12px; background:linear-gradient(#0c171c,#0b141a);
+    flex-shrink: 0; /* Prevent from shrinking */
   }
   .topbar{
     height:56px; display:flex; align-items:center; gap:10px; padding:0 14px; border-bottom:1px solid #1b2830;
     background:linear-gradient(#0f1f26,#0b141a);
+    flex-shrink: 0; /* Prevent from shrinking */
   }
   .avatar{
     width:34px; height:34px; border-radius:50%; background:#13313a; display:grid; place-items:center; font-weight:700;
@@ -56,7 +76,10 @@
   .title b{display:block; font-size:14.5px}
   .title span{display:block; font-size:12px; color:var(--muted)}
   .chat{
-    position:absolute; inset:88px 0 64px 0; overflow:auto; padding:14px 12px 24px; background:
+    flex-grow: 1; /* This is the key change! It will fill available space */
+    overflow-y:auto; /* Use 'auto' instead of 'scroll' for cleaner look */
+    padding:14px 12px 24px;
+    background:
     url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path fill="%23121f24" d="M14 0h2v2h-2zM30 0h2v2h-2zM22 10h2v2h-2zM6 22h2v2H6zM38 22h2v2h-2zM14 34h2v2h-2zM30 34h2v2h-2z"/></svg>') repeat;
   }
   .msg{
@@ -101,7 +124,8 @@
   .badge{font-size:11px; color:#98c7b8; background:#102126; border:1px solid #1b353f; padding:3px 8px; border-radius:999px}
   canvas{width:100%; height:140px; display:block; background:linear-gradient(180deg,#101c22,#0c161b)}
   .footer{
-    position:absolute; left:0; right:0; bottom:0; height:64px; display:flex; align-items:center; gap:10px; padding:10px 12px; background:linear-gradient(#0c171c,#0b141a); border-top:1px solid #1b2830;
+    height:64px; display:flex; align-items:center; gap:10px; padding:10px 12px; background:linear-gradient(#0c171c,#0b141a); border-top:1px solid #1b2830;
+    flex-shrink: 0; /* Prevent from shrinking */
   }
   .input{
     flex:1; background:#13232a; border:1px solid #22343d; border-radius:999px; color:var(--ink); padding:10px 14px; font-size:14px; outline:none;
@@ -118,6 +142,19 @@
   /* Small helper */
   .muted{color:var(--muted)}
   .mono{font-family: ui-monospace, "SF Mono", Menlo, monospace}
+
+  /* Media Query for mobile devices */
+  @media (max-width: 480px) {
+    body {
+      padding: 0; /* Remove padding to let phone frame touch edges */
+    }
+    .phone {
+      border-radius: 0; /* Full screen look */
+      border: none;
+      height: 100vh; /* Take full viewport height */
+      max-height: 100vh; /* Override desktop max-height */
+    }
+  }
 </style>
 </head>
 <body>
@@ -133,17 +170,14 @@
   </div>
 
   <div class="chat" id="chat">
-    <!-- Owner hello -->
     <div class="msg me">
       Morning! Can I get this week’s summary & next-week forecast?
       <span class="time">09:26</span>
     </div>
 
-    <!-- Typing indicator -->
     <div class="msg bot" id="typing1"><span class="typing"><span></span><span></span><span></span></span><span class="time">09:26</span></div>
 
-    <!-- Bot main weekly drop (injected by JS) -->
-  </div>
+    </div>
 
   <div class="footer">
     <input class="input" id="inputMsg" value="Show monthly & yearly insights too" />
@@ -452,7 +486,7 @@ function weeklyDrop(){
     const cv = el.querySelector('#monthlyChart'); if(!cv._drawn){ drawLineChart(cv, weekly12); cv._drawn = true; }
   }
   function ensureYearly(){
-    const cv = el.querySelector('#yearlyChart'); if(!cv._drawn){ 
+    const cv = el.querySelector('#yearlyChart'); if(!cv._drawn){
       drawBarChart(cv, ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"], monthly12);
       cv._drawn = true;
     }
