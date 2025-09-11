@@ -1,417 +1,547 @@
 <!DOCTYPE html>
-<html lang="he">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>כדורתן קוסמי</title>
-    <style>
-        :root {
-            --glow-green: #00ff96;
-            --glow-magenta: #ff00ff;
-            --glow-blue: #00aeff;
-            --glow-purple: #a450e0;
-            --text-color: #ffffff;
-            --bg-color: #000000;
-            --canvas-bg: #0c0014;
-        }
-        
-        html, body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            height: 100%;
-            width: 100%;
-            touch-action: none; /* Disables pinch-zoom, double-tap etc. */
-        }
-
-        #game-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        canvas {
-            background-color: var(--canvas-bg);
-            display: block;
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-
-        .ui-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            pointer-events: none;
-        }
-        
-        .top-bar {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            padding: 15px;
-            box-sizing: border-box;
-        }
-
-        .ui-text {
-            font-size: clamp(1.5rem, 5vw, 2.2rem);
-            font-weight: bold;
-            text-shadow: 0 0 10px var(--text-color);
-        }
-
-        .modal {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            max-width: 500px;
-            background-color: rgba(0, 0, 0, 0.75);
-            padding: 25px;
-            border-radius: 20px;
-            border: 2px solid var(--glow-purple);
-            box-shadow: 0 0 20px var(--glow-purple);
-            display: none; /* Hidden by default */
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            pointer-events: all;
-        }
-        
-        .modal.visible {
-            display: flex;
-        }
-
-        .modal h1 {
-            font-size: clamp(2.5rem, 10vw, 4rem);
-            margin: 0 0 15px 0;
-            text-shadow: 0 0 20px var(--glow-magenta);
-        }
-
-        .modal p {
-            font-size: clamp(1rem, 4vw, 1.4rem);
-            margin: 0 0 25px 0;
-            line-height: 1.5;
-        }
-
-        .modal button {
-            font-size: clamp(1.2rem, 5vw, 1.8rem);
-            padding: 15px 30px;
-            border: 2px solid var(--text-color);
-            background-color: transparent;
-            color: var(--text-color);
-            cursor: pointer;
-            transition: all 0.2s;
-            border-radius: 15px;
-            width: 80%;
-            max-width: 300px;
-        }
-        .modal button:active {
-            background-color: var(--text-color);
-            color: var(--bg-color);
-            transform: scale(0.95);
-        }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>AI Store Bot — WhatsApp Weekly Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b141a;            /* WhatsApp dark chat bg */
+    --bg-2:#111b21;          /* darker frame */
+    --me:#005c4b;            /* my bubble */
+    --bot:#202c33;           /* bot bubble */
+    --accent:#25d366;        /* WhatsApp green */
+    --muted:#8696a0;
+    --ink:#e9edef;
+    --ink-dim:#cfd5d9;
+    --tile:#1f2a32;
+    --tile-2:#162028;
+    --danger:#ff4d4f;
+    --warn:#ffb020;
+    --good:#37c77f;
+    --shadow: 0 8px 24px rgba(0,0,0,.35);
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background: radial-gradient(1200px 800px at 15% -10%, #203a43, #0f2027 35%, #081418 60%, #05090c 100%) fixed;
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    color:var(--ink);
+    display:flex; align-items:center; justify-content:center; padding:16px;
+  }
+  /* Phone frame */
+  .phone{
+    width: 420px; max-width:100%; height: 820px;
+    background:var(--bg-2); border-radius:32px; box-shadow: var(--shadow);
+    position:relative; overflow:hidden; border:1px solid #1d2a30;
+  }
+  .statusbar{
+    height: 32px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 14px; color:var(--ink-dim); font-size:12px; background:linear-gradient(#0c171c,#0b141a);
+  }
+  .topbar{
+    height:56px; display:flex; align-items:center; gap:10px; padding:0 14px; border-bottom:1px solid #1b2830;
+    background:linear-gradient(#0f1f26,#0b141a);
+  }
+  .avatar{
+    width:34px; height:34px; border-radius:50%; background:#13313a; display:grid; place-items:center; font-weight:700;
+    color:#9ee5c3;
+  }
+  .title{line-height:1}
+  .title b{display:block; font-size:14.5px}
+  .title span{display:block; font-size:12px; color:var(--muted)}
+  .chat{
+    position:absolute; inset:88px 0 64px 0; overflow:auto; padding:14px 12px 24px; background:
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path fill="%23121f24" d="M14 0h2v2h-2zM30 0h2v2h-2zM22 10h2v2h-2zM6 22h2v2H6zM38 22h2v2h-2zM14 34h2v2h-2zM30 34h2v2h-2z"/></svg>') repeat;
+  }
+  .msg{
+    max-width:82%; margin:10px 0; padding:10px 12px; border-radius:14px; position:relative; box-shadow:0 2px 10px rgba(0,0,0,.25);
+    font-size:14px; line-height:1.35;
+  }
+  .msg.me{ margin-left:auto; background:var(--me)}
+  .msg.bot{ margin-right:auto; background:var(--bot)}
+  .msg .time{display:block; text-align:right; color:var(--muted); font-size:11px; margin-top:6px}
+  .msg h3{margin:2px 0 8px; font-size:15px}
+  .msg .kpis{
+    display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px;
+  }
+  .kpi{
+    background:linear-gradient(180deg,var(--tile),var(--tile-2));
+    border:1px solid #1b2d33; border-radius:12px; padding:10px; position:relative;
+  }
+  .kpi .label{font-size:12px; color:var(--ink-dim)}
+  .kpi .value{font-size:18px; font-weight:700; margin-top:4px}
+  .kpi .delta{font-size:12px; margin-top:2px}
+  .delta.up{color:var(--good)} .delta.down{color:var(--danger)}
+  .pill{
+    display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:6px 10px; border-radius:999px;
+    background:#12323a; border:1px solid #1c3e47; color:#a7d7c6;
+  }
+  .actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+  .btn{
+    background:linear-gradient(180deg,#1d2f2b,#13211e); border:1px solid #21453d; color:#cfe9dc;
+    padding:8px 10px; border-radius:12px; font-size:13px; cursor:pointer; user-select:none;
+  }
+  .btn.primary{background:linear-gradient(180deg,#1f6b52,#135d46); border-color:#1b6a51; color:#eafff7}
+  .btn.warn{background:linear-gradient(180deg,#3b2b17,#2a1f12); border-color:#5a3c1c; color:#ffdca8}
+  .section{
+    margin-top:10px; border:1px solid #203139; border-radius:12px; overflow:hidden; background:#142027;
+  }
+  .section .head{
+    display:flex; align-items:center; justify-content:space-between; padding:8px 10px; background:#0e1a20; border-bottom:1px solid #1a2931; font-size:13px;
+  }
+  .grid{display:grid; gap:10px; padding:10px}
+  .list{margin:0; padding:0; list-style:none}
+  .list li{display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border:1px solid #1c2b32; border-radius:10px; background:#112029}
+  .badge{font-size:11px; color:#98c7b8; background:#102126; border:1px solid #1b353f; padding:3px 8px; border-radius:999px}
+  canvas{width:100%; height:140px; display:block; background:linear-gradient(180deg,#101c22,#0c161b)}
+  .footer{
+    position:absolute; left:0; right:0; bottom:0; height:64px; display:flex; align-items:center; gap:10px; padding:10px 12px; background:linear-gradient(#0c171c,#0b141a); border-top:1px solid #1b2830;
+  }
+  .input{
+    flex:1; background:#13232a; border:1px solid #22343d; border-radius:999px; color:var(--ink); padding:10px 14px; font-size:14px; outline:none;
+  }
+  .send{
+    background:var(--accent); color:#07361f; font-weight:700; border:0; border-radius:14px; padding:10px 14px; cursor:pointer;
+  }
+  .tag{font-size:11px; color:#b6c6cc}
+  /* Tiny typing dots */
+  .typing{display:inline-flex; gap:4px; align-items:center}
+  .typing span{width:6px; height:6px; background:#9fcbb7; border-radius:50%; opacity:.4; animation:bounce 1.2s infinite}
+  .typing span:nth-child(2){animation-delay:.2s} .typing span:nth-child(3){animation-delay:.4s}
+  @keyframes bounce{0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-5px)}}
+  /* Small helper */
+  .muted{color:var(--muted)}
+  .mono{font-family: ui-monospace, "SF Mono", Menlo, monospace}
+</style>
 </head>
 <body>
-    <div id="game-container">
-        <canvas id="gameCanvas"></canvas>
-        
-        <div class="ui-overlay">
-            <div class="top-bar">
-                <div id="score" class="ui-text">ניקוד: 0</div>
-                <div id="lives" class="ui-text">חיים: 3</div>
-            </div>
-        </div>
 
-        <div id="start-screen" class="modal visible">
-            <h1>כדורתן קוסמי</h1>
-            <p>גרור את האצבע כדי לסובב את המגן.<br>אסוף את הירוקים, התחמק מהסגולים.</p>
-            <button id="startButton">התחל</button>
-        </div>
+<div class="phone" id="app">
+  <div class="statusbar">
+    <div>09:30</div>
+    <div class="muted">LTE • 84%</div>
+  </div>
+  <div class="topbar">
+    <div class="avatar">SB</div>
+    <div class="title"><b>AI Store Bot</b><span>Last seen today at 09:28</span></div>
+  </div>
 
-        <div id="game-over" class="modal">
-            <h1>המשחק נגמר</h1>
-            <p id="finalScore"></p>
-            <button id="restartButton">שחק שוב</button>
-        </div>
+  <div class="chat" id="chat">
+    <!-- Owner hello -->
+    <div class="msg me">
+      Morning! Can I get this week’s summary & next-week forecast?
+      <span class="time">09:26</span>
     </div>
 
+    <!-- Typing indicator -->
+    <div class="msg bot" id="typing1"><span class="typing"><span></span><span></span><span></span></span><span class="time">09:26</span></div>
+
+    <!-- Bot main weekly drop (injected by JS) -->
+  </div>
+
+  <div class="footer">
+    <input class="input" id="inputMsg" value="Show monthly & yearly insights too" />
+    <button class="send" id="sendBtn">Send</button>
+  </div>
+</div>
+
 <script>
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+/* -----------------------------------------------------------
+   Fake data generator (weekly, monthly, yearly) + tiny charts
+   ----------------------------------------------------------- */
+const rnd = (a,b)=> +(Math.random()*(b-a)+a).toFixed(2);
+const days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const products = [
+  {id:"milk-1L", name:"Milk 1L"},
+  {id:"eggs-12", name:"Eggs (12)"},
+  {id:"bread",   name:"Bread"},
+  {id:"bananas", name:"Bananas"},
+  {id:"tomatoes",name:"Tomatoes"},
+  {id:"chicken", name:"Chicken Breast"}
+];
 
-// --- UI Elements ---
-const scoreEl = document.getElementById('score');
-const livesEl = document.getElementById('lives');
-const gameOverEl = document.getElementById('game-over');
-const finalScoreEl = document.getElementById('finalScore');
-const startScreenEl = document.getElementById('start-screen');
-const startButton = document.getElementById('startButton');
-const restartButton = document.getElementById('restartButton');
-
-// --- Game State ---
-let W, H;
-let touch = { x: 0, y: 0, angle: 0 };
-let core, shield;
-let orbs = [], particles = [], stars = [];
-let score = 0, lives = 3;
-let gameState = 'start'; // 'start', 'playing', 'over'
-let spawnRate, frameCount;
-
-function setupGameConfig() {
-    core = { x: W / 2, y: H / 2, radius: W * 0.05, pulse: 0 };
-    shield = { angle: 0, radius: W * 0.18, width: W * 0.04, length: Math.PI / 4, active: true, disabledUntil: 0 };
+// Create a synthetic week of sales with light seasonality
+function synthWeek(seed=1){
+  const base = 1200 + seed*35;
+  let rev=[], units=[], anomalies=[];
+  for(let i=0;i<7;i++){
+    const w = Math.sin((i/7)*Math.PI*2)*0.15; // weekly wave
+    const dayBoost = (i>=4? 0.10 : 0);        // weekend boost
+    const val = base*(1+w+dayBoost) + rnd(-60,60);
+    const u = 300*(1+w+dayBoost) + rnd(-20,20);
+    rev.push(+val.toFixed(0));
+    units.push(+u.toFixed(0));
+  }
+  // Inject an anomaly on Tue or Wed randomly
+  const idx = Math.random()>.5?1:2;
+  const shock = Math.random()>.5? -0.28 : 0.3;
+  rev[idx] = Math.max(200, Math.round(rev[idx]*(1+shock)));
+  units[idx] = Math.max(40, Math.round(units[idx]*(1+shock)));
+  anomalies.push({day:days[idx], type: shock>0?"Spike":"Drop", magnitude: Math.round(Math.abs(shock*100))});
+  return {rev, units, anomalies};
 }
 
-function resizeCanvas() {
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-    setupGameConfig();
-    createStars();
+const lastWeek = synthWeek(0);
+const thisWeek  = synthWeek(1);
+
+// Product leaderboard
+function synthTopProducts(){
+  return [...products].map(p=>{
+    const revenue = Math.round(rnd(800, 3200));
+    const delta = rnd(-0.22, 0.35);
+    return { ...p, revenue, delta };
+  }).sort((a,b)=>b.revenue-a.revenue).slice(0,5);
 }
 
-function createStars() {
-    stars = [];
-    for (let i = 0; i < 100; i++) {
-        stars.push({
-            x: Math.random() * W,
-            y: Math.random() * H,
-            radius: Math.random() * 1.2,
-            alpha: Math.random()
-        });
-    }
+// Monthly trend (12 weeks back)
+function synthWeeklySeries(n=12){
+  const arr=[]; let base=1000;
+  for(let i=n-1;i>=0;i--){
+    base += rnd(-30,45);
+    arr.push(Math.max(600, Math.round(base + 160*Math.sin(i/3))));
+  }
+  return arr;
+}
+// Yearly (12 months)
+function synthMonthlySeries(n=12){
+  const arr=[]; let base=40000;
+  for(let i=n-1;i>=0;i--){
+    base += rnd(-800,1200);
+    arr.push(Math.max(24000, Math.round(base + 4000*Math.sin(i/2))));
+  }
+  return arr;
 }
 
-// --- Game Objects (Classes) ---
-class Orb {
-    constructor(type) {
-        const angle = Math.random() * Math.PI * 2;
-        const spawnRadius = Math.max(W, H) / 2 + 50;
-        this.x = core.x + Math.cos(angle) * spawnRadius;
-        this.y = core.y + Math.sin(angle) * spawnRadius;
-        this.radius = W * (type === 'energy' ? 0.02 : 0.025);
-        this.type = type; // 'energy' or 'mine'
-        const speedMultiplier = Math.min(2, 1 + score / 4000);
-        this.speed = (Math.random() * 1 + 1) * speedMultiplier;
-        const targetAngle = Math.atan2(core.y - this.y, core.x - this.x);
-        this.vx = Math.cos(targetAngle) * this.speed;
-        this.vy = Math.sin(targetAngle) * this.speed;
-    }
+const topProds = synthTopProducts();
+const weekly12 = synthWeeklySeries(12);
+const monthly12 = synthMonthlySeries(12);
 
-    update() {
-        this.x += this.vx;
-        this.y += this.vy;
-    }
+// Simple canvas line/area chart
+function drawLineChart(canvas, series, opts={}){
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width = canvas.clientWidth*2;
+  const h = canvas.height = canvas.clientHeight*2;
+  ctx.clearRect(0,0,w,h);
 
-    draw() {
-        ctx.beginPath();
-        const color = this.type === 'energy' ? 'var(--glow-green)' : 'var(--glow-magenta)';
-        ctx.fillStyle = color;
-        ctx.shadowColor = color;
-        ctx.shadowBlur = 15;
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-    }
+  const pad = 28;
+  const min = Math.min(...series)*0.96;
+  const max = Math.max(...series)*1.04;
+  const x = i => pad + (w-2*pad)*(i/(series.length-1));
+  const y = v => h-pad - (h-2*pad)*((v-min)/(max-min));
+
+  // gradient area
+  const grd = ctx.createLinearGradient(0,pad,0,h-pad);
+  grd.addColorStop(0,'rgba(37,211,102,0.28)');
+  grd.addColorStop(1,'rgba(37,211,102,0.0)');
+
+  ctx.beginPath();
+  ctx.moveTo(x(0), y(series[0]));
+  for(let i=1;i<series.length;i++) ctx.lineTo(x(i), y(series[i]));
+  ctx.lineTo(x(series.length-1), h-pad);
+  ctx.lineTo(x(0), h-pad);
+  ctx.closePath();
+  ctx.fillStyle = grd;
+  ctx.fill();
+
+  // line
+  ctx.beginPath();
+  ctx.moveTo(x(0), y(series[0]));
+  for(let i=1;i<series.length;i++) ctx.lineTo(x(i), y(series[i]));
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = '#25d366';
+  ctx.shadowColor = '#0f271c';
+  ctx.shadowBlur = 12;
+  ctx.stroke();
+
+  // last point
+  const i = series.length-1;
+  ctx.beginPath();
+  ctx.arc(x(i), y(series[i]), 6, 0, Math.PI*2);
+  ctx.fillStyle = '#25d366';
+  ctx.fill();
+
+  // labels (min/max)
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#9fb8b0';
+  ctx.font = '26px Inter';
+  ctx.fillText(max.toLocaleString(), 8, 26);
+  ctx.fillText(min.toLocaleString(), 8, h-10);
 }
 
-class Particle {
-    constructor(x, y, color) {
-        this.x = x; this.y = y; this.color = color;
-        this.radius = Math.random() * 3 + 1;
-        const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 4 + 1;
-        this.vx = Math.cos(angle) * speed;
-        this.vy = Math.sin(angle) * speed;
-        this.life = 60;
-    }
+function drawBarChart(canvas, labels, series){
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width = canvas.clientWidth*2;
+  const h = canvas.height = canvas.clientHeight*2;
+  ctx.clearRect(0,0,w,h);
+  const pad = 28, gap = 12;
+  const max = Math.max(...series)*1.15;
+  const bw = (w-2*pad - (series.length-1)*gap) / series.length;
 
-    update() {
-        this.x += this.vx; this.y += this.vy; this.life--;
-    }
+  // grid
+  ctx.strokeStyle = 'rgba(134,150,160,.2)';
+  ctx.lineWidth = 1;
+  for(let i=0;i<4;i++){
+    const y = pad + (h-2*pad)*i/3;
+    ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w-pad, y); ctx.stroke();
+  }
 
-    draw() {
-        ctx.globalAlpha = this.life / 60;
-        ctx.beginPath();
-        ctx.fillStyle = this.color;
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
+  // bars
+  for(let i=0;i<series.length;i++){
+    const x = pad + i*(bw+gap);
+    const bh = (h-2*pad) * (series[i]/max);
+    const y = h-pad - bh;
+    const grd = ctx.createLinearGradient(0,y,0,y+bh);
+    grd.addColorStop(0,'#27d56a');
+    grd.addColorStop(1,'#128c7e');
+    ctx.fillStyle = grd;
+    ctx.fillRect(x, y, bw, bh);
+  }
+
+  // axis labels (sparse)
+  ctx.fillStyle = '#9fb8b0';
+  ctx.font = '24px Inter';
+  const skip = Math.ceil(labels.length/6);
+  labels.forEach((lb,i)=>{
+    if(i%skip===0){
+      const tx = pad + i*(bw+gap) + bw/2;
+      ctx.textAlign='center';
+      ctx.fillText(lb, tx, h-4);
     }
+  });
 }
 
-function createExplosion(x, y, color, count = 20) {
-    for (let i = 0; i < count; i++) particles.push(new Particle(x, y, color));
+/* -------------------------------------------
+   Chat assembly — create bot messages & cards
+   ------------------------------------------- */
+const chat = document.getElementById('chat');
+setTimeout(()=>document.getElementById('typing1')?.remove(), 900);
+
+function addBotMessage(html){
+  const el = document.createElement('div');
+  el.className = 'msg bot';
+  el.innerHTML = html;
+  chat.appendChild(el);
+  chat.scrollTop = chat.scrollHeight;
+  return el;
 }
 
-// --- Game Logic ---
-function init() {
-    resizeCanvas();
-    score = 0;
-    lives = 3;
-    orbs = [];
-    particles = [];
-    shield.active = true;
-    shield.disabledUntil = 0;
-    spawnRate = 100;
-    frameCount = 0;
-    gameState = 'playing';
-    
-    scoreEl.textContent = 'ניקוד: 0';
-    livesEl.textContent = '❤️'.repeat(3);
-    gameOverEl.classList.remove('visible');
-    startScreenEl.classList.remove('visible');
-    
-    loop();
+function addMeMessage(text){
+  const el = document.createElement('div');
+  el.className = 'msg me';
+  el.textContent = text;
+  el.innerHTML += `<span class="time">${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>`;
+  chat.appendChild(el);
+  chat.scrollTop = chat.scrollHeight;
 }
 
-function update() {
-    if (gameState !== 'playing') return;
+function pct(a,b){ return ((a-b)/b*100).toFixed(1) }
+const sum = a => a.reduce((x,y)=>x+y,0);
 
-    shield.angle += (touch.angle - shield.angle) * 0.2; // Smooth rotation
+function weeklyDrop(){
+  const revThis = sum(thisWeek.rev), revLast = sum(lastWeek.rev);
+  const unitsThis = sum(thisWeek.units), unitsLast = sum(lastWeek.units);
+  const wowRev = +pct(revThis, revLast);
+  const wowUnits = +pct(unitsThis, unitsLast);
 
-    if (Date.now() < shield.disabledUntil) shield.active = false;
-    else shield.active = true;
+  const kpi = (label, value, delta) => `
+    <div class="kpi">
+      <div class="label">${label}</div>
+      <div class="value">$${value.toLocaleString()}</div>
+      <div class="delta ${delta>=0?'up':'down'}">${delta>=0?'▲':'▼'} ${Math.abs(delta).toFixed(1)}% WoW</div>
+    </div>`;
+  const kpi2 = (label, value, delta) => `
+    <div class="kpi">
+      <div class="label">${label}</div>
+      <div class="value">${value.toLocaleString()}</div>
+      <div class="delta ${delta>=0?'up':'down'}">${delta>=0?'▲':'▼'} ${Math.abs(delta).toFixed(1)}% WoW</div>
+    </div>`;
 
-    frameCount++;
-    if (frameCount % Math.floor(spawnRate) === 0) {
-        orbs.push(new Orb(Math.random() > 0.4 ? 'energy' : 'mine'));
-        if (spawnRate > 35) spawnRate *= 0.995;
+  const topList = topProds.map((p,i)=>`
+    <li>
+      <span>${i+1}. ${p.name}</span>
+      <span class="badge">$${p.revenue.toLocaleString()} • ${p.delta>0?'▲':'▼'} ${(Math.abs(p.delta)*100).toFixed(0)}%</span>
+    </li>`).join('');
+
+  const anomaly = thisWeek.anomalies[0];
+  const next7 = Array.from({length:7}, (_,i)=>{
+    // naive "forecast": last day * (1 + small wave)
+    const base = thisWeek.rev[Math.min(6,i)] || thisWeek.rev[6];
+    const f = base * (1 + 0.04*Math.sin(i));
+    return Math.round(f);
+  });
+
+  const html = `
+    <h3>🧙‍♂️ Weekly Store Summary</h3>
+    <div class="kpis">
+      ${kpi('Revenue (This Week)', revThis, wowRev)}
+      ${kpi2('Units Sold (This Week)', unitsThis, wowUnits)}
+    </div>
+    <div class="actions">
+      <span class="pill">Week: <b class="mono">${new Date().toLocaleDateString()}</b></span>
+      <button class="btn primary" id="btnMonthly">Monthly view</button>
+      <button class="btn" id="btnYearly">Yearly view</button>
+      <button class="btn warn" id="btnAnoms">Anomalies</button>
+      <button class="btn" id="btnTop">Top products</button>
+    </div>
+
+    <div class="section">
+      <div class="head"><b>Revenue — This Week</b><span class="tag">BigQuery SQL → KPIs</span></div>
+      <div class="grid">
+        <canvas id="weekChart"></canvas>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="head"><b>Next-Week Forecast</b><span class="tag">AI.FORECAST / ARIMA_PLUS (demo)</span></div>
+      <div class="grid">
+        <ul class="list" id="forecastList"></ul>
+      </div>
+    </div>
+
+    <div class="section" id="secAnoms" style="display:none">
+      <div class="head"><b>Anomaly Alerts</b><span class="tag">ML.DETECT_ANOMALIES</span></div>
+      <div class="grid">
+        <div class="kpi">
+          <div class="label">Detected</div>
+          <div class="value" style="color:${anomaly.type==='Drop'?'var(--danger)':'var(--warn)'}">${anomaly.type} on ${anomaly.day}</div>
+          <div class="delta ${anomaly.type==='Drop'?'down':'up'}">${anomaly.type==='Drop'?'▼':'▲'} ${anomaly.magnitude}% vs baseline</div>
+        </div>
+        <p class="muted">Recommendation: review pricing & promo calendar; check stockouts and receipt voids around <b>${anomaly.day}</b>.</p>
+      </div>
+    </div>
+
+    <div class="section" id="secTop" style="display:none">
+      <div class="head"><b>Top 5 Products</b><span class="tag">by weekly revenue</span></div>
+      <div class="grid">
+        <ul class="list">${topList}</ul>
+      </div>
+    </div>
+
+    <div class="section" id="secMonthly" style="display:none">
+      <div class="head"><b>Monthly Trend (12 weeks)</b><span class="tag">Rolling revenue</span></div>
+      <div class="grid"><canvas id="monthlyChart"></canvas></div>
+    </div>
+
+    <div class="section" id="secYearly" style="display:none">
+      <div class="head"><b>Yearly Revenue (12 months)</b><span class="tag">Aggregated</span></div>
+      <div class="grid"><canvas id="yearlyChart"></canvas></div>
+    </div>
+
+    <span class="time">09:27</span>
+  `;
+
+  const el = addBotMessage(html);
+
+  // Week line chart
+  const wk = el.querySelector('#weekChart');
+  const series = thisWeek.rev;
+  drawLineChart(wk, series);
+
+  // Forecast list
+  const ul = el.querySelector('#forecastList');
+  ul.innerHTML = days.map((d,i)=>`<li><span>${d}</span><span class="badge">$${next7[i].toLocaleString()}</span></li>`).join('');
+
+  // Monthly & yearly charts (lazily created when shown)
+  function ensureMonthly(){
+    const cv = el.querySelector('#monthlyChart'); if(!cv._drawn){ drawLineChart(cv, weekly12); cv._drawn = true; }
+  }
+  function ensureYearly(){
+    const cv = el.querySelector('#yearlyChart'); if(!cv._drawn){ 
+      drawBarChart(cv, ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"], monthly12);
+      cv._drawn = true;
     }
+  }
 
-    for (let i = orbs.length - 1; i >= 0; i--) {
-        const orb = orbs[i];
-        orb.update();
-        const distToCore = Math.hypot(orb.x - core.x, orb.y - core.y);
+  // Toggles
+  el.querySelector('#btnAnoms').onclick = ()=> toggle('secAnoms');
+  el.querySelector('#btnTop').onclick   = ()=> toggle('secTop');
+  el.querySelector('#btnMonthly').onclick = ()=> { toggle('secMonthly'); ensureMonthly(); };
+  el.querySelector('#btnYearly').onclick  = ()=> { toggle('secYearly'); ensureYearly(); };
 
-        if (shield.active && distToCore < shield.radius + orb.radius && distToCore > shield.radius - shield.width) {
-            let angleToOrb = Math.atan2(orb.y - core.y, orb.x - core.x);
-            let diff = Math.abs(angleToOrb - shield.angle);
-            if (diff > Math.PI) diff = 2 * Math.PI - diff;
+  function toggle(id){
+    const sec = el.querySelector('#'+id);
+    sec.style.display = (sec.style.display==='none') ? 'block' : 'none';
+    chat.scrollTop = chat.scrollHeight;
+  }
 
-            if (diff < shield.length / 2) {
-                if (orb.type === 'energy') {
-                    score += 100;
-                    createExplosion(orb.x, orb.y, 'var(--glow-green)');
-                } else {
-                    lives--;
-                    shield.disabledUntil = Date.now() + 1500;
-                    createExplosion(orb.x, orb.y, 'var(--glow-magenta)', 30);
-                }
-                orbs.splice(i, 1);
-                continue;
-            }
-        }
-        if (distToCore < core.radius + orb.radius) {
-            lives--;
-            createExplosion(orb.x, orb.y, '#ff5500', 40);
-            orbs.splice(i, 1);
-        }
-    }
-    
-    particles.forEach((p, i) => {
-        p.update();
-        if (p.life <= 0) particles.splice(i, 1);
-    });
+  // Narrative follow-up
+  setTimeout(()=>addBotMessage(`
+    <div><b>AI Narrative</b> — Weekly highlights</div>
+    <ul class="list" style="margin-top:8px">
+      <li><span>Revenue</span><span class="badge">${(wowRev>=0?'▲':'▼')} ${Math.abs(wowRev).toFixed(1)}% vs last week</span></li>
+      <li><span>Units</span><span class="badge">${(wowUnits>=0?'▲':'▼')} ${Math.abs(wowUnits).toFixed(1)}% WoW</span></li>
+      <li><span>Anomaly</span><span class="badge">${thisWeek.anomalies[0].type} on ${thisWeek.anomalies[0].day}</span></li>
+    </ul>
+    <p class="muted" style="margin-top:8px">Tip: consider a weekend bundle (bread + eggs + milk). Forecast suggests Fri-Sat demand ↑.</p>
+    <span class="time">${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+  `), 800);
 
-    scoreEl.textContent = `ניקוד: ${score}`;
-    livesEl.textContent = lives > 0 ? '❤️'.repeat(lives) : '💔';
-
-    if (lives <= 0) {
-        gameState = 'over';
-        gameOverEl.classList.add('visible');
-        finalScoreEl.textContent = `הניקוד הסופי שלך: ${score}`;
-    }
 }
 
-function draw() {
-    ctx.clearRect(0, 0, W, H);
+// First weekly drop
+setTimeout(weeklyDrop, 950);
 
-    stars.forEach(s => {
-        ctx.fillStyle = `rgba(255, 255, 255, ${s.alpha * Math.abs(Math.sin(frameCount * 0.01 + s.y))})`;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
-        ctx.fill();
-    });
+// Send box — owner asks for monthly & yearly; bot replies with quick cards
+document.getElementById('sendBtn').onclick = ()=>{
+  const val = document.getElementById('inputMsg').value.trim();
+  if(!val) return;
+  addMeMessage(val);
+  setTimeout(()=>{
+    addBotMessage(`
+      <h3>📆 Monthly & Yearly Insights</h3>
+      <div class="section">
+        <div class="head"><b>Monthly Trend (12 weeks)</b><span class="tag">Tap to show</span></div>
+        <div class="grid"><canvas id="m2"></canvas></div>
+      </div>
+      <div class="section" style="margin-top:10px">
+        <div class="head"><b>Year-over-Year</b><span class="tag">Totals by month</span></div>
+        <div class="grid"><canvas id="y2"></canvas></div>
+      </div>
+      <div class="actions"><button class="btn primary" id="btnShare">Share as PDF</button><button class="btn" id="btnTips">Operational tips</button></div>
+      <span class="time">${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+    `);
+    // draw charts in that last message
+    const last = chat.lastElementChild;
+    drawLineChart(last.querySelector('#m2'), weekly12);
+    drawBarChart(last.querySelector('#y2'), ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"], monthly12);
 
-    core.pulse = Math.sin(frameCount * 0.05) * (W * 0.01);
-    ctx.beginPath();
-    ctx.fillStyle = '#4f0278';
-    ctx.strokeStyle = 'var(--glow-purple)';
-    ctx.lineWidth = 3;
-    ctx.shadowColor = 'var(--glow-purple)';
-    ctx.shadowBlur = 25;
-    ctx.arc(core.x, core.y, core.radius + core.pulse, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
+    last.querySelector('#btnTips').onclick = () => {
+      addBotMessage(`
+        <div class="section">
+          <div class="head"><b>Operational Tips</b><span class="tag">AI suggestions</span></div>
+          <div class="grid">
+            <ul class="list">
+              <li><span>Replenish fast movers (Fri)</span><span class="badge">Milk, Bread, Eggs</span></li>
+              <li><span>Promo idea (Wed-Thu)</span><span class="badge">Bananas + Tomatoes bundle</span></li>
+              <li><span>Check anomaly root cause</span><span class="badge">Price/Stock/Voids on Tue</span></li>
+            </ul>
+          </div>
+        </div>
+        <span class="time">${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+      `);
+    };
+    last.querySelector('#btnShare').onclick = () => {
+      addBotMessage(`
+        <div class="kpi">
+          <div class="label">Share</div>
+          <div class="value">Report exported</div>
+          <div class="delta up">Ready to send via WhatsApp Business / Email</div>
+        </div>
+        <span class="time">${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+      `);
+    };
+    chat.scrollTop = chat.scrollHeight;
+  }, 700);
+};
 
-    if (shield.active) {
-        ctx.beginPath();
-        ctx.strokeStyle = 'var(--glow-blue)';
-        ctx.lineWidth = shield.width;
-        ctx.shadowColor = 'var(--glow-blue)';
-        ctx.shadowBlur = 20;
-        ctx.arc(core.x, core.y, shield.radius, shield.angle - shield.length / 2, shield.angle + shield.length / 2);
-        ctx.stroke();
-    } else {
-        ctx.beginPath();
-        ctx.strokeStyle = `rgba(255, 0, 0, ${0.4 + Math.sin(frameCount * 0.5) * 0.4})`;
-        ctx.lineWidth = shield.width;
-        ctx.setLineDash([15, 10]);
-        ctx.arc(core.x, core.y, shield.radius, shield.angle - shield.length / 2, shield.angle + shield.length / 2);
-        ctx.stroke();
-        ctx.setLineDash([]);
-    }
-    
-    ctx.shadowBlur = 0;
-    particles.forEach(p => p.draw());
-    orbs.forEach(orb => orb.draw());
-}
-
-function loop() {
-    if (gameState === 'over') return;
-    update();
-    draw();
-    requestAnimationFrame(loop);
-}
-
-// --- Event Listeners ---
-function handleTouch(e) {
-    e.preventDefault();
-    const t = e.touches[0];
-    touch.x = t.clientX;
-    touch.y = t.clientY;
-    touch.angle = Math.atan2(touch.y - core.y, touch.x - core.x);
-}
-
-window.addEventListener('resize', resizeCanvas);
-canvas.addEventListener('touchstart', handleTouch, { passive: false });
-canvas.addEventListener('touchmove', handleTouch, { passive: false });
-
-startButton.addEventListener('click', (e) => {
-    e.stopPropagation();
-    init();
-});
-
-restartButton.addEventListener('click', (e) => {
-    e.stopPropagation();
-    init();
-});
-
-// --- Initial Setup ---
-resizeCanvas();
+// Smooth scroll to bottom if viewport resizes
+new ResizeObserver(()=>{ chat.scrollTop = chat.scrollHeight; }).observe(chat);
 </script>
 </body>
 </html>
