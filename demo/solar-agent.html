@@ -1,494 +1,97 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Agent Demo — Auto Data Extractor</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solar Monitoring Agent - Onboarding</title>
 <style>
-  :root{
-    --bg:#0b1020;--panel:#121a33;--panel-2:#0f1630;--ink:#eaf1ff;--muted:#9fb1d8;
-    --brand:#6ea8ff;--brand-2:#4dd2c1;--accent:#ffd166;--danger:#ff6b6b;--ok:#4cd964;
-    --shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
-    --radius: 16px;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0;background: radial-gradient(1200px 800px at 80% -10%, #14204b 0%, var(--bg) 60%) fixed;
-    color:var(--ink); font: 400 16px/1.35 system-ui, "Segoe UI", Roboto, Arial, "Noto Sans Hebrew", sans-serif;
-    overflow-x:hidden;
-  }
-  a{color:var(--brand)}
-  .wrap{max-width:1200px;margin:0 auto;padding:24px}
-  header.hero{
-    display:grid;grid-template-columns:1.2fr 1fr;gap:20px;align-items:center;margin-bottom:24px
-  }
-  .badge{display:inline-flex;gap:8px;align-items:center;background:#0e1735;border:1px solid #1f2a52;
-    padding:6px 10px;border-radius:999px;color:var(--muted);font-size:12px}
-  .title{font-size:40px;line-height:1.1;margin:10px 0 12px}
-  .subtitle{color:var(--muted);font-size:18px}
-  .cta{display:flex;gap:10px;margin-top:16px}
-  .btn{
-    background:linear-gradient(135deg,var(--brand) 0%, #7db6ff 100%);
-    border:none;color:#041124;padding:12px 16px;border-radius:12px;font-weight:700;cursor:pointer;box-shadow:var(--shadow);
-  }
-  .btn.alt{background:linear-gradient(135deg,#253158,#1b2546);color:var(--ink);border:1px solid #2a3a6b}
-  .grid-3{display:grid;grid-template-columns:1.1fr 1fr 1.1fr;gap:20px}
-  .panel{background:linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%); border:1px solid #1f2a52;
-    border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; position:relative; overflow:hidden}
-  .panel h3{margin:0 0 10px;font-size:18px}
-  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-  .kpi{background:#0c1330;border:1px solid #1e2a57;border-radius:14px;padding:12px}
-  .kpi .label{color:var(--muted);font-size:12px}
-  .kpi .value{font-size:22px;margin-top:6px}
-  .kpi .delta{font-size:12px;margin-top:4px}
-  .delta.up{color:var(--ok)} .delta.down{color:var(--danger)}
-  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-  .tab{padding:8px 12px;background:#0d1433;border:1px solid #223064;border-radius:10px;cursor:pointer}
-  .tab.active{background:linear-gradient(135deg,#273566,#223060);border-color:#3260ff}
-  .area{min-height:280px}
-  .grid-2{display:grid;grid-template-columns:1.2fr 1fr;gap:20px}
-  .fake-site{background:#0a1230;border:1px solid #1b2753;border-radius:12px;overflow:hidden}
-  .fake-top{display:flex;align-items:center;gap:8px;background:#0c1540;padding:8px 12px;border-bottom:1px solid #1e2a57}
-  .dot{width:10px;height:10px;border-radius:50%;background:#2b3a6d}
-  .fake-main{padding:12px}
-  .fake-kpi-wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
-  .fake-k{background:#0f1a47;border:1px solid #23336a;border-radius:10px;padding:10px;text-align:center}
-  .fake-table{width:100%;border-collapse:collapse;font-size:13px}
-  .fake-table th,.fake-table td{border-bottom:1px dashed #223064;padding:8px}
-  .highlight{outline:2px solid var(--accent);box-shadow:0 0 0 4px rgba(255,209,102,.15) inset}
-  .log{background:#08122b;border:1px solid #1b2853;border-radius:12px;padding:10px;height:220px;overflow:auto;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:#cde}
-  .tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);background:#0c1434;border:1px solid #233264;padding:6px 8px;border-radius:999px}
-  .table{width:100%;border-collapse:separate;border-spacing:0 8px}
-  .table th{color:var(--muted);font-weight:500;font-size:12px;text-align:right}
-  .row{background:#0c1434;border:1px solid #233264;border-radius:10px}
-  .row td{padding:10px}
-  .pill{padding:4px 8px;border-radius:999px;background:#112058;border:1px solid #27408f;font-size:12px}
-  .ok{color:var(--ok)} .danger{color:var(--danger)}
-  canvas{width:100%;height:240px;background:#0b1333;border:1px solid #213064;border-radius:12px}
-  .footer{margin:30px 0 10px;text-align:center;color:var(--muted);font-size:12px}
-  .spark{position:absolute; inset: -20% -10% auto auto; width:260px; height:260px; filter:blur(50px);
-         background: radial-gradient(closest-side at 70% 40%, rgba(77,210,193,.25), transparent 60%);}
-  /* Mobile */
-  @media (max-width: 980px){
-    header.hero{grid-template-columns:1fr}
-    .grid-3{grid-template-columns:1fr}
-    .grid-2{grid-template-columns:1fr}
-    .kpis{grid-template-columns:repeat(2,1fr)}
-    .fake-kpi-wrap{grid-template-columns:repeat(2,1fr)}
-  }
+  body{margin:0;font-family:system-ui,sans-serif;background:#0b1020;color:#f4f4f8}
+  .screen{display:none;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+  .active{display:flex}
+  h1{font-size:1.6rem;margin-bottom:0.5em}
+  h2{font-size:1.2rem;margin-bottom:0.5em;color:#a3b5d9}
+  input,select{padding:10px;border-radius:8px;border:1px solid #334;outline:none;width:90%;margin:6px auto;max-width:320px}
+  button{padding:12px 18px;border:none;border-radius:10px;margin-top:12px;font-weight:600;cursor:pointer;
+         background:linear-gradient(135deg,#6ea8ff,#4dd2c1);color:#041124}
+  button.alt{background:#1c2a44;color:#fff}
+  .card{background:#121a33;border-radius:16px;padding:20px;margin:10px auto;width:95%;max-width:400px;box-shadow:0 0 15px rgba(0,0,0,.3)}
+  .highlight-option{padding:10px;margin:6px 0;background:#18264b;border-radius:8px;cursor:pointer}
+  .highlight-option.active{outline:2px solid #ffd166;background:#223666}
+  .summary{background:#18264b;padding:12px;border-radius:8px;text-align:left;font-size:0.9rem;margin:8px 0}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="hero panel">
-    <div>
-      <div class="badge">🤖 Agent Demo · Login ➜ Scrape ➜ Store ➜ Analyze ➜ Alert</div>
-      <h1 class="title">אייג׳נט אוטומטי לדשבורדים — דמו חי ב-HTML אחד</h1>
-      <p class="subtitle">הסימולציה מדגימה לוגין, חילוץ נתונים מהדשבורד, שמירת סנאפשוטים, גרפים, תזמון, וזיהוי חריגות. אין ספריות חיצוניות — הכל בקובץ אחד.</p>
-      <div class="cta">
-        <button class="btn" id="startBtn">🚀 הפעל הדגמה</button>
-        <button class="btn alt" id="resetBtn">↺ איפוס</button>
-      </div>
-      <div class="spark"></div>
-    </div>
-    <div class="panel">
-      <h3>התחברות (מדומה)</h3>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <label>שם משתמש<input id="u" style="width:100%;padding:10px;border-radius:10px;border:1px solid #2a3a6b;background:#0b1333;color:var(--ink)" value="demo@company.com"></label>
-        <label>סיסמה<input id="p" type="password" style="width:100%;padding:10px;border-radius:10px;border:1px solid #2a3a6b;background:#0b1333;color:var(--ink)" value="••••••••"></label>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:10px">
-        <span class="tag">CSRF ✓</span>
-        <span class="tag">TOTP ⏳</span>
-        <span class="tag">Retry & Backoff</span>
-      </div>
-      <div id="loginStatus" style="margin-top:10px;color:var(--muted)">טרם התחברות…</div>
-    </div>
-  </header>
 
-  <section class="grid-3">
-    <div class="panel">
-      <h3>KPIs בזמן אמת</h3>
-      <div class="kpis" id="kpiCards">
-        <div class="kpi"><div class="label">Revenue (₪)</div><div class="value" id="k_rev">—</div><div class="delta" id="d_rev">–</div></div>
-        <div class="kpi"><div class="label">Orders</div><div class="value" id="k_ord">—</div><div class="delta" id="d_ord">–</div></div>
-        <div class="kpi"><div class="label">AOV (₪)</div><div class="value" id="k_aov">—</div><div class="delta" id="d_aov">–</div></div>
-        <div class="kpi"><div class="label">Active Users</div><div class="value" id="k_users">—</div><div class="delta" id="d_users">–</div></div>
-      </div>
-    </div>
-    <div class="panel">
-      <h3>תזמון</h3>
-      <div class="area" id="schedArea">
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-          <span class="tag">CRON: <b id="cronText">*/30 * * * *</b></span>
-          <span class="tag">Next run: <b id="nextRun">—</b></span>
-          <span class="tag">Last run: <b id="lastRun">—</b></span>
-        </div>
-        <div style="display:flex;gap:8px;margin:8px 0">
-          <button class="btn alt" id="runNow">הרצה מיידית</button>
-          <button class="btn alt" id="toggleAuto">Auto: OFF</button>
-        </div>
-        <div class="log" id="schedLog" aria-label="Scheduler log"></div>
-      </div>
-    </div>
-    <div class="panel">
-      <h3>התראות</h3>
-      <div>סף התרעה להכנסה יומית (₪): <span class="pill" id="thresh">12,000</span></div>
-      <div class="log" id="alertLog" style="margin-top:8px;height:180px"></div>
-    </div>
-  </section>
+<div class="screen active" id="screen1">
+  <h1>Welcome to Solar Monitoring Agent</h1>
+  <h2>Let’s set up your agent to watch your dashboards 24/7</h2>
+  <button onclick="next(2)">Sign in with Google</button>
+</div>
 
-  <section class="panel" style="margin-top:20px">
-    <div class="tabs">
-      <div class="tab active" data-tab="live">הרצה חיה</div>
-      <div class="tab" data-tab="data">נתונים</div>
-      <div class="tab" data-tab="charts">גרפים</div>
-      <div class="tab" data-tab="logs">לוגים</div>
-      <div class="tab" data-tab="about">איך זה עובד</div>
-    </div>
+<div class="screen" id="screen2">
+  <h1>Connect a SCADA System</h1>
+  <div class="card">
+    <input id="sysName" placeholder="System Name (e.g. SolarEdge – Site A)">
+    <input id="sysUrl" placeholder="Login URL">
+    <input id="sysUser" placeholder="Username">
+    <input id="sysPass" type="password" placeholder="Password">
+  </div>
+  <button onclick="next(3)">Connect & Continue</button>
+</div>
 
-    <!-- LIVE -->
-    <div class="area" id="tab-live">
-      <div class="grid-2">
-        <!-- Fake target site -->
-        <div class="fake-site" id="fakeSite">
-          <div class="fake-top">
-            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-            <span style="margin-inline-start:8px;color:var(--muted)">dashboard.example.com</span>
-          </div>
-          <div class="fake-main">
-            <div class="fake-kpi-wrap">
-              <div class="fake-k" data-k="rev"><div style="color:var(--muted);font-size:12px">Revenue</div><div class="val" id="f_rev">₪—</div></div>
-              <div class="fake-k" data-k="ord"><div style="color:var(--muted);font-size:12px">Orders</div><div class="val" id="f_ord">—</div></div>
-              <div class="fake-k" data-k="aov"><div style="color:var(--muted);font-size:12px">AOV</div><div class="val" id="f_aov">₪—</div></div>
-              <div class="fake-k" data-k="users"><div style="color:var(--muted);font-size:12px">Active</div><div class="val" id="f_users">—</div></div>
-            </div>
-            <table class="fake-table" id="ordersTable">
-              <thead><tr><th>#</th><th>Customer</th><th>Total (₪)</th><th>Status</th></tr></thead>
-              <tbody id="ordersBody"></tbody>
-            </table>
-          </div>
-        </div>
+<div class="screen" id="screen3">
+  <h1>Select What to Monitor</h1>
+  <h2>Click the items you care about</h2>
+  <div class="card">
+    <div class="highlight-option" onclick="toggle(this)">Production (kWh)</div>
+    <div class="highlight-option" onclick="toggle(this)">Inverter Status Table</div>
+    <div class="highlight-option" onclick="toggle(this)">Temperature Sensor</div>
+  </div>
+  <button onclick="next(4)">Next: Alerts & Frequency</button>
+</div>
 
-        <!-- Agent view -->
-        <div class="panel">
-          <h3>Agent Extract</h3>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-            <span class="tag">Selector: <code>#ordersTable</code></span>
-            <span class="tag">KPI: <code>.fake-k .val</code></span>
-            <span class="tag">Snapshot: HTML + PNG</span>
-          </div>
-          <div class="log" id="agentLog" style="height:220px"></div>
-          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-            <span class="pill">page_hash: <span id="hash">—</span></span>
-            <span class="pill">rows: <span id="rowsCount">0</span></span>
-            <span class="pill">saved: <span id="saved">0</span></span>
-          </div>
-        </div>
-      </div>
-    </div>
+<div class="screen" id="screen4">
+  <h1>Define Alerts & Frequency</h1>
+  <div class="card">
+    <label>Condition:<br><select id="cond"><option>Below</option><option>Above</option><option>Changes</option></select></label>
+    <label>Threshold:<br><input id="threshold" type="number" placeholder="Enter value"></label>
+    <label>Check Interval:<br><select id="interval"><option>1 min</option><option selected>5 min</option><option>10 min</option></select></label>
+    <label>Notification:<br><select id="notif"><option>Email</option><option>Slack</option><option>WhatsApp</option></select></label>
+  </div>
+  <button onclick="next(5)">Next: Review</button>
+</div>
 
-    <!-- DATA -->
-    <div class="area" id="tab-data" hidden>
-      <div style="overflow:auto">
-        <table class="table" id="dataTable" aria-label="Saved snapshots">
-          <thead><tr><th>זמן</th><th>Hash</th><th>Revenue</th><th>Orders</th><th>AOV</th><th>Users</th><th>Rows</th></tr></thead>
-          <tbody id="dataBody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- CHARTS -->
-    <div class="area" id="tab-charts" hidden>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <div>
-          <h3 style="margin-top:0">Revenue (Line)</h3>
-          <canvas id="lineChart" width="600" height="260" aria-label="Revenue chart"></canvas>
-        </div>
-        <div>
-          <h3 style="margin-top:0">Orders (Bar)</h3>
-          <canvas id="barChart" width="600" height="260" aria-label="Orders chart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- LOGS -->
-    <div class="area" id="tab-logs" hidden>
-      <div class="log" id="bigLog" style="height:320px"></div>
-    </div>
-
-    <!-- ABOUT -->
-    <div class="area" id="tab-about" hidden>
-      <ul>
-        <li>Login → מזהה שדות, מאמת CSRF/TOTP (בדמו: מדומה)</li>
-        <li>Scrape → בוחר selectors לטבלה ו-KPIs, מחשב <code>page_hash</code> לזיהוי שינויים</li>
-        <li>Store → “שומר” ל-Data Lake (בדמו: זיכרון דפדפן) + snapshot</li>
-        <li>Analyze → מעדכן גרפים, מחשב דלתא, מפעיל התראות על חריגות</li>
-        <li>Schedule → הרצות אוטומטיות כל X דקות (בדמו: טוגל Auto)</li>
-      </ul>
-      <p style="color:var(--muted)">הדמו self-contained. במציאות: Cloud Run + Secret Manager + BigQuery + Scheduler.</p>
-    </div>
-  </section>
-
-  <div class="footer">© Demo — Built for a single-file showcase. No external libraries.</div>
+<div class="screen" id="screen5">
+  <h1>Review & Activate</h1>
+  <div class="card summary" id="summary"></div>
+  <button onclick="alert('Agent Activated! 🚀 Running automatically…')">Activate Agent 🚀</button>
 </div>
 
 <script>
-(function(){
-  // ---------- Utilities ----------
-  const $ = sel => document.querySelector(sel);
-  const $$ = sel => Array.from(document.querySelectorAll(sel));
-  const log = (el, msg) => { const s = el.scrollHeight; el.textContent += `[${ts()}] ${msg}\n`; el.scrollTop = el.scrollHeight; }
-  const ts = () => new Date().toLocaleTimeString();
-  const rnd = (min,max)=>Math.floor(Math.random()*(max-min+1))+min;
-  const hash = str => {
-    // Simple DJB2
-    let h=5381; for(let i=0;i<str.length;i++){h=((h<<5)+h)+str.charCodeAt(i);h|=0}
-    return (h>>>0).toString(16).padStart(8,'0');
-  };
-
-  // ---------- Fake source data ----------
-  const names = ["Leah","David","Noa","Omer","Yael","Ben","Maya","Eden","Lior","Tal","Rina","Shai","Nadav","Dana","Itai"];
-  const statuses = ["Paid","Pending","Failed","Refunded"];
-  const genOrderRow = (i)=>({
-    id: i, name: names[rnd(0,names.length-1)],
-    total: rnd(60,900), status: statuses[rnd(0,statuses.length-1)]
-  });
-
-  function populateFakeSite(){
-    const body = $("#ordersBody"); body.innerHTML="";
-    const rows = rnd(8,14);
-    let sum=0;
-    for(let i=1;i<=rows;i++){
-      const r = genOrderRow(i); sum+=r.total;
-      body.insertAdjacentHTML("beforeend",
-        `<tr><td>#${r.id}</td><td>${r.name}</td><td>₪${r.total.toLocaleString()}</td><td>${r.status}</td></tr>`);
-    }
-    const orders = rows;
-    const rev = sum;
-    const aov = Math.round(rev / Math.max(orders,1));
-    const users = rnd(40,160);
-
-    $("#f_rev").textContent = "₪"+rev.toLocaleString();
-    $("#f_ord").textContent = orders.toString();
-    $("#f_aov").textContent = "₪"+aov.toLocaleString();
-    $("#f_users").textContent = users.toString();
-
-    return {rev, orders, aov, users, rows};
+let selections=[];
+function toggle(el){
+  el.classList.toggle('active');
+  if(el.classList.contains('active')) selections.push(el.innerText);
+  else selections = selections.filter(x=>x!==el.innerText);
+}
+function next(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen'+n).classList.add('active');
+  if(n===5){
+    let sys=document.getElementById('sysName').value||'Unnamed';
+    let url=document.getElementById('sysUrl').value||'—';
+    let user=document.getElementById('sysUser').value||'—';
+    let cond=document.getElementById('cond').value;
+    let thr=document.getElementById('threshold').value||'—';
+    let intv=document.getElementById('interval').value;
+    let notif=document.getElementById('notif').value;
+    document.getElementById('summary').innerHTML=
+      `<b>System:</b> ${sys}<br><b>URL:</b> ${url}<br><b>User:</b> ${user}<br>`+
+      `<b>Monitored Items:</b> ${selections.join(', ')||'None'}<br>`+
+      `<b>Alert Rule:</b> ${cond} ${thr}<br><b>Frequency:</b> ${intv}<br>`+
+      `<b>Notify via:</b> ${notif}`;
   }
-
-  // ---------- Agent core (simulated) ----------
-  const state = {
-    auto:false,
-    saved:[],
-    lastHash:null,
-    threshold:12000,
-    nextTimer:null
-  };
-
-  function extractFromDom(){
-    // select KPIs
-    const rev = +$("#f_rev").textContent.replace(/[^\d]/g,"");
-    const orders = +$("#f_ord").textContent.replace(/[^\d]/g,"");
-    const aov = +$("#f_aov").textContent.replace(/[^\d]/g,"");
-    const users = +$("#f_users").textContent.replace(/[^\d]/g,"");
-    // table
-    const rows = $$("#ordersBody tr").map(tr=>{
-      const tds = tr.querySelectorAll("td");
-      return [tds[0].textContent, tds[1].textContent, tds[2].textContent.replace(/[^\d]/g,""), tds[3].textContent];
-    });
-    const html = $("#fakeSite").outerHTML.slice(0,200000);
-    const pageHash = hash(html);
-    return {rev, orders, aov, users, rows, pageHash, html};
-  }
-
-  function saveSnapshot(obj){
-    const rec = {
-      time: new Date().toISOString(),
-      hash: obj.pageHash,
-      rev: obj.rev,
-      ord: obj.orders,
-      aov: obj.aov,
-      users: obj.users,
-      rows: obj.rows.length
-    };
-    state.saved.push(rec);
-    updateDataTable();
-    updateKpis(rec);
-    drawCharts();
-    $("#saved").textContent = state.saved.length;
-    $("#rowsCount").textContent = rec.rows;
-    $("#hash").textContent = rec.hash;
-    $("#lastRun").textContent = new Date().toLocaleTimeString();
-    // Alerting
-    if(rec.rev < state.threshold){
-      log($("#alertLog"), `⚠️ Revenue below threshold: ₪${rec.rev.toLocaleString()} < ₪${state.threshold.toLocaleString()}`);
-    }else{
-      log($("#alertLog"), `✅ Revenue OK: ₪${rec.rev.toLocaleString()}`);
-    }
-  }
-
-  function updateKpis(rec){
-    const prev = state.saved[state.saved.length-2];
-    const set = (id,val,deltaId,deltaVal)=>{
-      $(id).textContent = val;
-      const el = $(deltaId);
-      if(!prev){ el.textContent="–"; el.className="delta"; return; }
-      const diff = val - deltaVal(prev);
-      const pct = prev ? Math.round(diff/Math.max(deltaVal(prev),1)*100) : 0;
-      el.textContent = (diff>=0? "▲ +" : "▼ ") + Math.abs(pct) + "%";
-      el.className = "delta " + (diff>=0? "up":"down");
-    }
-    set("#k_rev", "₪"+rec.rev.toLocaleString(), "#d_rev", p=>p.rev);
-    set("#k_ord", String(rec.ord), "#d_ord", p=>p.ord);
-    set("#k_aov", "₪"+rec.aov.toLocaleString(), "#d_aov", p=>p.aov);
-    set("#k_users", String(rec.users), "#d_users", p=>p.users);
-  }
-
-  function updateDataTable(){
-    const tb = $("#dataBody"); tb.innerHTML="";
-    for(const r of [...state.saved].reverse()){
-      tb.insertAdjacentHTML("beforeend",
-        `<tr class="row">
-          <td>${new Date(r.time).toLocaleString()}</td>
-          <td><span class="pill">${r.hash}</span></td>
-          <td>₪${r.rev.toLocaleString()}</td>
-          <td>${r.ord}</td>
-          <td>₪${r.aov.toLocaleString()}</td>
-          <td>${r.users}</td>
-          <td>${r.rows}</td>
-        </tr>`);
-    }
-  }
-
-  // ---------- Charts (pure Canvas) ----------
-  function drawLine(ctx, data){
-    const W = ctx.canvas.width, H = ctx.canvas.height;
-    ctx.clearRect(0,0,W,H);
-    ctx.strokeStyle = "#88aaff"; ctx.lineWidth=2;
-    // axes
-    ctx.globalAlpha=.4; ctx.beginPath(); ctx.moveTo(40,10); ctx.lineTo(40,H-35); ctx.lineTo(W-10,H-35); ctx.stroke(); ctx.globalAlpha=1;
-    if(data.length<2) return;
-    const vals = data.map(d=>d.rev);
-    const min = Math.min(...vals)*0.9, max = Math.max(...vals)*1.1;
-    const xStep = (W-60)/(data.length-1);
-    const y = v => H-35 - ( (v-min)/(max-min) )*(H-55);
-    ctx.beginPath();
-    data.forEach((d,i)=>{ const x=40+i*xStep; const yy=y(d.rev); i?ctx.lineTo(x,yy):ctx.moveTo(x,yy); });
-    ctx.stroke();
-    // points
-    ctx.fillStyle="#cfe2ff";
-    data.forEach((d,i)=>{ const x=40+i*xStep; const yy=y(d.rev); ctx.beginPath(); ctx.arc(x,yy,3,0,Math.PI*2); ctx.fill(); })
-  }
-
-  function drawBar(ctx, data){
-    const W = ctx.canvas.width, H = ctx.canvas.height;
-    ctx.clearRect(0,0,W,H);
-    ctx.strokeStyle = "#88aaff"; ctx.lineWidth=2;
-    ctx.globalAlpha=.4; ctx.beginPath(); ctx.moveTo(40,10); ctx.lineTo(40,H-35); ctx.lineTo(W-10,H-35); ctx.stroke(); ctx.globalAlpha=1;
-    if(!data.length) return;
-    const vals = data.map(d=>d.ord);
-    const max = Math.max(...vals)*1.1;
-    const barW = (W-60)/Math.max(vals.length,1) * 0.7;
-    data.forEach((d,i)=>{
-      const x = 40 + i*((W-60)/Math.max(vals.length,1)) + ((W-60)/Math.max(vals.length,1)-barW)/2;
-      const h = ((d.ord)/max)*(H-55);
-      const y = H-35 - h;
-      ctx.fillStyle = "#6ea8ff";
-      ctx.fillRect(x,y,barW,h);
-    });
-  }
-
-  function drawCharts(){
-    const data = state.saved.slice(-20); // last 20 points
-    drawLine($("#lineChart").getContext("2d"), data);
-    drawBar($("#barChart").getContext("2d"), data);
-  }
-
-  // ---------- Scheduler ----------
-  function scheduleNext(){
-    clearTimeout(state.nextTimer);
-    if(!state.auto) return;
-    const ms = 3500 + Math.random()*1500; // every ~3.5-5s in demo
-    $("#nextRun").textContent = (new Date(Date.now()+ms)).toLocaleTimeString();
-    state.nextTimer = setTimeout(()=>runOnce("auto"), ms);
-  }
-
-  // ---------- Tabs ----------
-  $$(".tab").forEach(t=>{
-    t.addEventListener("click",()=>{
-      $$(".tab").forEach(x=>x.classList.remove("active"));
-      t.classList.add("active");
-      const id=t.dataset.tab;
-      ["live","data","charts","logs","about"].forEach(k=>$("#tab-"+k).hidden = k!==id);
-    });
-  });
-
-  // ---------- Main flow ----------
-  function login(){
-    $("#loginStatus").textContent = "מבצע התחברות…";
-    setTimeout(()=>{
-      $("#loginStatus").textContent = "התחברות הצליחה ✓";
-      log($("#bigLog"), "Auth: Login success. CSRF verified. Session established.");
-    }, 800);
-  }
-
-  function flashHighlights(){
-    // brief highlight on fake site elements the agent "reads"
-    const el1 = $("#ordersTable");
-    const el2 = $$(".fake-k");
-    el1.classList.add("highlight");
-    el2.forEach(e=>e.classList.add("highlight"));
-    setTimeout(()=>{ el1.classList.remove("highlight"); el2.forEach(e=>e.classList.remove("highlight")); },900);
-  }
-
-  function runOnce(mode="manual"){
-    // refresh source
-    const src = populateFakeSite();
-    flashHighlights();
-    log($("#agentLog"), (mode==="auto"?"⏱️ Auto run":"▶️ Manual run")+": scanning DOM…");
-    const out = extractFromDom();
-    const changed = out.pageHash !== state.lastHash;
-    state.lastHash = out.pageHash;
-    log($("#agentLog"), `Found KPIs rev=₪${out.rev.toLocaleString()}, orders=${out.orders}, aov=₪${out.aov}, users=${out.users}; rows=${out.rows.length}`);
-    if(changed){
-      log($("#agentLog"), `Change detected (hash=${out.pageHash}). Saving snapshot…`);
-      saveSnapshot(out);
-    }else{
-      log($("#agentLog"), `No change (hash=${out.pageHash}). Skipping save.`);
-    }
-    log($("#bigLog"), `[ETL] extract ➜ transform ➜ load done (${mode})`);
-    scheduleNext();
-  }
-
-  // ---------- Buttons ----------
-  $("#runNow").addEventListener("click",()=>runOnce("manual"));
-  $("#toggleAuto").addEventListener("click", (e)=>{
-    state.auto = !state.auto;
-    e.target.textContent = "Auto: " + (state.auto? "ON":"OFF");
-    if(state.auto) scheduleNext(); else clearTimeout(state.nextTimer);
-  });
-  $("#startBtn").addEventListener("click", ()=>{
-    login();
-    runOnce("manual");
-  });
-  $("#resetBtn").addEventListener("click", ()=>{
-    state.saved=[]; state.lastHash=null; $("#dataBody").innerHTML="";
-    $("#agentLog").textContent=""; $("#bigLog").textContent=""; $("#alertLog").textContent="";
-    ["#k_rev","#k_ord","#k_aov","#k_users","#d_rev","#d_ord","#d_aov","#d_users","#hash","#saved","#rowsCount","#lastRun","#nextRun"].forEach(id=>{
-      const el=$(id); if(el) el.textContent = "—";
-    });
-    drawCharts();
-  });
-
-  // Auto-start for wow effect
-  setTimeout(()=>{ $("#startBtn").click(); $("#toggleAuto").click(); }, 600);
-
-  // Initial seed
-  populateFakeSite();
-  drawCharts();
-})();
+}
 </script>
 </body>
 </html>
