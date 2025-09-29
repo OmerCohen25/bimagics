@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracey Demo - AI Automation for Solar SCADA Monitoring</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+        :root {
+            --bg-color: #0D1117;
+            --surface-color: #161B22;
+            --primary-color: #F7931A; /* Solar Orange */
+            --primary-light: #FFB86C;
+            --secondary-color: #00AEEF; /* Tech Blue */
+            --text-color: #e0e0e0;
+            --text-muted: #8B949E;
+            --success-color: #28A745;
+            --error-color: #DC3545;
+            --border-color: #30363D;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .screen {
+            display: none;
+            min-height: 100vh;
+            width: 100%;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h1, h2, h3 {
+            font-weight: 700;
+        }
+        
+        h1 { font-size: 3rem; margin-bottom: 20px; }
+        h2 { font-size: 2.2rem; margin-bottom: 20px; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px;}
+        h3 { font-size: 1.5rem; margin-bottom: 15px; }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: white;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: #111;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(247, 147, 26, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 2px solid var(--secondary-color);
+            color: var(--secondary-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-google {
+            background-color: #fff;
+            color: #444;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-google img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .btn-google:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* --- Landing Page --- */
+        #screen-landing {
+            background: linear-gradient(135deg, rgba(13, 17, 23, 0.9), rgba(13, 17, 23, 0.95)), url('https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=2070&auto=format&fit=crop') no-repeat center center/cover;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #screen-landing h1 {
+            font-size: 4rem;
+            background: linear-gradient(90deg, var(--primary-light), var(--primary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        #screen-landing p {
+            font-size: 1.5rem;
+            max-width: 800px;
+            margin-bottom: 30px;
+            color: var(--text-muted);
+        }
+
+        /* --- Main Layout --- */
+        .main-layout {
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: var(--surface-color);
+            padding: 20px;
+            height: 100vh;
+            position: fixed;
+            border-right: 1px solid var(--border-color);
+        }
+        .sidebar .logo {
+            font-size: 1.8rem;
+            border: none;
+            margin-bottom: 30px;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+        .sidebar-menu a {
+            display: block;
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: background-color 0.3s;
+        }
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background-color: var(--primary-color);
+            color: #111;
+        }
+        .main-content {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+            padding: 20px;
+        }
+        
+        .card {
+            background-color: var(--surface-color);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        /* --- Dashboard --- */
+        .agent-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        .agent-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .agent-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        .agent-card h3 {
+            color: var(--secondary-color);
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .status-success { background-color: var(--success-color); }
+        .status-running { background-color: #ff9800; }
+        .status-error { background-color: var(--error-color); }
+
+        /* --- Creation Wizard --- */
+        .wizard-steps {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 40px;
+        }
+        .step {
+            text-align: center;
+            color: var(--text-muted);
+            position: relative;
+            flex: 1;
+        }
+        .step .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--surface-color);
+            border: 2px solid var(--text-muted);
+            display: inline-block;
+            line-height: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .step .step-title { font-weight: 600; }
+        .step.active .step-number { border-color: var(--primary-color); color: var(--primary-color); }
+        .step.active .step-title { color: var(--text-color); }
+        .step.done .step-number { background-color: var(--primary-color); border-color: var(--primary-color); color: var(--bg-color); }
+        .step.done .step-title { color: var(--text-color); }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background-color: var(--text-muted);
+            z-index: -1;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+        
+        /* Studio Selector */
+        #view-create-2 .studio-container {
+            display: flex;
+            gap: 20px;
+            height: 600px;
+        }
+        .website-preview {
+            flex: 3;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #fff;
+            color: #333;
+            overflow: auto;
+        }
+        .website-preview h4 { color: #3f51b5; font-size: 1.8rem; margin-bottom: 15px;}
+        .website-preview .data-point {
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px dashed #ccc;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px;
+        }
+        .website-preview .data-point:hover {
+            border-color: var(--primary-color);
+            background-color: #fef8f0;
+        }
+        .website-preview .data-point.selected {
+             border-style: solid;
+             border-color: var(--success-color);
+             background-color: #f0fff0;
+        }
+        .selected-data {
+            flex: 1;
+        }
+        #selected-list { list-style: none; }
+        #selected-list li {
+            background-color: var(--surface-color);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 3px solid var(--secondary-color);
+        }
+        
+        /* Final screen */
+        #view-final { text-align: center; }
+        #view-final .icon { font-size: 5rem; color: var(--success-color); margin-bottom: 20px; }
+
+    </style>
+</head>
+<body>
+
+    <div id="screen-landing" class="screen active">
+        <div class="container">
+            <h1>Tracey</h1>
+            <p>Automate your solar farm monitoring. Stop logging into SCADA systems manually. Let Tracey track performance, alert you to anomalies, and report on yield, 24/7.</p>
+            <a href="#" class="btn btn-primary" data-navigate="login">Start Automating Now</a>
+        </div>
+    </div>
+
+    <div id="screen-login" class="screen" style="display: flex; justify-content: center; align-items: center;">
+        <div class="card" style="text-align: center; max-width: 400px;">
+            <h2>Welcome to Tracey</h2>
+            <p style="color: var(--text-muted); margin-bottom: 30px;">Log in to your organization's account to begin.</p>
+            <a href="#" class="btn btn-google" data-navigate="dashboard">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo">
+                Sign in with Google
+            </a>
+        </div>
+    </div>
+
+    <div id="screen-app" class="screen main-layout">
+        <aside class="sidebar">
+            <div class="logo">Tracey</div>
+            <nav class="sidebar-menu">
+                <a href="#" data-navigate="dashboard" class="active">📊 Dashboard</a>
+                <a href="#" data-navigate="monitor">📡 Agent Monitor</a>
+                <a href="#">⚙️ Settings</a>
+                <a href="#" data-navigate="landing">🚪 Logout</a>
+            </nav>
+        </aside>
+        <main class="main-content">
+            
+            <div id="view-dashboard" class="view active">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Agent Dashboard</h2>
+                    <a href="#" class="btn btn-primary" data-navigate="create-1">Create New Agent +</a>
+                </div>
+                <div class="agent-list">
+                    <div class="card agent-card">
+                        <h3>Alpha Site - Inverter Status</h3>
+                        <p>Monitors SolarSCADA Portal every 5 minutes for inverter faults.</p>
+                        <p><strong>Last Run:</strong> 3 minutes ago <span class="status status-success">Success</span></p>
+                    </div>
+                    <div class="card agent-card">
+                        <h3>Beta Farm - Hourly Output</h3>
+                        <p>Scrapes total kWh from GridWatch dashboard every hour.</p>
+                        <p><strong>Last Run:</strong> Now <span class="status status-running">Running</span></p>
+                    </div>
+                    <div class="card agent-card">
+                        <h3>Gamma Plant - Grid Connection</h3>
+                        <p>Checks grid status on PowerTrack platform every 15 minutes.</p>
+                        <p><strong>Last Run:</strong> Yesterday <span class="status status-error">Failed</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-create-1" class="view">
+                 <h2>Create New Agent</h2>
+                 <div class="wizard-steps">
+                     <div class="step active">
+                         <div class="step-number">1</div>
+                         <div class="step-title">Target & Access</div>
+                     </div>
+                     <div class="step">
+                         <div class="step-number">2</div>
+                         <div class="step-title">Data Selection</div>
+                     </div>
+                     <div class="step">
+                         <div class="step-number">3</div>
+                         <div class="step-title">Destination & Schedule</div>
+                     </div>
+                 </div>
+                 <div class="card">
+                    <div class="form-group">
+                        <label for="agent-name">Agent Name</label>
+                        <input type="text" id="agent-name" placeholder="e.g., Alpha Site - Inverter Status">
+                    </div>
+                    <div class="form-group">
+                        <label for="agent-url">SCADA System URL</label>
+                        <input type="text" id="agent-url" value="https://portal.solarscada.com/login">
+                    </div>
+                    <h3 style="margin-top: 30px;">Access Credentials (Optional)</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">Credentials are encrypted and stored securely.</p>
+                    <div class="form-group">
+                        <label for="agent-user">Username</label>
+                        <input type="text" id="agent-user" value="ops_manager@solarenergy.io">
+                    </div>
+                    <div class="form-group">
+                        <label for="agent-pass">Password</label>
+                        <input type="password" id="agent-pass" value="************">
+                    </div>
+                    <a href="#" class="btn btn-primary" data-navigate="create-2">Next: Select Data</a>
+                 </div>
+            </div>
+
+            <div id="view-create-2" class="view">
+                 <h2>Data Selection (Studio)</h2>
+                 <div class="wizard-steps">
+                     <div class="step done">
+                         <div class="step-number">✓</div>
+                         <div class="step-title">Target & Access</div>
+                     </div>
+                     <div class="step active">
+                         <div class="step-number">2</div>
+                         <div class="step-title">Data Selection</div>
+                     </div>
+                     <div class="step">
+                         <div class="step-number">3</div>
+                         <div class="step-title">Destination & Schedule</div>
+                     </div>
+                 </div>
+                 <div class="card">
+                     <p style="color:var(--text-muted); margin-bottom: 20px;">Tracey is now showing a live preview of your SCADA portal. Hover and click on any data point you want to monitor.</p>
+                     <div class="studio-container">
+                        <div class="website-preview">
+                            <h4>Preview: portal.solarscada.com</h4>
+                            <div class="data-point" data-name="Total Yield (kWh)">
+                                <strong>Total Yield (Today):</strong>
+                                <span style="font-size: 1.5rem; color: #F7931A; font-weight: bold;">12,540 kWh</span>
+                            </div>
+                            <div class="data-point" data-name="Inverter Efficiency">
+                                <strong>Inverter Efficiency:</strong>
+                                <span style="font-size: 1.5rem; color: #28A745; font-weight: bold;">98.7%</span>
+                            </div>
+                             <div class="data-point" data-name="Irradiance (W/m²)">
+                                <strong>Current Irradiance:</strong>
+                                <span style="font-size: 1.5rem; font-weight: bold;">890 W/m²</span>
+                            </div>
+                            <div class="data-point" data-name="Grid Status">
+                                <strong>Grid Status:</strong>
+                                <span style="font-size: 1.5rem; color: #28A745; font-weight: bold;">Connected</span>
+                            </div>
+                        </div>
+                        <div class="selected-data">
+                            <h3>Selected Data:</h3>
+                            <ul id="selected-list"></ul>
+                        </div>
+                     </div>
+                     <a href="#" class="btn btn-primary" style="margin-top: 20px;" data-navigate="create-3">Next: Set Destination & Schedule</a>
+                 </div>
+            </div>
+
+            <div id="view-create-3" class="view">
+                 <h2>Destination & Schedule</h2>
+                 <div class="wizard-steps">
+                     <div class="step done">
+                         <div class="step-number">✓</div>
+                         <div class="step-title">Target & Access</div>
+                     </div>
+                     <div class="step done">
+                         <div class="step-number">✓</div>
+                         <div class="step-title">Data Selection</div>
+                     </div>
+                     <div class="step active">
+                         <div class="step-number">3</div>
+                         <div class="step-title">Destination & Schedule</div>
+                     </div>
+                 </div>
+                 <div class="card">
+                     <h3>Data Destination</h3>
+                     <p style="color: var(--text-muted); margin-bottom: 15px;">Choose where to send the data collected by the agent.</p>
+                     <div class="form-group">
+                         <label>Select Destination</label>
+                         <select style="width: 100%; padding: 12px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-color); font-size: 1rem;">
+                             <option>Google Sheets</option>
+                             <option disabled>Email Alert (Coming Soon)</option>
+                             <option disabled>Slack Notification (Coming Soon)</option>
+                         </select>
+                     </div>
+                     <div class="form-group">
+                         <label for="sheet-url">Google Sheet URL</label>
+                         <input type="text" id="sheet-url" value="https://docs.google.com/spreadsheets/d/1aBcDeFgHiJkLmNo...">
+                     </div>
+                      <h3>Running Schedule</h3>
+                      <div class="form-group">
+                         <label>How often should this agent run?</label>
+                         <select style="width: 100%; padding: 12px; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-color); font-size: 1rem;">
+                             <option>Every 5 minutes</option>
+                             <option>Every 15 minutes</option>
+                             <option>Every hour</option>
+                             <option>Once a day</option>
+                         </select>
+                     </div>
+                     <a href="#" class="btn btn-primary" data-navigate="final">Create & Activate Agent</a>
+                 </div>
+            </div>
+            
+            <div id="view-final" class="view">
+                <div class="card" style="text-align:center; padding: 50px;">
+                    <div class="icon">🚀</div>
+                    <h2>Agent Created Successfully!</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 30px;">Your new agent is now active and will run as scheduled.<br>You can follow its activity in the Agent Monitor.</p>
+                    <a href="#" class="btn btn-primary" data-navigate="monitor">Go to Agent Monitor</a>
+                    <a href="#" class="btn btn-secondary" style="margin-left:10px;" data-navigate="dashboard">Back to Dashboard</a>
+                </div>
+            </div>
+            
+            <div id="view-monitor" class="view">
+                <h2>Live Agent Monitor</h2>
+                <div class="card">
+                    <p>Real-time log stream from all active agents.</p>
+                    <table style="width: 100%; text-align: left; border-collapse: collapse; margin-top: 20px;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border-color);">
+                                <th style="padding: 10px;">Time</th>
+                                <th style="padding: 10px;">Agent</th>
+                                <th style="padding: 10px;">Action</th>
+                                <th style="padding: 10px;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-table">
+                            </tbody>
+                    </table>
+                </div>
+                 <div class="card">
+                     <h3>Example Output in Google Sheets</h3>
+                     <img src="https://i.imgur.com/eE1Zcqt.png" style="width:100%; border-radius: 8px; margin-top:15px; border: 1px solid var(--border-color);" alt="Google Sheet Example with solar data">
+                 </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const screens = document.querySelectorAll('.screen');
+            const views = document.querySelectorAll('.view');
+            const navLinks = document.querySelectorAll('[data-navigate]');
+
+            // --- Navigation Logic ---
+            function showScreen(screenId) {
+                screens.forEach(screen => screen.classList.remove('active'));
+                const targetScreen = document.getElementById(`screen-${screenId}`);
+                if (targetScreen) {
+                    targetScreen.classList.add('active');
+                }
+                
+                if(screenId === 'app' || screenId === 'dashboard') {
+                    document.getElementById('screen-app').classList.add('active');
+                    showView('dashboard');
+                }
+            }
+
+            function showView(viewId) {
+                views.forEach(view => view.style.display = 'none');
+                const targetView = document.getElementById(`view-${viewId}`);
+                if (targetView) {
+                    targetView.style.display = 'block';
+                }
+                
+                const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
+                sidebarLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.dataset.navigate === viewId) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const target = link.dataset.navigate;
+                    if (target.startsWith('create-') || target === 'dashboard' || target === 'monitor' || target === 'final') {
+                       showScreen('app');
+                       showView(target);
+                    } else {
+                       showScreen(target);
+                    }
+                });
+            });
+
+            // --- Studio Logic ---
+            const dataPoints = document.querySelectorAll('.data-point');
+            const selectedList = document.getElementById('selected-list');
+            
+            dataPoints.forEach(point => {
+                point.addEventListener('click', () => {
+                    const dataName = point.dataset.name;
+                    point.classList.toggle('selected');
+
+                    if(point.classList.contains('selected')) {
+                        const li = document.createElement('li');
+                        li.textContent = dataName;
+                        li.dataset.name = dataName;
+                        selectedList.appendChild(li);
+                    } else {
+                        const itemToRemove = selectedList.querySelector(`li[data-name="${dataName}"]`);
+                        if (itemToRemove) {
+                            selectedList.removeChild(itemToRemove);
+                        }
+                    }
+                });
+            });
+            
+            // --- Monitor Logic Simulation ---
+            const logsTable = document.getElementById('logs-table');
+            const agents = [
+                { name: 'Alpha Site - Inverter Status', actions: ['Connecting to portal.solarscada.com...', 'Login successful.', 'Navigating to Alpha Site dashboard...', 'Scraping Inverter Efficiency: 98.7%', 'Writing to Google Sheet...', 'Run finished successfully ✅'] },
+                { name: 'Beta Farm - Hourly Output', actions: ['Connecting to gridwatch.io...', 'Login successful.', 'Scraping Total Yield: 12540 kWh', 'Writing to Google Sheet...', 'Run finished successfully ✅'] },
+            ];
+            let logCounter = 0;
+
+            function addLog() {
+                if (!document.getElementById('view-monitor') || document.getElementById('view-monitor').style.display !== 'block') return;
+
+                const agent = agents[Math.floor(Math.random() * agents.length)];
+                const action = agent.actions[logCounter % agent.actions.length];
+                const isSuccess = action.includes('✅');
+                
+                const tr = document.createElement('tr');
+                tr.style.animation = 'fadeIn 0.5s';
+                tr.innerHTML = `
+                    <td style="padding: 10px;">${new Date().toLocaleTimeString()}</td>
+                    <td style="padding: 10px;">${agent.name}</td>
+                    <td style="padding: 10px;">${action.replace('✅','')}</td>
+                    <td style="padding: 10px;">
+                        <span class="status ${isSuccess ? 'status-success' : 'status-running'}">
+                            ${isSuccess ? 'Success' : 'In Progress'}
+                        </span>
+                    </td>
+                `;
+                logsTable.prepend(tr);
+                
+                if (logsTable.children.length > 10) {
+                    logsTable.removeChild(logsTable.lastChild);
+                }
+
+                logCounter++;
+            }
+
+            setInterval(addLog, 2500);
+
+            // Initial state
+            showScreen('landing');
+        });
+    </script>
+</body>
+</html>
