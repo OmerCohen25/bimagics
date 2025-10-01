@@ -1,661 +1,674 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="he" dir="rtl">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Energy Storage Analyzer – Demo (Single HTML)</title>
+<title>Energy Storage Analyzer – v2.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0b1020; --card:#131a32; --muted:#8892b0; --text:#e6eeff;
-    --accent:#64ffda; --accent2:#8be9fd; --good:#1ecb8a; --bad:#ff6b6b; --warn:#ffd166;
+    --bg:#f8f9fa; --card:#ffffff; --muted:#6c757d; --text:#212529; --border:#dee2e6;
+    --accent:#007bff; --accent-hover:#0056b3; --good:#28a745; --bad:#dc3545; --warn:#ffc107;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --font-main: 'Rubik', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
   }
-  *{box-sizing:border-box} html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:500 16px/1.4 system-ui,Segoe UI,Roboto,Helvetica,Arial}
-  a{color:var(--accent);text-decoration:none}
+  [data-theme="dark"] {
+    --bg:#121212; --card:#1e1e1e; --muted:#8892b0; --text:#e6eeff; --border:#343a40;
+    --accent:#64a1ff; --accent-hover:#8bbaff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:400 16px/1.5 var(--font-main);-webkit-font-smoothing: antialiased;}
+  a{color:var(--accent);text-decoration:none;transition:color .2s}
+  a:hover{color:var(--accent-hover)}
+
   .wrap{max-width:1100px;margin:0 auto;padding:16px}
-  header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0}
-  .brand{display:flex;align-items:center;gap:10px}
-  .brand .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;color:#0b1020;font-weight:900}
-  .steps{display:flex;gap:8px;flex-wrap:wrap}
-  .step{padding:8px 12px;border-radius:999px;background:#0e1430;border:1px solid #1f2c58;color:var(--muted)}
-  .step.active{color:#0b1020;background:var(--accent);border-color:transparent}
-  .step.done{color:#0b1020;background:#9fffe2;border-color:transparent}
-  .card{background:var(--card);border:1px solid #22305e;border-radius:16px;padding:16px}
-  .grid{display:grid;gap:16px}
-  @media(min-width:900px){ .grid.cols-2{grid-template-columns:1fr 1fr} .grid.cols-3{grid-template-columns:1fr 1fr 1fr} }
-  button, .btn{cursor:pointer;border:0;border-radius:12px;padding:12px 16px;background:var(--accent);color:#0b1020;font-weight:700}
-  button.secondary{background:#1a254a;color:var(--text);border:1px solid #2b3b78}
-  button.ghost{background:transparent;border:1px dashed #2b3b78;color:var(--muted)}
-  input,select{width:100%;padding:12px;border-radius:12px;border:1px solid #2b3b78;background:#0f1736;color:var(--text)}
-  label{display:block;margin:8px 0 6px;color:#b6c2e0}
-  .row{display:flex;gap:12px;flex-wrap:wrap}
-  .row>div{flex:1 1 240px}
-  .hide{display:none}
-  .kpi{display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:12px;background:#0f1736;border:1px solid #22305e}
-  .kpi .v{font-size:24px;font-weight:800}
-  .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;border:1px solid #2b3b78;background:#0f1736;color:#b6c2e0}
-  canvas{width:100%;height:220px;background:#0f1736;border:1px solid #22305e;border-radius:12px}
-  .heatmap{display:grid;grid-template-columns:repeat(24, minmax(8px,1fr));gap:2px}
-  .cell{aspect-ratio:1/1;border-radius:4px}
-  .foot{color:var(--muted);font-size:13px}
-  /* printable report */
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg, var(--accent), #8bbaff);display:grid;place-items:center;color:#fff;font-weight:700;font-size:18px}
+  .brand .title{font-size:20px;font-weight:700}
+  .brand .subtitle{color:var(--muted);font-size:14px}
+  
+  .steps{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .step{padding:6px 12px;border-radius:999px;background:transparent;border:1px solid var(--border);color:var(--muted);font-size:14px;transition: all .3s ease;}
+  .step.active{color:#fff;background:var(--accent);border-color:var(--accent);font-weight:500}
+  .step.done{color:var(--text);background:rgba(40,167,69,0.1);border-color:rgba(40,167,69,0.3)}
+  .step.done::before{content:"✔";margin-left:6px;color:var(--good)}
+
+  section.view{display:none;opacity:0;transition:opacity .4s ease-in-out;animation:fadeIn .5s ease forwards}
+  section.view.active{display:block;opacity:1}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:var(--shadow)}
+  .grid{display:grid;gap:20px}
+  @media(min-width:768px){ .grid.cols-2{grid-template-columns:1fr 1fr} .grid.cols-3{grid-template-columns:1fr 1fr 1fr} }
+  
+  .btn{cursor:pointer;border:0;border-radius:10px;padding:12px 20px;font-weight:500;font-size:16px;font-family:var(--font-main);transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+  .btn.primary{background:var(--accent);color:#fff}
+  .btn.primary:hover{background:var(--accent-hover);transform:translateY(-2px);box-shadow:0 4px 10px rgba(0,123,255,0.2)}
+  .btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+  .btn.secondary:hover{background:var(--bg);border-color:var(--muted)}
+  .btn .spinner{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite}
+  .btn.loading .spinner{display:block}
+  .btn.loading span{display:none}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  
+  input,select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:var(--font-main);transition:all .2s}
+  input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,123,255,0.15)}
+  label{display:block;margin-bottom:8px;font-weight:500;color:var(--muted);font-size:14px}
+  
+  .row{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+  
+  .kpi{display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:12px;background:var(--bg);border:1px solid var(--border)}
+  .kpi .v{font-size:28px;font-weight:700;color:var(--accent)}
+  .kpi .l{font-weight:500;font-size:16px}
+  .kpi .f{font-size:13px;color:var(--muted)}
+
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid var(--border);background:var(--bg);color:var(--muted);font-size:14px}
+  canvas{width:100%;height:250px;background:var(--bg);border:1px solid var(--border);border-radius:12px}
+  
+  .heatmap{display:grid;grid-template-columns:repeat(24,1fr);gap:3px}
+  .cell{aspect-ratio:1/1;border-radius:4px;transition:transform .2s}
+  .cell:hover{transform:scale(1.2)}
+  
+  .foot{color:var(--muted);font-size:14px;margin-top:16px}
+  .screen-title{font-size:28px;font-weight:700;margin:0 0 8px 0}
+  
+  #toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px}
+  .toast{padding:12px 20px;border-radius:10px;color:#fff;box-shadow:var(--shadow);opacity:0;animation:slideIn .3s ease forwards}
+  .toast.good{background-color:var(--good)}
+  .toast.bad{background-color:var(--bad)}
+  @keyframes slideIn{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
+
+  /* Print styles */
   @media print{
-    body{background:#fff;color:#000}
+    :root{--bg:#fff; --card:#fff; --muted:#555; --text:#000; --border:#ccc;}
+    body{background:var(--bg);color:var(--text)}
     header,.steps,.controls,.hide-on-print{display:none!important}
-    .card{border:0}
-    .wrap{max-width:none}
+    .card{border:0;box-shadow:none;padding:0}
+    .wrap{max-width:none;padding:0}
     .page{page-break-after:always}
     .print-block{break-inside:avoid;margin:0 0 16px 0}
-    .print-title{font-size:22px;font-weight:900;margin:8px 0}
+    .print-title{font-size:20px;font-weight:700;margin-bottom:8px;color:#000}
     .print-table{width:100%;border-collapse:collapse}
-    .print-table th,.print-table td{border:1px solid #ccc;padding:6px 8px;font-size:12px}
-    .kpi{background:#fff;border:1px solid #ccc}
-    canvas{border:1px solid #ccc}
+    .print-table th,.print-table td{border:1px solid var(--border);padding:8px;font-size:12px;text-align:right}
+    .print-table th{background:#f0f0f0;font-weight:500}
+    .kpi{background:var(--bg);border:1px solid var(--border)}
+    canvas{border:1px solid var(--border)}
   }
 </style>
 </head>
-<body>
+<body data-theme="light">
+  <div id="toast-container"></div>
   <div class="wrap">
     <header class="hide-on-print">
       <div class="brand">
         <div class="logo">ES</div>
         <div>
-          <div style="font-weight:900">Energy Storage Analyzer</div>
-          <div style="color:var(--muted);font-size:13px">Cloud-Native · Single-File Demo</div>
+          <div class="title">Energy Storage Analyzer</div>
+          <div class="subtitle">Cloud-Native Demo</div>
         </div>
       </div>
       <div class="steps">
-        <div class="step active" id="step_chip_login">1 · Sign in</div>
-        <div class="step" id="step_chip_inputs">2 · Inputs</div>
-        <div class="step" id="step_chip_dash">3 · Dashboard</div>
-        <div class="step" id="step_chip_pdf">4 · PDF</div>
+        <div class="step active" id="step_chip_login">1 · התחברות</div>
+        <div class="step" id="step_chip_inputs">2 · הגדרות</div>
+        <div class="step" id="step_chip_dash">3 · ניתוח</div>
+        <div class="step" id="step_chip_pdf">4 · דוח</div>
       </div>
     </header>
 
-    <!-- SCREEN 1: LOGIN -->
-    <section class="card" id="screen_login">
-      <div class="grid cols-2">
-        <div>
-          <h2 style="margin:0 0 8px 0">Welcome</h2>
-          <p class="foot">Use the simulated Google Sign-In to continue. In production this will use real OIDC; here it’s a simple demo.</p>
-          <div class="row" style="margin-top:16px">
-            <div><label>Full name</label><input id="fullName" placeholder="e.g., Dana Cohen" /></div>
-            <div><label>Email</label><input id="email" placeholder="e.g., dana@example.com" type="email" /></div>
+    <section class="view active" id="screen_login">
+      <div class="card">
+        <div class="grid cols-2">
+          <div style="display:flex; flex-direction:column; justify-content:center;">
+            <h2 class="screen-title">ברוכים הבאים</h2>
+            <p class="foot" style="margin-top:0">התחברו באמצעות חשבון גוגל (הדגמה) כדי להתחיל בניתוח מערכת אגירת האנרגיה שלכם.</p>
+            <div class="row" style="margin-top:24px">
+              <button class="btn primary" id="btnGoogle">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.64 9.20455C17.64 8.56682 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.97 13.0009 12.9232 12.0477 13.5618V15.8195H14.9564C16.6582 14.2527 17.64 11.9464 17.64 9.20455Z" fill="#4285F4"></path><path d="M9 18C11.43 18 13.4673 17.1941 14.9564 15.8195L12.0477 13.5618C11.2418 14.1236 10.2109 14.4582 9 14.4582C6.92727 14.4582 5.14636 13.0836 4.50545 11.2418H1.51773V13.5818C3.00682 16.26 5.79545 18 9 18Z" fill="#34A853"></path><path d="M4.50545 11.2418C4.28864 10.6527 4.17273 10.0218 4.17273 9.36364C4.17273 8.70545 4.28864 8.07455 4.50545 7.48545V5.14545H1.51773C0.543182 7.03545 0 9.12364 0 11.2418C0 13.36 0.543182 15.4482 1.51773 17.3382L4.50545 14.9982V11.2418Z" fill="#FBBC05"></path><path d="M9 3.54182C10.3214 3.54182 11.5077 3.99182 12.4814 4.92182L15.0218 2.38182C13.4632 0.902727 11.4255 0 9 0C5.79545 0 3.00682 1.74 1.51773 4.41818L4.50545 6.75818C5.14636 4.91636 6.92727 3.54182 9 3.54182Z" fill="#EA4335"></path></svg>
+                <span>התחברות עם Google</span>
+              </button>
+              <button class="btn secondary" id="btnSkip">כניסה כאורח</button>
+            </div>
           </div>
-          <div class="row" style="margin-top:12px">
-            <button id="btnGoogle">Sign in with Google</button>
-            <button class="secondary" id="btnSkip">Skip (demo user)</button>
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="kpi"><div class="l">Zero-Install</div><div class="f">רץ במלואו בדפדפן שלך. ללא התקנות או ספריות חיצוניות.</div></div>
+            <div class="kpi"><div class="l">ניתוח מתקדם</div><div class="f">הדמיית תרחישים שונים, אופטימיזציה של עלויות וניתוח שימוש.</div></div>
+            <div class="kpi"><div class="l">דוח PDF בקליק</div><div class="f">הפקת דוחות מקצועיים למטרות שיווק, תכנון והנדסה.</div></div>
           </div>
-          <p id="loginStatus" class="foot" style="margin-top:10px"></p>
         </div>
-        <div>
-          <div class="kpi"><div class="v">Zero-install</div><div>Runs fully in your browser. No external libraries.</div></div>
-          <div class="kpi"><div class="v">Multi-role</div><div>Sales • Planning • End-customer flows.</div></div>
-          <div class="kpi"><div class="v">One-click PDF</div><div>Marketing + Engineering report variants.</div></div>
-        </div>
-      </div>
-      <div class="row hide-on-print" style="margin-top:16px">
-        <button class="ghost" onclick="goto('inputs')">Preview next step →</button>
       </div>
     </section>
 
-    <!-- SCREEN 2: INPUTS -->
-    <section class="card hide" id="screen_inputs">
-      <h2 style="margin:0 0 8px 0">Project Inputs</h2>
-      <p class="foot">Upload a 15-minute interval CSV (headers: <code>timestamp,consumption_kwh_15m</code>). Or use sample data.</p>
+    <section class="view" id="screen_inputs">
+      <div class="card">
+        <h2 class="screen-title">הגדרות הפרויקט</h2>
+        <p class="foot" style="margin-top:0">העלו קובץ CSV עם נתוני צריכה ברזולוציה של 15 דקות (עמודות: <code>timestamp,consumption_kwh_15m</code>), או השתמשו בנתוני הדגמה.</p>
 
-      <div class="grid cols-2">
-        <div>
-          <label>Upload CSV</label>
-          <input type="file" id="csvFile" accept=".csv" />
-          <div class="row" style="margin-top:8px">
-            <button class="secondary" id="btnSample">Use sample data</button>
-            <div class="pill">Rows loaded: <span id="rowsCount">0</span></div>
+        <div class="grid cols-2" style="margin-top:24px">
+          <div>
+            <label for="csvFile">העלאת קובץ CSV</label>
+            <input type="file" id="csvFile" accept=".csv" class="btn secondary" style="width:100%" />
+            <div class="row" style="margin-top:8px">
+              <button class="btn secondary" id="btnSample">השתמש בנתוני הדגמה</button>
+              <div class="pill">שורות שנטענו: <span id="rowsCount">0</span></div>
+            </div>
+          </div>
+          <div>
+            <label for="scenario">תרחיש הפעלה</label>
+            <select id="scenario">
+              <option value="self">צריכה עצמית / אפס ייצוא</option>
+              <option value="sell">מכירה לרשת (מודל פשוט)</option>
+            </select>
           </div>
         </div>
-        <div>
-          <label>Scenario</label>
-          <select id="scenario">
-            <option value="self">Self-Use / Zero-Export</option>
-            <option value="sell">Sell-to-Grid (toy model)</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="grid cols-3" style="margin-top:12px">
-        <div><label>Battery capacity (kWh)</label><input id="bat_kwh" type="number" min="1" step="0.1" value="10"></div>
-        <div><label>Charge/Discharge power (kW)</label><input id="bat_kw" type="number" min="0.5" step="0.1" value="5"></div>
-        <div><label>Min SoC (%)</label><input id="soc_min" type="number" min="0" max="95" step="1" value="10"></div>
-        <div><label>Max SoC (%)</label><input id="soc_max" type="number" min="5" max="100" step="1" value="95"></div>
-        <div><label>Grid limit (A) – optional</label><input id="grid_a" type="number" min="0" step="1" placeholder="e.g., 3x40A"></div>
-        <div><label>Phase</label>
-          <select id="phase">
-            <option>Single-phase</option>
-            <option>Three-phase</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="grid cols-2" style="margin-top:12px">
-        <div>
-          <label>Peak price (₪/kWh) – 17:00-22:00</label>
-          <input id="price_peak" type="number" min="0" step="0.01" value="1.00">
-        </div>
-        <div>
-          <label>Off-peak price (₪/kWh)</label>
-          <input id="price_off" type="number" min="0" step="0.01" value="0.50">
-        </div>
-      </div>
-
-      <div class="row controls" style="margin-top:14px">
-        <button id="btnAnalyze">Analyze</button>
-        <button class="secondary" onclick="goto('login')">← Back</button>
-        <button class="ghost" onclick="goto('dash')">Skip to dashboard</button>
-      </div>
-      <p id="inputStatus" class="foot" style="margin-top:8px"></p>
-    </section>
-
-    <!-- SCREEN 3: DASHBOARD -->
-    <section class="card hide" id="screen_dash">
-      <div class="row" style="align-items:center;justify-content:space-between">
-        <h2 style="margin:0">Dashboard</h2>
-        <div class="row hide-on-print">
-          <button class="secondary" onclick="goto('inputs')">Edit Inputs</button>
-          <button onclick="goto('pdf')">Prepare PDF →</button>
-        </div>
-      </div>
-
-      <div class="grid cols-3" style="margin-top:8px">
-        <div class="kpi"><div>Annualized Savings</div><div class="v" id="kpi_savings">–</div><div class="foot">vs. baseline tariff</div></div>
-        <div class="kpi"><div>Peak Shaving</div><div class="v" id="kpi_peak">–</div><div class="foot">Max kW reduced</div></div>
-        <div class="kpi"><div>Battery Utilization</div><div class="v" id="kpi_util">–</div><div class="foot">% of capacity used</div></div>
-      </div>
-
-      <div class="grid cols-2" style="margin-top:12px">
-        <div>
-          <div class="row" style="justify-content:space-between;align-items:center">
-            <div class="pill">Net Load – sample day</div>
-            <div class="foot">consumption vs. with battery</div>
+        <hr style="border:0; border-top:1px solid var(--border); margin:24px 0;">
+        <div class="grid cols-3">
+          <div><label for="bat_kwh">קיבולת סוללה (kWh)</label><input id="bat_kwh" type="number" min="1" step="0.1" value="10"></div>
+          <div><label for="bat_kw">הספק טעינה/פריקה (kW)</label><input id="bat_kw" type="number" min="0.5" step="0.1" value="5"></div>
+          <div><label for="soc_min">טעינה מינימלית (SoC %)</label><input id="soc_min" type="number" min="0" max="95" step="1" value="10"></div>
+          <div><label for="soc_max">טעינה מקסימלית (SoC %)</label><input id="soc_max" type="number" min="5" max="100" step="1" value="95"></div>
+          <div><label for="grid_a">מגבלת חיבור לרשת (A)</label><input id="grid_a" type="number" min="0" step="1" placeholder="לדוגמה: 3x40"></div>
+          <div><label for="phase">סוג חיבור</label>
+            <select id="phase">
+              <option>חד-פאזי</option>
+              <option>תלת-פאזי</option>
+            </select>
           </div>
-          <canvas id="chartNet"></canvas>
         </div>
-        <div>
-          <div class="row" style="justify-content:space-between;align-items:center">
-            <div class="pill">State of Charge – sample day</div>
-            <div class="foot">SoC profile</div>
+        <hr style="border:0; border-top:1px solid var(--border); margin:24px 0;">
+        <div class="grid cols-2">
+          <div>
+            <label for="price_peak">תעריף שיא (ש"ח/קוט"ש) – 17:00-22:00</label>
+            <input id="price_peak" type="number" min="0" step="0.01" value="1.00">
           </div>
-          <canvas id="chartSoC"></canvas>
-        </div>
-      </div>
-
-      <div class="grid cols-1" style="margin-top:12px">
-        <div>
-          <div class="row" style="justify-content:space-between;align-items:center">
-            <div class="pill">Weekly Heatmap (avg kW)</div>
-            <div class="foot">0–24h × 7d</div>
+          <div>
+            <label for="price_off">תעריף שפל (ש"ח/קוט"ש)</label>
+            <input id="price_off" type="number" min="0" step="0.01" value="0.50">
           </div>
-          <div class="heatmap" id="heatmap"></div>
         </div>
-      </div>
 
-      <div class="row hide-on-print" style="margin-top:14px">
-        <button onclick="goto('pdf')">Generate PDF →</button>
+        <div class="row controls" style="margin-top:24px; justify-content:flex-start">
+          <button class="btn primary" id="btnAnalyze">
+            <div class="spinner"></div>
+            <span>בצע ניתוח</span>
+          </button>
+          <button class="btn secondary" onclick="goto('login')">חזור</button>
+        </div>
       </div>
     </section>
 
-    <!-- SCREEN 4: PDF PREVIEW / PRINT -->
-    <section class="card hide" id="screen_pdf">
-      <h2 style="margin:0 0 8px 0">Report (Preview)</h2>
-      <p class="foot">Click “Print / Save as PDF”. The report uses a clean print stylesheet and embeds your charts as images.</p>
+    <section class="view" id="screen_dash">
+       <div class="card">
+        <div class="row" style="align-items:center;justify-content:space-between">
+            <h2 class="screen-title">תוצאות הניתוח</h2>
+            <div class="row hide-on-print">
+            <button class="btn secondary" onclick="goto('inputs')">עריכת הגדרות</button>
+            <button class="btn primary" onclick="goto('pdf')">הכן דוח PDF</button>
+            </div>
+        </div>
 
-      <div id="pdf_container" class="grid cols-2">
-        <div class="print-block">
-          <div class="print-title">Project Summary</div>
-          <table class="print-table">
-            <tbody id="pdf_inputs"></tbody>
-          </table>
+        <div class="grid cols-3" style="margin-top:24px">
+            <div class="kpi"><div class="l">חיסכון שנתי צפוי</div><div class="v" id="kpi_savings">–</div><div class="f">בהשוואה לתעריף בסיס</div></div>
+            <div class="kpi"><div class="l">הפחתת שיא צריכה</div><div class="v" id="kpi_peak">–</div><div class="f">הפחתה מקסימלית ב-kW</div></div>
+            <div class="kpi"><div class="l">ניצולת סוללה</div><div class="v" id="kpi_util">–</div><div class="f">אחוז ניצול הקיבולת</div></div>
         </div>
-        <div class="print-block">
-          <div class="print-title">KPIs</div>
-          <table class="print-table">
-            <tbody id="pdf_kpis"></tbody>
-          </table>
-        </div>
-        <div class="print-block">
-          <div class="print-title">Net Load (Sample Day)</div>
-          <img id="img_net" alt="Net Load Chart" style="width:100%;border:1px solid #ccc;border-radius:6px"/>
-        </div>
-        <div class="print-block">
-          <div class="print-title">State of Charge (Sample Day)</div>
-          <img id="img_soc" alt="SoC Chart" style="width:100%;border:1px solid #ccc;border-radius:6px"/>
-        </div>
-        <div class="print-block">
-          <div class="print-title">Weekly Heatmap</div>
-          <div id="img_heat" style="border:1px solid #ccc;border-radius:6px;overflow:hidden"></div>
-        </div>
-      </div>
 
-      <div class="row hide-on-print" style="margin-top:14px">
-        <button class="secondary" onclick="goto('dash')">← Back to Dashboard</button>
-        <button onclick="window.print()">Print / Save as PDF</button>
+        <div class="grid cols-2" style="margin-top:20px">
+            <div>
+            <h3 style="font-weight:500">עומס נטו – יום לדוגמה</h3>
+            <canvas id="chartNet"></canvas>
+            </div>
+            <div>
+            <h3 style="font-weight:500">מצב טעינה (SoC) – יום לדוגמה</h3>
+            <canvas id="chartSoC"></canvas>
+            </div>
+        </div>
+
+        <div class="grid cols-1" style="margin-top:20px">
+            <div>
+              <h3 style="font-weight:500">מפת חום שבועית (ממוצע kW)</h3>
+              <div style="display:flex;gap:4px;font-size:12px;color:var(--muted);padding-left:30px; margin-bottom: 5px;">
+                <div style="flex:1; text-align:center">00:00</div><div style="flex:1; text-align:center">06:00</div><div style="flex:1; text-align:center">12:00</div><div style="flex:1; text-align:center">18:00</div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <div style="display:flex;flex-direction:column;gap:3px;font-size:10px;color:var(--muted);text-align:right;padding-top:5px;width:25px">
+                  <span>א'</span><span>ב'</span><span>ג'</span><span>ד'</span><span>ה'</span><span>ו'</span><span>ש'</span>
+                </div>
+                <div class="heatmap" id="heatmap" style="flex:1"></div>
+              </div>
+            </div>
+        </div>
       </div>
     </section>
 
+    <section class="view" id="screen_pdf">
+      <div class="card">
+        <div class="row" style="align-items:center;justify-content:space-between">
+            <h2 class="screen-title">תצוגה מקדימה לדוח</h2>
+            <div class="row hide-on-print">
+                <button class="btn secondary" onclick="goto('dash')">חזרה לניתוח</button>
+                <button class="btn primary" onclick="window.print()">הדפס / שמור כ-PDF</button>
+            </div>
+        </div>
+        <p class="foot" style="margin-top:0">הדוח משתמש בפורמט הדפסה נקי. הגרפים והטבלאות יופיעו בפריסה מיטבית.</p>
+
+        <div id="pdf_container" class="grid cols-2" style="margin-top:24px; background:white; color:black; padding:16px; border-radius:12px;">
+            <div class="print-block">
+            <div class="print-title">סיכום הגדרות הפרויקט</div>
+            <table class="print-table"><tbody id="pdf_inputs"></tbody></table>
+            </div>
+            <div class="print-block">
+            <div class="print-title">מדדי ביצועים מרכזיים (KPIs)</div>
+            <table class="print-table"><tbody id="pdf_kpis"></tbody></table>
+            </div>
+            <div class="print-block">
+            <div class="print-title">עומס נטו (יום לדוגמה)</div>
+            <img id="img_net" alt="Net Load Chart" style="width:100%;border:1px solid #ccc;border-radius:6px"/>
+            </div>
+            <div class="print-block">
+            <div class="print-title">מצב טעינה (יום לדוגמה)</div>
+            <img id="img_soc" alt="SoC Chart" style="width:100%;border:1px solid #ccc;border-radius:6px"/>
+            </div>
+            <div class="print-block" style="grid-column: 1 / -1;">
+              <div class="print-title">מפת חום שבועית (kW)</div>
+              <div id="img_heat" style="border:1px solid #ccc;border-radius:6px;overflow:hidden"></div>
+            </div>
+        </div>
+      </div>
+    </section>
   </div>
 
 <script>
+'use strict';
 /* --------------------------
-   State & helpers
+   State & Global Helpers
 ---------------------------*/
 const state = {
   user: {name:null,email:null},
-  rows: [], // [{ts:Date, kwh: number}] at 15-min resolution
-  params: {
-    scenario:'self', bat_kwh:10, bat_kw:5, soc_min:0.1, soc_max:0.95,
-    price_peak:1.0, price_off:0.5, grid_a:null, phase:'Single-phase',
-  },
-  results: null, // filled after analyze()
+  rows: [], // [{ts:Date, kwh: number}]
+  params: {},
+  results: null,
 };
-
-// simple selector
 const $ = (id)=>document.getElementById(id);
 
-function setStep(active){
-  const chips = [
-    ['login','step_chip_login'],
-    ['inputs','step_chip_inputs'],
-    ['dash','step_chip_dash'],
-    ['pdf','step_chip_pdf']
-  ];
-  chips.forEach(([key,chip])=>{
-    const el=$(chip);
-    el.classList.remove('active','done');
-    if(key===active) el.classList.add('active');
-  });
-  // mark done for previous
-  const order=['login','inputs','dash','pdf'];
-  const idx=order.indexOf(active);
-  for(let i=0;i<idx;i++){ $( 'step_chip_'+order[i] ).classList.add('done'); }
+function goto(screenId){
+  document.querySelectorAll('section.view').forEach(s => s.classList.remove('active'));
+  $(`screen_${screenId}`).classList.add('active');
+  updateStepChips(screenId);
+  if(screenId==='pdf' && state.results) preparePdf();
 }
-function goto(screen){
-  ['login','inputs','dash','pdf'].forEach(s=>$('#screen_'+s).classList.add('hide'));
-  $('#screen_'+screen).classList.remove('hide');
-  setStep(screen);
-  if(screen==='pdf') preparePdf();
+
+function updateStepChips(activeScreen){
+  const order=['login','inputs','dash','pdf'];
+  const activeIndex = order.indexOf(activeScreen);
+  order.forEach((screen, index) => {
+    const chip = $(`step_chip_${screen}`);
+    chip.classList.remove('active', 'done');
+    if (index < activeIndex) chip.classList.add('done');
+    else if (index === activeIndex) chip.classList.add('active');
+  });
+}
+
+function showToast(message, type = 'good') {
+    const container = $('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
 
 /* --------------------------
-   Login (simulated)
+   Screen 1: Login
 ---------------------------*/
 $('btnGoogle').onclick = ()=>{
-  const name = $('fullName').value.trim()||'Demo User';
-  const email = $('email').value.trim()||'demo@example.com';
-  state.user = {name,email};
-  $('loginStatus').textContent = `Signed in as ${name} (${email}).`;
-  setTimeout(()=>goto('inputs'), 300);
+  state.user = {name:'דנה כהן', email:'dana.c@example.com'};
+  showToast(`התחברת בהצלחה, ${state.user.name}`);
+  setTimeout(()=>goto('inputs'), 500);
 };
 $('btnSkip').onclick = ()=>{
-  state.user = {name:'Demo User',email:'demo@example.com'};
-  $('loginStatus').textContent = `Signed in (demo).`;
-  setTimeout(()=>goto('inputs'), 300);
+  state.user = {name:'משתמש אורח', email:'guest@example.com'};
+  showToast('נכנסת במצב אורח.');
+  setTimeout(()=>goto('inputs'), 500);
 };
 
 /* --------------------------
-   CSV parsing
+   Screen 2: Inputs & CSV
 ---------------------------*/
 $('csvFile').addEventListener('change', async (e)=>{
   const file = e.target.files?.[0];
   if(!file) return;
-  const text = await file.text();
-  loadCsv(text);
+  try {
+    const text = await file.text();
+    loadCsv(text);
+    showToast('קובץ CSV נטען בהצלחה.');
+  } catch (err) {
+    showToast('שגיאה בקריאת הקובץ.', 'bad');
+  }
 });
+
 $('btnSample').onclick = ()=>{
   const start = new Date('2025-06-02T00:00:00'); // Monday
-  // generate 14 days * 96 intervals with a diurnal + randomness pattern
   const rows=[];
   const days=14, stepsPerDay=96;
   for(let d=0;d<days;d++){
     for(let i=0;i<stepsPerDay;i++){
       const ts=new Date(start.getTime()+ (d*24*60 + i*15)*60000);
       const hour = ts.getHours()+ts.getMinutes()/60;
-      const base = 0.6 + 0.4*Math.sin((hour-7)*Math.PI/12)**2; // day shape
-      const evening = 0.8*Math.max(0, Math.sin((hour-17)*Math.PI/4))**2; // peak 17-22
+      const base = 0.6 + 0.4*Math.sin((hour-7)*Math.PI/12)**2;
+      const evening = 0.8*Math.max(0, Math.sin((hour-17)*Math.PI/4))**2;
       const noise = (Math.random()-0.5)*0.1;
-      const kwh15 = Math.max(0.05, base*0.35 + evening*0.5 + noise); // 0.05..~0.9 kWh/15m
+      const kwh15 = Math.max(0.05, base*0.35 + evening*0.5 + noise);
       rows.push({ts, kwh:kwh15});
     }
   }
   state.rows=rows;
   $('rowsCount').textContent=state.rows.length.toLocaleString();
-  $('inputStatus').textContent='Loaded sample data (14 days).';
+  showToast('נתוני הדגמה נטענו (14 ימים).');
 };
 
 function loadCsv(text){
-  // naive CSV: expects header "timestamp,consumption_kwh_15m"
   const lines = text.split(/\r?\n/).filter(Boolean);
-  if(lines.length<2){ alert('CSV has no data'); return; }
+  if(lines.length < 2) throw new Error('CSV has no data');
   const header = lines[0].toLowerCase().split(',').map(s=>s.trim());
   const tIdx = header.indexOf('timestamp');
   const cIdx = header.indexOf('consumption_kwh_15m');
-  if(tIdx<0 || cIdx<0){
-    alert('Header must include timestamp,consumption_kwh_15m');
-    return;
-  }
-  const out=[];
-  for(let i=1;i<lines.length;i++){
-    const cols = safeSplit(lines[i]);
-    if(cols.length<=Math.max(tIdx,cIdx)) continue;
+  if(tIdx < 0 || cIdx < 0) throw new Error('Header must include timestamp,consumption_kwh_15m');
+  
+  const out=lines.slice(1).map(line => {
+    const cols = line.split(',');
     const ts = new Date(cols[tIdx]);
     const kwh = parseFloat(cols[cIdx]);
-    if(!isFinite(ts.getTime()) || !isFinite(kwh)) continue;
-    out.push({ts, kwh});
-  }
-  // sort + dedupe
+    if(!isFinite(ts.getTime()) || !isFinite(kwh)) return null;
+    return {ts, kwh};
+  }).filter(Boolean);
+
   out.sort((a,b)=>a.ts-b.ts);
   state.rows=out;
   $('rowsCount').textContent=state.rows.length.toLocaleString();
-  $('inputStatus').textContent='CSV loaded.';
-}
-function safeSplit(line){
-  // handle commas inside quotes (very light)
-  const res=[]; let cur=''; let inQ=false;
-  for(let i=0;i<line.length;i++){
-    const ch=line[i];
-    if(ch==='\"'){ inQ=!inQ; continue; }
-    if(ch===',' && !inQ){ res.push(cur); cur=''; continue; }
-    cur+=ch;
-  }
-  res.push(cur);
-  return res.map(s=>s.trim());
 }
 
 /* --------------------------
-   Inputs → analyze
+   Analysis Trigger
 ---------------------------*/
 function readInputs(){
-  state.params.scenario = $('scenario').value;
-  state.params.bat_kwh = n($('bat_kwh').value,10);
-  state.params.bat_kw  = n($('bat_kw').value,5);
-  state.params.soc_min = n($('soc_min').value,10)/100;
-  state.params.soc_max = n($('soc_max').value,95)/100;
-  state.params.grid_a  = $('grid_a').value? n($('grid_a').value,0):null;
-  state.params.phase   = $('phase').value;
-  state.params.price_peak = n($('price_peak').value,1);
-  state.params.price_off  = n($('price_off').value,0.5);
+  const n = (v,def) => { const x=parseFloat(v); return isFinite(x)?x:def; };
+  state.params = {
+    scenario : $('scenario').value,
+    bat_kwh : n($('bat_kwh').value,10),
+    bat_kw  : n($('bat_kw').value,5),
+    soc_min : n($('soc_min').value,10)/100,
+    soc_max : n($('soc_max').value,95)/100,
+    grid_a  : $('grid_a').value? n($('grid_a').value,0):null,
+    phase   : $('phase').value,
+    price_peak : n($('price_peak').value,1),
+    price_off  : n($('price_off').value,0.5),
+  };
 }
-function n(v,def){ const x=parseFloat(v); return Number.isFinite(x)?x:def; }
 
-$('btnAnalyze').onclick = ()=>{
+$('btnAnalyze').onclick = () => {
+  if(!state.rows.length){
+    showToast('יש לטעון נתונים לפני ביצוע ניתוח.', 'bad');
+    return;
+  }
   readInputs();
-  if(!state.rows.length){ alert('Please load CSV or use sample data'); return; }
-  state.results = analyze(state.rows, state.params);
-  $('inputStatus').textContent = 'Analysis completed.';
-  renderDashboard(state.results);
-  goto('dash');
+  
+  const btn = $('btnAnalyze');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  // Allow UI to update before heavy computation
+  setTimeout(() => {
+    try {
+      state.results = analyze(state.rows, state.params);
+      renderDashboard(state.results);
+      showToast('הניתוח הושלם בהצלחה!');
+      goto('dash');
+    } catch(err) {
+      showToast(`שגיאה בניתוח: ${err.message}`, 'bad');
+    } finally {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  }, 50); 
 };
 
 /* --------------------------
-   Core analysis (toy but realistic)
+   Core Analysis Logic
 ---------------------------*/
 function analyze(rows, p){
-  // 1) baseline cost with simple TOU: peak 17–22
-  const stepHrs=0.25;
-  let baselineCost=0, energyKwh=0;
-  // battery model
-  let soc = p.bat_kwh * p.soc_min; const socMin = p.bat_kwh*p.soc_min, socMax=p.bat_kwh*p.soc_max;
-  const etaC=0.95, etaD=0.95;
-  const dayIdx = d=> new Date(d.ts.getFullYear(),d.ts.getMonth(),d.ts.getDate()).getTime();
-  const groups = groupBy(rows, r=>dayIdx(r));
-  const days = Object.keys(groups).sort().map(k=>groups[k]);
-  // pick a representative day (the median total consumption day)
-  const dayTotals = days.map(d=>d.reduce((s,r)=>s+r.kwh,0));
-  const medianIdx = dayTotals.indexOf([...dayTotals].sort((a,b)=>a-b)[Math.floor(dayTotals.length/2)]);
-  const sampleDay = days[Math.max(0, medianIdx)];
+    const stepHrs=0.25;
+    let baselineCost=0, energyKwh=0;
+    let soc = p.bat_kwh * p.soc_min; 
+    const socMin = p.bat_kwh * p.soc_min, socMax = p.bat_kwh * p.soc_max;
+    const etaC=0.95, etaD=0.95;
 
-  // per-interval arrays for sample day charts
-  const series = { time:[], baseKw:[], netKw:[], soc:[] };
+    const dayIdx = d => new Date(d.ts.getFullYear(),d.ts.getMonth(),d.ts.getDate()).getTime();
+    const groups = rows.reduce((acc, r) => {
+        const key = dayIdx(r);
+        (acc[key]||(acc[key]=[])).push(r);
+        return acc;
+    }, {});
+    const days = Object.values(groups).sort((a,b) => a[0].ts - b[0].ts);
+    const dayTotals = days.map(d=>d.reduce((s,r)=>s+r.kwh,0));
+    const medianIdx = dayTotals.indexOf([...dayTotals].sort((a,b)=>a-b)[Math.floor(dayTotals.length/2)]);
+    const sampleDay = days[Math.max(0, medianIdx)];
 
-  let newCost=0, peakBase=0, peakNew=0, utilSum=0, utilSteps=0;
-  for(const r of rows){
-    const hour = r.ts.getHours() + r.ts.getMinutes()/60;
-    const isPeak = (hour>=17 && hour<22);
-    const price = isPeak? p.price_peak : p.price_off;
-    baselineCost += price * r.kwh;
-    energyKwh += r.kwh;
+    const series = { time:[], baseKw:[], netKw:[], soc:[] };
+    let newCost=0, peakBase=0, peakNew=0, utilSum=0, utilSteps=0;
 
-    // naive policy:
-    // - if peak hour -> discharge to shave up to bat_kw and demand (can't export in self-use)
-    // - if off-peak -> charge up to bat_kw
-    // sell-to-grid: allow export (very simplified)
-    const loadKw = r.kwh/stepHrs; // kW
-    let chargeKw=0, dischargeKw=0;
+    for(const r of rows){
+        const hour = r.ts.getHours() + r.ts.getMinutes()/60;
+        const isPeak = (hour>=17 && hour<22);
+        const price = isPeak? p.price_peak : p.price_off;
+        baselineCost += price * r.kwh;
+        energyKwh += r.kwh;
 
-    if(isPeak){
-      // try to cover up to loadKw
-      dischargeKw = Math.min(p.bat_kw, loadKw, (soc - socMin)/(stepHrs/etaD));
-    }else{
-      // charge until socMax
-      chargeKw = Math.min(p.bat_kw, (socMax - soc)/(etaC*stepHrs));
+        const loadKw = r.kwh/stepHrs;
+        let chargeKw=0, dischargeKw=0;
+
+        if(isPeak){
+            dischargeKw = Math.min(p.bat_kw, loadKw, (soc - socMin)/(stepHrs/etaD));
+        }else{
+            chargeKw = Math.min(p.bat_kw, (socMax - soc)/(etaC*stepHrs));
+        }
+
+        soc += etaC*chargeKw*stepHrs - (dischargeKw/etaD)*stepHrs;
+        soc = Math.max(socMin, Math.min(socMax, soc));
+        let netKw = loadKw - dischargeKw + chargeKw;
+
+        if(p.scenario==='sell' && isPeak){
+            const extra = Math.min(p.bat_kw - dischargeKw, (soc - socMin)/(stepHrs/etaD));
+            dischargeKw += extra;
+            soc -= (extra/etaD)*stepHrs;
+            netKw = Math.max(0, netKw - extra);
+            newCost -= p.price_peak * extra*stepHrs;
+        }
+
+        newCost += price * Math.max(0, netKw*stepHrs);
+        peakBase = Math.max(peakBase, loadKw);
+        peakNew  = Math.max(peakNew, netKw);
+        if(chargeKw>0 || dischargeKw>0){ utilSum += (chargeKw+dischargeKw)/(2*p.bat_kw); utilSteps++; }
+
+        if(r.ts>=sampleDay[0].ts && r.ts<=sampleDay[sampleDay.length-1].ts){
+            series.time.push(r.ts);
+            series.baseKw.push(loadKw);
+            series.netKw.push(netKw);
+            series.soc.push(soc/p.bat_kwh*100);
+        }
     }
 
-    // update SoC
-    soc += etaC*chargeKw*stepHrs - (dischargeKw/etaD)*stepHrs;
-    soc = Math.min(socMax, Math.max(socMin, soc));
+    const msInWeek = 1000*60*60*24*7;
+    const weeks = (rows[rows.length-1].ts - rows[0].ts) / msInWeek;
+    const annualFactor = weeks > 0 ? (52/weeks) : 1;
+    
+    const kpis = {
+        savings_annual: (baselineCost - newCost) * annualFactor,
+        peak_shave: Math.max(0, peakBase - peakNew),
+        util_pct: utilSteps? (100*Math.min(1, utilSum/utilSteps)) : 0,
+        baseline_annual_cost: baselineCost*annualFactor,
+        new_annual_cost: newCost*annualFactor,
+        energy_kwh: energyKwh*annualFactor
+    };
+    
+    const heat = Array(7).fill(0).map(()=>Array(24).fill(0));
+    const counts = Array(7).fill(0).map(()=>Array(24).fill(0));
+    rows.forEach(r => {
+        const d = (r.ts.getDay() + 6) % 7; // Mon=0, Sun=6
+        const h = r.ts.getHours();
+        heat[d][h] += r.kwh/stepHrs;
+        counts[d][h]++;
+    });
+    heat.forEach((row,d) => row.forEach((_,h) => { if(counts[d][h]) heat[d][h]/=counts[d][h]; }));
 
-    let netKw = loadKw - dischargeKw + chargeKw; // resulting grid import
-    if(p.scenario==='sell' && isPeak){
-      // assume we may export beyond load if battery still has room to discharge
-      const extra = Math.min(p.bat_kw - dischargeKw, (soc - socMin)/(stepHrs/etaD));
-      // export 'extra' – we’ll count revenue on price_peak
-      dischargeKw += extra;
-      soc -= (extra/etaD)*stepHrs;
-      netKw = Math.max(0, netKw - extra); // import cannot be negative (we treat export via credit)
-      newCost -= p.price_peak * extra*stepHrs; // revenue (credit)
-    }
-
-    newCost += price * Math.max(0, netKw*stepHrs);
-
-    peakBase = Math.max(peakBase, loadKw);
-    peakNew  = Math.max(peakNew, netKw);
-
-    // Utilization metric: average absolute battery power usage relative to capacity
-    if(chargeKw>0 || dischargeKw>0){ utilSum += (Math.abs(chargeKw)+Math.abs(dischargeKw))/(2*p.bat_kw); utilSteps++; }
-
-    // sample day series
-    const isSample = r.ts>=sampleDay[0].ts && r.ts<=sampleDay[sampleDay.length-1].ts;
-    if(isSample){
-      series.time.push(r.ts);
-      series.baseKw.push(loadKw);
-      series.netKw.push(netKw);
-      series.soc.push(soc/p.bat_kwh*100);
-    }
-  }
-
-  const savings = baselineCost - newCost;
-  const weeks = energySpanWeeks(rows);
-  const annualFactor = weeks>0 ? (52/weeks) : 1;
-  const kpis = {
-    savings_annual: savings * annualFactor,
-    peak_shave: Math.max(0, peakBase - peakNew),
-    util_pct: utilSteps? (100*Math.min(1, utilSum/utilSteps)) : 0,
-    baseline_annual_cost: baselineCost*annualFactor,
-    new_annual_cost: newCost*annualFactor,
-    energy_kwh: energyKwh*annualFactor
-  };
-
-  // heatmap: average per weekday/hour of day
-  const heat = buildHeatmap(rows);
-
-  return { kpis, sampleSeries:series, heat, params: {...state.params}, user:{...state.user} };
+    return { kpis, sampleSeries:series, heat, params: {...p}, user:{...state.user} };
 }
 
-function groupBy(arr, keyFn){
-  const m={}; for(const x of arr){ const k=keyFn(x); (m[k]||(m[k]=[])).push(x) } return m;
-}
-function energySpanWeeks(rows){
-  if(!rows.length) return 0;
-  const ms = rows[rows.length-1].ts - rows[0].ts;
-  return ms/(1000*60*60*24*7);
-}
-function buildHeatmap(rows){
-  // 7 x 24 matrix of average kW
-  const M=[...Array(7)].map(()=>Array(24).fill(0));
-  const C=[...Array(7)].map(()=>Array(24).fill(0));
-  for(const r of rows){
-    const d = r.ts.getDay(); // 0..6 (Sun..Sat)
-    const h = r.ts.getHours();
-    M[d][h] += r.kwh/0.25;
-    C[d][h] += 1;
-  }
-  for(let d=0;d<7;d++) for(let h=0;h<24;h++) if(C[d][h]) M[d][h]/=C[d][h];
-  return M;
-}
 
 /* --------------------------
-   Dashboard rendering
+   Dashboard & Chart Rendering
 ---------------------------*/
 function renderDashboard(res){
-  $('kpi_savings').textContent = '₪ ' + res.kpis.savings_annual.toFixed(0).toLocaleString();
+  const fmt = (n) => n.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  $('kpi_savings').textContent = '₪ ' + fmt(res.kpis.savings_annual);
   $('kpi_peak').textContent    = res.kpis.peak_shave.toFixed(2)+' kW';
   $('kpi_util').textContent    = res.kpis.util_pct.toFixed(0)+'%';
 
-  drawLineChart('chartNet',
-    res.sampleSeries.time.map(t=>t.toTimeString().slice(0,5)),
-    [
-      {name:'Baseline kW', data:res.sampleSeries.baseKw},
-      {name:'With Battery kW', data:res.sampleSeries.netKw},
-    ]
-  );
-  drawLineChart('chartSoC',
-    res.sampleSeries.time.map(t=>t.toTimeString().slice(0,5)),
-    [{name:'SoC %', data:res.sampleSeries.soc}]
-  );
+  const timeLabels = res.sampleSeries.time.map(t=>t.toTimeString().slice(0,5));
+  drawLineChart('chartNet', timeLabels, [
+      {name:'צריכה בסיסית (kW)', data:res.sampleSeries.baseKw, color:'rgba(0,123,255,0.2)', borderColor: 'rgba(0,123,255,1)'},
+      {name:'צריכה עם סוללה (kW)', data:res.sampleSeries.netKw, color:'rgba(40,167,69,0.2)', borderColor: 'rgba(40,167,69,1)'},
+  ]);
+  drawLineChart('chartSoC', timeLabels, [
+      {name:'SoC %', data:res.sampleSeries.soc, color:'rgba(255,193,7,0.2)', borderColor: 'rgba(255,193,7,1)'}
+  ]);
   renderHeatmap('heatmap', res.heat);
 }
 
 function drawLineChart(canvasId, labels, seriesList){
-  const c=$(canvasId); const ctx=c.getContext('2d');
-  const w=c.clientWidth, h=c.clientHeight;
-  c.width = Math.floor(w*devicePixelRatio); c.height=Math.floor(h*devicePixelRatio);
-  ctx.scale(devicePixelRatio, devicePixelRatio);
-  ctx.clearRect(0,0,w,h);
+    const c=$(canvasId); const ctx=c.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const w=c.clientWidth, h=c.clientHeight;
+    c.width = w * dpr; c.height = h * dpr;
+    ctx.scale(dpr, dpr);
 
-  // axes
-  ctx.strokeStyle='rgba(255,255,255,0.15)';
-  ctx.lineWidth=1;
-  ctx.beginPath();
-  ctx.moveTo(40,10); ctx.lineTo(40,h-26); ctx.lineTo(w-10,h-26); ctx.stroke();
+    const pad = {t:20, b:30, l:45, r:10};
+    const chartW = w-pad.l-pad.r, chartH = h-pad.t-pad.b;
 
-  // find range
-  let min=Infinity, max=-Infinity;
-  seriesList.forEach(s=>s.data.forEach(v=>{ if(v<min)min=v; if(v>max)max=v; }));
-  if(!isFinite(min)||!isFinite(max)){ min=0; max=1; }
-  if(Math.abs(max-min)<1e-6){ max=min+1; }
-  const pad=(max-min)*0.1; min-=pad; max+=pad;
+    let min=Infinity, max=-Infinity;
+    seriesList.forEach(s=>s.data.forEach(v=>{ min=Math.min(min,v); max=Math.max(max,v); }));
+    if(!isFinite(min)||!isFinite(max)){ min=0; max=100; }
+    if(max-min<1e-6) max = min+1;
+    const rangePad = (max-min)*0.1;
+    min-=rangePad; max+=rangePad;
 
-  // y grid
-  const ticks=4;
-  ctx.fillStyle='rgba(255,255,255,0.5)';
-  for(let i=0;i<=ticks;i++){
-    const y=map(i/ticks,0,1,h-26,10);
-    ctx.strokeStyle='rgba(255,255,255,0.08)';
-    ctx.beginPath(); ctx.moveTo(40,y); ctx.lineTo(w-10,y); ctx.stroke();
-    const v=(min+(max-min)*(i/ticks)).toFixed(1);
-    ctx.fillText(v,6,y+3);
-  }
-  // x labels (sparse)
-  const n=labels.length;
-  for(let i=0;i<n;i+=Math.max(1,Math.floor(n/8))){
-    const x=map(i,0,n-1,40,w-10);
-    ctx.fillStyle='rgba(255,255,255,0.5)';
-    ctx.fillText(labels[i],x-10,h-8);
-  }
+    const mapX = (i) => pad.l + i/(labels.length-1) * chartW;
+    const mapY = (v) => pad.t + chartH - (v-min)/(max-min) * chartH;
+    
+    // Y-axis grid and labels
+    ctx.font = '12px ' + getComputedStyle(document.body).fontFamily;
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--muted');
+    ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--border');
+    ctx.lineWidth = 1;
+    const ticks = 5;
+    for(let i=0; i<=ticks; i++){
+        const val = min + i/ticks * (max-min);
+        const y = mapY(val);
+        ctx.beginPath();
+        ctx.moveTo(pad.l, y); ctx.lineTo(pad.l+chartW, y);
+        ctx.stroke();
+        ctx.textAlign = 'right';
+        ctx.fillText(val.toFixed(1), pad.l-8, y+4);
+    }
+    
+    // X-axis labels
+    const xLabelSkip = Math.ceil(labels.length / (chartW / 70));
+    for(let i=0; i<labels.length; i+=xLabelSkip){
+        const x = mapX(i);
+        ctx.textAlign = 'center';
+        ctx.fillText(labels[i], x, h-10);
+    }
 
-  // lines
-  const colors = ['#8be9fd','#64ffda','#ffd166','#ff6b6b'];
-  seriesList.forEach((s,idx)=>{
-    ctx.strokeStyle=colors[idx%colors.length];
-    ctx.lineWidth=2;
-    ctx.beginPath();
-    s.data.forEach((v,i)=>{
-      const x=map(i,0,n-1,40,w-10);
-      const y=map(v,min,max,h-26,10);
-      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    // Draw lines
+    seriesList.forEach(s => {
+        ctx.strokeStyle = s.borderColor;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        s.data.forEach((v,i) => {
+            if(i===0) ctx.moveTo(mapX(i), mapY(v));
+            else ctx.lineTo(mapX(i), mapY(v));
+        });
+        ctx.stroke();
     });
-    ctx.stroke();
-  });
 }
 
-function map(v,a,b,c,d){ return c + (v-a)*(d-c)/(b-a); }
 
 function renderHeatmap(containerId, M){
   const el=$(containerId);
   el.innerHTML='';
-  // normalize 0..max
-  let max=0; for(let d=0;d<7;d++) for(let h=0;h<24;h++) max=Math.max(max,M[d][h]);
-  for(let d=0;d<7;d++){
-    for(let h=0;h<24;h++){
-      const v=M[d][h]/(max||1);
+  let max=0; M.forEach(row => row.forEach(v => max=Math.max(max,v)));
+  const days = ['א','ב','ג','ד','ה','ו','ש'];
+  M.forEach((row, d) => {
+    row.forEach((v,h) => {
+      const norm = v / (max||1);
       const cell=document.createElement('div');
       cell.className='cell';
-      const hue = 200 - Math.round(200*v); // teal→blue scale
-      const alpha = 0.15 + 0.85*v;
-      cell.style.background = `hsla(${hue}, 90%, 55%, ${alpha})`;
-      cell.title = `Day ${d}, ${h}:00 — ${M[d][h].toFixed(2)} kW`;
+      const hue = 220 - Math.round(180*norm);
+      const alpha = 0.1 + 0.9*norm**0.8;
+      cell.style.background = `hsla(${hue}, 85%, 60%, ${alpha})`;
+      cell.title = `יום ${days[d]}, שעה ${h}:00 — ${v.toFixed(2)} kW`;
       el.appendChild(cell);
-    }
-  }
+    });
+  });
 }
 
 /* --------------------------
-   PDF preparation
+   PDF Preparation
 ---------------------------*/
 function preparePdf(){
-  // inputs
-  const p=state.params, u=state.user, r=state.results?.kpis || {};
-  const inputsHtml = [
-    ['User', `${u.name||'-'} (${u.email||'-'})`],
-    ['Scenario', titleCase(p.scenario.replace('-',' '))],
-    ['Battery', `${p.bat_kwh} kWh · ${p.bat_kw} kW`],
-    ['SoC window', `${Math.round(p.soc_min*100)}% – ${Math.round(p.soc_max*100)}%`],
-    ['Grid limit (A)', p.grid_a??'—'],
-    ['Phase', p.phase],
-    ['Tariffs', `Peak ₪${p.price_peak}/kWh · Off-peak ₪${p.price_off}/kWh`]
-  ].map(([k,v])=>`<tr><th>${k}</th><td>${escapeHtml(v)}</td></tr>`).join('');
-  $('pdf_inputs').innerHTML = inputsHtml;
+  const {params:p, user:u, kpis:r} = state.results;
+  const fmt = (n,d=0) => (n??0).toFixed(d).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const inputs = [
+    ['שם משתמש', `${u.name||'-'} (${u.email||'-'})`],
+    ['תרחיש', p.scenario==='self' ? 'צריכה עצמית' : 'מכירה לרשת'],
+    ['סוללה', `${p.bat_kwh} kWh / ${p.bat_kw} kW`],
+    ['טווח טעינה', `${Math.round(p.soc_min*100)}% – ${Math.round(p.soc_max*100)}%`],
+    ['חיבור לרשת', p.grid_a ? `${p.grid_a}A (${p.phase})` : p.phase],
+    ['תעריפים', `שיא ₪${p.price_peak}/קוט"ש, שפל ₪${p.price_off}/קוט"ש`]
+  ];
+  $('pdf_inputs').innerHTML = inputs.map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('');
 
-  const kpisHtml = [
-    ['Annual Savings', '₪ '+fmt0(r.savings_annual)],
-    ['Baseline Annual Cost', '₪ '+fmt0(r.baseline_annual_cost)],
-    ['New Annual Cost', '₪ '+fmt0(r.new_annual_cost)],
-    ['Annual Energy', fmt0(r.energy_kwh)+' kWh'],
-    ['Peak Shaving', (r.peak_shave??0).toFixed(2)+' kW'],
-    ['Battery Utilization', (r.util_pct??0).toFixed(0)+'%'],
-  ].map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('');
-  $('pdf_kpis').innerHTML = kpisHtml;
+  const kpis = [
+    ['חיסכון שנתי', '₪ '+fmt(r.savings_annual)],
+    ['עלות שנתית בסיסית', '₪ '+fmt(r.baseline_annual_cost)],
+    ['עלות שנתית חדשה', '₪ '+fmt(r.new_annual_cost)],
+    ['צריכה שנתית', fmt(r.energy_kwh)+' kWh'],
+    ['הפחתת שיא', fmt(r.peak_shave,2)+' kW'],
+    ['ניצולת סוללה', fmt(r.util_pct)+'%'],
+  ];
+  $('pdf_kpis').innerHTML = kpis.map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('');
 
-  // embed charts as images
   $('img_net').src = $('chartNet').toDataURL('image/png');
   $('img_soc').src = $('chartSoC').toDataURL('image/png');
-  // heatmap snapshot: clone grid
-  const heatClone = $('heatmap').cloneNode(true);
-  heatClone.style.transform='scale(1)'; heatClone.style.width='100%';
+  const heatClone = $('heatmap').parentNode.cloneNode(true);
   $('img_heat').innerHTML=''; $('img_heat').appendChild(heatClone);
 }
-function fmt0(x){ return (x??0).toFixed(0).toLocaleString(); }
-function escapeHtml(s){ return String(s).replace(/[&<>]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c])) }
-function titleCase(s){ return s.split(' ').map(w=>w[0].toUpperCase()+w.slice(1)).join(' '); }
+
 
 /* --------------------------
-   UX niceties
+   Initialization
 ---------------------------*/
-window.addEventListener('load', ()=>{
-  // default sample for quick play
+window.addEventListener('DOMContentLoaded', ()=>{
   $('btnSample').click();
+  // could add dark mode toggle here
+  // document.documentElement.setAttribute('data-theme', 'dark');
 });
-
-/* --------------------------
-   THE END
----------------------------*/
 </script>
 </body>
 </html>
+
