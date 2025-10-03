@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>דשבורד חשמל חכם</title>
+    <title>דשבורד חשמל חכם משודרג</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -16,6 +16,10 @@
             --secondary-color: #5f6368;
             --shadow-color: rgba(0,0,0,0.08);
             --border-color: #e0e0e0;
+            --accent-color-1: #4285f4;
+            --accent-color-2: #34a853;
+            --accent-color-3: #fbbc05;
+            --accent-color-4: #ea4335;
         }
         html[data-theme='dark'] {
             --bg-color: #121212;
@@ -36,7 +40,7 @@
         }
         .container {
             width: 100%;
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
         .header {
@@ -44,6 +48,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         .header h1 {
             color: var(--primary-color);
@@ -57,8 +62,14 @@
             border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
-            margin-right: 10px;
+            margin-left: 10px;
+            transition: background-color 0.2s, box-shadow 0.2s;
         }
+        .controls button:hover {
+            box-shadow: 0 2px 8px var(--shadow-color);
+        }
+        
+        /* --- Uploader --- */
         .uploader {
             background-color: var(--card-bg-color);
             padding: 25px;
@@ -66,7 +77,32 @@
             box-shadow: 0 4px 12px var(--shadow-color);
             text-align: center;
             margin-bottom: 20px;
+            border: 2px dashed var(--border-color);
+            transition: border-color 0.3s;
         }
+        .uploader.dragover {
+            border-color: var(--primary-color);
+        }
+        #csvFileInput {
+            width: 0.1px;
+            height: 0.1px;
+            opacity: 0;
+            overflow: hidden;
+            position: absolute;
+            z-index: -1;
+        }
+        #file-label {
+            font-size: 1.25em;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: inline-block;
+            cursor: pointer;
+        }
+        #file-name {
+            margin-top: 10px;
+            color: var(--secondary-color);
+        }
+        
         #dashboard { display: none; }
         #dashboard-title {
             background: linear-gradient(45deg, var(--primary-color), #007bff);
@@ -78,17 +114,39 @@
             margin-bottom: 20px;
             box-shadow: 0 4px 12px var(--shadow-color);
         }
+
+        /* --- Tabs --- */
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+        .tab-link {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: var(--secondary-color);
+            font-size: 16px;
+            border-bottom: 3px solid transparent;
+            transition: color 0.3s, border-bottom-color 0.3s;
+        }
+        .tab-link.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
         .main-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-            grid-template-rows: auto;
+            grid-template-columns: repeat(4, 1fr);
             gap: 20px;
-            grid-template-areas:
-                "total-cost avg-cost baseload peak-day"
-                "insights insights insights insights"
-                "line-chart line-chart line-chart line-chart"
-                "bar-chart bar-chart hourly-chart hourly-chart"
-                "tariff-pie-chart tariff-pie-chart tariff-cost-chart tariff-cost-chart";
         }
         .stat-card {
             background-color: var(--card-bg-color);
@@ -99,23 +157,14 @@
         }
         .stat-card .value { font-size: 2.2em; font-weight: 600; color: var(--primary-color); }
         .stat-card .label { font-size: 1em; color: var(--secondary-color); margin-top: 5px; }
-        .chart-container { background-color: var(--card-bg-color); padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px var(--shadow-color); }
-        
-        #total-cost-card { grid-area: total-cost; }
-        #avg-cost-card { grid-area: avg-cost; }
-        #baseload-card { grid-area: baseload; }
-        #peak-day-card { grid-area: peak-day; }
-        #insights-card { grid-area: insights; text-align: right; }
-        #line-chart-container { grid-area: line-chart; }
-        #bar-chart-container { grid-area: bar-chart; }
-        #hourly-chart-container { grid-area: hourly-chart; }
-        #tariff-pie-container { grid-area: tariff-pie-chart; }
-        #tariff-cost-container { grid-area: tariff-cost-chart; }
-        
+        .chart-container { background-color: var(--card-bg-color); padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px var(--shadow-color); grid-column: span 4; }
+        #bar-chart-container, #hourly-chart-container, #tariff-pie-container, #tariff-cost-container { grid-column: span 2; }
+        #insights-card { grid-column: span 4; text-align: right; }
         .insights-list { list-style: none; padding: 0; }
         .insights-list li { margin-bottom: 10px; display: flex; align-items: center; }
         .insights-list li::before { content: '💡'; margin-left: 10px; font-size: 1.5em; }
 
+        /* --- Settings Panel --- */
         .settings-panel {
             display: none;
             background: var(--card-bg-color);
@@ -123,35 +172,63 @@
             margin-bottom: 20px;
             border-radius: 12px;
         }
-        .settings-panel h3 { margin-top: 0; }
-        .settings-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
         .input-group { display: flex; flex-direction: column; }
         .input-group label { margin-bottom: 5px; font-size: 12px; color: var(--secondary-color); }
         .input-group input { padding: 8px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); }
 
+        /* --- Heatmap --- */
+        #heatmap-container {
+            padding: 20px;
+            background: var(--card-bg-color);
+            border-radius: 12px;
+            overflow-x: auto;
+        }
+        #heatmap {
+            width: 100%;
+            min-width: 600px;
+            border-spacing: 1px;
+            border-collapse: collapse;
+        }
+        #heatmap th, #heatmap td {
+            font-size: 10px;
+            text-align: center;
+            padding: 2px;
+        }
+        #heatmap td {
+            width: 4%;
+            height: 20px;
+            color: white;
+            text-shadow: 1px 1px 1px #000;
+        }
+
+        /* --- Seasonal --- */
+        #seasonal-controls {
+            grid-column: span 4;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        
+        /* --- Simulation --- */
+        #simulation-container {
+            background-color: var(--card-bg-color);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+        
         @media (max-width: 900px) {
-            .main-grid {
-                grid-template-columns: 1fr 1fr;
-                grid-template-areas:
-                    "total-cost avg-cost"
-                    "baseload peak-day"
-                    "insights insights"
-                    "line-chart line-chart"
-                    "bar-chart bar-chart"
-                    "hourly-chart hourly-chart"
-                    "tariff-pie-chart tariff-pie-chart"
-                    "tariff-cost-chart tariff-cost-chart";
-            }
+            .main-grid { grid-template-columns: 1fr 1fr; }
+            .chart-container, #insights-card, #heatmap-container, #simulation-container { grid-column: span 2; }
+            #bar-chart-container, #hourly-chart-container, #tariff-pie-container, #tariff-cost-container { grid-column: span 2; }
         }
         @media (max-width: 600px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-                grid-template-areas:
-                    "total-cost" "avg-cost" "baseload" "peak-day"
-                    "insights" "line-chart" "bar-chart" "hourly-chart"
-                    "tariff-pie-chart" "tariff-cost-chart";
-            }
-            .settings-grid { grid-template-columns: 1fr 1fr; }
+            .main-grid { grid-template-columns: 1fr; }
+            .stat-card, .chart-container, #insights-card, #heatmap-container, #simulation-container,
+            #bar-chart-container, #hourly-chart-container, #tariff-pie-container, #tariff-cost-container { grid-column: span 1; }
         }
     </style>
 </head>
@@ -159,7 +236,7 @@
 
     <div class="container">
         <div class="header">
-            <h1>📊 דשבורד חשמל חכם</h1>
+            <h1>📊 דשבורד חשמל חכם 2.0</h1>
             <div class="controls">
                 <button id="settingsBtn">⚙️ הגדרות תעריפים</button>
                 <button id="themeToggleBtn">🌙 מצב כהה</button>
@@ -193,27 +270,76 @@
         <div class="uploader" id="uploader">
             <h2>העלאת קובץ CSV של חברת החשמל</h2>
             <input type="file" id="csvFileInput" accept=".csv">
+            <label for="csvFileInput" id="file-label">בחר קובץ או גרור לכאן</label>
+            <div id="file-name"></div>
         </div>
         
         <div id="loader" style="display: none; text-align: center;">מעבד נתונים...</div>
 
         <div id="dashboard">
             <div id="dashboard-title"></div>
-            <div class="main-grid">
-                <div class="stat-card" id="total-cost-card"><div class="value" id="totalCost"></div><div class="label">עלות כוללת</div></div>
-                <div class="stat-card" id="avg-cost-card"><div class="value" id="avgDailyCost"></div><div class="label">עלות יומית ממוצעת</div></div>
-                <div class="stat-card" id="baseload-card"><div class="value" id="baseload"></div><div class="label">צריכת בסיס (קוט"ש)</div></div>
-                <div class="stat-card" id="peak-day-card"><div class="value" id="peakDay"></div><div class="label">היום העמוס ביותר</div></div>
-                <div class="stat-card" id="insights-card">
-                    <h3>💡 תובנות מרכזיות</h3>
-                    <ul class="insights-list" id="insightsList"></ul>
-                </div>
-                <div class="chart-container" id="line-chart-container"><canvas id="lineChart"></canvas></div>
-                <div class="chart-container" id="bar-chart-container"><canvas id="barChart"></canvas></div>
-                <div class="chart-container" id="hourly-chart-container"><canvas id="hourlyAvgChart"></canvas></div>
-                <div class="chart-container" id="tariff-pie-container"><canvas id="tariffPieChart"></canvas></div>
-                <div class="chart-container" id="tariff-cost-container"><canvas id="tariffCostChart"></canvas></div>
+            
+            <div class="tabs">
+                <button class="tab-link active" onclick="openTab(event, 'main-dashboard')">דשבורד ראשי</button>
+                <button class="tab-link" onclick="openTab(event, 'heatmap-tab')">מפת חום</button>
+                <button class="tab-link" onclick="openTab(event, 'seasonal-tab')">ניתוח עונתי</button>
+                <button class="tab-link" onclick="openTab(event, 'simulation-tab')">סימולציה</button>
             </div>
+
+            <div id="main-dashboard" class="tab-content active">
+                <div class="main-grid">
+                    <div class="stat-card"><div class="value" id="totalCost"></div><div class="label">עלות כוללת</div></div>
+                    <div class="stat-card"><div class="value" id="avgDailyCost"></div><div class="label">עלות יומית ממוצעת</div></div>
+                    <div class="stat-card"><div class="value" id="baseload"></div><div class="label">צריכת בסיס (קוט"ש)</div></div>
+                    <div class="stat-card"><div class="value" id="peakDay"></div><div class="label">היום העמוס ביותר</div></div>
+                    <div class="stat-card" id="insights-card">
+                        <h3>💡 תובנות מרכזיות</h3>
+                        <ul class="insights-list" id="insightsList"></ul>
+                    </div>
+                    <div class="chart-container" id="line-chart-container"><canvas id="lineChart"></canvas></div>
+                    <div class="chart-container" id="bar-chart-container"><canvas id="barChart"></canvas></div>
+                    <div class="chart-container" id="hourly-chart-container"><canvas id="hourlyAvgChart"></canvas></div>
+                    <div class="chart-container" id="tariff-pie-container"><canvas id="tariffPieChart"></canvas></div>
+                    <div class="chart-container" id="tariff-cost-container"><canvas id="tariffCostChart"></canvas></div>
+                </div>
+            </div>
+
+            <div id="heatmap-tab" class="tab-content">
+                <div class="main-grid">
+                    <div class="chart-container" id="heatmap-container">
+                        <h2>מפת חום - צריכה שבועית ממוצעת</h2>
+                        <table id="heatmap"></table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="seasonal-tab" class="tab-content">
+                <div class="main-grid">
+                     <div id="seasonal-controls">
+                        <button class="tab-link active" onclick="updateSeasonalChart('summer', this)">קיץ (יוני-ספט)</button>
+                        <button class="tab-link" onclick="updateSeasonalChart('winter', this)">חורף (דצמ-פבר)</button>
+                        <button class="tab-link" onclick="updateSeasonalChart('transition', this)">עונות מעבר</button>
+                    </div>
+                    <div class="chart-container" id="seasonal-chart-container"><canvas id="seasonalChart"></canvas></div>
+                </div>
+            </div>
+
+            <div id="simulation-tab" class="tab-content">
+                 <div class="main-grid">
+                    <div id="simulation-container">
+                        <h2>סימולציית חיסכון - העברת עומסים</h2>
+                        <p>הזן את אחוז צריכת השיא שברצונך להעביר לשעות השפל ובדוק את החיסכון הפוטנציאלי.</p>
+                        <div class="input-group">
+                            <label for="shiftPercentage">אחוז העברה (%):</label>
+                            <input type="range" id="shiftPercentage" min="0" max="100" value="10" oninput="updateShiftValue(this.value)" style="width: 100%;">
+                            <span id="shiftValue" style="text-align: center; font-weight: bold; color: var(--primary-color);">10%</span>
+                        </div>
+                        <button onclick="runSimulation()" style="margin-top: 15px; background: var(--primary-color); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer;">הרץ סימולציה</button>
+                        <div id="simulationResult" style="margin-top: 20px;"></div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -240,10 +366,30 @@
             });
         });
 
+        // --- Drag and Drop File Uploader ---
+        const uploader = document.getElementById('uploader');
+        uploader.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploader.classList.add('dragover');
+        });
+        uploader.addEventListener('dragleave', () => {
+            uploader.classList.remove('dragover');
+        });
+        uploader.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploader.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('csvFileInput').files = files;
+                handleFileSelect({ target: { files: files } });
+            }
+        });
+
         function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
 
+            document.getElementById('file-name').textContent = `קובץ נבחר: ${file.name}`;
             document.getElementById('uploader').style.display = 'none';
             document.getElementById('loader').style.display = 'block';
 
@@ -251,7 +397,7 @@
             reader.onload = e => {
                 setTimeout(() => { // Simulate processing time for loader
                     processedData = parseAndCleanCsv(e.target.result);
-                    if(processedData) {
+                    if(processedData && processedData.dataRows.length > 0) {
                         runAnalysisAndDisplay();
                         document.getElementById('loader').style.display = 'none';
                         document.getElementById('dashboard').style.display = 'block';
@@ -259,7 +405,8 @@
                     } else {
                         document.getElementById('loader').style.display = 'none';
                         document.getElementById('uploader').style.display = 'block';
-                        alert("שגיאה בניתוח הקובץ. אנא ודא שזהו קובץ ה-CSV הנכון מחברת החשמל.");
+                        document.getElementById('file-name').textContent = '';
+                        alert("שגיאה בניתוח הקובץ. אנא ודא שזהו קובץ ה-CSV הנכון מחברת החשמל ושאינו ריק.");
                     }
                 }, 500);
             };
@@ -276,8 +423,8 @@
                     .filter(row => row.join('').trim() !== '');
 
                 const dataStartIndex = parsedData.findIndex(row => 
-                  String(row[0]).trim() === 'תאריך' && 
-                  String(row[1]).trim().includes('מועד תחילת הפעימה')
+                    String(row[0]).trim() === 'תאריך' && 
+                    String(row[1]).trim().includes('מועד תחילת הפעימה')
                 );
 
                 if (dataStartIndex === -1) return null;
@@ -288,7 +435,7 @@
                     meterCode: parsedData[3][0].trim(),
                     meterNumber: parsedData[3][1].trim(),
                     contractNumber: parsedData[3][2].trim(),
-                    dataRows: parsedData.slice(dataStartIndex + 1).filter(r => r.length > 2 && r[0].includes('/'))
+                    dataRows: parsedData.slice(dataStartIndex + 1).filter(r => r.length > 2 && r[0].includes('/') && !isNaN(parseFloat(r[2])))
                 };
             } catch (e) {
                 console.error("Error parsing CSV:", e);
@@ -298,14 +445,18 @@
 
         function runAnalysisAndDisplay() {
             if (!processedData) return;
-            const tariffs = {
+            const tariffs = getTariffs();
+            const analysis = analyzeData(processedData.dataRows, tariffs);
+            displayDashboard(processedData, analysis);
+        }
+
+        function getTariffs() {
+            return {
                 flat: parseFloat(document.getElementById('flatRate').value) / 100, // convert to NIS
                 peak: parseFloat(document.getElementById('peakRate').value) / 100,
                 shoulder: parseFloat(document.getElementById('shoulderRate').value) / 100,
                 offPeak: parseFloat(document.getElementById('offPeakRate').value) / 100,
             };
-            const analysis = analyzeData(processedData.dataRows, tariffs);
-            displayDashboard(processedData, analysis);
         }
 
         function getTariffType(hour) {
@@ -316,14 +467,12 @@
         }
 
         function analyzeData(data, tariffs) {
-            let totalConsumption = 0, totalCost = 0, peakConsumption = -1, peakTimestamp = '';
+            let totalConsumption = 0, peakConsumption = -1, peakTimestamp = '';
             const dailyConsumption = {}, hourlyAvg = Array(24).fill(0), hourlyCount = Array(24).fill(0);
             const tariffConsumption = { peak: 0, shoulder: 0, offPeak: 0 };
             
             data.forEach(row => {
                 const consumption = parseFloat(row[2]);
-                if (isNaN(consumption)) return;
-
                 const date = row[0];
                 const hour = row[1];
                 const hourOfDay = parseInt(hour.split(':')[0]);
@@ -349,49 +498,57 @@
                 shoulder: tariffConsumption.shoulder * tariffs.shoulder,
                 offPeak: tariffConsumption.offPeak * tariffs.offPeak,
             };
-            totalCost = tariffCosts.peak + tariffCosts.shoulder + tariffCosts.offPeak;
+            const totalCost = tariffCosts.peak + tariffCosts.shoulder + tariffCosts.offPeak;
             
-            const weekendDays = days.filter(d => new Date(d.split('/')[2], d.split('/')[1]-1, d.split('/')[0]).getDay() >= 5).length;
-            const weekdayConsumption = Object.entries(dailyConsumption).reduce((acc, [date, val]) => new Date(date.split('/')[2], date.split('/')[1]-1, date.split('/')[0]).getDay() < 5 ? acc + val : acc, 0);
-            
+            let weekendDays = 0, weekdayConsumption = 0, weekendConsumption = 0;
+            Object.entries(dailyConsumption).forEach(([dateStr, val]) => {
+                const dateParts = dateStr.split('/');
+                const date = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`);
+                const dayOfWeek = date.getDay(); // Sunday = 0, ..., Saturday = 6
+                if (dayOfWeek === 5 || dayOfWeek === 6) { // Friday, Saturday
+                    weekendDays++;
+                    weekendConsumption += val;
+                } else {
+                    weekdayConsumption += val;
+                }
+            });
+
+            const weekdayDays = days.length - weekendDays;
+
             return {
                 totalConsumption, totalCost,
-                avgDailyCost: totalCost / days.length,
+                avgDailyCost: days.length > 0 ? totalCost / days.length : 0,
                 baseload,
                 peakDay: Object.entries(dailyConsumption).sort((a, b) => b[1] - a[1])[0],
                 peakTimestamp,
-                weekdayAvg: weekdayConsumption / (days.length - weekendDays),
-                weekendAvg: (totalConsumption - weekdayConsumption) / weekendDays,
+                weekdayAvg: weekdayDays > 0 ? weekdayConsumption / weekdayDays : 0,
+                weekendAvg: weekendDays > 0 ? weekendConsumption / weekendDays : 0,
                 hourlyAvg: hourlyAvg.map((sum, i) => hourlyCount[i] > 0 ? sum / hourlyCount[i] : 0),
                 dailyConsumption, tariffConsumption, tariffCosts
             };
         }
 
         function displayDashboard(metadata, analysis) {
-            // Title
             document.getElementById('dashboard-title').innerText = `דוח חשמל: ${metadata.customerName} | ${metadata.address} | מונה ${metadata.meterNumber}`;
             
-            // Stat Cards
             document.getElementById('totalCost').innerText = `₪${analysis.totalCost.toFixed(2)}`;
             document.getElementById('avgDailyCost').innerText = `₪${analysis.avgDailyCost.toFixed(2)}`;
             document.getElementById('baseload').innerText = `${(analysis.baseload * 1000).toFixed(0)} W`;
             document.getElementById('peakDay').innerText = analysis.peakDay[0];
             
-            // Insights
+            const weekendVsWeekday = analysis.weekdayAvg > 0 ? ((analysis.weekendAvg / analysis.weekdayAvg - 1) * 100) : 0;
             document.getElementById('insightsList').innerHTML = `
-                <li>צריכת הבסיס שלך היא <strong>${(analysis.baseload * 1000).toFixed(0)} וואט</strong>. זוהי עלות שנתית מוערכת של <strong>₪${(analysis.baseload * 24 * 365 * (document.getElementById('flatRate').value / 100)).toFixed(0)}</strong>.</li>
-                <li>הצריכה הממוצעת בסוף שבוע גבוהה ב-<strong>${((analysis.weekendAvg / analysis.weekdayAvg - 1) * 100).toFixed(0)}%</strong> לעומת ימי חול.</li>
+                <li>צריכת הבסיס שלך היא <strong>${(analysis.baseload * 1000).toFixed(0)} וואט</strong>. זוהי עלות שנתית מוערכת של <strong>₪${(analysis.baseload * 24 * 365 * getTariffs().flat).toFixed(0)}</strong>.</li>
+                <li>הצריכה הממוצעת בסוף שבוע ${weekendVsWeekday > 0 ? 'גבוהה' : 'נמוכה'} ב-<strong>${Math.abs(weekendVsWeekday).toFixed(0)}%</strong> לעומת ימי חול.</li>
                 <li>שעת הצריכה הממוצעת הגבוהה ביותר היא <strong>${analysis.hourlyAvg.indexOf(Math.max(...analysis.hourlyAvg))}:00</strong>.</li>
             `;
             
-            // Destroy old charts if they exist to prevent duplicates
             Object.values(charts).forEach(chart => chart.destroy());
 
-            // Create Charts
             const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: getComputedStyle(document.body).getPropertyValue('--text-color') } }, title: { display: true, color: getComputedStyle(document.body).getPropertyValue('--text-color'), font: { size: 16 } } }, scales: { x: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--secondary-color') } }, y: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--secondary-color') } } } };
 
             charts.line = new Chart(document.getElementById('lineChart'), {
-                type: 'line', data: { labels: processedData.dataRows.map(r => r[0]), datasets: [{ label: 'צריכה (קוט"ש)', data: processedData.dataRows.map(r => r[2]), borderColor: '#4285f4', borderWidth: 1.5, pointRadius: 0 }] },
+                type: 'line', data: { labels: processedData.dataRows.map(r => `${r[0]} ${r[1]}`), datasets: [{ label: 'צריכה (קוט"ש)', data: processedData.dataRows.map(r => r[2]), borderColor: '#4285f4', borderWidth: 1.5, pointRadius: 0 }] },
                 options: { ...chartOptions, plugins: {...chartOptions.plugins, title: {...chartOptions.plugins.title, text: 'צריכת חשמל לאורך זמן'}}}
             });
             charts.bar = new Chart(document.getElementById('barChart'), {
@@ -406,25 +563,142 @@
                 type: 'pie', data: { labels: ['שיא', 'גבע', 'שפל'], datasets: [{ label: 'צריכה לפי תעריף', data: Object.values(analysis.tariffConsumption), backgroundColor: ['#ea4335', '#fbbc05', '#34a853'] }] },
                 options: { ...chartOptions, plugins: {...chartOptions.plugins, title: {...chartOptions.plugins.title, text: 'פירוט צריכה לפי תעריף'}}}
             });
-             charts.cost = new Chart(document.getElementById('tariffCostChart'), {
+            charts.cost = new Chart(document.getElementById('tariffCostChart'), {
                 type: 'doughnut', data: { labels: ['עלות שיא', 'עלות גבע', 'עלות שפל'], datasets: [{ label: 'עלות לפי תעריף', data: Object.values(analysis.tariffCosts), backgroundColor: ['#ea4335', '#fbbc05', '#34a853'] }] },
                 options: { ...chartOptions, plugins: {...chartOptions.plugins, title: {...chartOptions.plugins.title, text: 'פירוט עלויות לפי תעריף'}}}
             });
+
+            createHeatmap();
+            updateSeasonalChart('summer', document.querySelector('#seasonal-controls .tab-link')); // Default to summer
+        }
+
+        // --- Tabs ---
+        function openTab(evt, tabName) {
+            document.querySelectorAll(".tab-content").forEach(tab => tab.style.display = "none");
+            document.querySelectorAll(".tab-link").forEach(link => link.classList.remove("active"));
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.classList.add("active");
+        }
+
+        // --- Heatmap ---
+        function createHeatmap() {
+            const heatmapData = Array(7).fill(0).map(() => Array(24).fill(0));
+            const dayCounts = Array(7).fill(0).map(() => Array(24).fill(0));
+
+            processedData.dataRows.forEach(row => {
+                const dateParts = row[0].split('/');
+                const date = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`);
+                const dayOfWeek = date.getDay();
+                const hour = parseInt(row[1].split(':')[0]);
+                const consumption = parseFloat(row[2]);
+                heatmapData[dayOfWeek][hour] += consumption;
+                dayCounts[dayOfWeek][hour]++;
+            });
+
+            const avgHeatmapData = heatmapData.map((day, dayIndex) => 
+                day.map((total, hourIndex) => dayCounts[dayIndex][hourIndex] > 0 ? total / dayCounts[dayIndex][hourIndex] : 0)
+            );
+            
+            const maxConsumption = Math.max(...avgHeatmapData.flat());
+            const days = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+            let table = '<thead><tr><th></th>';
+            for (let i = 0; i < 24; i++) table += `<th>${i}</th>`;
+            table += '</tr></thead><tbody>';
+
+            avgHeatmapData.forEach((dayData, dayIndex) => {
+                table += `<tr><td>${days[dayIndex]}</td>`;
+                dayData.forEach(consumption => {
+                    const opacity = maxConsumption > 0 ? (consumption / maxConsumption) : 0;
+                    const color = `rgba(234, 67, 53, ${opacity})`;
+                    table += `<td style="background-color: ${color}" title="${consumption.toFixed(3)} קוטש"></td>`;
+                });
+                table += '</tr>';
+            });
+            table += '</tbody>';
+            document.getElementById('heatmap').innerHTML = table;
+        }
+
+        // --- Seasonal Analysis ---
+        function getSeason(date) {
+            const month = date.getMonth() + 1;
+            if (month >= 6 && month <= 9) return 'summer';
+            if (month === 12 || month <= 2) return 'winter';
+            return 'transition';
+        }
+
+        function updateSeasonalChart(season, element) {
+            document.querySelectorAll('#seasonal-controls .tab-link').forEach(el => el.classList.remove('active'));
+            if(element) element.classList.add('active');
+            
+            const seasonalData = Array(24).fill(0);
+            const counts = Array(24).fill(0);
+            const seasonNames = { summer: 'קיץ', winter: 'חורף', transition: 'עונות מעבר'};
+
+            processedData.dataRows.forEach(row => {
+                const dateParts = row[0].split('/');
+                const date = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`);
+                if (getSeason(date) === season) {
+                    const hour = parseInt(row[1].split(':')[0]);
+                    seasonalData[hour] += parseFloat(row[2]);
+                    counts[hour]++;
+                }
+            });
+
+            const avgData = seasonalData.map((total, i) => counts[i] > 0 ? total / counts[i] : 0);
+            
+            if (charts.seasonal) charts.seasonal.destroy();
+            charts.seasonal = new Chart(document.getElementById('seasonalChart'), {
+                type: 'bar',
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => `${i}:00`),
+                    datasets: [{ label: `צריכה ממוצעת - ${seasonNames[season]}`, data: avgData, backgroundColor: '#fbbc05' }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { title: {display: true, text: `פרופיל צריכה שעתי - ${seasonNames[season]}`} } }
+            });
+        }
+        
+        // --- Simulation ---
+        function updateShiftValue(val) {
+            document.getElementById('shiftValue').innerText = val + '%';
+        }
+
+        function runSimulation() {
+            const shiftPercentage = parseInt(document.getElementById('shiftPercentage').value) / 100;
+            const tariffs = getTariffs();
+            const originalAnalysis = analyzeData(processedData.dataRows, tariffs);
+            
+            let peakConsumptionToShift = originalAnalysis.tariffConsumption.peak * shiftPercentage;
+            
+            const newTariffConsumption = {
+                peak: originalAnalysis.tariffConsumption.peak - peakConsumptionToShift,
+                shoulder: originalAnalysis.tariffConsumption.shoulder,
+                offPeak: originalAnalysis.tariffConsumption.offPeak + peakConsumptionToShift
+            };
+            
+            const newCost = (newTariffConsumption.peak * tariffs.peak) + (newTariffConsumption.shoulder * tariffs.shoulder) + (newTariffConsumption.offPeak * tariffs.offPeak);
+            const savings = originalAnalysis.totalCost - newCost;
+            
+            document.getElementById('simulationResult').innerHTML = `
+                <h3>תוצאות סימולציה</h3>
+                <p>עלות מקורית: <strong>₪${originalAnalysis.totalCost.toFixed(2)}</strong></p>
+                <p>עלות לאחר העברת ${document.getElementById('shiftPercentage').value}% מעומס השיא: <strong>₪${newCost.toFixed(2)}</strong></p>
+                <p>חיסכון פוטנציאלי: <strong style="color:var(--accent-color-2); font-size: 1.2em;">₪${savings.toFixed(2)}</strong></p>
+            `;
         }
         
         function toggleTheme() {
             const html = document.documentElement;
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            const newTheme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
             html.setAttribute('data-theme', newTheme);
             document.getElementById('themeToggleBtn').innerText = newTheme === 'dark' ? '☀️ מצב בהיר' : '🌙 מצב כהה';
-            if(processedData) runAnalysisAndDisplay(); // Redraw charts with new theme colors
+            if(processedData) runAnalysisAndDisplay();
         }
 
         function downloadReport() {
             const { jsPDF } = window.jspdf;
             const dashboard = document.getElementById('dashboard');
-            html2canvas(dashboard, { scale: 2, backgroundColor: getComputedStyle(document.body).getPropertyValue('--bg-color') }).then(canvas => {
+            const activeTab = document.querySelector('.tab-content.active');
+            html2canvas(activeTab, { scale: 2, backgroundColor: getComputedStyle(document.body).getPropertyValue('--bg-color') }).then(canvas => {
                 const imgData = canvas.toDataURL('image/png');
                 const pdf = new jsPDF('l', 'mm', 'a4');
                 const pdfWidth = pdf.internal.pageSize.getWidth();
