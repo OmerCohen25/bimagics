@@ -23,6 +23,7 @@
             --gray-100: #f3f4f6;
             --gray-800: #1f2937;
             --success-500: #10b981;
+            --success-50: #ecfdf5;
             --danger-500: #ef4444;
             --warning-500: #f59e0b;
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -41,7 +42,7 @@
             flex-direction: column;
         }
 
-        /* --- Animations --- */
+        /* --- Animations & Transitions --- */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
@@ -49,14 +50,15 @@
         .button {
             background-color: var(--primary-500); color: white; border: none; border-radius: 8px;
             padding: 12px 18px; font-size: 16px; font-weight: 600; cursor: pointer;
-            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.2s ease;
             display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-sm);
         }
         .button:hover { background-color: var(--primary-600); box-shadow: var(--shadow-md); }
+        .button:disabled { background-color: #a5b4fc; cursor: not-allowed; }
         .button-secondary {
             background-color: var(--bg-main); color: var(--text-primary); border: 1px solid var(--border-color);
         }
-        .button-secondary:hover { background-color: var(--gray-50); }
+        .button-secondary:hover:not(:disabled) { background-color: var(--gray-50); }
         .button-small { padding: 6px 12px; font-size: 13px; font-weight: 600; }
 
         /* --- App Layout --- */
@@ -68,19 +70,13 @@
         .app-header .logo i { color: var(--primary-500); }
         .app-header .user-profile { display: flex; align-items: center; gap: 12px; }
         .app-header .user-profile img { width: 32px; height: 32px; border-radius: 50%; }
-
         .main-content { flex-grow: 1; overflow: auto; position: relative; }
         .view { display: none; height: 100%; }
         .view.active { display: flex; }
 
         /* --- Creation View --- */
         #creation-view {
-            width: 100%;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            animation: fadeIn 0.5s ease;
+            width: 100%; flex-direction: column; align-items: center; justify-content: center; padding: 24px; animation: fadeIn 0.5s ease;
         }
         .creation-card {
             background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 16px;
@@ -91,7 +87,6 @@
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; }
         .form-group input { width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; }
-        .form-group input:focus { outline: 2px solid var(--primary-500); border-color: var(--primary-500); }
 
         /* --- Project View --- */
         #project-view {
@@ -102,17 +97,21 @@
             background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px;
             display: flex; flex-direction: column; overflow: hidden;
         }
-        .panel-header { padding: 16px; font-weight: 600; border-bottom: 1px solid var(--border-color); flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
+        .panel-header { padding: 16px; font-weight: 600; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
         .panel-content { padding: 16px; overflow-y: auto; }
         .context-panel .section { margin-bottom: 24px; }
         .context-panel h4 { margin: 0 0 12px 0; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
         .context-panel ul { list-style: none; padding: 0; margin: 0; }
         .context-panel li { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 14px; color: var(--text-secondary); }
+        .action-button { width: 100%; margin-top: 8px; }
+        .demo-url-container { margin-top: 12px; font-size: 14px; display: none; }
+        .demo-url-container a { color: var(--primary-600); text-decoration: none; font-weight: 500; }
 
         /* Chat Panel */
         .chat-container { padding: 0; }
         .message-list { padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; flex-grow: 1; }
         .message { display: flex; gap: 12px; max-width: 85%; animation: fadeIn 0.3s ease; }
+        /* ... (rest of chat styles are the same) ... */
         .message .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; flex-shrink: 0; font-size: 14px; }
         .avatar.user-s { background-color: #db2777; } .avatar.user-m { background-color: #2563eb; } .avatar.llm { background-color: var(--gray-800); }
         .message-body { display: flex; flex-direction: column; width: 100%; }
@@ -127,7 +126,6 @@
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
         .chat-input { padding: 16px; border-top: 1px solid var(--border-color); display: flex; gap: 12px; }
         .chat-input input { flex-grow: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; font-size: 15px; }
-        .chat-input input:focus { outline: none; border-color: var(--primary-500); box-shadow: 0 0 0 3px var(--primary-50); }
 
         /* Docs Panel */
         .docs-panel .panel-content { padding: 0; }
@@ -135,28 +133,51 @@
         .tab { padding: 12px 16px; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 600; color: var(--text-secondary); position: relative; }
         .tab.active { color: var(--primary-500); border-bottom-color: var(--primary-500); }
         .tab .badge { background-color: var(--primary-500); color: white; border-radius: 10px; padding: 2px 6px; font-size: 11px; font-weight: 600; position: absolute; top: 8px; right: -5px; }
-        .tab-content { padding: 16px; display: none; animation: fadeIn 0.3s; }
-        .tab-content.active { display: block; }
-        .document-editor { margin-bottom: 16px; } .document-editor h5 { margin: 0 0 8px 0; }
+        .tab-content { padding: 16px; display: none; } .tab-content.active { display: block; }
+        .document-editor { margin-bottom: 16px; }
         .editor-content { font-size: 14px; line-height: 1.7; color: var(--text-secondary); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; min-height: 150px; }
-        .editor-content > *:first-child { margin-top: 0; } .editor-content > *:last-child { margin-bottom: 0; }
         .suggestion-card { border: 1px solid var(--warning-500); background-color: #fffbeb; border-radius: 8px; padding: 16px; margin-bottom: 16px; animation: popIn 0.3s ease; }
+        /* ... (rest of docs/suggestion styles are the same) ... */
         .suggestion-header { font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; font-size: 15px; color: #b45309; }
         .suggestion-content { font-size: 14px; margin-bottom: 16px; background: #fff; padding: 12px; border-radius: 6px; border: 1px solid #fde68a; }
         .suggestion-actions { display: flex; gap: 10px; }
         .suggestion-status { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; }
         .status-accepted { color: var(--success-500); } .status-rejected { color: var(--danger-500); }
 
-        /* Responsive Mobile Layout */
+
+        /* --- Demo View --- */
+        #demo-view {
+            width: 100%; height: 100%; flex-direction: column; padding: 24px; animation: fadeIn 0.5s ease;
+        }
+        .demo-browser {
+            width: 100%; max-width: 1000px; margin: auto; border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+            border: 1px solid var(--border-color);
+            overflow: hidden; display: flex; flex-direction: column; flex-grow: 1;
+        }
+        .browser-header {
+            background-color: var(--gray-100); padding: 8px 12px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;
+        }
+        .browser-header .dot { width: 12px; height: 12px; border-radius: 50%; background-color: #ddd; }
+        .browser-header .dot.red { background-color: #fca5a5; }
+        .browser-header .dot.yellow { background-color: #fde047; }
+        .browser-header .dot.green { background-color: #86efac; }
+        .address-bar { background-color: white; border-radius: 6px; padding: 4px 8px; flex-grow: 1; margin: 0 20px; font-size: 14px; color: var(--text-secondary); }
+        .browser-body { flex-grow: 1; background-color: white; overflow-y: auto; }
+        .demo-content { padding: 40px; }
+        
+        /* --- Responsive Mobile Layout --- */
         @media (max-width: 768px) {
             #project-view { grid-template-columns: 1fr; padding: 0; gap: 0; }
             .panel { border-radius: 0; border: 0; border-bottom: 1px solid var(--border-color); }
-            .project-panel { display: none; height: calc(100% - 53px); /* Full height minus nav bar */ }
+            .project-panel { display: none; height: calc(100vh - 109px); } /* Full height minus header and nav bar */
             .project-panel.active { display: flex; }
             .mobile-nav { display: flex; background-color: var(--bg-main); border-top: 1px solid var(--border-color); padding: 4px; position: fixed; bottom: 0; left: 0; right: 0; z-index: 20; }
             .mobile-nav-btn { flex: 1; text-align: center; padding: 8px; border-radius: 8px; color: var(--text-secondary); background: none; border: none; font-size: 12px; }
             .mobile-nav-btn .icon { font-size: 16px; display: block; margin-bottom: 2px; }
             .mobile-nav-btn.active { background-color: var(--primary-50); color: var(--primary-600); }
+            #demo-view { padding: 0; }
+            .demo-browser { border-radius: 0; box-shadow: none; border: 0; }
         }
     </style>
 </head>
@@ -164,6 +185,9 @@
 
     <header class="app-header">
         <div class="logo"><i class="fas fa-sitemap"></i> Co-Pilot</div>
+        <nav class="main-nav">
+             <button class="button button-secondary" id="back-to-project-btn" style="display: none;"><i class="fas fa-arrow-left"></i> Back to Project</button>
+        </nav>
         <div class="user-profile">
             <span>Mike R.</span>
             <img src="https://i.pravatar.cc/150?u=mike" alt="User Avatar">
@@ -174,7 +198,7 @@
         <div id="creation-view" class="view active">
             <div class="creation-card">
                 <h1>Welcome to Co-Pilot</h1>
-                <p>Start by creating a new project to turn your requirements into a tech design.</p>
+                <p>Start a new project to turn your requirements into a tech design and a live demo.</p>
                 <form id="create-project-form">
                     <div class="form-group">
                         <label for="project-name">Project Name</label>
@@ -195,26 +219,28 @@
                 <div class="panel-content context-panel">
                     <div class="section">
                         <h4><i class="fas fa-users"></i> Members</h4>
-                        <ul>
-                            <li><img src="https://i.pravatar.cc/150?u=mike" class="avatar" style="width:24px; height:24px;"> Mike R. (Lead Engineer)</li>
-                            <li><img src="https://i.pravatar.cc/150?u=sarah" class="avatar" style="width:24px; height:24px;"> Sarah L. (Product Manager)</li>
-                        </ul>
+                        <ul><li><img src="https://i.pravatar.cc/150?u=mike" class="avatar" style="width:24px; height:24px;"> Mike R.</li><li><img src="https://i.pravatar.cc/150?u=sarah" class="avatar" style="width:24px; height:24px;"> Sarah L.</li></ul>
                     </div>
                     <div class="section">
                         <h4><i class="fas fa-link"></i> Data Sources</h4>
-                        <ul>
-                            <li><i class="fab fa-github"></i> `my-org/backend-services`</li>
-                            <li><i class="fab fa-confluence"></i> `Engineering Best Practices`</li>
-                            <li><i class="fas fa-file-word"></i> `Phoenix_PRD_v1.2.docx`</li>
-                        </ul>
+                        <ul><li><i class="fab fa-github"></i> `my-org/backend-services`</li><li><i class="fab fa-confluence"></i> `Engineering Best Practices`</li></ul>
+                    </div>
+                    <div class="section">
+                        <h4><i class="fas fa-cogs"></i> Actions</h4>
+                        <button class="button button-secondary action-button" id="save-docs-btn"><i class="fab fa-google-drive"></i> Save to Google Docs</button>
+                        <button class="button button-secondary action-button" id="generate-demo-btn"><i class="fas fa-code"></i> Generate Live Demo</button>
+                        <div class="demo-url-container" id="demo-url-container">
+                            <hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;">
+                            <strong>Demo URL:</strong><br>
+                            <a href="#" id="view-demo-link">/demo/project-phoenix</a>
+                        </div>
                     </div>
                 </div>
             </aside>
 
             <main class="panel project-panel chat-container" id="mobile-panel-chat">
                 <div class="panel-header">Design Session</div>
-                <div class="message-list" id="message-list">
-                    </div>
+                <div class="message-list" id="message-list"></div>
                 <div class="message llm-message typing-indicator" id="typing-indicator"><span></span><span></span><span></span></div>
                 <div class="chat-input">
                     <input type="text" id="chat-input" placeholder="Ask Gemini or message the team...">
@@ -225,28 +251,28 @@
             <aside class="panel project-panel docs-panel" id="mobile-panel-docs">
                 <div class="tabs" id="tabs">
                     <div class="tab active" data-tab="documents">Documents</div>
-                    <div class="tab" data-tab="suggestions">Suggestions<span class="badge" id="suggestions-badge">1</span></div>
+                    <div class="tab" data-tab="suggestions">Suggestions<span class="badge" id="suggestions-badge"></span></div>
                 </div>
                 <div class="panel-content">
-                    <div class="tab-content active" id="documents-content">
-                        <div class="document-editor">
-                            <h5>Requirements Summary</h5>
-                            <div class="editor-content" id="doc-req-content">
-                                <h3>1. User Authentication</h3><p>The system will allow users to sign in with a username and password.</p><h3>2. Security</h3><p>All communication must be encrypted via TLS 1.2+.</p>
-                            </div>
-                        </div>
-                        <div class="document-editor">
-                            <h5>Tech Design Spec</h5>
-                            <div class="editor-content" id="doc-spec-content">
-                                <h3 id="auth-flow">2. Authentication Flow</h3><p>Authentication will be handled by our existing 'Helios' identity service via an API call. The system will receive a JWT for authenticating subsequent requests.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="tab-content" id="suggestions-content">
-                        </div>
+                    <div class="tab-content active" id="documents-content"></div>
+                    <div class="tab-content" id="suggestions-content"></div>
                 </div>
             </aside>
         </div>
+        
+        <div id="demo-view" class="view">
+            <div class="demo-browser">
+                <div class="browser-header">
+                    <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+                    <div class="address-bar" id="demo-address-bar"></div>
+                </div>
+                <div class="browser-body">
+                    <div class="demo-content" id="demo-content-target">
+                        </div>
+                </div>
+            </div>
+        </div>
+
     </main>
     
     <nav class="mobile-nav" id="mobile-nav" style="display: none;">
@@ -255,59 +281,51 @@
         <button class="mobile-nav-btn" data-panel="docs"><span class="icon"><i class="fas fa-file-alt"></i></span> Docs</button>
     </nav>
     
-
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- STATE MANAGEMENT ---
-    // A single object to hold the state of our example project
     const projectState = {
         documents: {
-            'doc-req': {
-                title: 'Requirements Summary',
-                content: `<h3>1. User Authentication</h3><p>The system will allow users to sign in with a username and password.</p><h3>2. Security</h3><p>All communication must be encrypted via TLS 1.2+.</p>`
-            },
-            'doc-spec': {
-                title: 'Tech Design Spec',
-                content: `<h3 id="auth-flow">2. Authentication Flow</h3><p>Authentication will be handled by our existing 'Helios' identity service via an API call. The system will receive a JWT for authenticating subsequent requests.</p>`
-            }
+            'doc-req': { title: 'Requirements Summary', content: `<h3>1. Authentication</h3><p>Users must sign in.</p><h3>2. Security</h3><p>MFA is required.</p>` },
+            'doc-spec': { title: 'Tech Design Spec', content: `<h3 id="auth-flow">2. Auth Flow</h3><p>JWT-based authentication against the 'Helios' identity service.</p>` }
         },
         chat: [
-            { user: 'Sarah', text: "The PRD specifies a requirement for MFA, but I don't see it detailed in the tech spec." },
-            { user: 'Mike', text: "Good catch. Gemini, based on our 'Helios' service, what's the recommended way to implement MFA using TOTP?" },
-            { user: 'Gemini', text: "Of course. I've analyzed the 'Helios' service. It already supports TOTP enrollment. I suggest adding a new section to the Tech Spec.", suggestionId: 'sugg-mfa-section' }
+            { user: 'Sarah', text: "The PRD requires MFA, but it's not detailed in the spec." },
+            { user: 'Mike', text: "Good catch. Gemini, please add a section for TOTP-based MFA." },
+            { user: 'Gemini', text: "Of course. I've added a new section to the Tech Spec.", suggestionId: 'sugg-mfa' }
         ],
         suggestions: [
             { 
-                id: 'sugg-mfa-section',
-                title: 'Add MFA Section',
-                status: 'pending',
-                action: { 
-                    type: 'APPEND_HTML', 
-                    docId: 'doc-spec',
-                    html: `<h4>2.1. Multi-Factor Authentication (MFA)</h4><p>The MFA process will be TOTP-based. After primary password validation, if the user is enrolled in MFA, the system will challenge for a one-time code from their authenticator app.</p>`
-                }
+                id: 'sugg-mfa', title: 'Add MFA Section', status: 'pending',
+                action: { type: 'APPEND_HTML', docId: 'doc-spec', html: `<h4>2.1. Multi-Factor Auth (MFA)</h4><p>The MFA process will be TOTP-based, challenging for a one-time code after password validation.</p>` }
             }
         ]
     };
 
-    // --- DOM SELECTORS ---
-    const creationView = document.getElementById('creation-view');
-    const projectView = document.getElementById('project-view');
-    const createProjectForm = document.getElementById('create-project-form');
-    const messageList = document.getElementById('message-list');
-    const chatInput = document.getElementById('chat-input');
-    const sendBtn = document.getElementById('send-btn');
-    const typingIndicator = document.getElementById('typing-indicator');
-    const suggestionsContent = document.getElementById('suggestions-content');
-    const suggestionsBadge = document.getElementById('suggestions-badge');
-    const tabsContainer = document.getElementById('tabs');
-    const mobileNav = document.getElementById('mobile-nav');
+    const dom = {
+        creationView: document.getElementById('creation-view'),
+        projectView: document.getElementById('project-view'),
+        demoView: document.getElementById('demo-view'),
+        createProjectForm: document.getElementById('create-project-form'),
+        messageList: document.getElementById('message-list'),
+        chatInput: document.getElementById('chat-input'),
+        sendBtn: document.getElementById('send-btn'),
+        typingIndicator: document.getElementById('typing-indicator'),
+        suggestionsContent: document.getElementById('suggestions-content'),
+        suggestionsBadge: document.getElementById('suggestions-badge'),
+        tabsContainer: document.getElementById('tabs'),
+        mobileNav: document.getElementById('mobile-nav'),
+        saveDocsBtn: document.getElementById('save-docs-btn'),
+        generateDemoBtn: document.getElementById('generate-demo-btn'),
+        demoUrlContainer: document.getElementById('demo-url-container'),
+        viewDemoLink: document.getElementById('view-demo-link'),
+        backToProjectBtn: document.getElementById('back-to-project-btn'),
+        demoAddressBar: document.getElementById('demo-address-bar'),
+        demoContentTarget: document.getElementById('demo-content-target')
+    };
 
-    // --- RENDER FUNCTIONS ---
-    // These functions update the UI based on the projectState
-    function renderChat() {
-        messageList.innerHTML = '';
+    function renderChat() { /* ... implementation from previous version ... */ 
+        dom.messageList.innerHTML = '';
         projectState.chat.forEach(msg => {
             const msgDiv = document.createElement('div');
             msgDiv.className = 'message';
@@ -322,19 +340,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 html = `<div class="avatar ${avatarClass}">${avatarChar}</div><div class="message-body"><div class="message-meta">${msg.user}</div><div class="message-content"><p>${msg.text}</p></div></div>`;
             }
             msgDiv.innerHTML = html;
-            messageList.appendChild(msgDiv);
+            dom.messageList.appendChild(msgDiv);
         });
-        messageList.scrollTop = messageList.scrollHeight;
+        dom.messageList.scrollTop = dom.messageList.scrollHeight;
     }
 
     function renderDocuments() {
+        const docsContent = document.getElementById('documents-content');
+        docsContent.innerHTML = '';
         for (const [docId, doc] of Object.entries(projectState.documents)) {
-            document.getElementById(`${docId}-content`).innerHTML = doc.content;
+            const editorHTML = `<div class="document-editor">
+                <h5>${doc.title}</h5>
+                <div class="editor-content" id="${docId}-content">${doc.content}</div>
+            </div>`;
+            docsContent.innerHTML += editorHTML;
         }
     }
 
-    function renderSuggestions() {
-        suggestionsContent.innerHTML = '';
+    function renderSuggestions() { /* ... implementation from previous version ... */ 
+        dom.suggestionsContent.innerHTML = '';
         let pendingCount = 0;
         projectState.suggestions.forEach(sugg => {
             if (sugg.status === 'pending') pendingCount++;
@@ -356,77 +380,125 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="suggestion-header"><i class="fas fa-lightbulb"></i> ${sugg.title}</div>
                 <div class="suggestion-content"><b>Add to "${projectState.documents[sugg.action.docId].title}"</b>: <p>${escapeHtml(sugg.action.html)}</p></div>
                 ${actionsHTML}`;
-            suggestionsContent.appendChild(card);
+            dom.suggestionsContent.appendChild(card);
         });
-        suggestionsBadge.textContent = pendingCount;
-        suggestionsBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+        dom.suggestionsBadge.textContent = pendingCount;
+        dom.suggestionsBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
     }
-
-    // --- EVENT HANDLERS ---
-    createProjectForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        creationView.classList.remove('active');
-        projectView.classList.add('active');
-        if (window.innerWidth <= 768) {
-            mobileNav.style.display = 'flex';
-            // On mobile, default to chat view
-            switchMobilePanel('chat');
-        }
-        renderChat();
-        renderSuggestions();
-    });
-
-    function handleSendMessage() {
-        const text = chatInput.value.trim();
-        if (!text) return;
+    
+    function switchView(viewName) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        dom.backToProjectBtn.style.display = 'none';
+        dom.mobileNav.style.display = 'none';
         
+        if (viewName === 'project') {
+            dom.projectView.classList.add('active');
+            if (window.innerWidth <= 768) dom.mobileNav.style.display = 'flex';
+        } else if (viewName === 'demo') {
+            dom.demoView.classList.add('active');
+            dom.backToProjectBtn.style.display = 'inline-flex';
+        } else {
+            dom.creationView.classList.add('active');
+        }
+    }
+    
+    function handleProjectCreation(e) {
+        e.preventDefault();
+        switchView('project');
+        renderChat();
+        renderDocuments();
+        renderSuggestions();
+    }
+    
+    function handleSendMessage() {
+        const text = dom.chatInput.value.trim();
+        if (!text) return;
         projectState.chat.push({ user: 'Mike', text });
         renderChat();
-        chatInput.value = '';
-        chatInput.disabled = true;
-        sendBtn.disabled = true;
-
-        typingIndicator.style.display = 'flex';
+        dom.chatInput.value = ''; dom.chatInput.disabled = true; dom.sendBtn.disabled = true;
+        dom.typingIndicator.style.display = 'flex';
         setTimeout(() => {
-            typingIndicator.style.display = 'none';
-            projectState.chat.push({ 
-                user: 'Gemini', 
-                text: `Excellent point. I've drafted a sequence diagram for the login flow and added it as a new suggestion. Please review.`
-            });
-            projectState.suggestions.push({
-                id: `sugg-${Date.now()}`,
-                title: 'Add Sequence Diagram',
-                status: 'pending',
-                action: { type: 'APPEND_HTML', docId: 'doc-spec', html: `<h4>2.2. Sequence Diagram</h4><p><em>[A MermaidJS diagram would be rendered here]</em></p>`}
-            });
+            dom.typingIndicator.style.display = 'none';
+            projectState.chat.push({ user: 'Gemini', text: `I can do that. I've created a new suggestion.` });
             renderChat();
-            renderSuggestions();
-            chatInput.disabled = false;
-            sendBtn.disabled = false;
-            chatInput.focus();
+            dom.chatInput.disabled = false; dom.sendBtn.disabled = false; dom.chatInput.focus();
+        }, 1500);
+    }
+    
+    function handleSaveToDocs(e) {
+        const btn = e.currentTarget;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Saving...`;
+        btn.disabled = true;
+        setTimeout(() => {
+            btn.innerHTML = `<i class="fas fa-check-circle"></i> Saved!`;
+            btn.style.backgroundColor = 'var(--success-50)';
+            btn.style.color = 'var(--success-500)';
+            btn.style.borderColor = 'var(--success-500)';
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.style.backgroundColor = ''; btn.style.color = ''; btn.style.borderColor = '';
+            }, 2000);
+        }, 1500);
+    }
+
+    function handleGenerateDemo(e) {
+        const btn = e.currentTarget;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Generating...`;
+        btn.disabled = true;
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            dom.demoUrlContainer.style.display = 'block';
         }, 2000);
     }
-    sendBtn.addEventListener('click', handleSendMessage);
-    chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendMessage(); });
 
-    tabsContainer.addEventListener('click', (e) => {
+    function handleViewDemo(e) {
+        e.preventDefault();
+        const projectName = document.getElementById('project-name').value;
+        dom.demoAddressBar.textContent = `https://copilot.dev/demo/project-phoenix`;
+        // Generate HTML content based on the Tech Spec
+        dom.demoContentTarget.innerHTML = `
+            <div style="text-align: center; max-width: 400px; margin: 50px auto; font-family: sans-serif;">
+                <h1 style="color: #333;">${projectName}</h1>
+                <p style="color: #666;">This is a live demo generated from the Tech Design Spec.</p>
+                <div style="background: #f9f9f9; border: 1px solid #eee; border-radius: 8px; padding: 20px; text-align: left;">
+                    <h3 style="margin-top: 0;">Sign In</h3>
+                    <label for="email" style="display:block; margin-bottom: 5px;">Email</label>
+                    <input type="email" id="email" style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px;" />
+                    <label for="password" style="display:block; margin-bottom: 5px;">Password</label>
+                    <input type="password" id="password" style="width: 100%; padding: 8px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px;" />
+                    <button style="width: 100%; padding: 10px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer;">Sign In</button>
+                </div>
+            </div>`;
+        switchView('demo');
+    }
+    
+    // --- ATTACH EVENT LISTENERS ---
+    dom.createProjectForm.addEventListener('submit', handleProjectCreation);
+    dom.sendBtn.addEventListener('click', handleSendMessage);
+    dom.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendMessage(); });
+    dom.saveDocsBtn.addEventListener('click', handleSaveToDocs);
+    dom.generateDemoBtn.addEventListener('click', handleGenerateDemo);
+    dom.viewDemoLink.addEventListener('click', handleViewDemo);
+    dom.backToProjectBtn.addEventListener('click', () => switchView('project'));
+
+    dom.tabsContainer.addEventListener('click', (e) => {
         const tab = e.target.closest('.tab');
         if (!tab) return;
-
-        tabsContainer.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        dom.tabsContainer.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        
         tab.classList.add('active');
         document.getElementById(tab.dataset.tab + '-content').classList.add('active');
     });
 
-    suggestionsContent.addEventListener('click', (e) => {
+    dom.suggestionsContent.addEventListener('click', (e) => {
         const card = e.target.closest('.suggestion-card');
         if (!card) return;
-        const suggestionId = card.dataset.suggestionId;
-        const suggestion = projectState.suggestions.find(s => s.id === suggestionId);
+        const suggestion = projectState.suggestions.find(s => s.id === card.dataset.suggestionId);
         if (suggestion.status !== 'pending') return;
-
         if (e.target.closest('.btn-accept')) {
             suggestion.status = 'accepted';
             if (suggestion.action.type === 'APPEND_HTML') {
@@ -439,29 +511,17 @@ document.addEventListener('DOMContentLoaded', () => {
         renderSuggestions();
     });
 
-    function switchMobilePanel(panelName) {
-        document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
-        document.querySelector(`.mobile-nav-btn[data-panel="${panelName}"]`).classList.add('active');
-        
-        document.querySelectorAll('.project-panel').forEach(p => p.classList.remove('active'));
-        document.getElementById(`mobile-panel-${panelName}`).classList.add('active');
-    }
-
-    mobileNav.addEventListener('click', (e) => {
+    dom.mobileNav.addEventListener('click', (e) => {
         const btn = e.target.closest('.mobile-nav-btn');
-        if (btn) switchMobilePanel(btn.dataset.panel);
+        if (btn) {
+            document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.project-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(`mobile-panel-${btn.dataset.panel}`).classList.add('active');
+        }
     });
 
-    // --- UTILITY ---
-    function escapeHtml(unsafe) {
-        return unsafe.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
-    // --- INITIALIZATION ---
-    // Set initial active panel for mobile
-    if (window.innerWidth <= 768) {
-        switchMobilePanel('chat');
-    }
+    function escapeHtml(unsafe) { return unsafe.replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 });
 </script>
 </body>
