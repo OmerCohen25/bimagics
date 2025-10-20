@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Design Co-Pilot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --font-family: 'Inter', sans-serif;
+            --bg-wash: #f8fafc;
+            --bg-main: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --primary-500: #6366f1;
+            --primary-600: #4f46e5;
+            --primary-50: #eef2ff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-800: #1f2937;
+            --success-500: #10b981;
+            --danger-500: #ef4444;
+            --warning-500: #f59e0b;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-family);
+            margin: 0;
+            background-color: var(--bg-wash);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Global Styles --- */
+        .button-primary {
+            background-color: var(--primary-500);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .button-primary:hover { background-color: var(--primary-600); }
+
+        /* --- Main Layout --- */
+        .app-header {
+            background-color: var(--bg-main);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .app-header .logo { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .app-header .logo i { color: var(--primary-500); }
+        .app-header .user-profile { display: flex; align-items: center; gap: 12px; }
+        .app-header .user-profile img { width: 32px; height: 32px; border-radius: 50%; }
+
+        .main-content {
+            flex-grow: 1;
+            overflow: auto;
+        }
+
+        /* --- Dashboard View --- */
+        #dashboard-view {
+            padding: 32px;
+        }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .dashboard-header h1 { margin: 0; font-size: 28px; }
+
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .project-card, .create-project-card {
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .project-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+        .project-card h3 { margin: 0 0 8px 0; }
+        .project-card p { margin: 0 0 16px 0; color: var(--text-secondary); font-size: 14px; }
+        .project-card .members { display: flex; align-items: center; justify-content: space-between; }
+        .project-card .avatar-stack img {
+            width: 28px; height: 28px; border-radius: 50%;
+            border: 2px solid var(--bg-main);
+            margin-left: -10px;
+        }
+        .project-card .avatar-stack img:first-child { margin-left: 0; }
+        .project-card .last-updated { font-size: 12px; color: var(--text-secondary); }
+
+        .create-project-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-style: dashed;
+            color: var(--text-secondary);
+        }
+        .create-project-card:hover { border-color: var(--primary-500); color: var(--primary-500); }
+        .create-project-card i { font-size: 24px; margin-bottom: 8px; }
+        .create-project-card span { font-weight: 600; }
+
+        /* --- Project View --- */
+        #project-view {
+            display: grid;
+            grid-template-columns: 320px 1fr 400px;
+            height: 100%;
+            width: 100%;
+            gap: 16px;
+            padding: 16px;
+        }
+        .panel {
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .panel-header { padding: 16px; font-weight: 600; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
+        .panel-content { padding: 16px; overflow-y: auto; }
+
+        /* Left Panel */
+        .context-panel .section { margin-bottom: 24px; }
+        .context-panel h4 { margin: 0 0 12px 0; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .context-panel ul { list-style: none; padding: 0; margin: 0; }
+        .context-panel li { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 14px; color: var(--text-secondary); }
+        .context-panel li i { color: var(--text-primary); }
+
+        /* Center Panel (Chat) */
+        .chat-container { padding: 0; }
+        .message-list { padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; flex-grow: 1; }
+        .message { display: flex; gap: 12px; max-width: 85%; }
+        .message .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; flex-shrink: 0; font-size: 14px; }
+        .avatar.user-s { background-color: #db2777; }
+        .avatar.user-m { background-color: #2563eb; }
+        .avatar.llm { background-color: var(--gray-800); }
+        .message-body { display: flex; flex-direction: column; width: 100%; }
+        .message-content { padding: 12px 16px; border-radius: 12px; font-size: 15px; line-height: 1.6; }
+        .message-meta { font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 500; }
+        .user-message { align-self: flex-start; }
+        .user-message .message-content { background-color: var(--primary-50); border-top-left-radius: 4px; }
+        .llm-message { align-self: flex-start; }
+        .llm-message .message-content { background-color: var(--gray-100); border-top-left-radius: 4px; color: var(--text-primary); }
+        .chat-input { padding: 16px; border-top: 1px solid var(--border-color); display: flex; gap: 12px; background-color: var(--bg-main); }
+        .chat-input input { flex-grow: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; font-size: 15px; font-family: var(--font-family); transition: all 0.2s; }
+        .chat-input input:focus { outline: none; border-color: var(--primary-500); box-shadow: 0 0 0 3px var(--primary-50); }
+        .chat-input button { flex-shrink: 0; }
+
+        /* Right Panel (Docs & Suggestions) */
+        .docs-panel .panel-content { padding: 0; }
+        .tabs { display: flex; border-bottom: 1px solid var(--border-color); padding: 0 16px; }
+        .tab { padding: 12px 16px; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 600; color: var(--text-secondary); }
+        .tab.active { color: var(--primary-500); border-bottom-color: var(--primary-500); }
+        .tab-content { padding: 16px; display: none; }
+        .tab-content.active { display: block; }
+        .document-editor h5 { margin: 0 0 8px 0; }
+        .document-editor .editor-content {
+            font-size: 14px; line-height: 1.7; color: var(--text-secondary); border: 1px solid var(--border-color);
+            padding: 12px; border-radius: 8px; min-height: 150px;
+        }
+        .document-editor .editor-content p, .document-editor .editor-content h3 { margin: 0 0 12px 0; }
+        .document-editor .editor-content code { background: var(--gray-100); padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        .document-editor .editable-prompt { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 8px; }
+
+        .suggestion-card {
+            border: 1px solid var(--warning-500); background-color: #fffbeb;
+            border-radius: 8px; padding: 16px; margin-bottom: 16px;
+        }
+        .suggestion-header { font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; font-size: 15px; color: #b45309; }
+        .suggestion-content { font-size: 14px; margin-bottom: 16px; background: #fff; padding: 12px; border-radius: 6px; border: 1px solid #fde68a; }
+        .suggestion-content pre { white-space: pre-wrap; margin: 0; background-color: var(--gray-50); padding: 12px; border-radius: 6px; font-size: 13px; }
+        .suggestion-actions { display: flex; gap: 10px; }
+        .suggestion-actions button { border: 1px solid; border-radius: 6px; padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .btn-accept { background-color: #ecfdf5; color: var(--success-500); border-color: #a7f3d0; }
+        .btn-reject { background-color: #fff1f2; color: var(--danger-500); border-color: #fecdd3; }
+
+        /* --- Create Project Modal --- */
+        #create-project-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        #create-project-modal.visible { opacity: 1; pointer-events: auto; }
+        .modal-content {
+            background: white; padding: 32px; border-radius: 16px;
+            width: 100%; max-width: 550px; transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        #create-project-modal.visible .modal-content { transform: scale(1); }
+        .modal-content h2 { margin: 0 0 8px 0; }
+        .modal-content p { margin: 0 0 24px 0; color: var(--text-secondary); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; }
+        .form-group input[type="text"] { width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+        .button-secondary { background-color: var(--bg-main); color: var(--text-primary); border: 1px solid var(--border-color); /* ... same as button-primary */ }
+
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="logo"><i class="fas fa-sitemap"></i> Co-Pilot</div>
+        <nav class="main-nav">
+            <a href="#" id="dashboard-link">Dashboard</a>
+        </nav>
+        <div class="user-profile">
+            <span>Mike R.</span>
+            <img src="https://i.pravatar.cc/150?u=mike" alt="User Avatar">
+        </div>
+    </header>
+
+    <main class="main-content">
+
+        <div id="dashboard-view">
+            <div class="dashboard-header">
+                <h1>My Projects</h1>
+                <button class="button-primary" id="open-modal-btn"><i class="fas fa-plus"></i> Create New Project</button>
+            </div>
+            <div class="project-grid">
+                <div class="project-card" onclick="showProjectView()">
+                    <h3>Project Phoenix - New Auth Service</h3>
+                    <p>Designing a new, centralized authentication and authorization service.</p>
+                    <div class="members">
+                        <div class="avatar-stack">
+                            <img src="https://i.pravatar.cc/150?u=mike" alt="Member">
+                            <img src="https://i.pravatar.cc/150?u=sarah" alt="Member">
+                        </div>
+                        <span class="last-updated">Updated 2 hours ago</span>
+                    </div>
+                </div>
+                <div class="project-card">
+                    <h3>Q4 Analytics Pipeline Refactor</h3>
+                    <p>Migrating the existing data pipeline to a new streaming architecture.</p>
+                    <div class="members">
+                         <div class="avatar-stack">
+                            <img src="https://i.pravatar.cc/150?u=mike" alt="Member">
+                            <img src="https://i.pravatar.cc/150?u=david" alt="Member">
+                            <img src="https://i.pravatar.cc/150?u=emily" alt="Member">
+                        </div>
+                        <span class="last-updated">Updated yesterday</span>
+                    </div>
+                </div>
+                <div class="create-project-card" id="open-modal-btn-alt">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Create New Project</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="project-view" style="display: none;">
+            <aside class="panel">
+                <div class="panel-header">Project Phoenix</div>
+                <div class="panel-content context-panel">
+                    <div class="section">
+                        <h4><i class="fas fa-link"></i> Data Sources</h4>
+                        <ul>
+                            <li><i class="fab fa-github"></i> GitHub: `my-org/backend-services`</li>
+                            <li><i class="fab fa-confluence"></i> Confluence: `Engineering Best Practices`</li>
+                            <li><i class="fas fa-file-word"></i> PRD: `Phoenix_PRD_v1.2.docx`</li>
+                        </ul>
+                    </div>
+                    <div class="section">
+                        <h4><i class="fas fa-users"></i> Members</h4>
+                        <ul>
+                            <li><img src="https://i.pravatar.cc/150?u=mike" class="avatar" style="width:24px; height:24px;"> Mike R. (Lead Engineer)</li>
+                            <li><img src="https://i.pravatar.cc/150?u=sarah" class="avatar" style="width:24px; height:24px;"> Sarah L. (Product Manager)</li>
+                        </ul>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="panel chat-container">
+                <div class="panel-header">Design Session</div>
+                <div class="message-list">
+                    <div class="message user-message">
+                        <div class="avatar user-s">S</div>
+                        <div class="message-body">
+                            <div class="message-meta">Sarah (Product)</div>
+                            <div class="message-content">The PRD specifies a requirement for MFA, but I don't see it detailed in the tech spec.</div>
+                        </div>
+                    </div>
+                    <div class="message user-message">
+                        <div class="avatar user-m">M</div>
+                        <div class="message-body">
+                            <div class="message-meta">Mike (Engineering)</div>
+                            <div class="message-content">Good catch. Gemini, based on our 'Helios' service, what's the recommended way to implement MFA using TOTP?</div>
+                        </div>
+                    </div>
+                    <div class="message llm-message">
+                        <div class="avatar llm"><i class="fas fa-bolt"></i></div>
+                        <div class="message-body">
+                            <div class="message-meta">Gemini Assistant</div>
+                            <div class="message-content">Of course. I've analyzed the 'Helios' service. It already supports TOTP enrollment. I suggest adding a new section to the Tech Spec. I've created an edit suggestion for you.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input">
+                    <input type="text" placeholder="Ask Gemini or message the team...">
+                    <button class="button-primary"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </main>
+
+            <aside class="panel docs-panel">
+                <div class="tabs">
+                    <div class="tab active" data-tab="documents">Documents</div>
+                    <div class="tab" data-tab="suggestions">Suggestions (1)</div>
+                </div>
+                <div class="panel-content">
+                    <div class="tab-content active" id="documents-content">
+                        <div class="document-editor">
+                            <h5>Tech Design Spec</h5>
+                            <div class="editor-content" contenteditable="true">
+                                <h3>2. Authentication Flow</h3>
+                                <p>Authentication will be handled by our existing 'Helios' identity service via an API call. The system will receive a JWT for authenticating subsequent requests. The token will have a validity of 24 hours.</p>
+                            </div>
+                            <p class="editable-prompt">Editable Content</p>
+                        </div>
+                    </div>
+                    <div class="tab-content" id="suggestions-content">
+                         <div class="suggestion-card">
+                            <div class="suggestion-header"><i class="fas fa-plus-circle"></i> Add MFA Section</div>
+                            <div class="suggestion-content"><b>Add to "Tech Design Spec" under "Authentication Flow":</b><p>The MFA process will be TOTP-based. After primary password validation, the system will challenge for a one-time code from the user's authenticator app.</p></div>
+                            <div class="suggestion-actions"><button class="btn-accept"><i class="fas fa-check"></i> Accept</button><button class="btn-reject"><i class="fas fa-times"></i> Reject</button></div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <div id="create-project-modal">
+        <div class="modal-content">
+            <h2>Create New Project</h2>
+            <p>This will create a new workspace with its own documents and chat history.</p>
+            <div class="form-group">
+                <label for="project-name">Project Name</label>
+                <input type="text" id="project-name" placeholder="e.g., Q4 Analytics Pipeline">
+            </div>
+            <div class="modal-actions">
+                <button class="button-secondary" id="close-modal-btn">Cancel</button>
+                <button class="button-primary">Create Project</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- View Switching ---
+        const dashboardView = document.getElementById('dashboard-view');
+        const projectView = document.getElementById('project-view');
+        const dashboardLink = document.getElementById('dashboard-link');
+
+        window.showProjectView = () => {
+            dashboardView.style.display = 'none';
+            projectView.style.display = 'grid';
+        };
+
+        const showDashboard = () => {
+            projectView.style.display = 'none';
+            dashboardView.style.display = 'block';
+        };
+
+        dashboardLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showDashboard();
+        });
+
+        // --- Modal ---
+        const modal = document.getElementById('create-project-modal');
+        const openModalBtn = document.getElementById('open-modal-btn');
+        const openModalBtnAlt = document.getElementById('open-modal-btn-alt');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+
+        const openModal = () => modal.classList.add('visible');
+        const closeModal = () => modal.classList.remove('visible');
+
+        openModalBtn.addEventListener('click', openModal);
+        openModalBtnAlt.addEventListener('click', openModal);
+        closeModalBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+        
+        // --- Right Panel Tabs ---
+        const tabs = document.querySelectorAll('.docs-panel .tab');
+        const tabContents = document.querySelectorAll('.docs-panel .tab-content');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Deactivate all
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Activate clicked
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab + '-content').classList.add('active');
+            });
+        });
+    });
+    </script>
+</body>
+</html>
