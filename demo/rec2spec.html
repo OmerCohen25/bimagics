@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
             --font-family: 'Inter', sans-serif;
@@ -28,9 +28,8 @@
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
-
         *, *::before, *::after { box-sizing: border-box; }
-
+        html { scroll-behavior: smooth; }
         body {
             font-family: var(--font-family);
             margin: 0;
@@ -42,106 +41,68 @@
             flex-direction: column;
         }
 
-        /* --- Global Styles --- */
-        .button-primary {
-            background-color: var(--primary-500);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 16px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .button-primary:hover { background-color: var(--primary-600); }
+        /* --- Global Styles & Animations --- */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
-        /* --- Main Layout --- */
+        .button {
+            background-color: var(--primary-500); color: white; border: none; border-radius: 8px;
+            padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            display: inline-flex; align-items: center; gap: 8px; box-shadow: var(--shadow-sm);
+        }
+        .button:hover { background-color: var(--primary-600); box-shadow: var(--shadow-md); }
+        .button-secondary {
+            background-color: var(--bg-main); color: var(--text-primary); border: 1px solid var(--border-color);
+        }
+        .button-secondary:hover { background-color: var(--gray-50); }
+
+        /* --- App Layout --- */
         .app-header {
-            background-color: var(--bg-main);
-            border-bottom: 1px solid var(--border-color);
-            padding: 12px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
+            background-color: var(--bg-main); border-bottom: 1px solid var(--border-color);
+            padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; z-index: 10;
         }
         .app-header .logo { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
         .app-header .logo i { color: var(--primary-500); }
         .app-header .user-profile { display: flex; align-items: center; gap: 12px; }
         .app-header .user-profile img { width: 32px; height: 32px; border-radius: 50%; }
-
-        .main-content {
-            flex-grow: 1;
-            overflow: auto;
-        }
+        .main-content { flex-grow: 1; overflow: auto; position: relative; }
+        .view { display: none; animation: fadeIn 0.5s ease; }
+        .view.active { display: block; }
+        #project-view { height: 100%; }
 
         /* --- Dashboard View --- */
-        #dashboard-view {
-            padding: 32px;
-        }
+        #dashboard-view { padding: 32px; }
         .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
         .dashboard-header h1 { margin: 0; font-size: 28px; }
-
-        .project-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 24px;
-        }
-
-        .project-card, .create-project-card {
-            background-color: var(--bg-main);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 24px;
-            transition: all 0.2s ease;
-            cursor: pointer;
+        .project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+        .project-card {
+            background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px;
+            padding: 24px; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--shadow-sm);
         }
         .project-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
         .project-card h3 { margin: 0 0 8px 0; }
         .project-card p { margin: 0 0 16px 0; color: var(--text-secondary); font-size: 14px; }
         .project-card .members { display: flex; align-items: center; justify-content: space-between; }
-        .project-card .avatar-stack img {
-            width: 28px; height: 28px; border-radius: 50%;
-            border: 2px solid var(--bg-main);
-            margin-left: -10px;
-        }
+        .project-card .avatar-stack img { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--bg-main); margin-left: -10px; }
         .project-card .avatar-stack img:first-child { margin-left: 0; }
         .project-card .last-updated { font-size: 12px; color: var(--text-secondary); }
-
         .create-project-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-style: dashed;
-            color: var(--text-secondary);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 2px dashed var(--border-color); color: var(--text-secondary); transition: all 0.2s ease;
         }
-        .create-project-card:hover { border-color: var(--primary-500); color: var(--primary-500); }
-        .create-project-card i { font-size: 24px; margin-bottom: 8px; }
-        .create-project-card span { font-weight: 600; }
+        .create-project-card:hover { border-color: var(--primary-500); color: var(--primary-500); background-color: var(--primary-50); }
 
         /* --- Project View --- */
         #project-view {
-            display: grid;
-            grid-template-columns: 320px 1fr 400px;
-            height: 100%;
-            width: 100%;
-            gap: 16px;
-            padding: 16px;
+            display: grid; grid-template-columns: 320px 1fr 400px;
+            height: 100%; width: 100%; gap: 16px; padding: 16px;
         }
         .panel {
-            background-color: var(--bg-main);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 12px;
+            display: flex; flex-direction: column; overflow: hidden;
         }
-        .panel-header { padding: 16px; font-weight: 600; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
+        .panel-header { padding: 16px; font-weight: 600; border-bottom: 1px solid var(--border-color); flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
         .panel-content { padding: 16px; overflow-y: auto; }
 
         /* Left Panel */
@@ -149,57 +110,56 @@
         .context-panel h4 { margin: 0 0 12px 0; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
         .context-panel ul { list-style: none; padding: 0; margin: 0; }
         .context-panel li { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 14px; color: var(--text-secondary); }
-        .context-panel li i { color: var(--text-primary); }
 
         /* Center Panel (Chat) */
         .chat-container { padding: 0; }
         .message-list { padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; flex-grow: 1; }
-        .message { display: flex; gap: 12px; max-width: 85%; }
+        .message { display: flex; gap: 12px; max-width: 85%; animation: fadeIn 0.3s ease; }
         .message .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; flex-shrink: 0; font-size: 14px; }
         .avatar.user-s { background-color: #db2777; }
         .avatar.user-m { background-color: #2563eb; }
         .avatar.llm { background-color: var(--gray-800); }
         .message-body { display: flex; flex-direction: column; width: 100%; }
         .message-content { padding: 12px 16px; border-radius: 12px; font-size: 15px; line-height: 1.6; }
+        .message-content p, .message-content pre { margin: 0 0 10px 0; }
+        .message-content p:last-child, .message-content pre:last-child { margin-bottom: 0; }
+        .message-content pre { white-space: pre-wrap; background-color: var(--gray-50); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; font-size: 13px; color: var(--text-primary); }
         .message-meta { font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 500; }
         .user-message { align-self: flex-start; }
         .user-message .message-content { background-color: var(--primary-50); border-top-left-radius: 4px; }
         .llm-message { align-self: flex-start; }
         .llm-message .message-content { background-color: var(--gray-100); border-top-left-radius: 4px; color: var(--text-primary); }
-        .chat-input { padding: 16px; border-top: 1px solid var(--border-color); display: flex; gap: 12px; background-color: var(--bg-main); }
-        .chat-input input { flex-grow: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; font-size: 15px; font-family: var(--font-family); transition: all 0.2s; }
+        .typing-indicator { align-self: flex-start; display: none; gap: 4px; padding: 12px 16px; }
+        .typing-indicator span { width: 8px; height: 8px; background-color: var(--text-secondary); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+        .chat-input { padding: 16px; border-top: 1px solid var(--border-color); display: flex; gap: 12px; }
+        .chat-input input { flex-grow: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; font-size: 15px; transition: all 0.2s; }
         .chat-input input:focus { outline: none; border-color: var(--primary-500); box-shadow: 0 0 0 3px var(--primary-50); }
-        .chat-input button { flex-shrink: 0; }
 
         /* Right Panel (Docs & Suggestions) */
         .docs-panel .panel-content { padding: 0; }
         .tabs { display: flex; border-bottom: 1px solid var(--border-color); padding: 0 16px; }
         .tab { padding: 12px 16px; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 600; color: var(--text-secondary); }
         .tab.active { color: var(--primary-500); border-bottom-color: var(--primary-500); }
-        .tab-content { padding: 16px; display: none; }
+        .tab-content { padding: 16px; display: none; animation: fadeIn 0.3s; }
         .tab-content.active { display: block; }
+        .document-editor { margin-bottom: 16px; }
         .document-editor h5 { margin: 0 0 8px 0; }
-        .document-editor .editor-content {
-            font-size: 14px; line-height: 1.7; color: var(--text-secondary); border: 1px solid var(--border-color);
-            padding: 12px; border-radius: 8px; min-height: 150px;
-        }
-        .document-editor .editor-content p, .document-editor .editor-content h3 { margin: 0 0 12px 0; }
-        .document-editor .editor-content code { background: var(--gray-100); padding: 2px 6px; border-radius: 4px; font-family: monospace; }
-        .document-editor .editable-prompt { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 8px; }
-
-        .suggestion-card {
-            border: 1px solid var(--warning-500); background-color: #fffbeb;
-            border-radius: 8px; padding: 16px; margin-bottom: 16px;
-        }
+        .editor-content { font-size: 14px; line-height: 1.7; color: var(--text-secondary); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; min-height: 150px; }
+        .editor-content > *:first-child { margin-top: 0; }
+        .editor-content > *:last-child { margin-bottom: 0; }
+        .editor-content pre { white-space: pre-wrap; background-color: var(--gray-50); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; font-size: 13px; }
+        .suggestion-card { border: 1px solid var(--warning-500); background-color: #fffbeb; border-radius: 8px; padding: 16px; margin-bottom: 16px; animation: popIn 0.3s ease; }
         .suggestion-header { font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; font-size: 15px; color: #b45309; }
         .suggestion-content { font-size: 14px; margin-bottom: 16px; background: #fff; padding: 12px; border-radius: 6px; border: 1px solid #fde68a; }
-        .suggestion-content pre { white-space: pre-wrap; margin: 0; background-color: var(--gray-50); padding: 12px; border-radius: 6px; font-size: 13px; }
         .suggestion-actions { display: flex; gap: 10px; }
-        .suggestion-actions button { border: 1px solid; border-radius: 6px; padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
-        .btn-accept { background-color: #ecfdf5; color: var(--success-500); border-color: #a7f3d0; }
-        .btn-reject { background-color: #fff1f2; color: var(--danger-500); border-color: #fecdd3; }
+        .suggestion-status { font-weight: 600; font-size: 14px; }
+        .status-accepted { color: var(--success-500); }
+        .status-rejected { color: var(--danger-500); }
 
-        /* --- Create Project Modal --- */
+        /* Modal */
         #create-project-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px);
@@ -207,20 +167,30 @@
             z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
         #create-project-modal.visible { opacity: 1; pointer-events: auto; }
-        .modal-content {
-            background: white; padding: 32px; border-radius: 16px;
-            width: 100%; max-width: 550px; transform: scale(0.95);
-            transition: transform 0.3s ease;
-        }
+        .modal-content { background: white; padding: 32px; border-radius: 16px; width: 100%; max-width: 550px; transform: scale(0.95); transition: transform 0.3s ease; }
         #create-project-modal.visible .modal-content { transform: scale(1); }
-        .modal-content h2 { margin: 0 0 8px 0; }
-        .modal-content p { margin: 0 0 24px 0; color: var(--text-secondary); }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; }
-        .form-group input[type="text"] { width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; }
+        .modal-content h2 { margin: 0 0 8px 0; } .modal-content p { margin: 0 0 24px 0; color: var(--text-secondary); }
+        .form-group { margin-bottom: 20px; } .form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; }
+        .form-group input { width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; }
         .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
-        .button-secondary { background-color: var(--bg-main); color: var(--text-primary); border: 1px solid var(--border-color); /* ... same as button-primary */ }
 
+        /* Mobile Responsive */
+        @media (max-width: 1024px) {
+            #project-view { grid-template-columns: 280px 1fr; }
+            .docs-panel { display: none; } /* Hide on tablet, could be a pop-out */
+        }
+        @media (max-width: 768px) {
+            body { -webkit-text-size-adjust: 100%; }
+            .dashboard-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+            #project-view { grid-template-columns: 1fr; padding: 0; gap: 0; }
+            .panel { border-radius: 0; border-left: 0; border-right: 0; }
+            .panel-header { border-radius: 0; }
+            .mobile-nav { display: flex; background-color: var(--bg-main); border-top: 1px solid var(--border-color); padding: 8px; position: fixed; bottom: 0; left: 0; right: 0; z-index: 20; }
+            .mobile-nav-btn { flex: 1; text-align: center; padding: 8px; border-radius: 8px; color: var(--text-secondary); background: none; border: none; }
+            .mobile-nav-btn.active { background-color: var(--primary-50); color: var(--primary-600); }
+            .project-panel { display: none; }
+            .project-panel.active { display: flex; flex-direction: column; height: calc(100% - 53px); }
+        }
     </style>
 </head>
 <body>
@@ -228,7 +198,7 @@
     <header class="app-header">
         <div class="logo"><i class="fas fa-sitemap"></i> Co-Pilot</div>
         <nav class="main-nav">
-            <a href="#" id="dashboard-link">Dashboard</a>
+            <a href="#" class="button button-secondary" id="dashboard-link" style="display: none;"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
         </nav>
         <div class="user-profile">
             <span>Mike R.</span>
@@ -237,193 +207,410 @@
     </header>
 
     <main class="main-content">
-
-        <div id="dashboard-view">
+        <div id="dashboard-view" class="view active">
             <div class="dashboard-header">
                 <h1>My Projects</h1>
-                <button class="button-primary" id="open-modal-btn"><i class="fas fa-plus"></i> Create New Project</button>
+                <button class="button" id="open-modal-btn"><i class="fas fa-plus"></i> Create New Project</button>
             </div>
-            <div class="project-grid">
-                <div class="project-card" onclick="showProjectView()">
-                    <h3>Project Phoenix - New Auth Service</h3>
-                    <p>Designing a new, centralized authentication and authorization service.</p>
-                    <div class="members">
-                        <div class="avatar-stack">
-                            <img src="https://i.pravatar.cc/150?u=mike" alt="Member">
-                            <img src="https://i.pravatar.cc/150?u=sarah" alt="Member">
-                        </div>
-                        <span class="last-updated">Updated 2 hours ago</span>
-                    </div>
+            <div class="project-grid" id="project-grid">
                 </div>
-                <div class="project-card">
-                    <h3>Q4 Analytics Pipeline Refactor</h3>
-                    <p>Migrating the existing data pipeline to a new streaming architecture.</p>
-                    <div class="members">
-                         <div class="avatar-stack">
-                            <img src="https://i.pravatar.cc/150?u=mike" alt="Member">
-                            <img src="https://i.pravatar.cc/150?u=david" alt="Member">
-                            <img src="https://i.pravatar.cc/150?u=emily" alt="Member">
-                        </div>
-                        <span class="last-updated">Updated yesterday</span>
-                    </div>
-                </div>
-                <div class="create-project-card" id="open-modal-btn-alt">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>Create New Project</span>
-                </div>
-            </div>
         </div>
 
-        <div id="project-view" style="display: none;">
-            <aside class="panel">
-                <div class="panel-header">Project Phoenix</div>
-                <div class="panel-content context-panel">
-                    <div class="section">
-                        <h4><i class="fas fa-link"></i> Data Sources</h4>
-                        <ul>
-                            <li><i class="fab fa-github"></i> GitHub: `my-org/backend-services`</li>
-                            <li><i class="fab fa-confluence"></i> Confluence: `Engineering Best Practices`</li>
-                            <li><i class="fas fa-file-word"></i> PRD: `Phoenix_PRD_v1.2.docx`</li>
-                        </ul>
-                    </div>
-                    <div class="section">
-                        <h4><i class="fas fa-users"></i> Members</h4>
-                        <ul>
-                            <li><img src="https://i.pravatar.cc/150?u=mike" class="avatar" style="width:24px; height:24px;"> Mike R. (Lead Engineer)</li>
-                            <li><img src="https://i.pravatar.cc/150?u=sarah" class="avatar" style="width:24px; height:24px;"> Sarah L. (Product Manager)</li>
-                        </ul>
-                    </div>
-                </div>
+        <div id="project-view" class="view">
+            <aside class="panel project-panel active" id="mobile-panel-context">
+                <div class="panel-header">Project Context</div>
+                <div class="panel-content context-panel" id="project-context-content"></div>
             </aside>
 
-            <main class="panel chat-container">
-                <div class="panel-header">Design Session</div>
-                <div class="message-list">
-                    <div class="message user-message">
-                        <div class="avatar user-s">S</div>
-                        <div class="message-body">
-                            <div class="message-meta">Sarah (Product)</div>
-                            <div class="message-content">The PRD specifies a requirement for MFA, but I don't see it detailed in the tech spec.</div>
-                        </div>
-                    </div>
-                    <div class="message user-message">
-                        <div class="avatar user-m">M</div>
-                        <div class="message-body">
-                            <div class="message-meta">Mike (Engineering)</div>
-                            <div class="message-content">Good catch. Gemini, based on our 'Helios' service, what's the recommended way to implement MFA using TOTP?</div>
-                        </div>
-                    </div>
-                    <div class="message llm-message">
-                        <div class="avatar llm"><i class="fas fa-bolt"></i></div>
-                        <div class="message-body">
-                            <div class="message-meta">Gemini Assistant</div>
-                            <div class="message-content">Of course. I've analyzed the 'Helios' service. It already supports TOTP enrollment. I suggest adding a new section to the Tech Spec. I've created an edit suggestion for you.</div>
-                        </div>
-                    </div>
-                </div>
+            <main class="panel project-panel chat-container" id="mobile-panel-chat">
+                <div class="panel-header" id="project-chat-header"></div>
+                <div class="message-list" id="message-list"></div>
+                <div class="message llm-message typing-indicator" id="typing-indicator"><span></span><span></span><span></span></div>
                 <div class="chat-input">
-                    <input type="text" placeholder="Ask Gemini or message the team...">
-                    <button class="button-primary"><i class="fas fa-paper-plane"></i></button>
+                    <input type="text" id="chat-input" placeholder="Ask Gemini or message the team...">
+                    <button class="button" id="send-btn"><i class="fas fa-paper-plane"></i></button>
                 </div>
             </main>
 
-            <aside class="panel docs-panel">
+            <aside class="panel project-panel docs-panel" id="mobile-panel-docs">
                 <div class="tabs">
                     <div class="tab active" data-tab="documents">Documents</div>
-                    <div class="tab" data-tab="suggestions">Suggestions (1)</div>
+                    <div class="tab" data-tab="suggestions">Suggestions <span id="suggestions-count"></span></div>
                 </div>
                 <div class="panel-content">
-                    <div class="tab-content active" id="documents-content">
-                        <div class="document-editor">
-                            <h5>Tech Design Spec</h5>
-                            <div class="editor-content" contenteditable="true">
-                                <h3>2. Authentication Flow</h3>
-                                <p>Authentication will be handled by our existing 'Helios' identity service via an API call. The system will receive a JWT for authenticating subsequent requests. The token will have a validity of 24 hours.</p>
-                            </div>
-                            <p class="editable-prompt">Editable Content</p>
-                        </div>
-                    </div>
-                    <div class="tab-content" id="suggestions-content">
-                         <div class="suggestion-card">
-                            <div class="suggestion-header"><i class="fas fa-plus-circle"></i> Add MFA Section</div>
-                            <div class="suggestion-content"><b>Add to "Tech Design Spec" under "Authentication Flow":</b><p>The MFA process will be TOTP-based. After primary password validation, the system will challenge for a one-time code from the user's authenticator app.</p></div>
-                            <div class="suggestion-actions"><button class="btn-accept"><i class="fas fa-check"></i> Accept</button><button class="btn-reject"><i class="fas fa-times"></i> Reject</button></div>
-                        </div>
-                    </div>
+                    <div class="tab-content active" id="documents-content"></div>
+                    <div class="tab-content" id="suggestions-content"></div>
                 </div>
             </aside>
         </div>
     </main>
+    
+    <nav class="mobile-nav" id="mobile-nav" style="display: none;">
+        <button class="mobile-nav-btn" data-panel="context"><i class="fas fa-book"></i> Context</button>
+        <button class="mobile-nav-btn active" data-panel="chat"><i class="fas fa-comments"></i> Chat</button>
+        <button class="mobile-nav-btn" data-panel="docs"><i class="fas fa-file-alt"></i> Docs</button>
+    </nav>
 
     <div id="create-project-modal">
         <div class="modal-content">
             <h2>Create New Project</h2>
             <p>This will create a new workspace with its own documents and chat history.</p>
-            <div class="form-group">
-                <label for="project-name">Project Name</label>
-                <input type="text" id="project-name" placeholder="e.g., Q4 Analytics Pipeline">
-            </div>
-            <div class="modal-actions">
-                <button class="button-secondary" id="close-modal-btn">Cancel</button>
-                <button class="button-primary">Create Project</button>
-            </div>
+            <form id="create-project-form">
+                <div class="form-group">
+                    <label for="project-name">Project Name</label>
+                    <input type="text" id="project-name" placeholder="e.g., Q4 Analytics Pipeline" required>
+                </div>
+                 <div class="form-group">
+                    <label for="project-desc">Description</label>
+                    <input type="text" id="project-desc" placeholder="A brief description of the project" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="button button-secondary" id="close-modal-btn">Cancel</button>
+                    <button type="submit" class="button">Create Project</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- View Switching ---
-        const dashboardView = document.getElementById('dashboard-view');
-        const projectView = document.getElementById('project-view');
-        const dashboardLink = document.getElementById('dashboard-link');
+<script>
+document.addEventListener('DOMContentLoaded', () => {
 
-        window.showProjectView = () => {
-            dashboardView.style.display = 'none';
-            projectView.style.display = 'grid';
-        };
+    // --- DATA STORE ---
+    // Simulates a database of users and projects.
+    const DB = {
+        users: {
+            'user-mike': { name: 'Mike R.', avatar: 'https://i.pravatar.cc/150?u=mike', title: 'Lead Engineer' },
+            'user-sarah': { name: 'Sarah L.', avatar: 'https://i.pravatar.cc/150?u=sarah', title: 'Product Manager' },
+            'user-david': { name: 'David C.', avatar: 'https://i.pravatar.cc/150?u=david', title: 'Sr. Backend Engineer' }
+        },
+        projects: [
+            {
+                id: 'proj-phoenix',
+                name: 'Project Phoenix - New Auth Service',
+                description: 'Designing a new, centralized authentication and authorization service.',
+                members: ['user-mike', 'user-sarah'],
+                lastUpdated: '2 hours ago',
+                dataSources: [
+                    { type: 'github', icon: 'fab fa-github', text: '`my-org/backend-services`' },
+                    { type: 'confluence', icon: 'fab fa-confluence', text: '`Engineering Best Practices`' },
+                    { type: 'prd', icon: 'fas fa-file-word', text: '`Phoenix_PRD_v1.2.docx`' }
+                ],
+                documents: {
+                    'doc-req': { 
+                        title: 'Requirements', 
+                        content: `<h3>1. User Authentication</h3><p>The system will allow users to sign in with a username and password.</p><h3>2. Security</h3><p>All communication must be encrypted via TLS 1.2+.</p>`
+                    },
+                    'doc-spec': { 
+                        title: 'Tech Design Spec', 
+                        content: `<h3 id="auth-flow">2. Authentication Flow</h3><p>Authentication will be handled by our existing 'Helios' identity service via an API call. The system will receive a JWT for authenticating subsequent requests.</p>` 
+                    }
+                },
+                chat: [
+                    { userId: 'user-sarah', text: "The PRD specifies a requirement for MFA, but I don't see it detailed in the tech spec." },
+                    { userId: 'user-mike', text: "Good catch. Gemini, based on our 'Helios' service, what's the recommended way to implement MFA using TOTP?" },
+                    { aiResponse: true, text: "Of course. I've analyzed the 'Helios' service. It already supports TOTP enrollment. I suggest adding a new section to the Tech Spec.", suggestionId: 'sugg-mfa-section' }
+                ],
+                suggestions: [
+                    { 
+                        id: 'sugg-mfa-section',
+                        title: 'Add MFA Section',
+                        status: 'pending',
+                        action: { 
+                            type: 'APPEND_HTML', 
+                            docId: 'doc-spec',
+                            targetElementId: 'auth-flow',
+                            html: `<h4>2.1. Multi-Factor Authentication (MFA)</h4><p>The MFA process will be TOTP-based. After primary password validation, if the user is enrolled in MFA, the system will challenge for a one-time code from their authenticator app.</p>`
+                        }
+                    }
+                ]
+            },
+            {
+                id: 'proj-analytics',
+                name: 'Q4 Analytics Pipeline Refactor',
+                description: 'Migrating the existing data pipeline to a new streaming architecture.',
+                members: ['user-mike', 'user-david'],
+                lastUpdated: 'yesterday'
+            }
+        ]
+    };
 
-        const showDashboard = () => {
-            projectView.style.display = 'none';
-            dashboardView.style.display = 'block';
-        };
+    let currentProject = null;
 
-        dashboardLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            showDashboard();
+    // --- DOM SELECTORS ---
+    const dashboardView = document.getElementById('dashboard-view');
+    const projectView = document.getElementById('project-view');
+    const projectGrid = document.getElementById('project-grid');
+    const dashboardLink = document.getElementById('dashboard-link');
+    
+    // --- RENDER FUNCTIONS ---
+    // These functions take data and generate HTML, keeping logic separate from presentation.
+
+    function renderDashboard() {
+        projectGrid.innerHTML = ''; // Clear existing projects
+        DB.projects.forEach(proj => {
+            const membersHTML = proj.members ? proj.members.map(userId => 
+                `<img src="${DB.users[userId].avatar}" alt="${DB.users[userId].name}">`
+            ).join('') : '';
+
+            const card = document.createElement('div');
+            card.className = 'project-card';
+            card.dataset.projectId = proj.id;
+            card.innerHTML = `
+                <h3>${proj.name}</h3>
+                <p>${proj.description}</p>
+                <div class="members">
+                    <div class="avatar-stack">${membersHTML}</div>
+                    <span class="last-updated">Updated ${proj.lastUpdated}</span>
+                </div>`;
+            projectGrid.appendChild(card);
         });
+        // Add the "create new" card
+        const createCard = document.createElement('div');
+        createCard.className = 'project-card create-project-card';
+        createCard.id = 'open-modal-btn-alt';
+        createCard.innerHTML = `<i class="fas fa-plus-circle"></i><span>Create New Project</span>`;
+        projectGrid.appendChild(createCard);
 
-        // --- Modal ---
-        const modal = document.getElementById('create-project-modal');
-        const openModalBtn = document.getElementById('open-modal-btn');
-        const openModalBtnAlt = document.getElementById('open-modal-btn-alt');
-        const closeModalBtn = document.getElementById('close-modal-btn');
+        // Re-add event listener for the new card
+        document.getElementById('open-modal-btn-alt').addEventListener('click', openModal);
+    }
 
-        const openModal = () => modal.classList.add('visible');
-        const closeModal = () => modal.classList.remove('visible');
+    function renderProject(project) {
+        currentProject = project;
+        // Render Context Panel
+        const contextContent = document.getElementById('project-context-content');
+        const membersHTML = project.members.map(userId => {
+            const user = DB.users[userId];
+            return `<li><img src="${user.avatar}" class="avatar" style="width:24px; height:24px;"> ${user.name} (${user.title})</li>`;
+        }).join('');
+        const dataSourcesHTML = project.dataSources.map(ds => `<li><i class="${ds.icon}"></i> ${ds.text}</li>`).join('');
+        contextContent.innerHTML = `
+            <div class="section">
+                <h4><i class="fas fa-users"></i> Members</h4>
+                <ul>${membersHTML}</ul>
+            </div>
+            <div class="section">
+                <h4><i class="fas fa-link"></i> Data Sources</h4>
+                <ul>${dataSourcesHTML}</ul>
+            </div>`;
 
-        openModalBtn.addEventListener('click', openModal);
-        openModalBtnAlt.addEventListener('click', openModal);
-        closeModalBtn.addEventListener('click', closeModal);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
+        // Render Chat Panel
+        document.getElementById('project-chat-header').textContent = project.name;
+        const messageList = document.getElementById('message-list');
+        messageList.innerHTML = '';
+        project.chat.forEach(msg => renderMessage(msg));
+
+        // Render Docs & Suggestions
+        renderDocuments();
+        renderSuggestions();
+    }
+
+    function renderMessage(msg) {
+        const messageList = document.getElementById('message-list');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message';
+        let html;
+
+        if (msg.aiResponse) {
+            msgDiv.classList.add('llm-message');
+            html = `<div class="avatar llm"><i class="fas fa-bolt"></i></div>
+                    <div class="message-body">
+                        <div class="message-meta">Gemini Assistant</div>
+                        <div class="message-content"><p>${msg.text}</p></div>
+                    </div>`;
+        } else {
+            const user = DB.users[msg.userId];
+            msgDiv.classList.add('user-message');
+            html = `<div class="avatar" style="background-color:${msg.userId === 'user-mike' ? '#2563eb':'#db2777'};">${user.name.charAt(0)}</div>
+                    <div class="message-body">
+                        <div class="message-meta">${user.name}</div>
+                        <div class="message-content"><p>${msg.text}</p></div>
+                    </div>`;
+        }
+        msgDiv.innerHTML = html;
+        messageList.appendChild(msgDiv);
+        messageList.scrollTop = messageList.scrollHeight;
+    }
+
+    function renderDocuments() {
+        const docsContent = document.getElementById('documents-content');
+        docsContent.innerHTML = '';
+        Object.keys(currentProject.documents).forEach(docId => {
+            const doc = currentProject.documents[docId];
+            docsContent.innerHTML += `
+                <div class="document-editor">
+                    <h5>${doc.title}</h5>
+                    <div class="editor-content" id="${docId}-content">${doc.content}</div>
+                </div>`;
         });
-        
-        // --- Right Panel Tabs ---
-        const tabs = document.querySelectorAll('.docs-panel .tab');
-        const tabContents = document.querySelectorAll('.docs-panel .tab-content');
-        
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Deactivate all
-                tabs.forEach(t => t.classList.remove('active'));
-                tabContents.forEach(c => c.classList.remove('active'));
-                
-                // Activate clicked
-                tab.classList.add('active');
-                document.getElementById(tab.dataset.tab + '-content').classList.add('active');
-            });
+    }
+
+    function renderSuggestions() {
+        const suggContent = document.getElementById('suggestions-content');
+        suggContent.innerHTML = '';
+        let pendingCount = 0;
+        currentProject.suggestions.forEach(sugg => {
+            if (sugg.status === 'pending') pendingCount++;
+            const card = document.createElement('div');
+            card.className = 'suggestion-card';
+            card.dataset.suggestionId = sugg.id;
+            let actionsHTML;
+            if (sugg.status === 'pending') {
+                actionsHTML = `<div class="suggestion-actions">
+                    <button class="button btn-accept"><i class="fas fa-check"></i> Accept</button>
+                    <button class="button btn-reject"><i class="fas fa-times"></i> Reject</button>
+                </div>`;
+            } else {
+                actionsHTML = `<div class="suggestion-status status-${sugg.status}">
+                    <i class="fas fa-${sugg.status === 'accepted' ? 'check' : 'times'}-circle"></i> ${sugg.status.charAt(0).toUpperCase() + sugg.status.slice(1)}
+                </div>`;
+            }
+            card.innerHTML = `
+                <div class="suggestion-header"><i class="fas fa-lightbulb"></i> ${sugg.title}</div>
+                <div class="suggestion-content"><b>Add to "${currentProject.documents[sugg.action.docId].title}"</b>: <p>${escapeHtml(sugg.action.html)}</p></div>
+                ${actionsHTML}`;
+            suggContent.appendChild(card);
         });
+        document.getElementById('suggestions-count').textContent = `(${pendingCount})`;
+    }
+
+    // --- VIEW MANAGEMENT ---
+    function switchView(viewName) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(`${viewName}-view`).classList.add('active');
+        dashboardLink.style.display = viewName === 'project' ? 'inline-flex' : 'none';
+        document.getElementById('mobile-nav').style.display = (viewName === 'project' && window.innerWidth <= 768) ? 'flex' : 'none';
+    }
+
+    // --- EVENT HANDLERS ---
+    dashboardLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchView('dashboard');
     });
-    </script>
+
+    projectGrid.addEventListener('click', (e) => {
+        const card = e.target.closest('.project-card');
+        if (card && card.dataset.projectId) {
+            const project = DB.projects.find(p => p.id === card.dataset.projectId);
+            if (project) {
+                renderProject(project);
+                switchView('project');
+            }
+        }
+    });
+
+    // Modal Logic
+    const modal = document.getElementById('create-project-modal');
+    const openModalBtn = document.getElementById('open-modal-btn');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const createProjectForm = document.getElementById('create-project-form');
+
+    const openModal = () => modal.classList.add('visible');
+    const closeModal = () => modal.classList.remove('visible');
+
+    openModalBtn.addEventListener('click', openModal);
+    closeModalBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+    createProjectForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newProject = {
+            id: `proj-${Date.now()}`,
+            name: document.getElementById('project-name').value,
+            description: document.getElementById('project-desc').value,
+            members: ['user-mike'],
+            lastUpdated: 'just now',
+            chat: [], documents: {}, suggestions: []
+        };
+        DB.projects.push(newProject);
+        renderDashboard();
+        createProjectForm.reset();
+        closeModal();
+    });
+
+    // Chat Logic
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const typingIndicator = document.getElementById('typing-indicator');
+
+    function handleSendMessage() {
+        const text = chatInput.value.trim();
+        if (!text) return;
+        
+        const newMessage = { userId: 'user-mike', text: text };
+        currentProject.chat.push(newMessage);
+        renderMessage(newMessage);
+        chatInput.value = '';
+
+        // Simulate AI response
+        typingIndicator.style.display = 'flex';
+        setTimeout(() => {
+            typingIndicator.style.display = 'none';
+            const aiResponse = { 
+                aiResponse: true, 
+                text: `I've analyzed your request regarding "${text}". I've found relevant information in the Confluence space and can generate an implementation plan. Would you like me to add it to the Tech Spec?`,
+                suggestionId: `sugg-${Date.now()}`
+            };
+            currentProject.chat.push(aiResponse);
+            renderMessage(aiResponse);
+        }, 2000);
+    }
+    sendBtn.addEventListener('click', handleSendMessage);
+    chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendMessage(); });
+
+    // Suggestion Logic
+    document.getElementById('suggestions-content').addEventListener('click', (e) => {
+        const card = e.target.closest('.suggestion-card');
+        if (!card) return;
+        const suggestionId = card.dataset.suggestionId;
+        const suggestion = currentProject.suggestions.find(s => s.id === suggestionId);
+
+        if (e.target.closest('.btn-accept')) {
+            suggestion.status = 'accepted';
+            // Perform the action
+            if (suggestion.action.type === 'APPEND_HTML') {
+                const docContentEl = document.getElementById(`${suggestion.action.docId}-content`);
+                const targetEl = docContentEl.querySelector(`#${suggestion.action.targetElementId}`);
+                targetEl.insertAdjacentHTML('afterend', suggestion.action.html);
+                
+                // Update the data model
+                currentProject.documents[suggestion.action.docId].content += suggestion.action.html;
+            }
+            renderSuggestions();
+        }
+        if (e.target.closest('.btn-reject')) {
+            suggestion.status = 'rejected';
+            renderSuggestions();
+        }
+    });
+    
+    // Mobile Navigation
+    const mobileNav = document.getElementById('mobile-nav');
+    mobileNav.addEventListener('click', (e) => {
+        const btn = e.target.closest('.mobile-nav-btn');
+        if (!btn) return;
+        
+        document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        document.querySelectorAll('.project-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById(`mobile-panel-${btn.dataset.panel}`).classList.add('active');
+    });
+
+    // Utility
+    function escapeHtml(unsafe) {
+        return unsafe
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
+
+    // --- INITIALIZATION ---
+    renderDashboard();
+    switchView('dashboard');
+});
+</script>
 </body>
 </html>
