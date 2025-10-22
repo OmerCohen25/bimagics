@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>סימולטור אסטרטגי לבחירות</title>
+    <!-- טעינת Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- טעינת גופן Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* שימוש בגופן Rubik עבור עברית ו-Inter כברירת מחדל */
+        body {
+            font-family: 'Rubik', 'Inter', sans-serif;
+        }
+        /* התאמות קטנות ל-RTL */
+        label {
+            display: block;
+            text-align: right;
+        }
+        textarea {
+            resize: vertical;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">סימולטור אסטרטגי לבחירות</h1>
+            <p class="text-lg text-gray-600 mt-2">ניתוח והמלצות לפיצול רשימות</p>
+        </header>
+
+        <!-- שלב 1: הגדרות בסיס -->
+        <div id="setupSection" class="bg-white p-6 rounded-lg shadow-lg max-w-lg mx-auto">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">הגדרות בסיס</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="totalSeatsInput" class="block text-sm font-medium text-gray-700 mb-1">סה"כ מקומות לבחירה:</label>
+                    <input type="number" id="totalSeatsInput" value="19" min="3" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="votesPerVoterDisplay" class="block text-sm font-medium text-gray-700 mb-1">מספר סימונים לכל מצביע (2/3 מסה"כ, מעוגל מטה):</label>
+                    <input type="number" id="votesPerVoterDisplay" readonly class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100">
+                </div>
+                <button id="startAppBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-150 ease-in-out shadow-md">
+                    התחל בסימולציה
+                </button>
+            </div>
+        </div>
+
+        <!-- שלב 2: האפליקציה הראשית (מוסתר בהתחלה) -->
+        <div id="mainAppSection" class="hidden">
+            <!-- נתוני יסוד של הבחירות (דינמי) -->
+            <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-800 p-4 rounded-lg mb-8 shadow-md" role="alert">
+                <h3 class="font-bold text-xl mb-2">נתוני יסוד (נקבעו)</h3>
+                <div class="flex flex-wrap justify-around text-center">
+                    <div class="p-2">
+                        <span id="totalSeatsDisplay" class="block text-3xl font-bold">19</span>
+                        <span class="text-sm">מקומות לבחירה</span>
+                    </div>
+                    <div class="p-2">
+                        <span id="votesPerVoterDisplayBox" class="block text-3xl font-bold">12</span>
+                        <span class="text-sm">בחירות (סימונים) לכל מצביע</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+                <!-- כרטיס 1: אופטימיזציה (כמה צריך?) -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold text-blue-700 mb-6 border-b pb-3">
+                        <span class="inline-block mr-2">🎯</span>
+                        אופטימיזציה: כמה קולות צריך כדי לנצח?
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="ourCandidatesToWin" class="block text-sm font-medium text-gray-700 mb-1">כמה מועמדים *שלנו* אנחנו רוצים להכניס?</label>
+                            <input type="number" id="ourCandidatesToWin" value="16" min="12" max="19" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                         <div>
+                            <label for="ourCandidateNamesOpt" class="block text-sm font-medium text-gray-700 mb-1">רשימת המועמדים *שלנו* (אחד בכל שורה):</label>
+                            <textarea id="ourCandidateNamesOpt" rows="8" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                        </div>
+                        <div>
+                            <label for="oppVotersOpt" class="block text-sm font-medium text-gray-700 mb-1">כמה מצביעים יש *ליריב*?</label>
+                            <input type="number" id="oppVotersOpt" value="80" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="oppCandidatesOpt" class="block text-sm font-medium text-gray-700 mb-1">כמה מועמדים *היריב* מריץ ברשימה שלו?</label>
+                            <input type="number" id="oppCandidatesOpt" value="12" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <button id="calculateMinVoters" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-150 ease-in-out shadow-md">
+                            חשב לי כמה מצביעים אני צריך
+                        </button>
+                    </div>
+                    <div id="minVotersResult" class="mt-6 p-4 bg-gray-50 rounded-lg hidden">
+                        <!-- התוצאה תוצג כאן -->
+                    </div>
+                </div>
+
+                <!-- כרטיס 2: סימולטור (מה יקרה אם?) -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold text-green-700 mb-6 border-b pb-3">
+                        <span class="inline-block mr-2">🔬</span>
+                        סימולטור: מה יקרה אם...
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="ourVotersSim" class="block text-sm font-medium text-gray-700 mb-1">כמה מצביעים יש *לנו*?</label>
+                            <input type="number" id="ourVotersSim" value="108" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                        </div>
+                         <div>
+                            <label for="ourCandidatesSim" class="block text-sm font-medium text-gray-700 mb-1">כמה מועמדים *שלנו* אנחנו מריצים?</label>
+                            <input type="number" id="ourCandidatesSim" value="16" min="12" max="19" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                        </div>
+                         <div>
+                            <label for="ourCandidateNamesSim" class="block text-sm font-medium text-gray-700 mb-1">רשימת המועמדים *שלנו* (אחד בכל שורה):</label>
+                            <textarea id="ourCandidateNamesSim" rows="8" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"></textarea>
+                        </div>
+                        <div>
+                            <label for="oppVotersSim" class="block text-sm font-medium text-gray-700 mb-1">כמה מצביעים יש *ליריב*?</label>
+                            <input type="number" id="oppVotersSim" value="80" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                        </div>
+                        <div>
+                            <label for="oppCandidatesSim" class="block text-sm font-medium text-gray-700 mb-1">כמה מועמדים *היריב* מריץ?</label>
+                            <input type="number" id="oppCandidatesSim" value="12" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                        </div>
+                        <button id="runSimulation" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-150 ease-in-out shadow-md">
+                            הרץ סימולציה
+                        </button>
+                    </div>
+                    <div id="simulationResult" class="mt-6 p-4 bg-gray-50 rounded-lg hidden">
+                        <!-- התוצאה תוצג כאן -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- אזור תוצאות מפורט: המלצת פיצול רשימות -->
+            <div id="listRecommendation" class="mt-8 bg-white p-6 rounded-lg shadow-lg hidden">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">
+                    <span class="inline-block mr-2">📋</span>
+                    המלצה אסטרטגית: פיצול לרשימות משנה (סלייטים)
+                </h3>
+                <p class="text-gray-600 mb-4">כדי להשיג פיזור קולות אופטימלי ולהכניס את כל המועמדים שלכם, עליכם לחלק את המצביעים שלכם לקבוצות ("רשימות משנה" או "סלייטים"). כל קבוצה מקבלת רשימת הצבעה שונה.</p>
+                <div id="listRecommendationContent" class="space-y-4">
+                    <!-- תוכן ההמלצה יוכנס כאן -->
+                </div>
+            </div>
+            
+            <!-- אזור תוצאות מפורט: כלל המועמדים -->
+            <div id="fullResults" class="mt-8 bg-white p-6 rounded-lg shadow-lg hidden">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">
+                    <span class="inline-block mr-2">📊</span>
+                    פירוט תוצאות מלא
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">דירוג</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">מועמד</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">סך קולות</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">סטטוס</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fullResultsBody" class="bg-white divide-y divide-gray-200">
+                            <!-- שורות התוצאות יוכנסו כאן -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- קבועים ---
+        let TOTAL_SEATS = 19;
+        let VOTES_PER_VOTER = 12;
+
+        // --- רכיבי DOM ---
+        // שלב 1: הגדרות
+        const setupSection = document.getElementById('setupSection');
+        const mainAppSection = document.getElementById('mainAppSection');
+        const totalSeatsInput = document.getElementById('totalSeatsInput');
+        const votesPerVoterDisplay = document.getElementById('votesPerVoterDisplay');
+        const startAppBtn = document.getElementById('startAppBtn');
+        
+        // שלב 2: אפליקציה
+        const totalSeatsDisplay = document.getElementById('totalSeatsDisplay');
+        const votesPerVoterDisplayBox = document.getElementById('votesPerVoterDisplayBox');
+        
+        const calculateMinVotersBtn = document.getElementById('calculateMinVoters');
+        const runSimulationBtn = document.getElementById('runSimulation');
+        
+        const minVotersResultEl = document.getElementById('minVotersResult');
+        const simulationResultEl = document.getElementById('simulationResult');
+        const listRecommendationEl = document.getElementById('listRecommendation');
+        const listRecommendationContentEl = document.getElementById('listRecommendationContent');
+        const fullResultsEl = document.getElementById('fullResults');
+        const fullResultsBodyEl = document.getElementById('fullResultsBody');
+        
+        // --- שדות קלט ---
+        const ourCandidatesToWinInput = document.getElementById('ourCandidatesToWin');
+        const ourCandidateNamesOptTextarea = document.getElementById('ourCandidateNamesOpt');
+        const ourCandidatesSimInput = document.getElementById('ourCandidatesSim');
+        const ourCandidateNamesSimTextarea = document.getElementById('ourCandidateNamesSim');
+
+        // --- אירועים ---
+        // שלב 1
+        totalSeatsInput.addEventListener('input', updateVotesPerVoter);
+        startAppBtn.addEventListener('click', startApplication);
+        
+        // שלב 2
+        calculateMinVotersBtn.addEventListener('click', handleCalculateMinVoters);
+        runSimulationBtn.addEventListener('click', handleRunSimulation);
+        
+        ourCandidatesToWinInput.addEventListener('input', () => syncInputs('numToText', 'Opt'));
+        ourCandidateNamesOptTextarea.addEventListener('input', () => syncInputs('textToNum', 'Opt'));
+        
+        ourCandidatesSimInput.addEventListener('input', () => syncInputs('numToText', 'Sim'));
+        ourCandidateNamesSimTextarea.addEventListener('input', () => syncInputs('textToNum', 'Sim'));
+        
+        // --- אתחול ---
+        function initializeSetupScreen() {
+            // אתחול ראשוני - קבע את מספר המועמדים ל-16 וצור שמות ברירת מחדל
+            updateVotesPerVoter();
+        }
+        
+        function updateVotesPerVoter() {
+            const seats = parseInt(totalSeatsInput.value) || 0;
+            const votes = Math.floor(seats * (2 / 3));
+            votesPerVoterDisplay.value = votes;
+        }
+        
+        function startApplication() {
+            // 1. קבע את המשתנים הגלובליים
+            TOTAL_SEATS = parseInt(totalSeatsInput.value);
+            VOTES_PER_VOTER = parseInt(votesPerVoterDisplay.value);
+            
+            if (isNaN(TOTAL_SEATS) || isNaN(VOTES_PER_VOTER) || TOTAL_SEATS < 3 || VOTES_PER_VOTER < 1) {
+                alert("ערכים לא חוקיים. אנא הזן מספר חוקי של מקומות.");
+                return;
+            }
+            
+            // 2. עדכן את התצוגה של נתוני היסוד
+            totalSeatsDisplay.textContent = TOTAL_SEATS;
+            votesPerVoterDisplayBox.textContent = VOTES_PER_VOTER;
+            
+            // 3. אתחל את שדות האפליקציה
+            initializeAppInputs();
+            
+            // 4. החלף בין המסכים
+            setupSection.classList.add('hidden');
+            mainAppSection.classList.remove('hidden');
+        }
+        
+        /**
+         * מאתחל את ערכי ברירת המחדל של האפליקציה הראשית
+         */
+        function initializeAppInputs() {
+            // עדכן את המגבלות והערכים של שדות בחירת המועמדים
+            const minCandidates = VOTES_PER_VOTER;
+            const maxCandidates = TOTAL_SEATS;
+            const defaultCandidates = Math.min(Math.max(16, minCandidates), maxCandidates); // נסה 16, אבל ודא שהוא בתחום
+
+            ourCandidatesToWinInput.min = minCandidates;
+            ourCandidatesToWinInput.max = maxCandidates;
+            ourCandidatesToWinInput.value = defaultCandidates;
+            
+            ourCandidatesSimInput.min = minCandidates;
+            ourCandidatesSimInput.max = maxCandidates;
+            ourCandidatesSimInput.value = defaultCandidates;
+            
+            // עדכן את שדות השמות
+            syncInputs('numToText', 'Opt');
+            syncInputs('numToText', 'Sim');
+        }
+        
+        /**
+         * מסנכרן בין שדה מספר המועמדים לתיבת הטקסט של השמות
+         */
+        function syncInputs(direction, type) {
+            const numInput = (type === 'Opt') ? ourCandidatesToWinInput : ourCandidatesSimInput;
+            const textarea = (type === 'Opt') ? ourCandidateNamesOptTextarea : ourCandidateNamesSimTextarea;
+            
+            const minCandidates = VOTES_PER_VOTER; // קריטי: השתמש במשתנה הגלובלי
+            const maxCandidates = TOTAL_SEATS; // קריטי: השתמש במשתנה הגלובלי
+
+            if (direction === 'numToText') {
+                let count = parseInt(numInput.value);
+                
+                // ולידציה למספר המועמדים
+                if (isNaN(count) || count < minCandidates) {
+                    count = minCandidates;
+                    numInput.value = minCandidates;
+                } else if (count > maxCandidates) {
+                    count = maxCandidates;
+                    numInput.value = maxCandidates;
+                }
+                
+                const existingNames = textarea.value.split('\n').filter(Boolean);
+                const newNames = [];
+                
+                for (let i = 0; i < count; i++) {
+                    newNames.push(existingNames[i] || `מועמד ${i + 1}`);
+                }
+                textarea.value = newNames.join('\n');
+                
+            } else if (direction === 'textToNum') {
+                const names = textarea.value.split('\n').filter(Boolean);
+                let count = names.length;
+                
+                 if (count < minCandidates) {
+                    if (count === 0) numInput.value = minCandidates; 
+                    else numInput.value = count; 
+
+                } else if (count > maxCandidates) {
+                    textarea.value = names.slice(0, maxCandidates).join('\n');
+                    numInput.value = maxCandidates;
+                } else {
+                    numInput.value = count;
+                }
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', initializeSetupScreen);
+
+        // --- פונקציות ליבה ---
+
+        /**
+         * פונקציית הליבה: מחשבת את פיצול הקולות האופטימלי
+         */
+        function calculateOptimalSplit(K, V, N, names) {
+            // K = our candidates, V = votes per voter, N = our voters
+            if (K <= 0 || V <= 0 || N <= 0) {
+                 return { lists: [], candidateVotes: [] };
+            }
+            
+            // אם K (מועמדים) קטן או שווה ל-V (הצבעות), אין צורך בפיצול.
+            if (K <= V) {
+                const candidateVotes = Array(K).fill(0).map((_, i) => ({
+                    id: (names && names[i]) ? names[i] : `שלנו-${i + 1}`,
+                    votes: N,
+                    type: 'our'
+                }));
+                const lists = [{
+                    voters: N,
+                    omits: [],
+                    includes: Array.from({ length: K }, (_, i) => i + 1)
+                }];
+                return { lists, candidateVotes };
+            }
+
+            const omitCount = K - V; // כמה מועמדים *לא* נסמן בכל רשימה
+            const numLists = Math.ceil(K / omitCount); // מספר הרשימות (סלייטים) הנדרש
+
+            const lists = [];
+            const candidateVotes = Array(K).fill(0).map((_, i) => ({
+                id: (names && names[i]) ? names[i] : `שלנו-${i + 1}`,
+                votes: 0,
+                type: 'our'
+            }));
+
+            // 1. נחלק את המצביעים שלנו בין הרשימות בצורה שווה ככל הניתן
+            const baseVotersPerList = Math.floor(N / numLists);
+            let remainderVoters = N % numLists;
+            
+            const voterDistribution = [];
+            for (let i = 0; i < numLists; i++) {
+                let votersForThisList = baseVotersPerList + (i < remainderVoters ? 1 : 0);
+                voterDistribution.push(votersForThisList);
+            }
+
+            // 2. נייצר את הרשימות (הסלייטים)
+            let candidateOmitIndex = 0;
+            for (let i = 0; i < numLists; i++) {
+                const voters = voterDistribution[i];
+                const omits = []; // מועמדים להשמטה (אינדקסים 0-based)
+                const includes = []; // מועמדים להכללה (אינדקסים 1-based)
+
+                for (let j = 0; j < omitCount; j++) {
+                    if (candidateOmitIndex < K) {
+                        omits.push(candidateOmitIndex);
+                        candidateOmitIndex++;
+                    }
+                }
+                
+                // 3. נחשב קולות: כל מועמד מקבל קולות מכל רשימה *שלא* משמיטה אותו
+                for (let c = 0; c < K; c++) {
+                    if (!omits.includes(c)) {
+                        candidateVotes[c].votes += voters;
+                        includes.push(c + 1); // הוסף את המספר הסידורי (1-based)
+                    }
+                }
+                
+                lists.push({
+                    voters: voters,
+                    omits: omits.map(idx => idx + 1), // המר לאינדקס 1 (1-based)
+                    includes: includes
+                });
+            }
+
+            return { lists, candidateVotes };
+        }
+
+        /**
+         * מריץ את הסימולציה המלאה
+         */
+        function runFullSimulation(ourVoters, ourCandidates, oppVoters, oppCandidates, ourNames) {
+            // 1. חישוב קולות היריב
+            const oppSplit = calculateOptimalSplit(oppCandidates, VOTES_PER_VOTER, oppVoters); // משתמש ב-VOTES_PER_VOTER הגלובלי
+            const oppResults = oppSplit.candidateVotes.map(c => ({
+                ...c,
+                id: `יריב-${c.id.split('-')[1]}`,
+                type: 'opp'
+            }));
+
+            // 2. חישוב קולות שלנו (עם הפיצול האופטימלי)
+            const ourSplit = calculateOptimalSplit(ourCandidates, VOTES_PER_VOTER, ourVoters, ourNames); // משתמש ב-VOTES_PER_VOTER הגלובלי
+            const ourResults = ourSplit.candidateVotes;
+
+            // 3. איחוד ודירוג
+            const allCandidates = [...ourResults, ...oppResults];
+            allCandidates.sort((a, b) => b.votes - a.votes);
+
+            // 4. חלוקת המקומות
+            const winners = [];
+            const losers = [];
+            
+            allCandidates.forEach((candidate, index) => {
+                const rank = index + 1;
+                const status = rank <= TOTAL_SEATS ? 'נבחר' : 'לא נבחר'; // משתמש ב-TOTAL_SEATS הגלובלי
+                const result = { ...candidate, rank, status };
+                
+                if (status === 'נבחר') {
+                    winners.push(result);
+                } else {
+                    losers.push(result);
+                }
+            });
+
+            const ourWins = winners.filter(c => c.type === 'our').length;
+            const oppWins = winners.filter(c => c.type === 'opp').length;
+            
+            const threshold = winners.length > 0 ? winners[Math.min(winners.length - 1, TOTAL_SEATS - 1)].votes : 0;
+            const minOurVotes = ourResults.length > 0 ? Math.min(...ourResults.map(c => c.votes)) : 0;
+            const maxOurVotes = ourResults.length > 0 ? Math.max(...ourResults.map(c => c.votes)) : 0;
+            const minOppVotes = oppResults.length > 0 ? Math.min(...oppResults.map(c => c.votes)) : 0;
+            const maxOppVotes = oppResults.length > 0 ? Math.max(...oppResults.map(c => c.votes)) : 0;
+
+            return {
+                ourWins,
+                oppWins,
+                threshold,
+                minOurVotes,
+                maxOurVotes,
+                minOppVotes,
+                maxOppVotes,
+                listRecommendation: { lists: ourSplit.lists, names: ourNames },
+                fullResults: [...winners, ...losers]
+            };
+        }
+
+
+        // --- מטפלי אירועים (Handlers) ---
+
+        /**
+         * מטפל בלחיצה על "חשב לי כמה מצביעים אני צריך" (אופטימיזציה)
+         */
+        function handleCalculateMinVoters() {
+            // 1. איסוף קלט
+            const ourNames = ourCandidateNamesOptTextarea.value.split('\n').filter(Boolean);
+            const ourCandidatesToWin = ourNames.length;
+            
+            // ולידציה לפני ריצה
+            if (ourCandidatesToWin < VOTES_PER_VOTER || ourCandidatesToWin > TOTAL_SEATS) {
+                alert(`מספר המועמדים חייב להיות בין ${VOTES_PER_VOTER} ל-${TOTAL_SEATS}. אנא תקן את הרשימה.`);
+                return;
+            }
+            ourCandidatesToWinInput.value = ourCandidatesToWin; // ודא סנכרון אחרון
+            
+            const oppVoters = parseInt(document.getElementById('oppVotersOpt').value);
+            const oppCandidates = parseInt(document.getElementById('oppCandidatesOpt').value);
+
+            if (ourCandidatesToWin === 0) {
+                 alert("אנא הזן לפחות שם מועמד אחד.");
+                return;
+            }
+            if (isNaN(oppVoters) || isNaN(oppCandidates)) {
+                alert("אנא מלא את כל השדות בערכים מספריים.");
+                return;
+            }
+            
+            if (ourCandidatesToWin > TOTAL_SEATS) {
+                alert(`לא ניתן להכניס ${ourCandidatesToWin} מועמדים, יש רק ${TOTAL_SEATS} מקומות.`);
+                return;
+            }
+
+            // 2. חישוב קולות היריב
+            const oppSplit = calculateOptimalSplit(oppCandidates, VOTES_PER_VOTER, oppVoters);
+            const oppMinVotes = oppSplit.candidateVotes.length > 0 ? Math.min(...oppSplit.candidateVotes.map(c => c.votes)) : 0;
+            
+            const targetVotes = oppMinVotes + 1;
+
+            // 3. חישוב תיאורטי
+            let totalVotesNeeded = targetVotes * ourCandidatesToWin;
+            let minVoters = Math.ceil(totalVotesNeeded / VOTES_PER_VOTER);
+
+            // 4. ולידציה
+            let simulationResult;
+            let actualMinOurVotes;
+            
+            while (true) {
+                simulationResult = runFullSimulation(minVoters, ourCandidatesToWin, oppVoters, oppCandidates, ourNames);
+                actualMinOurVotes = simulationResult.minOurVotes;
+                
+                if (actualMinOurVotes > oppMinVotes && simulationResult.ourWins === ourCandidatesToWin) {
+                     break; // הצלחה מלאה
+                }
+                
+                minVoters++;
+                
+                if (minVoters > (oppVoters * 20) + 50) {
+                    minVotersResultEl.innerHTML = `<p class="text-red-600 font-bold">החישוב נכשל. ייתכן שהנתונים אינם מאפשרים ניצחון (למשל, היריב חזק מדי).</p>`;
+                    minVotersResultEl.classList.remove('hidden');
+                    return;
+                }
+            }
+
+            // 5. הצגת תוצאות
+            minVotersResultEl.innerHTML = `
+                <p class="text-lg mb-2">
+                    כדי להבטיח הכנסה של <strong>${ourCandidatesToWin} מועמדים</strong> (מול יריב עם ${oppVoters} קולות):
+                </p>
+                <p class="text-4xl font-bold text-blue-700 text-center my-4">${minVoters}</p>
+                <p class="text-lg text-center mb-4">מצביעים (לפחות)</p>
+                <hr class="my-3">
+                <h4 class="font-bold">ניתוח (במצב זה):</h4>
+                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1 mt-2">
+                    <li>כל מועמד של היריב יקבל כ-<strong>${oppMinVotes}</strong> קולות.</li>
+                    <li>היעד שלנו הוא <strong>${targetVotes}</strong> קולות לכל מועמד שלנו.</li>
+                    <li>עם <strong>${minVoters}</strong> מצביעים ופיצול נכון, כל מועמד שלכם יקבל בין <strong>${simulationResult.minOurVotes}</strong> ל-<strong>${simulationResult.maxOurVotes}</strong> קולות.</li>
+                    <li><strong>תוצאה סופית: <span class="text-blue-700 font-bold">${simulationResult.ourWins} מקומות לנו</span> מול <span class="text-red-700 font-bold">${simulationResult.oppWins} מקומות ליריב</span>.</strong></li>
+                    <li>סף הכניסה (הקול של המקום ה-${TOTAL_SEATS}) יהיה <strong>${simulationResult.threshold}</strong> קולות.</li>
+                </ul>
+            `;
+            minVotersResultEl.classList.remove('hidden');
+            
+            displayListRecommendation(simulationResult.listRecommendation.lists, minVoters, simulationResult.listRecommendation.names);
+            fullResultsEl.classList.add('hidden');
+        }
+        
+        /**
+         * מטפל בלחיצה על "הרץ סימולציה"
+         */
+        function handleRunSimulation() {
+            // 1. איסוף קלט
+            const ourNames = ourCandidateNamesSimTextarea.value.split('\n').filter(Boolean);
+            const ourCandidates = ourNames.length;
+            
+            // ולידציה לפני ריצה
+             if (ourCandidates < VOTES_PER_VOTER || ourCandidates > TOTAL_SEATS) {
+                alert(`מספר המועמדים חייב להיות בין ${VOTES_PER_VOTER} ל-${TOTAL_SEATS}. אנא תקן את הרשימה.`);
+                return;
+            }
+            ourCandidatesSimInput.value = ourCandidates; // ודא סנכרון אחרון
+            
+            const ourVoters = parseInt(document.getElementById('ourVotersSim').value);
+            const oppVoters = parseInt(document.getElementById('oppVotersSim').value);
+            const oppCandidates = parseInt(document.getElementById('oppCandidatesSim').value);
+            
+            if (ourCandidates === 0) {
+                 alert("אנא הזן לפחות שם מועמד אחד.");
+                return;
+            }
+            if (isNaN(ourVoters) || isNaN(oppVoters) || isNaN(oppCandidates)) {
+                alert("אנא מלא את כל השדות בערכים מספריים.");
+                return;
+            }
+
+            // 2. הרצת סימולציה
+            const result = runFullSimulation(ourVoters, ourCandidates, oppVoters, oppCandidates, ourNames);
+
+            // 3. הצגת תוצאות
+            simulationResultEl.innerHTML = `
+                <p class="text-lg mb-2">
+                    בהינתן <strong>${ourVoters}</strong> מצביעים שלנו ו-<strong>${oppVoters}</strong> ליריב:
+                </p>
+                <div class="text-center my-4">
+                    <span class="text-4xl font-bold text-green-700">${result.ourWins}</span>
+                    <span class="text-3xl text-gray-600 mx-2">/</span>
+                    <span class="text-4xl font-bold text-red-700">${result.oppWins}</span>
+                    <br>
+                    <span class="text-sm text-green-700 font-medium">מקומות לנו</span>
+                    <span class="text-sm text-gray-500 mx-4">מתוך ${TOTAL_SEATS}</span>
+                    <span class="text-sm text-red-700 font-medium">מקומות ליריב</span>
+                </div>
+                <hr class="my-3">
+                <h4 class="font-bold">ניתוח (במצב זה):</h4>
+                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1 mt-2">
+                    <li>המועמדים שלנו יקבלו בין <strong>${result.minOurVotes}</strong> ל-<strong>${result.maxOurVotes}</strong> קולות (עם פיצול אופטימלי).</li>
+                    <li>המועמדים של היריב יקבלו בין <strong>${result.minOppVotes}</strong> ל-<strong>${result.maxOppVotes}</strong> קולות.</li>
+                    <li>סף הכניסה (הקול של המקום ה-${TOTAL_SEATS}) הוא <strong>${result.threshold}</strong> קולות.</li>
+                </ul>
+            `;
+            simulationResultEl.classList.remove('hidden');
+
+            // 4. הצגת המלצת פיצול ותוצאות מלאות
+            displayListRecommendation(result.listRecommendation.lists, ourVoters, result.listRecommendation.names);
+            displayFullResults(result.fullResults);
+        }
+        
+        
+        // --- פונקציות תצוגה ---
+
+        /**
+         * מציג את ההמלצה לפיצול רשימות
+         */
+        function displayListRecommendation(lists, totalVoters, names) {
+            if (!lists || lists.length === 0 || (lists.length === 1 && lists[0].omits.length === 0)) {
+                listRecommendationContentEl.innerHTML = '<p>אין צורך בפיצול רשימות מיוחד. כל המצביעים יכולים להצביע לאותה רשימה של כל המועמדים.</p>';
+                listRecommendationEl.classList.remove('hidden');
+                return;
+            }
+
+            let html = `<p class="text-sm text-gray-600 mb-4">יש לחלק את <strong>${totalVoters}</strong> המצביעים שלכם ל-<strong>${lists.length}</strong> קבוצות:</p>`;
+            
+            html += '<div class="space-y-3">';
+            
+            lists.forEach((list, index) => {
+                html += `<div class="p-3 bg-gray-50 border border-gray-200 rounded-md">`;
+                html += `<h4 class="font-bold text-gray-800">קבוצה ${index + 1}: (${list.voters} מצביעים)</h4>`;
+                
+                if (list.omits.length > 0) {
+                    const omitsNames = list.omits.map(idx => names[idx - 1] || `מועמד ${idx}`).join(', ');
+                    const includesNames = list.includes.map(idx => names[idx - 1] || `מועמד ${idx}`).join(', ');
+                    
+                    html += `<p class="text-sm text-red-700"><strong>להשמיט:</strong> <span class="font-medium">${omitsNames}</span></p>`;
+                    html += `<p class="text-sm text-green-700"><strong>להצביע:</strong> <span class="font-medium">${includesNames}</span></p>`;
+                } else {
+                     const includesNames = list.includes.map(idx => names[idx - 1] || `מועמד ${idx}`).join(', ');
+                     html += `<p class="text-sm text-green-700"><strong>להצביע:</strong> <span class="font-medium">${includesNames}</span></p>`;
+                }
+                
+                html += `</div>`;
+            });
+            
+            html += '</div>';
+            
+            listRecommendationContentEl.innerHTML = html;
+            listRecommendationEl.classList.remove('hidden');
+        }
+
+        /**
+         * מציג את טבלת התוצאות המלאה
+         */
+        function displayFullResults(fullResults) {
+            let html = '';
+            
+            fullResults.forEach(candidate => {
+                let statusClass = candidate.status === 'נבחר' ? 'text-green-600 font-bold' : 'text-red-600';
+                let rowClass = candidate.status === 'נבחר' ? 'bg-green-50' : '';
+                if (candidate.rank > TOTAL_SEATS) {
+                    rowClass = ''; // אין צבע מיוחד למי שמחוץ ל-19
+                }
+                
+                let candidateClass = candidate.type === 'our' ? 'text-blue-800' : 'text-gray-700';
+                
+                html += `
+                    <tr class="${rowClass}">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${candidate.rank}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm ${candidateClass} font-medium">${candidate.id}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">${candidate.votes}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm ${statusClass}">${candidate.status}</td>
+                    </tr>
+                `;
+            });
+            
+            fullResultsBodyEl.innerHTML = html;
+            fullResultsEl.classList.remove('hidden');
+        }
+
+    </script>
+</body>
+</html>
+
