@@ -6,14 +6,14 @@
     <title>סימולטור אסטרטגי לבחירות</title>
     <!-- טעינת Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- טעינת גופן Inter -->
+    <!-- טעינת גופן Rubik (משפחת גופנים מומלצת לעברית) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* שימוש בגופן Rubik עבור עברית ו-Inter כברירת מחדל */
+        /* שימוש בגופן Rubik */
         body {
-            font-family: 'Rubik', 'Inter', sans-serif;
+            font-family: 'Rubik', sans-serif;
         }
         /* התאמות קטנות ל-RTL */
         label {
@@ -22,6 +22,21 @@
         }
         textarea {
             resize: vertical;
+        }
+        /* סגנון לחלון ההתראה המותאם אישית */
+        #alertModalOverlay {
+            transition: opacity 0.2s ease-in-out;
+        }
+        #alertModalBox {
+            transition: all 0.2s ease-in-out;
+            transform: scale(0.95);
+        }
+        #alertModalOverlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #alertModalOverlay:not(.hidden) #alertModalBox {
+            transform: scale(1);
         }
     </style>
 </head>
@@ -78,7 +93,8 @@
                     <div class="space-y-4">
                         <div>
                             <label for="ourCandidatesToWin" class="block text-sm font-medium text-gray-700 mb-1">כמה מועמדים *שלנו* אנחנו רוצים להכניס?</label>
-                            <input type="number" id="ourCandidatesToWin" value="16" min="12" max="19" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <!-- שים לב: min="1" מאפשר הקלדה. התיקוף האמיתי יקרה בלחיצה -->
+                            <input type="number" id="ourCandidatesToWin" value="16" min="1" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                         </div>
                          <div>
                             <label for="ourCandidateNamesOpt" class="block text-sm font-medium text-gray-700 mb-1">רשימת המועמדים *שלנו* (אחד בכל שורה):</label>
@@ -86,11 +102,11 @@
                         </div>
                         <div>
                             <label for="oppVotersOpt" class="block text-sm font-medium text-gray-700 mb-1">כמה מצביעים יש *ליריב*?</label>
-                            <input type="number" id="oppVotersOpt" value="80" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <input type="number" id="oppVotersOpt" value="80" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         <div>
                             <label for="oppCandidatesOpt" class="block text-sm font-medium text-gray-700 mb-1">כמה מועמדים *היריב* מריץ ברשימה שלו?</label>
-                            <input type="number" id="oppCandidatesOpt" value="12" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <input type="number" id="oppCandidatesOpt" value="12" min="1" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                         </div>
                         <button id="calculateMinVoters" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-150 ease-in-out shadow-md">
                             חשב לי כמה מצביעים אני צריך
@@ -110,11 +126,12 @@
                     <div class="space-y-4">
                         <div>
                             <label for="ourVotersSim" class="block text-sm font-medium text-gray-700 mb-1">כמה מצביעים יש *לנו*?</label>
-                            <input type="number" id="ourVotersSim" value="108" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                            <input type="number" id="ourVotersSim" value="108" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
                         </div>
                          <div>
                             <label for="ourCandidatesSim" class="block text-sm font-medium text-gray-700 mb-1">כמה מועמדים *שלנו* אנחנו מריצים?</label>
-                            <input type="number" id="ourCandidatesSim" value="16" min="12" max="19" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                             <!-- שים לב: min="1" מאפשר הקלדה. התיקוף האמיתי יקרה בלחיצה -->
+                            <input type="number" id="ourCandidatesSim" value="16" min="1" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
                         </div>
                          <div>
                             <label for="ourCandidateNamesSim" class="block text-sm font-medium text-gray-700 mb-1">רשימת המועמדים *שלנו* (אחד בכל שורה):</label>
@@ -122,11 +139,11 @@
                         </div>
                         <div>
                             <label for="oppVotersSim" class="block text-sm font-medium text-gray-700 mb-1">כמה מצביעים יש *ליריב*?</label>
-                            <input type="number" id="oppVotersSim" value="80" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                            <input type="number" id="oppVotersSim" value="80" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
                         </div>
                         <div>
                             <label for="oppCandidatesSim" class="block text-sm font-medium text-gray-700 mb-1">כמה מועמדים *היריב* מריץ?</label>
-                            <input type="number" id="oppCandidatesSim" value="12" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
+                            <input type="number" id="oppCandidatesSim" value="12" min="1" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500">
                         </div>
                         <button id="runSimulation" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-150 ease-in-out shadow-md">
                             הרץ סימולציה
@@ -176,6 +193,31 @@
 
     </div>
 
+    <!-- חלון התראה (Modal) מותאם אישית -->
+    <div id="alertModalOverlay" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 hidden">
+        <div id="alertModalBox" class="bg-white rounded-lg shadow-2xl max-w-sm w-full">
+            <div class="p-6">
+                <div class="text-center">
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                        <!-- אייקון אזהרה -->
+                        <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <h3 class="mt-4 text-lg font-medium text-gray-900">שגיאת קלט</h3>
+                    <div class="mt-2 text-sm text-gray-600">
+                        <p id="alertModalMessage">זוהי הודעת שגיאה.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse rounded-b-lg">
+                <button id="alertModalCloseBtn" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                    הבנתי
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- קבועים ---
         let TOTAL_SEATS = 19;
@@ -209,6 +251,11 @@
         const ourCandidatesSimInput = document.getElementById('ourCandidatesSim');
         const ourCandidateNamesSimTextarea = document.getElementById('ourCandidateNamesSim');
 
+        // --- רכיבי Modal ---
+        const alertModalOverlay = document.getElementById('alertModalOverlay');
+        const alertModalMessage = document.getElementById('alertModalMessage');
+        const alertModalCloseBtn = document.getElementById('alertModalCloseBtn');
+
         // --- אירועים ---
         // שלב 1
         totalSeatsInput.addEventListener('input', updateVotesPerVoter);
@@ -218,15 +265,32 @@
         calculateMinVotersBtn.addEventListener('click', handleCalculateMinVoters);
         runSimulationBtn.addEventListener('click', handleRunSimulation);
         
-        ourCandidatesToWinInput.addEventListener('input', () => syncInputs('numToText', 'Opt'));
+        // --- שינוי: אירוע 'change' במקום 'input' לשדות המספרים ---
+        // זה מאפשר למשתמש לסיים להקליד לפני שהסנכרון מתבצע
+        ourCandidatesToWinInput.addEventListener('change', () => syncInputs('numToText', 'Opt'));
         ourCandidateNamesOptTextarea.addEventListener('input', () => syncInputs('textToNum', 'Opt'));
         
-        ourCandidatesSimInput.addEventListener('input', () => syncInputs('numToText', 'Sim'));
+        ourCandidatesSimInput.addEventListener('change', () => syncInputs('numToText', 'Sim'));
         ourCandidateNamesSimTextarea.addEventListener('input', () => syncInputs('textToNum', 'Sim'));
         
+        // Modal
+        alertModalCloseBtn.addEventListener('click', () => alertModalOverlay.classList.add('hidden'));
+        alertModalOverlay.addEventListener('click', (e) => {
+            if (e.target === alertModalOverlay) {
+                alertModalOverlay.classList.add('hidden');
+            }
+        });
+
+        // --- פונקציית התראה מותאמת ---
+        function showAlert(message) {
+            alertModalMessage.textContent = message;
+            alertModalOverlay.classList.remove('hidden');
+            // התמקדות בכפתור הסגירה לנגישות
+            alertModalCloseBtn.focus();
+        }
+
         // --- אתחול ---
         function initializeSetupScreen() {
-            // אתחול ראשוני - קבע את מספר המועמדים ל-16 וצור שמות ברירת מחדל
             updateVotesPerVoter();
         }
         
@@ -242,7 +306,8 @@
             VOTES_PER_VOTER = parseInt(votesPerVoterDisplay.value);
             
             if (isNaN(TOTAL_SEATS) || isNaN(VOTES_PER_VOTER) || TOTAL_SEATS < 3 || VOTES_PER_VOTER < 1) {
-                alert("ערכים לא חוקיים. אנא הזן מספר חוקי של מקומות.");
+                // שימוש ב-showAlert החדש
+                showAlert("ערכים לא חוקיים. אנא הזן מספר חוקי של מקומות (לפחות 3).");
                 return;
             }
             
@@ -262,16 +327,17 @@
          * מאתחל את ערכי ברירת המחדל של האפליקציה הראשית
          */
         function initializeAppInputs() {
-            // עדכן את המגבלות והערכים של שדות בחירת המועמדים
             const minCandidates = VOTES_PER_VOTER;
             const maxCandidates = TOTAL_SEATS;
-            const defaultCandidates = Math.min(Math.max(16, minCandidates), maxCandidates); // נסה 16, אבל ודא שהוא בתחום
+            const defaultCandidates = Math.min(Math.max(16, minCandidates), maxCandidates);
 
-            ourCandidatesToWinInput.min = minCandidates;
+            // --- שינוי: min="1" מאפשר הקלדה ---
+            // התיקוף האמיתי (מול minCandidates) יתבצע בלחיצת הכפתור
+            ourCandidatesToWinInput.min = 1; 
             ourCandidatesToWinInput.max = maxCandidates;
             ourCandidatesToWinInput.value = defaultCandidates;
             
-            ourCandidatesSimInput.min = minCandidates;
+            ourCandidatesSimInput.min = 1;
             ourCandidatesSimInput.max = maxCandidates;
             ourCandidatesSimInput.value = defaultCandidates;
             
@@ -282,24 +348,19 @@
         
         /**
          * מסנכרן בין שדה מספר המועמדים לתיבת הטקסט של השמות
+         * --- שינוי: הוסרה לוגיקת התיקוף מפה ---
+         * הפונקציה הזו *רק* מסנכרנת. התיקוף קורה בכפתורים.
          */
         function syncInputs(direction, type) {
             const numInput = (type === 'Opt') ? ourCandidatesToWinInput : ourCandidatesSimInput;
             const textarea = (type === 'Opt') ? ourCandidateNamesOptTextarea : ourCandidateNamesSimTextarea;
             
-            const minCandidates = VOTES_PER_VOTER; // קריטי: השתמש במשתנה הגלובלי
-            const maxCandidates = TOTAL_SEATS; // קריטי: השתמש במשתנה הגלובלי
-
             if (direction === 'numToText') {
                 let count = parseInt(numInput.value);
                 
-                // ולידציה למספר המועמדים
-                if (isNaN(count) || count < minCandidates) {
-                    count = minCandidates;
-                    numInput.value = minCandidates;
-                } else if (count > maxCandidates) {
-                    count = maxCandidates;
-                    numInput.value = maxCandidates;
+                // ולידציה בסיסית בלבד (למנוע מספרים שליליים או שגויים)
+                if (isNaN(count) || count < 0) {
+                    count = 0;
                 }
                 
                 const existingNames = textarea.value.split('\n').filter(Boolean);
@@ -313,17 +374,7 @@
             } else if (direction === 'textToNum') {
                 const names = textarea.value.split('\n').filter(Boolean);
                 let count = names.length;
-                
-                 if (count < minCandidates) {
-                    if (count === 0) numInput.value = minCandidates; 
-                    else numInput.value = count; 
-
-                } else if (count > maxCandidates) {
-                    textarea.value = names.slice(0, maxCandidates).join('\n');
-                    numInput.value = maxCandidates;
-                } else {
-                    numInput.value = count;
-                }
+                numInput.value = count;
             }
         }
         
@@ -343,7 +394,7 @@
             // אם K (מועמדים) קטן או שווה ל-V (הצבעות), אין צורך בפיצול.
             if (K <= V) {
                 const candidateVotes = Array(K).fill(0).map((_, i) => ({
-                    id: (names && names[i]) ? names[i] : `שלנו-${i + 1}`,
+                    id: (names && names[i]) ? names[i] : `מועמד ${i + 1}`,
                     votes: N,
                     type: 'our'
                 }));
@@ -360,7 +411,7 @@
 
             const lists = [];
             const candidateVotes = Array(K).fill(0).map((_, i) => ({
-                id: (names && names[i]) ? names[i] : `שלנו-${i + 1}`,
+                id: (names && names[i]) ? names[i] : `מועמד ${i + 1}`,
                 votes: 0,
                 type: 'our'
             }));
@@ -412,15 +463,15 @@
          */
         function runFullSimulation(ourVoters, ourCandidates, oppVoters, oppCandidates, ourNames) {
             // 1. חישוב קולות היריב
-            const oppSplit = calculateOptimalSplit(oppCandidates, VOTES_PER_VOTER, oppVoters); // משתמש ב-VOTES_PER_VOTER הגלובלי
-            const oppResults = oppSplit.candidateVotes.map(c => ({
+            const oppSplit = calculateOptimalSplit(oppCandidates, VOTES_PER_VOTER, oppVoters);
+            const oppResults = oppSplit.candidateVotes.map((c, i) => ({
                 ...c,
-                id: `יריב-${c.id.split('-')[1]}`,
+                id: `יריב-${i + 1}`,
                 type: 'opp'
             }));
 
             // 2. חישוב קולות שלנו (עם הפיצול האופטימלי)
-            const ourSplit = calculateOptimalSplit(ourCandidates, VOTES_PER_VOTER, ourVoters, ourNames); // משתמש ב-VOTES_PER_VOTER הגלובלי
+            const ourSplit = calculateOptimalSplit(ourCandidates, VOTES_PER_VOTER, ourVoters, ourNames); 
             const ourResults = ourSplit.candidateVotes;
 
             // 3. איחוד ודירוג
@@ -433,7 +484,7 @@
             
             allCandidates.forEach((candidate, index) => {
                 const rank = index + 1;
-                const status = rank <= TOTAL_SEATS ? 'נבחר' : 'לא נבחר'; // משתמש ב-TOTAL_SEATS הגלובלי
+                const status = rank <= TOTAL_SEATS ? 'נבחר' : 'לא נבחר'; 
                 const result = { ...candidate, rank, status };
                 
                 if (status === 'נבחר') {
@@ -473,33 +524,25 @@
          */
         function handleCalculateMinVoters() {
             // 1. איסוף קלט
+            // --- שינוי: מקור האמת הוא ה-textarea ---
             const ourNames = ourCandidateNamesOptTextarea.value.split('\n').filter(Boolean);
             const ourCandidatesToWin = ourNames.length;
+            ourCandidatesToWinInput.value = ourCandidatesToWin; // סנכרן את שדה המספר חזרה
             
-            // ולידציה לפני ריצה
+            // --- שינוי: תיקוף קלט בלחיצה ---
             if (ourCandidatesToWin < VOTES_PER_VOTER || ourCandidatesToWin > TOTAL_SEATS) {
-                alert(`מספר המועמדים חייב להיות בין ${VOTES_PER_VOTER} ל-${TOTAL_SEATS}. אנא תקן את הרשימה.`);
+                showAlert(`מספר המועמדים חייב להיות בין ${VOTES_PER_VOTER} (מספר הבחירות למצביע) ל-${TOTAL_SEATS} (סה"כ מקומות). אנא תקן את הרשימה.`);
                 return;
             }
-            ourCandidatesToWinInput.value = ourCandidatesToWin; // ודא סנכרון אחרון
             
             const oppVoters = parseInt(document.getElementById('oppVotersOpt').value);
             const oppCandidates = parseInt(document.getElementById('oppCandidatesOpt').value);
 
-            if (ourCandidatesToWin === 0) {
-                 alert("אנא הזן לפחות שם מועמד אחד.");
-                return;
-            }
-            if (isNaN(oppVoters) || isNaN(oppCandidates)) {
-                alert("אנא מלא את כל השדות בערכים מספריים.");
+            if (isNaN(oppVoters) || isNaN(oppCandidates) || oppVoters < 0 || oppCandidates < 1) {
+                showAlert("אנא מלא את שדות היריב בערכים מספריים חוקיים (לפחות 0 מצביעים ו-1 מועמדים).");
                 return;
             }
             
-            if (ourCandidatesToWin > TOTAL_SEATS) {
-                alert(`לא ניתן להכניס ${ourCandidatesToWin} מועמדים, יש רק ${TOTAL_SEATS} מקומות.`);
-                return;
-            }
-
             // 2. חישוב קולות היריב
             const oppSplit = calculateOptimalSplit(oppCandidates, VOTES_PER_VOTER, oppVoters);
             const oppMinVotes = oppSplit.candidateVotes.length > 0 ? Math.min(...oppSplit.candidateVotes.map(c => c.votes)) : 0;
@@ -524,8 +567,8 @@
                 
                 minVoters++;
                 
-                if (minVoters > (oppVoters * 20) + 50) {
-                    minVotersResultEl.innerHTML = `<p class="text-red-600 font-bold">החישוב נכשל. ייתכן שהנתונים אינם מאפשרים ניצחון (למשל, היריב חזק מדי).</p>`;
+                if (minVoters > (oppVoters * 20) + 100) { // הוספתי מרווח ביטחון
+                    minVotersResultEl.innerHTML = `<p class="text-red-600 font-bold">החישוב נכשל. ייתכן שהנתונים אינם מאפשרים ניצחון (למשל, היריב חזק מדי או דורש מספר אסטרונומי של קולות).</p>`;
                     minVotersResultEl.classList.remove('hidden');
                     return;
                 }
@@ -551,7 +594,7 @@
             minVotersResultEl.classList.remove('hidden');
             
             displayListRecommendation(simulationResult.listRecommendation.lists, minVoters, simulationResult.listRecommendation.names);
-            fullResultsEl.classList.add('hidden');
+            fullResultsEl.classList.add('hidden'); // הסתר תוצאות מלאות באופטימיזציה
         }
         
         /**
@@ -559,26 +602,23 @@
          */
         function handleRunSimulation() {
             // 1. איסוף קלט
+            // --- שינוי: מקור האמת הוא ה-textarea ---
             const ourNames = ourCandidateNamesSimTextarea.value.split('\n').filter(Boolean);
             const ourCandidates = ourNames.length;
+            ourCandidatesSimInput.value = ourCandidates; // סנכרן את שדה המספר חזרה
             
-            // ולידציה לפני ריצה
-             if (ourCandidates < VOTES_PER_VOTER || ourCandidates > TOTAL_SEATS) {
-                alert(`מספר המועמדים חייב להיות בין ${VOTES_PER_VOTER} ל-${TOTAL_SEATS}. אנא תקן את הרשימה.`);
+            // --- שינוי: תיקוף קלט בלחיצה ---
+            if (ourCandidates < VOTES_PER_VOTER || ourCandidates > TOTAL_SEATS) {
+                showAlert(`מספר המועמדים חייב להיות בין ${VOTES_PER_VOTER} (מספר הבחירות למצביע) ל-${TOTAL_SEATS} (סה"כ מקומות). אנא תקן את הרשימה.`);
                 return;
             }
-            ourCandidatesSimInput.value = ourCandidates; // ודא סנכרון אחרון
             
             const ourVoters = parseInt(document.getElementById('ourVotersSim').value);
             const oppVoters = parseInt(document.getElementById('oppVotersSim').value);
             const oppCandidates = parseInt(document.getElementById('oppCandidatesSim').value);
             
-            if (ourCandidates === 0) {
-                 alert("אנא הזן לפחות שם מועמד אחד.");
-                return;
-            }
-            if (isNaN(ourVoters) || isNaN(oppVoters) || isNaN(oppCandidates)) {
-                alert("אנא מלא את כל השדות בערכים מספריים.");
+            if (isNaN(ourVoters) || isNaN(oppVoters) || isNaN(oppCandidates) || ourVoters < 0 || oppVoters < 0 || oppCandidates < 1) {
+                showAlert("אנא מלא את כל השדות בערכים מספריים חוקיים (לפחות 0 מצביעים ו-1 מועמדים).");
                 return;
             }
 
@@ -640,7 +680,7 @@
                     const includesNames = list.includes.map(idx => names[idx - 1] || `מועמד ${idx}`).join(', ');
                     
                     html += `<p class="text-sm text-red-700"><strong>להשמיט:</strong> <span class="font-medium">${omitsNames}</span></p>`;
-                    html += `<p class="text-sm text-green-700"><strong>להצביע:</strong> <span class="font-medium">${includesNames}</span></p>`;
+                    html += `<p class="text-sm text-green-700"><strong>להצביע (כל השאר):</strong> <span class="font-medium">${includesNames}</span></p>`;
                 } else {
                      const includesNames = list.includes.map(idx => names[idx - 1] || `מועמד ${idx}`).join(', ');
                      html += `<p class="text-sm text-green-700"><strong>להצביע:</strong> <span class="font-medium">${includesNames}</span></p>`;
@@ -663,17 +703,17 @@
             
             fullResults.forEach(candidate => {
                 let statusClass = candidate.status === 'נבחר' ? 'text-green-600 font-bold' : 'text-red-600';
-                let rowClass = candidate.status === 'נבחר' ? 'bg-green-50' : '';
-                if (candidate.rank > TOTAL_SEATS) {
-                    rowClass = ''; // אין צבע מיוחד למי שמחוץ ל-19
+                let rowClass = '';
+                if (candidate.rank <= TOTAL_SEATS) {
+                     rowClass = candidate.type === 'our' ? 'bg-green-50' : 'bg-red-50';
                 }
                 
-                let candidateClass = candidate.type === 'our' ? 'text-blue-800' : 'text-gray-700';
+                let candidateClass = candidate.type === 'our' ? 'text-blue-800 font-medium' : 'text-gray-700';
                 
                 html += `
                     <tr class="${rowClass}">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${candidate.rank}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm ${candidateClass} font-medium">${candidate.id}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm ${candidateClass}">${candidate.id}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">${candidate.votes}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm ${statusClass}">${candidate.status}</td>
                     </tr>
@@ -687,3 +727,4 @@
     </script>
 </body>
 </html>
+
