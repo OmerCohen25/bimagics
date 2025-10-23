@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול סניף - ליכוד חוף אשקלון</title>
+    <!-- טעינת Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- הוספת Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- טעינת פונט Inter (מומלץ) ופונט עברי -->
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Assistant:wght@400;600;700&display=swap');
+      body {
+        font-family: 'Assistant', 'Inter', sans-serif;
+      }
+      /* הסתרת חיצי מספר בדפדפנים מסוימים */
+      input[type=number]::-webkit-inner-spin-button,
+      input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      input[type=number] {
+        -moz-appearance: textfield;
+      }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen py-8 px-4">
+
+    <div class="max-w-3xl mx-auto">
+        <!-- כותרת ראשית -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-blue-800">
+                ניהול סניף
+            </h1>
+            <p class="text-xl text-gray-700 mt-1">
+                ליכוד חוף אשקלון
+            </p>
+        </header>
+
+        <!-- חלק 1: ניהול חברי מרכז -->
+        <section class="bg-white p-6 rounded-xl shadow-lg mb-8">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4 pb-2 border-b">
+                ניהול חברי מרכז (<span id="member-count">19</span>)
+            </h2>
+
+            <!-- אזור תרשים העוגה -->
+            <div class="mb-6 w-full max-w-sm mx-auto">
+                <canvas id="groups-pie-chart"></canvas>
+            </div>
+
+            <!-- רשימת החברים -->
+            <div id="members-list" class="space-y-3 mb-6">
+                <!-- הרשימה תטען כאן על ידי JavaScript -->
+            </div>
+
+            <!-- טופס עריכה (מוסתר כברירת מחדל) -->
+            <form id="member-form" class="space-y-4 p-4 bg-gray-50 rounded-lg mt-6 hidden">
+                <h3 id="form-title" class="text-lg font-semibold text-gray-700">עריכת חבר</h3>
+                <input type="hidden" id="edit-index" value="-1">
+                
+                <div>
+                    <label for="member-name" class="block text-sm font-medium text-gray-600">שם הנציג/ה:</label>
+                    <input type="text" id="member-name" placeholder="שם מלא" required
+                           class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <div>
+                    <label for="member-source" class="block text-sm font-medium text-gray-600">מקור (קבוצה/יישוב):</label>
+                    <input type="text" id="member-source" placeholder="לדוגמה: איתמר, ברכיה"
+                           class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button type="submit" id="save-button"
+                            class="flex-1 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                        שמור שינויים
+                    </button>
+                    <button type="button" id="cancel-button"
+                            class="flex-1 text-gray-700 bg-gray-200 hover:bg-gray-300 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                        בטל עריכה
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- חלק 2: הסכם מועצת הסניף -->
+        <section class="bg-white p-6 rounded-xl shadow-lg">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4 pb-2 border-b">
+                הסכם מועצת הסניף (41 מקומות)
+            </h2>
+            
+            <div>
+                <label for="agreement-text" class="block text-sm font-medium text-gray-600 mb-2">
+                    פרטי ההסכם (נשמר אוטומטית בעת ההקלדה):
+                </label>
+                <textarea id="agreement-text" rows="8"
+                          class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="כתוב כאן את פרטי ההסכם..."></textarea>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- לוגיקת JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- הגדרות משתנים ---
+            const membersListEl = document.getElementById('members-list');
+            const memberForm = document.getElementById('member-form');
+            const formTitle = document.getElementById('form-title');
+            const memberNameInput = document.getElementById('member-name');
+            const memberSourceInput = document.getElementById('member-source');
+            const editIndexInput = document.getElementById('edit-index');
+            const saveButton = document.getElementById('save-button');
+            const cancelButton = document.getElementById('cancel-button');
+            const memberCountEl = document.getElementById('member-count');
+            
+            const agreementTextEl = document.getElementById('agreement-text');
+
+            // --- משתנה גלובלי עבור התרשים ---
+            let myPieChart = null;
+
+            // --- מפתחות אחסון ---
+            const MEMBERS_KEY = 'likud_hof_ashkelon_members';
+            const AGREEMENT_KEY = 'likud_hof_ashkelon_agreement';
+
+            let members = [];
+
+            // --- פונקציות חברי מרכז (19) ---
+
+            // יצירת רשימה ראשונית של 19 חברים
+            function getInitialMembers() {
+                const initialMembers = [
+                    // 7 שמות שניתנו
+                    { id: Date.now() + 1, name: 'רמי שועי', source: 'איתמר, ברכיה' },
+                    { id: Date.now() + 2, name: 'מעין שניאור', source: 'איתמר, נתיב' },
+                    { id: Date.now() + 3, name: 'רפי ברגיג', source: 'איתמר, בית שקמה' },
+                    { id: Date.now() + 4, name: 'עז פרץ', source: 'ברכיה' },
+                    { id: Date.now() + 5, name: 'עז פרץ 2', source: 'ברכיה' },
+                    { id: Date.now() + 6, name: 'צביקה כהן', source: 'ברכיה' },
+                    { id: Date.now() + 7, name: 'עמר כהן', source: 'ברכיה, משען' },
+                    // 7 מקומות לחיים ברון
+                    { id: Date.now() + 8, name: 'מקום שמור 1', source: 'חיים ברון' },
+                    { id: Date.now() + 9, name: 'מקום שמור 2', source: 'חיים ברון' },
+                    { id: Date.now() + 10, name: 'מקום שמור 3', source: 'חיים ברון' },
+                    { id: Date.now() + 11, name: 'מקום שמור 4', source: 'חיים ברון' },
+                    { id: Date.now() + 12, name: 'מקום שמור 5', source: 'חיים ברון' },
+                    { id: Date.now() + 13, name: 'מקום שמור 6', source: 'חיים ברון' },
+                    { id: Date.now() + 14, name: 'מקום שמור 7', source: 'חיים ברון' },
+                    // 5 מקומות לאיתמר
+                    { id: Date.now() + 15, name: 'מקום שמור 1', source: 'איתמר' },
+                    { id: Date.now() + 16, name: 'מקום שמור 2', source: 'איתמר' },
+                    { id: Date.now() + 17, name: 'מקום שמור 3', source: 'איתמר' },
+                    { id: Date.now() + 18, name: 'מקום שמור 4', source: 'איתמר' },
+                    { id: Date.now() + 19, name: 'מקום שמור 5', source: 'איתמר' },
+                ];
+                return initialMembers;
+            }
+
+            // טעינת רשימת חברים מהאחסון
+            function loadMembers() {
+                try {
+                    const storedMembers = localStorage.getItem(MEMBERS_KEY);
+                    members = storedMembers ? JSON.parse(storedMembers) : getInitialMembers();
+                } catch (e) {
+                    console.error("Failed to parse members from localStorage", e);
+                    members = getInitialMembers();
+                }
+                renderMembers();
+            }
+
+            // שמירת רשימת חברים באחסון
+            function saveMembers() {
+                try {
+                    localStorage.setItem(MEMBERS_KEY, JSON.stringify(members));
+                } catch (e) {
+                    console.error("Failed to save members to localStorage", e);
+                }
+            }
+
+            // רינדור (הצגה) של הרשימה בדף
+            function renderMembers() {
+                membersListEl.innerHTML = ''; // ניקוי הרשימה הקיימת
+                if (members.length === 0) {
+                    membersListEl.innerHTML = '<p class="text-center text-gray-500">אין חברים ברשימה.</p>';
+                }
+                
+                members.forEach((member, index) => {
+                    const li = document.createElement('div');
+                    li.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg shadow-sm';
+                    li.innerHTML = `
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-gray-900 truncate">${escapeHTML(member.name)}</p>
+                            <p class="text-sm text-gray-600 truncate">${escapeHTML(member.source) || 'אין מקור'}</p>
+                        </div>
+                        <div class="flex-shrink-0 space-x-2 space-x-reverse">
+                            <button data-index="${index}" class="edit-btn text-white bg-yellow-500 hover:bg-yellow-600 font-medium rounded-lg text-xs px-3 py-1.5">
+                                ערוך
+                            </button>
+                            <!-- כפתור המחיקה הוסר -->
+                        </div>
+                    `;
+                    membersListEl.appendChild(li);
+                });
+                memberCountEl.textContent = members.length;
+                renderPieChart(); // עדכון התרשים בכל רינדור
+            }
+
+            // טיפול בשליחת טופס (עריכה בלבד)
+            function handleFormSubmit(e) {
+                e.preventDefault();
+                
+                const name = memberNameInput.value.trim();
+                const source = memberSourceInput.value.trim();
+                const editIndex = editIndexInput.value;
+
+                if (!name || editIndex === '-1') return; // ודא שאנחנו במצב עריכה ויש שם
+
+                // מצב עריכה
+                const index = parseInt(editIndex, 10);
+                if (members[index]) {
+                    members[index].name = name;
+                    members[index].source = source;
+                }
+                // בלוק הוספה (else) הוסר
+
+                saveMembers();
+                renderMembers();
+                resetForm();
+            }
+
+            // טיפול בלחיצות על כפתורי עריכה
+            function handleListClick(e) {
+                const target = e.target;
+                const index = target.dataset.index;
+
+                if (target.classList.contains('edit-btn')) {
+                    // לחיצה על "ערוך"
+                    if (index === undefined) return;
+                    const member = members[index];
+                    if (!member) return;
+
+                    memberNameInput.value = member.name;
+                    memberSourceInput.value = member.source;
+                    editIndexInput.value = index;
+                    cancelButton.classList.remove('hidden');
+                    memberForm.classList.remove('hidden'); // הצג את הטופס
+                    window.scrollTo({ top: memberForm.offsetTop - 20, behavior: 'smooth' });
+                }
+                // בלוק המחיקה (delete-btn) הוסר
+            }
+
+            // איפוס הטופס
+            function resetForm() {
+                memberForm.reset();
+                editIndexInput.value = '-1';
+                cancelButton.classList.add('hidden');
+                memberForm.classList.add('hidden'); // הסתר את הטופס
+            }
+            
+            // פונקציית עזר לאבטחה בסיסית (מניעת XSS)
+            function escapeHTML(str) {
+                if (!str) return '';
+                return str.replace(/[&<>"']/g, function(m) {
+                    return {
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#039;'
+                    }[m];
+                });
+            }
+
+            // --- פונקציות תרשים עוגה ---
+            function renderPieChart() {
+                const ctx = document.getElementById('groups-pie-chart').getContext('2d');
+                
+                // 1. לספור קבוצות
+                const groupCounts = {};
+                members.forEach(member => {
+                    // פצל לפי פסיק (עברי) או פסיק (אנגלי), ונקה רווחים
+                    const sources = member.source ? member.source.split(/[,،]+/) : ['ללא מקור']; 
+                    sources.forEach(s => {
+                        const sourceName = s.trim();
+                        if (sourceName) {
+                            groupCounts[sourceName] = (groupCounts[sourceName] || 0) + 1;
+                        }
+                    });
+                });
+
+                const labels = Object.keys(groupCounts);
+                const data = Object.values(groupCounts);
+
+                // 2. צבעים
+                const colors = [
+                    '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
+                    '#EC4899', '#6366F1', '#14B8A6', '#FCD34D', '#D97706',
+                    '#0EA5E9', '#65A30D'
+                ];
+                
+                // 3. השמד תרשים קודם אם קיים
+                if (myPieChart) {
+                    myPieChart.destroy();
+                }
+
+                // 4. צייר תרשים חדש
+                myPieChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'מספר נציגים',
+                            data: data,
+                            backgroundColor: colors.slice(0, labels.length),
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    font: {
+                                        family: "'Assistant', sans-serif",
+                                        size: 14
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                bodyFont: {
+                                    family: "'Assistant', sans-serif"
+                                },
+                                titleFont: {
+                                     family: "'Assistant', sans-serif"
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // --- פונקציות הסכם מועצה ---
+
+            function getDefaultAgreementText() {
+                return `הסכם על מועצת הסניף, 41 מקומות:
+1. תהיה חלוקה של תפקידי הראשות והמזכירות ברוטציה בין עז פרץ לבין יואל ביתאן.
+2. 41 המקומות במועצת הסניף יחולקו בין כולם.
+
+(נא לפרט כאן את ההסכם המלא...)
+`;
+            }
+            
+            function loadAgreement() {
+                try {
+                    const storedAgreement = localStorage.getItem(AGREEMENT_KEY);
+                    agreementTextEl.value = storedAgreement || getDefaultAgreementText();
+                } catch (e) {
+                    console.error("Failed to load agreement from localStorage", e);
+                    agreementTextEl.value = getDefaultAgreementText();
+                }
+            }
+
+            function saveAgreement() {
+                try {
+                    localStorage.setItem(AGREEMENT_KEY, agreementTextEl.value);
+                } catch (e) {
+                    console.error("Failed to save agreement to localStorage", e);
+                }
+            }
+
+            // --- רישום מאזיני אירועים ---
+            
+            // טעינה ראשונית
+            loadMembers();
+            loadAgreement();
+
+            // מאזינים
+            memberForm.addEventListener('submit', handleFormSubmit);
+            membersListEl.addEventListener('click', handleListClick);
+            cancelButton.addEventListener('click', resetForm);
+            agreementTextEl.addEventListener('input', saveAgreement); // שמירה אוטומטית בכל הקלדה
+        });
+    </script>
+</body>
+</html>
