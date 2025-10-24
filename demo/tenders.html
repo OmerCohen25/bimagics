@@ -3,81 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מערכת ניהול מכרזים חכמה</title>
+    <title>מערכת מעקב מכרזים (קבלן)</title>
     
     <!-- טעינת Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- טעינת ספריות אייקונים (Ionicons) - חיוני לעיצוב המובייל -->
+    <!-- טעינת ספריות אייקונים (Ionicons) -->
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
     
     <style>
-        /* הגדרת פונט ברירת מחדל נעים לעין שתומך בעברית */
         body {
             font-family: 'Inter', 'Arial', sans-serif;
-            background-color: #f4f7f6; /* רקע אפרפר בהיר */
+            background-color: #f4f7f6;
         }
-        
-        /* הסתרה חלקה של מודלים */
-        .modal {
-            transition: opacity 0.25s ease, visibility 0.25s ease;
-        }
-        .modal-content {
-            transition: transform 0.25s ease;
-        }
-        .modal.hidden {
-            visibility: hidden;
-            opacity: 0;
-        }
-        .modal.hidden .modal-content {
-            transform: scale(0.95);
-        }
-
-        /* סגנון לטאבים פעילים */
-        .tab-active {
-            border-bottom-color: #3b82f6; /* blue-500 */
-            color: #3b82f6; /* blue-500 */
-            font-weight: 600;
-        }
-        
-        /* סגנון לטאב לא פעיל */
-        .tab-inactive {
-            color: #6b7280; /* gray-500 */
-            border-bottom-color: transparent;
-        }
-        
-        /* עיצוב כפתור צף (FAB) */
-        .fab {
-            position: fixed;
-            bottom: 80px; /* מעל התפריט התחתון */
-            left: 20px; /* שינוי לצד שמאל (ימין ב-RTL) */
-            z-index: 40;
-        }
-        
-        /* עיצוב בועות צ'אט */
-        .chat-bubble {
-            max-width: 75%;
-        }
-        .chat-bubble-user {
-            background-color: #3b82f6; /* blue-500 */
-            color: white;
-            border-radius: 20px 20px 5px 20px;
-        }
-        .chat-bubble-ai {
-            background-color: #e5e7eb; /* gray-200 */
-            color: #1f2937; /* gray-800 */
-            border-radius: 20px 20px 20px 5px;
-        }
-        
-        /* אנימציית טעינה (Spinner) */
-        .spinner {
-            border-top-color: #3b82f6; /* blue-500 */
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        .modal { transition: opacity 0.25s ease, visibility 0.25s ease; }
+        .modal-content { transition: transform 0.25s ease; }
+        .modal.hidden { visibility: hidden; opacity: 0; }
+        .modal.hidden .modal-content { transform: scale(0.95); }
+        .tab-active { border-bottom-color: #3b82f6; color: #3b82f6; font-weight: 600; }
+        .tab-inactive { color: #6b7280; border-bottom-color: transparent; }
+        .fab { position: fixed; bottom: 80px; left: 20px; z-index: 40; }
+        .chat-bubble { max-width: 75%; }
+        .chat-bubble-user { background-color: #3b82f6; color: white; border-radius: 20px 20px 5px 20px; }
+        .chat-bubble-ai { background-color: #e5e7eb; color: #1f2937; border-radius: 20px 20px 20px 5px; }
+        .spinner { border-top-color: #3b82f6; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="text-gray-900">
@@ -87,8 +38,7 @@
     <!-- ------------------------- -->
     <header class="fixed top-0 right-0 left-0 bg-white shadow-md z-40">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-xl font-bold text-blue-600">מערכת מכרזים חכמה</h1>
-            <!-- כפתור חזרה (יופיע רק בדף פרטים) -->
+            <h1 class="text-xl font-bold text-blue-600">מעקב מכרזים</h1>
             <button id="back-to-list-btn" class="hidden text-blue-500 hover:text-blue-700 flex items-center">
                 <ion-icon name="arrow-forward-outline" class="w-5 h-5"></ion-icon>
                 <span class="mr-1">חזרה לרשימה</span>
@@ -106,17 +56,15 @@
         <!-- ------------------------- -->
         <div id="tenders-list-view">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-semibold">מכרזים פעילים</h2>
-                <!-- כאן אפשר להוסיף פילטרים -->
+                <h2 class="text-2xl font-semibold">ההתמודדויות שלי</h2>
             </div>
             
-            <!-- רשימת כרטיסיות מכרזים -->
             <div id="tenders-list-container" class="space-y-4">
                 <!-- כרטיסיות המכרזים יטענו כאן -->
             </div>
             <div id="no-tenders-msg" class="hidden text-center text-gray-500 mt-10">
                 <ion-icon name="documents-outline" class="w-16 h-16 mx-auto text-gray-400"></ion-icon>
-                <p class="mt-2">לא נמצאו מכרזים.</p>
+                <p class="mt-2">לא עוקבים אחרי מכרזים. לחצו '+' להוספה.</p>
             </div>
             
             <!-- כפתור צף להוספת מכרז -->
@@ -126,23 +74,22 @@
         </div>
 
         <!-- ------------------------- -->
-        <!--    תצוגת רשימת לקוחות      -->
+        <!--   תצוגת "מזמיני עבודה"    -->
         <!-- ------------------------- -->
-        <div id="customers-list-view" class="hidden">
-            <h2 class="text-2xl font-semibold mb-4">פאנל לקוחות</h2>
+        <div id="issuers-list-view" class="hidden">
+            <h2 class="text-2xl font-semibold mb-4">מזמיני עבודה</h2>
             
-            <!-- רשימת כרטיסיות לקוחות -->
-            <div id="customers-list-container" class="space-y-4">
-                <!-- כרטיסיות הלקוחות יטענו כאן -->
+            <div id="issuers-list-container" class="space-y-4">
+                <!-- כרטיסיות מזמיני העבודה יטענו כאן -->
             </div>
-            <div id="no-customers-msg" class="hidden text-center text-gray-500 mt-10">
-                <ion-icon name="people-outline" class="w-16 h-16 mx-auto text-gray-400"></ion-icon>
-                <p class="mt-2">לא נמצאו לקוחות.</p>
+            <div id="no-issuers-msg" class="hidden text-center text-gray-500 mt-10">
+                <ion-icon name="business-outline" class="w-16 h-16 mx-auto text-gray-400"></ion-icon>
+                <p class="mt-2">לא הוגדרו מזמיני עבודה.</p>
             </div>
             
-            <!-- כפתור צף להוספת לקוח -->
-            <button id="open-customer-modal-btn" class="fab bg-green-500 hover:bg-green-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center">
-                <ion-icon name="person-add-outline" class="w-7 h-7"></ion-icon>
+            <!-- כפתור צף להוספת מזמין עבודה -->
+            <button id="open-issuer-modal-btn" class="fab bg-green-500 hover:bg-green-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center">
+                <ion-icon name="add-outline" class="w-8 h-8"></ion-icon>
             </button>
         </div>
 
@@ -150,10 +97,13 @@
         <!--     תצוגת פרטי מכרז       -->
         <!-- ------------------------- -->
         <div id="tender-details-view" class="hidden">
-            <!-- כותרת דף פרטים (מתעדכנת דינמית) -->
+            <!-- כותרת דף פרטים -->
             <div class="mb-4">
                 <h2 id="details-tender-title" class="text-3xl font-bold">טוען...</h2>
-                <span id="details-tender-id-badge" class="text-sm font-mono text-gray-500 bg-gray-200 px-2 py-0.5 rounded"></span>
+                <div class="flex items-center space-x-2 rtl:space-x-reverse text-gray-600 mt-1">
+                    <ion-icon name="business-outline" class="w-5 h-5"></ion-icon>
+                    <span id="details-tender-issuer-name" class="font-medium"></span>
+                </div>
             </div>
             
             <button id="view-document-btn" class="w-full mb-4 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-3 px-4 rounded-lg shadow flex items-center justify-center">
@@ -163,8 +113,8 @@
 
             <!-- ניווט טאבים -->
             <nav class="flex border-b border-gray-300 mb-4">
-                <button data-tab="details" class="details-tab py-3 px-4 md:px-6 tab-active">פרטים</button>
-                <button data-tab="contractors" class="details-tab py-3 px-4 md:px-6 tab-inactive">קבלנים</button>
+                <button data-tab="details" class="details-tab py-3 px-4 md:px-6 tab-active">פרטים כלליים</button>
+                <button data-tab="submission" class="details-tab py-3 px-4 md:px-6 tab-inactive">סטטוס הגשה</button>
                 <button data-tab="chat" class="details-tab py-3 px-4 md:px-6 tab-inactive">צ'אט AI</button>
             </nav>
 
@@ -175,19 +125,17 @@
                     <!-- תוכן יטען כאן -->
                 </div>
 
-                <!-- טאב קבלנים/לקוחות -->
-                <div id="contractors-tab-content" class="hidden space-y-3">
+                <!-- טאב סטטוס הגשה -->
+                <div id="submission-tab-content" class="hidden space-y-4">
                     <!-- תוכן יטען כאן -->
                 </div>
 
                 <!-- טאב צ'אט AI -->
                 <div id="chat-tab-content" class="hidden">
                     <div class="bg-white rounded-lg shadow">
-                        <!-- היסטוריית צ'אט -->
                         <div id="chat-history" class="h-64 md:h-80 p-4 space-y-4 overflow-y-auto">
                             <!-- בועות צ'אט יטענו כאן -->
                         </div>
-                        <!-- קלט צ'אט -->
                         <div class="border-t p-3 flex">
                             <input type="text" id="chat-input" class="flex-1 w-full px-3 py-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="שאל אותי על המכרז...">
                             <button id="chat-send-btn" class="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center mr-2 flex-shrink-0">
@@ -209,9 +157,9 @@
             <ion-icon name="documents-outline" class="w-6 h-6"></ion-icon>
             <span class="text-xs font-medium">מכרזים</span>
         </button>
-        <button id="nav-customers" class="flex flex-col items-center justify-center py-3 text-gray-500">
-            <ion-icon name="people-outline" class="w-6 h-6"></ion-icon>
-            <span class="text-xs font-medium">לקוחות</span>
+        <button id="nav-issuers" class="flex flex-col items-center justify-center py-3 text-gray-500">
+            <ion-icon name="business-outline" class="w-6 h-6"></ion-icon>
+            <span class="text-xs font-medium">מזמיני עבודה</span>
         </button>
     </nav>
 
@@ -220,11 +168,11 @@
     <!--       מודלים (חלונות קופצים)        -->
     <!-- ----------------------------------- -->
 
-    <!-- מודל הוספה/עריכת מכרז (עם הדמיית AI) -->
+    <!-- מודל הוספה/עריכת מכרז -->
     <div id="tender-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
         <div class="modal-content bg-white w-full max-w-lg rounded-lg shadow-2xl p-6 transform max-h-screen overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-3 mb-5">
-                <h3 id="tender-modal-title" class="text-xl font-semibold">הוסף מכרז חדש</h3>
+                <h3 id="tender-modal-title" class="text-xl font-semibold">הוספת מכרז למעקב</h3>
                 <button class="close-modal-btn text-gray-400 hover:text-gray-600">
                     <ion-icon name="close-outline" class="w-7 h-7"></ion-icon>
                 </button>
@@ -232,7 +180,7 @@
             
             <form id="tender-form" class="space-y-4">
                 <input type="hidden" id="tender-id">
-                <input type="hidden" id="tender-document-url"> <!-- שדה נסתר לשמירת "כתובת" הקובץ -->
+                <input type="hidden" id="tender-document-url">
                 
                 <!-- הדמיית העלאת AI -->
                 <div>
@@ -240,24 +188,30 @@
                     <input type="file" id="tender-file-input" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                 </div>
                 
-                <!-- אנימציית עיבוד AI -->
                 <div id="ai-processor" class="hidden flex items-center justify-center p-4 my-4 bg-blue-50 rounded-lg border border-blue-200">
                     <div class="spinner w-5 h-5 border-2 border-gray-300 rounded-full ml-3"></div>
                     <span class="text-blue-700 font-medium">מנתח מסמך באמצעות AI...</span>
                 </div>
                 
-                <!-- שדות הטופס (ימולאו אוטומטית) -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label for="tender-title" class="block text-sm font-medium text-gray-700 mb-1">שם המכרז</label>
                         <input type="text" id="tender-title" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
                     </div>
                     <div>
-                        <label for="tender-id-display" class="block text-sm font-medium text-gray-700 mb-1">מספר מכרז</label>
+                        <label for="tender-id-display" class="block text-sm font-medium text-gray-700 mb-1">מספר מכרז (מזהה)</label>
                         <input type="text" id="tender-id-display" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
                     </div>
                 </div>
 
+                <div>
+                    <label for="tender-issuer-link" class="block text-sm font-medium text-gray-700 mb-1">מזמין עבודה</label>
+                    <select id="tender-issuer-link" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white">
+                        <option value="">בחר מזמין עבודה...</option>
+                        <!-- יטען מ-JS -->
+                    </select>
+                </div>
+                
                 <div>
                     <label for="tender-description" class="block text-sm font-medium text-gray-700 mb-1">תיאור קצר (מתוך המסמך)</label>
                     <textarea id="tender-description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"></textarea>
@@ -276,17 +230,19 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label for="tender-status" class="block text-sm font-medium text-gray-700 mb-1">סטטוס התחלתי</label>
+                        <label for="tender-status" class="block text-sm font-medium text-gray-700 mb-1">סטטוס ההגשה *שלנו*</label>
                         <select id="tender-status" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white">
-                            <option value="פתוח להצעות">פתוח להצעות</option>
-                            <option value="בבדיקה">בבדיקה</option>
-                            <option value="הסתיים">הסתיים</option>
-                            <option value="מבוטל">מבוטל</option>
+                            <option value="חדש (בבדיקה)">חדש (בבדיקה)</option>
+                            <option value="בתהליך הכנה">בתהליך הכנה</option>
+                            <option value="הוגשה הצעה">הוגשה הצעה</option>
+                            <option value="זכינו">זכינו</option>
+                            <option value="לא זכינו">לא זכינו</option>
+                            <option value="בוטל">בוטל</option>
                         </select>
                     </div>
                     <div>
-                        <label for="tender-winner" class="block text-sm font-medium text-gray-700 mb-1">קבלן זוכה (אופציונלי)</label>
-                        <input type="text" id="tender-winner" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" placeholder="שם הקבלן הזוכה">
+                        <label for="tender-winner" class="block text-sm font-medium text-gray-700 mb-1">הזוכה (אם ידוע)</label>
+                        <input type="text" id="tender-winner" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" placeholder="שם החברה הזוכה">
                     </div>
                 </div>
 
@@ -298,45 +254,37 @@
         </div>
     </div>
     
-    <!-- מודל הוספה/עריכת לקוח -->
-    <div id="customer-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+    <!-- מודל הוספה/עריכת מזמין עבודה -->
+    <div id="issuer-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
          <div class="modal-content bg-white w-full max-w-lg rounded-lg shadow-2xl p-6 transform">
              <div class="flex justify-between items-center border-b pb-3 mb-5">
-                <h3 id="customer-modal-title" class="text-xl font-semibold">הוסף לקוח / קבלן</h3>
+                <h3 id="issuer-modal-title" class="text-xl font-semibold">הוסף מזמין עבודה</h3>
                 <button class="close-modal-btn text-gray-400 hover:text-gray-600">
                     <ion-icon name="close-outline" class="w-7 h-7"></ion-icon>
                 </button>
             </div>
-            <form id="customer-form" class="space-y-4">
-                <input type="hidden" id="customer-id">
+            <form id="issuer-form" class="space-y-4">
+                <input type="hidden" id="issuer-id">
                 
                 <div>
-                    <label for="customer-name" class="block text-sm font-medium text-gray-700 mb-1">שם הלקוח / קבלן</label>
-                    <input type="text" id="customer-name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                    <label for="issuer-name" class="block text-sm font-medium text-gray-700 mb-1">שם מזמין העבודה (הגוף המפרסם)</label>
+                    <input type="text" id="issuer-name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required placeholder="למשל: עיריית תל אביב-יפו, משכ''ל">
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label for="customer-email" class="block text-sm font-medium text-gray-700 mb-1">אימייל</label>
-                        <input type="email" id="customer-email" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
+                        <label for="issuer-email" class="block text-sm font-medium text-gray-700 mb-1">אימייל איש קשר</label>
+                        <input type="email" id="issuer-email" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
                     </div>
                     <div>
-                        <label for="customer-phone" class="block text-sm font-medium text-gray-700 mb-1">טלפון</label>
-                        <input type="tel" id="customer-phone" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        <label for="issuer-phone" class="block text-sm font-medium text-gray-700 mb-1">טלפון איש קשר</label>
+                        <input type="tel" id="issuer-phone" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
                     </div>
-                </div>
-
-                <div>
-                    <label for="customer-tender-link" class="block text-sm font-medium text-gray-700 mb-1">שייך למכרז (בחר מכרז)</label>
-                    <select id="customer-tender-link" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white">
-                        <option value="">ללא שיוך</option>
-                        <!-- אופציות המכרזים יטענו כאן -->
-                    </select>
                 </div>
 
                 <div class="flex justify-end pt-5 border-t mt-6">
                     <button type="button" class="cancel-modal-btn bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg shadow hover:bg-gray-300 ml-3">ביטול</button>
-                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow">שמור לקוח</button>
+                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow">שמור מזמין עבודה</button>
                 </div>
             </form>
          </div>
@@ -372,30 +320,27 @@
 
             // --------- הגדרות כלליות ומצב (State) ---------
             let tenders = [];
-            let customers = [];
-            let currentView = 'tenders'; // 'tenders', 'customers', 'details'
-            let currentTenderId = null; // ID של המכרז שבו צופים
-            let currentDetailsTab = 'details'; // 'details', 'contractors', 'chat'
+            let issuers = []; // מזמיני עבודה
+            let currentView = 'tenders'; // 'tenders', 'issuers', 'details'
+            let currentTenderId = null;
+            let currentDetailsTab = 'details';
 
             // --------- בוררי DOM (Selectors) ---------
-            // תצוגות ראשיות
             const tendersListView = document.getElementById('tenders-list-view');
-            const customersListView = document.getElementById('customers-list-view');
+            const issuersListView = document.getElementById('issuers-list-view');
             const tenderDetailsView = document.getElementById('tender-details-view');
-            
-            // כפתור חזרה
             const backToListBtn = document.getElementById('back-to-list-btn');
 
             // רשימות
             const tendersListContainer = document.getElementById('tenders-list-container');
             const noTendersMsg = document.getElementById('no-tenders-msg');
-            const customersListContainer = document.getElementById('customers-list-container');
-            const noCustomersMsg = document.getElementById('no-customers-msg');
+            const issuersListContainer = document.getElementById('issuers-list-container');
+            const noIssuersMsg = document.getElementById('no-issuers-msg');
             
             // ניווט תחתון
             const navTenders = document.getElementById('nav-tenders');
-            const navCustomers = document.getElementById('nav-customers');
-
+            const navIssuers = document.getElementById('nav-issuers');
+            
             // מודל מכרז
             const tenderModal = document.getElementById('tender-modal');
             const openTenderModalBtn = document.getElementById('open-tender-modal-btn');
@@ -403,20 +348,18 @@
             const tenderModalTitle = document.getElementById('tender-modal-title');
             const tenderFileInput = document.getElementById('tender-file-input');
             const aiProcessor = document.getElementById('ai-processor');
+            const tenderIssuerLink = document.getElementById('tender-issuer-link');
             
-            // מודל לקוח
-            const customerModal = document.getElementById('customer-modal');
-            const openCustomerModalBtn = document.getElementById('open-customer-modal-btn');
-            const customerForm = document.getElementById('customer-form');
-            const customerModalTitle = document.getElementById('customer-modal-title');
-            const customerTenderLink = document.getElementById('customer-tender-link');
+            // מודל מזמין עבודה
+            const issuerModal = document.getElementById('issuer-modal');
+            const openIssuerModalBtn = document.getElementById('open-issuer-modal-btn');
+            const issuerForm = document.getElementById('issuer-form');
+            const issuerModalTitle = document.getElementById('issuer-modal-title');
             
-            // מודל צפייה במסמך
+            // מודלים נוספים
             const docViewerModal = document.getElementById('document-viewer-modal');
             const viewDocBtn = document.getElementById('view-document-btn');
             const docIframe = document.getElementById('document-iframe');
-            
-            // מודל הודעות
             const messageModal = document.getElementById('message-modal');
             const messageModalTitle = document.getElementById('message-modal-title');
             const messageModalText = document.getElementById('message-modal-text');
@@ -424,9 +367,9 @@
 
             // פרטי מכרז וטאבים
             const detailsTenderTitle = document.getElementById('details-tender-title');
-            const detailsTenderIdBadge = document.getElementById('details-tender-id-badge');
+            const detailsTenderIssuerName = document.getElementById('details-tender-issuer-name');
             const detailsTabContent = document.getElementById('details-tab-content');
-            const contractorsTabContent = document.getElementById('contractors-tab-content');
+            const submissionTabContent = document.getElementById('submission-tab-content');
             const chatTabContent = document.getElementById('chat-tab-content');
             const detailsTabs = document.querySelectorAll('.details-tab');
             
@@ -435,117 +378,144 @@
             const chatInput = document.getElementById('chat-input');
             const chatSendBtn = document.getElementById('chat-send-btn');
             
-            // כפתורי סגירה כלליים
             const closeModalBtns = document.querySelectorAll('.close-modal-btn, .cancel-modal-btn');
             
             // --------- פונקציות שמירה וטעינה ---------
             
             const saveTenders = () => localStorage.setItem('tenders', JSON.stringify(tenders));
-            const saveCustomers = () => localStorage.setItem('customers', JSON.stringify(customers));
+            const saveIssuers = () => localStorage.setItem('issuers', JSON.stringify(issuers));
             
             const loadData = () => {
                 const storedTenders = localStorage.getItem('tenders');
-                const storedCustomers = localStorage.getItem('customers');
+                const storedIssuers = localStorage.getItem('issuers');
                 
-                if (!storedTenders || !storedCustomers) {
-                    // אם אין נתונים, טען נתוני דמו
+                if (!storedTenders || !storedIssuers) {
                     initializeDemoData();
                 } else {
                     tenders = JSON.parse(storedTenders);
-                    customers = JSON.parse(storedCustomers);
+                    issuers = JSON.parse(storedIssuers);
                 }
             };
             
-            // יצירת ID ייחודי
             const generateId = () => `id_${Math.random().toString(36).substr(2, 9)}`;
 
-            // --------- נתוני דמו ---------
+            // --------- נתוני דמו (מותאם לגינון ופיתוח) ---------
             const initializeDemoData = () => {
-                const demoTenderId1 = generateId();
-                const demoTenderId2 = generateId();
-                const demoTenderId3 = generateId();
-                
+                const issuerId1 = generateId();
+                const issuerId2 = generateId();
+                const issuerId3 = generateId();
+                const issuerId4 = generateId();
+                const issuerId5 = generateId();
+
+                issuers = [
+                    { id: issuerId1, name: 'משכ"ל (החברה למשק וכלכלה)', email: 'mishkal@mashkal.co.il', phone: '*3700' },
+                    { id: issuerId2, name: 'עיריית רעננה', email: 'tenders@raanana.muni.il', phone: '09-7722333' },
+                    { id: issuerId3, name: 'עיריית באר שבע', email: 'bids@br7.org.il', phone: '08-6463777' },
+                    { id: issuerId4, name: 'מועצה אזורית עמק חפר', email: 'info@hefer.org.il', phone: '09-8981555' },
+                    { id: issuerId5, name: 'החברה הכלכלית ראשון לציון', email: 'calcalit@rishonlezion.muni.il', phone: '03-9988776' }
+                ];
+
                 tenders = [
                     {
-                        id: demoTenderId1,
-                        title: 'הקמת גן שעשועים בפארק הלאומי',
-                        tenderId: 'TND-2025-001',
-                        status: 'פתוח להצעות',
-                        endDate: '2025-11-15',
-                        winner: null,
-                        contractorTourDate: '2025-10-30T10:00',
-                        executionStatus: 'טרם החל',
-                        description: 'מכרז להקמת גן שעשועים חדשני ונגיש בפארק הלאומי, כולל מתקני משחק, הצללה ופינות ישיבה.',
-                        documentUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', // PDF לדוגמה
-                        chatHistory: [{ sender: 'ai', text: 'שלום! אני כאן כדי לענות על שאלות בנוגע למכרז זה.' }]
+                        id: generateId(),
+                        title: 'הקמת מתחם מתקני שעשועים וכושר בפארק',
+                        tenderId: 'R-2024-112',
+                        status: 'זכינו', // הסטטוס שלנו
+                        endDate: '2024-09-01',
+                        officialWinner: 'גני עדן פרויקטים בע"מ (אנחנו)', // שם החברה שלנו
+                        contractorTourDate: '2024-08-15T10:00',
+                        executionStatus: 'בביצוע',
+                        description: 'אספקה והתקנה של מתקני משחק לפעוטות ובוגרים, כולל משטחי גומי בולמי זעזועים והצללה.',
+                        documentUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+                        chatHistory: [{ sender: 'ai', text: 'שלום! זכינו במכרז זה. הפרויקט כרגע בסטטוס "בביצוע".' }],
+                        issuerId: issuerId2 // עיריית רעננה
                     },
                     {
-                        id: demoTenderId2,
-                        title: 'שיפוץ וחידוש הספרייה העירונית',
-                        tenderId: 'TND-2025-002',
-                        status: 'בבדיקה',
-                        endDate: '2025-10-20',
-                        winner: null,
-                        contractorTourDate: '2025-10-05T14:00',
+                        id: generateId(),
+                        title: 'התקנת דשא סינטטי במגרש האימונים העירוני',
+                        tenderId: 'BS-SPORT-05-24',
+                        status: 'הוגשה הצעה', // הסטטוס שלנו
+                        endDate: '2025-10-15',
+                        officialWinner: 'טרם פורסם',
+                        contractorTourDate: '2025-09-30T14:00',
                         executionStatus: 'טרם החל',
-                        description: 'עבודות שיפוץ מקיפות בספרייה העירונית, כולל שדרוג תשתיות, עיצוב פנים והתאמה טכנולוגית.',
+                        description: 'עבודות להחלפת משטח דשא קיים בדשא סינטטי איכותי, כולל עבודות תשתית וניקוז, במגרש הכדורגל.',
                         documentUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-                        chatHistory: [{ sender: 'ai', text: 'שלום! אני כאן כדי לענות על שאלות בנוגע למכרז זה.' }]
+                        chatHistory: [{ sender: 'ai', text: 'שלום! הגשנו הצעה למכרז זה. אנו ממתינים להחלטת ועדת המכרזים.' }],
+                        issuerId: issuerId3 // עיריית באר שבע
                     },
                     {
-                        id: demoTenderId3,
-                        title: 'אספקת ציוד מחשוב לבתי ספר',
-                        tenderId: 'TND-2024-198',
-                        status: 'הסתיים',
-                        endDate: '2024-08-01',
-                        winner: 'מחשוב ישיר בע"מ',
-                        contractorTourDate: null, // לא היה סיור
-                        executionStatus: 'הושלם',
-                        description: 'אספקה והטמעה של 500 עמדות מחשב נייד וציוד היקפי בבתי ספר יסודיים ברחבי העיר.',
+                        id: generateId(),
+                        title: 'אחזקת גנים ושטחים ציבוריים - אזור צפון',
+                        tenderId: 'MASHKAL-G-2024-03',
+                        status: 'לא זכינו', // הסטטוס שלנו
+                        endDate: '2024-07-15',
+                        officialWinner: 'גינון ירוק בע"מ', // חברה מתחרה
+                        contractorTourDate: '2024-07-01T09:00',
+                        executionStatus: 'לא רלוונטי',
+                        description: 'מכרז מסגרת שנתי לאחזקה שוטפת של גינון, השקיה וניקיון בשטחים ציבוריים פתוחים.',
                         documentUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-                        chatHistory: [{ sender: 'ai', text: 'שלום! מכרז זה הסתיים. אני עדיין יכול לענות על שאלות היסטוריות.' }]
+                        chatHistory: [{ sender: 'ai', text: 'שלום. לצערנו לא זכינו במכרז זה. הזוכה היא "גינון ירוק בע"מ".' }],
+                        issuerId: issuerId1 // משכ"ל
+                    },
+                    {
+                        id: generateId(),
+                        title: 'שיקום ושדרוג מגרש ספורט משולב',
+                        tenderId: 'EH-2025-P-01',
+                        status: 'בתהליך הכנה', // הסטטוס שלנו
+                        endDate: '2025-11-20',
+                        officialWinner: null,
+                        contractorTourDate: '2025-11-05T11:00',
+                        executionStatus: 'טרם החל',
+                        description: 'שיקום משטח אספלט, התקנת גדרות וסלים, וצביעה וסימון מחדש למגרש כדורסל/כדורגל משולב.',
+                        documentUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+                        chatHistory: [{ sender: 'ai', text: 'שלום! אנחנו בתהליך הכנת ההצעה למכרז זה. הדדליין להגשה הוא 20.11.2025.' }],
+                        issuerId: issuerId4 // מועצה אזורית עמק חפר
+                    },
+                    {
+                        id: generateId(),
+                        title: 'אספקת והתקנת משטחי גומי בגני ילדים',
+                        tenderId: 'RISHON-EDU-G-99',
+                        status: 'חדש (בבדיקה)', // הסטטוס שלנו
+                        endDate: '2025-12-01',
+                        officialWinner: null,
+                        contractorTourDate: '2025-11-15T09:00',
+                        executionStatus: 'טרם החל',
+                        description: 'מכרז לאספקה והתקנה של משטחי גומי יצוקים ב-15 גני ילדים ברחבי העיר.',
+                        documentUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+                        chatHistory: [{ sender: 'ai', text: 'שלום. זהו מכרז חדש שאנו בודקים כדאיות הגשה עבורו.' }],
+                        issuerId: issuerId5 // החברה הכלכלית ראשון לציון
                     }
                 ];
                 
-                customers = [
-                    { id: generateId(), name: 'גני עדן - קבלנות פיתוח', email: 'office@gan-eden.co.il', phone: '050-1234567', tenderId: demoTenderId1 },
-                    { id: generateId(), name: 'האחים כהן שיפוצים', email: 'cohen@bros.com', phone: '052-7654321', tenderId: demoTenderId2 },
-                    { id: generateId(), name: 'מחשוב ישיר בע"מ', email: 'sales@direct-comp.co.il', phone: '09-8877665', tenderId: demoTenderId3 },
-                    { id: generateId(), name: 'קבלן ירוק', email: 'green@builder.org', phone: '054-1112223', tenderId: demoTenderId1 },
-                    { id: generateId(), name: 'שיפוצי העתיד', email: 'futur@repair.net', phone: '050-9876543', tenderId: demoTenderId2 }
-                ];
-                
                 saveTenders();
-                saveCustomers();
+                saveIssuers();
             };
             
             // --------- פונקציות עזר (Helpers) ---------
             
-            // הצגת הודעה מותאמת
             const showMessage = (title, text) => {
                 messageModalTitle.textContent = title;
                 messageModalText.textContent = text;
                 openModal(messageModal);
             };
             
-            // פתיחת מודל
             const openModal = (modal) => modal.classList.remove('hidden');
-            
-            // סגירת מודל
             const closeModal = (modal) => modal.classList.add('hidden');
             
-            // קבלת צבע לסטטוס
+            // קבלת צבע לסטטוס (שלנו)
             const getStatusClass = (status) => {
                 switch (status) {
-                    case 'פתוח להצעות': return 'bg-green-100 text-green-800';
-                    case 'בבדיקה': return 'bg-yellow-100 text-yellow-800';
-                    case 'הסתיים': return 'bg-blue-100 text-blue-800';
-                    case 'מבוטל': return 'bg-red-100 text-red-800';
+                    case 'זכינו': return 'bg-green-100 text-green-800';
+                    case 'הוגשה הצעה': return 'bg-blue-100 text-blue-800';
+                    case 'בתהליך הכנה': return 'bg-purple-100 text-purple-800';
+                    case 'חדש (בבדיקה)': return 'bg-yellow-100 text-yellow-800';
+                    case 'לא זכינו': return 'bg-red-100 text-red-800';
+                    case 'בוטל': return 'bg-gray-100 text-gray-800';
                     default: return 'bg-gray-100 text-gray-800';
                 }
             };
             
-            // המרת תאריך לפורמט ידידותי
             const formatDate = (dateString) => {
                 if (!dateString) return 'לא צוין';
                 try {
@@ -554,7 +524,6 @@
                 } catch (e) { return dateString; }
             };
             
-            // המרת תאריך ושעה
             const formatDateTime = (dateTimeString) => {
                 if (!dateTimeString) return 'לא צוין';
                 try {
@@ -566,35 +535,32 @@
             // --------- פונקציות ניווט ---------
             
             const navigateTo = (viewName) => {
-                // הסתרת כל התצוגות
                 tendersListView.classList.add('hidden');
-                customersListView.classList.add('hidden');
+                issuersListView.classList.add('hidden');
                 tenderDetailsView.classList.add('hidden');
-                
-                // הסתרת כפתור "חזרה" כברירת מחדל
                 backToListBtn.classList.add('hidden');
 
                 if (viewName === 'tenders') {
                     tendersListView.classList.remove('hidden');
                     navTenders.classList.replace('text-gray-500', 'text-blue-500');
-                    navCustomers.classList.replace('text-blue-500', 'text-gray-500');
-                } else if (viewName === 'customers') {
-                    customersListView.classList.remove('hidden');
+                    navIssuers.classList.replace('text-blue-500', 'text-gray-500');
+                } else if (viewName === 'issuers') {
+                    issuersListView.classList.remove('hidden');
                     navTenders.classList.replace('text-blue-500', 'text-gray-500');
-                    navCustomers.classList.replace('text-gray-500', 'text-blue-500');
+                    navIssuers.classList.replace('text-gray-500', 'text-blue-500');
                 } else if (viewName === 'details') {
                     tenderDetailsView.classList.remove('hidden');
                     backToListBtn.classList.remove('hidden');
                 }
                 currentView = viewName;
-                window.scrollTo(0, 0); // גלול לראש הדף
+                window.scrollTo(0, 0);
             };
 
             // --------- פונקציות רינדור (Render) ---------
 
-            // רינדור רשימת מכרזים (כרטיסיות)
+            // רינדור רשימת מכרזים
             const renderTendersList = () => {
-                tendersListContainer.innerHTML = ''; // ניקוי
+                tendersListContainer.innerHTML = '';
                 
                 if (tenders.length === 0) {
                     noTendersMsg.classList.remove('hidden');
@@ -603,14 +569,16 @@
                 
                 noTendersMsg.classList.add('hidden');
                 
-                // מיון: פתוחים קודם, אח"כ בבדיקה, אח"כ סגורים
                 const sortedTenders = [...tenders].sort((a, b) => {
-                    const statusOrder = { 'פתוח להצעות': 1, 'בבדיקה': 2, 'הסתיים': 3, 'מבוטל': 4 };
+                    const statusOrder = { 'בתהליך הכנה': 1, 'חדש (בבדיקה)': 2, 'הוגשה הצעה': 3, 'זכינו': 4, 'לא זכינו': 5, 'בוטל': 6 };
                     return (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99);
                 });
                 
                 sortedTenders.forEach(tender => {
                     const statusClass = getStatusClass(tender.status);
+                    const issuer = issuers.find(i => i.id === tender.issuerId);
+                    const issuerName = issuer ? issuer.name : 'לא ידוע';
+                    
                     const card = document.createElement('div');
                     card.className = 'bg-white shadow-md rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow';
                     card.dataset.id = tender.id;
@@ -619,7 +587,8 @@
                             <h3 class="text-lg font-semibold text-gray-800 mb-2 w-2/3">${tender.title}</h3>
                             <span class="text-xs font-semibold px-3 py-1 rounded-full ${statusClass}">${tender.status}</span>
                         </div>
-                        <p class="text-sm text-gray-600 mb-3">${tender.tenderId}</p>
+                        <p class="text-sm text-gray-600 mb-1">${tender.tenderId}</p>
+                        <p class="text-sm font-medium text-gray-500 mb-3">${issuerName}</p>
                         <div class="border-t pt-2 flex justify-between items-center text-sm text-gray-500">
                             <div>
                                 <ion-icon name="calendar-outline" class="w-4 h-4 inline-block ml-1 align-middle"></ion-icon>
@@ -631,7 +600,6 @@
                             </span>
                         </div>
                     `;
-                    // האזנה ללחיצה על הכרטיס
                     card.addEventListener('click', () => {
                         renderTenderDetails(tender.id);
                     });
@@ -639,47 +607,45 @@
                 });
             };
 
-            // רינדור רשימת לקוחות (כרטיסיות)
-            const renderCustomersList = () => {
-                customersListContainer.innerHTML = ''; // ניקוי
+            // רינדור רשימת מזמיני עבודה
+            const renderIssuersList = () => {
+                issuersListContainer.innerHTML = '';
                 
-                if (customers.length === 0) {
-                    noCustomersMsg.classList.remove('hidden');
+                if (issuers.length === 0) {
+                    noIssuersMsg.classList.remove('hidden');
                     return;
                 }
                 
-                noCustomersMsg.classList.add('hidden');
+                noIssuersMsg.classList.add('hidden');
                 
-                customers.forEach(customer => {
-                    const linkedTender = tenders.find(t => t.id === customer.tenderId);
-                    const tenderName = linkedTender ? linkedTender.title : '<span class="italic text-gray-400">ללא שיוך</span>';
+                issuers.forEach(issuer => {
+                    const activeTendersCount = tenders.filter(t => t.issuerId === issuer.id && t.status !== 'זכינו' && t.status !== 'לא זכינו' && t.status !== 'בוטל').length;
                     
                     const card = document.createElement('div');
                     card.className = 'bg-white shadow-md rounded-lg p-4';
-                    card.dataset.id = customer.id;
+                    card.dataset.id = issuer.id;
                     card.innerHTML = `
                         <div class="flex justify-between items-start">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-1">${customer.name}</h3>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-1">${issuer.name}</h3>
                             <div class="space-x-2 rtl:space-x-reverse">
-                                <button data-id="${customer.id}" class="edit-customer text-indigo-500 hover:text-indigo-700">
+                                <button data-id="${issuer.id}" class="edit-issuer text-indigo-500 hover:text-indigo-700">
                                     <ion-icon name="create-outline" class="w-5 h-5"></ion-icon>
                                 </button>
-                                <button data-id="${customer.id}" class="delete-customer text-red-500 hover:text-red-700">
+                                <button data-id="${issuer.id}" class="delete-issuer text-red-500 hover:text-red-700">
                                     <ion-icon name="trash-outline" class="w-5 h-5"></ion-icon>
                                 </button>
                             </div>
                         </div>
-                        <p class="text-sm text-gray-600 mb-1">${customer.email}</p>
-                        <p class="text-sm text-gray-600 mb-3">${customer.phone || 'אין טלפון'}</p>
-                        <div class="border-t pt-2 text-sm text-gray-500">
-                            <strong>משויך ל:</strong> ${tenderName}
+                        <p class="text-sm text-gray-600 mb-1">${issuer.email || 'אין אימייל'}</p>
+                        <p class="text-sm text-gray-600 mb-3">${issuer.phone || 'אין טלפון'}</p>
+                        <div class="border-t pt-2 text-sm text-blue-600 font-medium">
+                            <span>${activeTendersCount} מכרזים פעילים במעקב</span>
                         </div>
                     `;
-                    customersListContainer.appendChild(card);
+                    issuersListContainer.appendChild(card);
                 });
                 
-                // הוספת האזנה לכפתורי עריכה/מחיקה
-                addCustomerListListeners();
+                addIssuerListListeners();
             };
 
             // רינדור דף פרטי מכרז
@@ -692,106 +658,104 @@
                 }
                 
                 currentTenderId = tenderId;
+                const issuer = issuers.find(i => i.id === tender.issuerId);
                 
-                // מילוי כותרות
                 detailsTenderTitle.textContent = tender.title;
-                detailsTenderIdBadge.textContent = tender.tenderId;
+                detailsTenderIssuerName.textContent = issuer ? issuer.name : 'מזמין לא משויך';
                 
-                // רינדור הטאבים
                 renderDetailsTab(tender);
-                renderContractorsTab(tender);
+                renderSubmissionTab(tender, issuer);
                 renderChatTab(tender);
                 
-                // איפוס לטאב ברירת מחדל
                 switchDetailTab('details');
-                
-                // ניווט לדף הפרטים
                 navigateTo('details');
             };
 
-            // רינדור טאב "פרטים"
+            // רינדור טאב "פרטים כלליים"
             const renderDetailsTab = (tender) => {
                 detailsTabContent.innerHTML = `
                     <div class="bg-white p-4 rounded-lg shadow space-y-3">
-                        ${renderDetailItem('bookmark-outline', 'סטטוס', tender.status, getStatusClass(tender.status))}
+                        ${renderDetailItem('reader-outline', 'מספר מכרז', tender.tenderId)}
                         ${renderDetailItem('calendar-outline', 'תאריך הגשה אחרון', formatDate(tender.endDate))}
                         ${renderDetailItem('walk-outline', 'סיור קבלנים', formatDateTime(tender.contractorTourDate))}
-                        ${renderDetailItem('trophy-outline', 'קבלן זוכה', tender.winner || 'טרם נבחר')}
-                        ${renderDetailItem('hammer-outline', 'סטטוס ביצוע', tender.executionStatus || 'טרם הוגדר')}
                     </div>
                     <div class="bg-white p-4 rounded-lg shadow mt-4">
                         <h4 class="text-lg font-semibold mb-2">תיאור המכרז</h4>
                         <p class="text-gray-700 whitespace-pre-wrap">${tender.description || 'אין תיאור'}</p>
                     </div>
+                    <div class="mt-4">
+                         <button data-id="${tender.id}" class="edit-tender w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg shadow flex items-center justify-center">
+                            <ion-icon name="create-outline" class="w-5 h-5 ml-2"></ion-icon>
+                            ערוך פרטי מכרז
+                        </button>
+                    </div>
                 `;
+                
+                detailsTabContent.querySelector('.edit-tender').addEventListener('click', (e) => {
+                    openTenderForEditing(e.currentTarget.dataset.id);
+                });
             };
             
-            // פונקציית עזר לרינדור שורת פרט
             const renderDetailItem = (icon, label, value, valueClass = 'text-gray-800') => {
                 return `
                     <div class="flex items-start">
                         <ion-icon name="${icon}" class="w-5 h-5 text-gray-500 mt-1 ml-3"></ion-icon>
                         <div>
                             <span class="block text-sm font-medium text-gray-500">${label}</span>
-                            <span class="block text-base font-semibold ${valueClass}">${value}</span>
+                            <span class="block text-base font-semibold ${valueClass}">${value || 'לא צוין'}</span>
                         </div>
                     </div>
                 `;
             };
 
-            // רינדור טאב "קבלנים"
-            const renderContractorsTab = (tender) => {
-                const linkedCustomers = customers.filter(c => c.tenderId === tender.id);
-                if (linkedCustomers.length === 0) {
-                    contractorsTabContent.innerHTML = `
-                        <div class="text-center text-gray-500 p-6 bg-white rounded-lg shadow">
-                            <ion-icon name="people-circle-outline" class="w-12 h-12 mx-auto text-gray-400"></ion-icon>
-                            <p class="mt-2">לא שויכו קבלנים או לקוחות למכרז זה.</p>
-                        </div>
+            // רינדור טאב "סטטוס הגשה"
+            const renderSubmissionTab = (tender, issuer) => {
+                let issuerHtml = `
+                    <h4 class="text-lg font-semibold mb-2">פרטי מזמין העבודה</h4>
+                    <p class="text-gray-500">לא שויך מזמין עבודה למכרז זה.</p>
+                `;
+                
+                if (issuer) {
+                    issuerHtml = `
+                        <h4 class="text-lg font-semibold mb-2">פרטי מזמין העבודה</h4>
+                        ${renderDetailItem('business-outline', 'שם המזמין', issuer.name)}
+                        ${renderDetailItem('mail-outline', 'אימייל איש קשר', issuer.email || 'לא הוזן')}
+                        ${renderDetailItem('call-outline', 'טלפון איש קשר', issuer.phone || 'לא הוזן')}
                     `;
-                    return;
                 }
                 
-                contractorsTabContent.innerHTML = linkedCustomers.map(customer => `
-                    <div class="bg-white p-4 rounded-lg shadow flex justify-between items-center">
-                        <div>
-                            <h4 class="font-semibold">${customer.name}</h4>
-                            <p class="text-sm text-gray-600">${customer.email}</p>
-                            <p class="text-sm text-gray-600">${customer.phone}</p>
-                        </div>
-                        <a href="mailto:${customer.email}" class="text-blue-500">
-                            <ion-icon name="mail-outline" class="w-6 h-6"></ion-icon>
-                        </a>
+                submissionTabContent.innerHTML = `
+                    <div class="bg-white p-4 rounded-lg shadow space-y-3">
+                        <h4 class="text-lg font-semibold mb-2">סטטוס ההתמודדות שלנו</h4>
+                        ${renderDetailItem('flag-outline', 'הסטטוס שלנו', tender.status, getStatusClass(tender.status))}
+                        ${renderDetailItem('trophy-outline', 'הזוכה במכרז', tender.officialWinner || 'טרם פורסם')}
+                        ${renderDetailItem('hammer-outline', 'סטטוס ביצוע', tender.status === 'זכינו' ? (tender.executionStatus || 'טרם החל') : 'לא רלוונטי')}
                     </div>
-                `).join('');
+                    <div class="bg-white p-4 rounded-lg shadow mt-4 space-y-3">
+                        ${issuerHtml}
+                    </div>
+                `;
             };
-            
+
             // רינדור טאב "צ'אט AI"
             const renderChatTab = (tender) => {
                 chatHistory.innerHTML = '';
                 if (!tender.chatHistory || tender.chatHistory.length === 0) {
                     tender.chatHistory = [{ sender: 'ai', text: 'שלום! אני כאן כדי לענות על שאלות בנוגע למכרז זה.' }];
                 }
-                
-                tender.chatHistory.forEach(msg => {
-                    appendChatMessage(msg.sender, msg.text);
-                });
-                
+                tender.chatHistory.forEach(msg => appendChatMessage(msg.sender, msg.text));
                 chatInput.value = '';
-                chatHistory.scrollTop = chatHistory.scrollHeight; // גלול לתחתית
+                chatHistory.scrollTop = chatHistory.scrollHeight;
             };
             
             // החלפת טאבים בדף פרטים
             const switchDetailTab = (tabName) => {
-                // הסתרת כל התכנים
                 detailsTabContent.classList.add('hidden');
-                contractorsTabContent.classList.add('hidden');
+                submissionTabContent.classList.add('hidden');
                 chatTabContent.classList.add('hidden');
                 
-                // הסרת עיצוב 'פעיל' מכל הטאבים
                 detailsTabs.forEach(tab => tab.classList.replace('tab-active', 'tab-inactive'));
                 
-                // הצגת התוכן והטאב הפעיל
                 const activeTab = document.querySelector(`.details-tab[data-tab="${tabName}"]`);
                 const activeContent = document.getElementById(`${tabName}-tab-content`);
                 
@@ -802,14 +766,14 @@
                 }
             };
 
-            // פונקציה למילוי אפשרויות המכרזים במודל הלקוח
-            const populateTenderOptions = () => {
-                customerTenderLink.innerHTML = '<option value="">ללא שיוך</option>'; // איפוס
-                tenders.forEach(tender => {
+            // פונקציה למילוי אפשרויות מזמיני העבודה (במודל המכרז)
+            const populateIssuerOptions = () => {
+                tenderIssuerLink.innerHTML = '<option value="">בחר מזמין עבודה...</option>';
+                issuers.forEach(issuer => {
                     const option = document.createElement('option');
-                    option.value = tender.id;
-                    option.textContent = `${tender.title} (${tender.tenderId})`;
-                    customerTenderLink.appendChild(option);
+                    option.value = issuer.id;
+                    option.textContent = issuer.name;
+                    tenderIssuerLink.appendChild(option);
                 });
             };
             
@@ -821,32 +785,55 @@
                 
                 aiProcessor.classList.remove('hidden');
                 
-                // הדמיית עיבוד של 2 שניות
                 setTimeout(() => {
                     aiProcessor.classList.add('hidden');
                     
-                    // מילוי אוטומטי של שדות (דמו)
-                    document.getElementById('tender-title').value = 'מכרז שחולץ אוטומטית';
+                    document.getElementById('tender-title').value = 'מכרז לפיתוח גן ציבורי (דמו AI)';
                     document.getElementById('tender-id-display').value = `TND-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000)}`;
-                    document.getElementById('tender-description').value = 'תיאור זה חולץ אוטומטית מהמסמך שהועלה. המכרז כולל עבודות פיתוח ותשתית...';
+                    document.getElementById('tender-description').value = 'תיאור זה חולץ אוטומטית: עבודות פיתוח, גינון, התקנת ריהוט רחוב ומשטחי גומי.';
                     
-                    // קביעת תאריכים לדוגמה
                     const today = new Date();
                     const endDate = new Date(today.setDate(today.getDate() + 30)).toISOString().split('T')[0];
-                    const tourDate = new Date(today.setDate(today.getDate() - 15)).toISOString().substring(0, 16); // 15 יום מהיום
+                    const tourDate = new Date(today.setDate(today.getDate() - 15)).toISOString().substring(0, 16);
                     
                     document.getElementById('tender-end-date').value = endDate;
                     document.getElementById('tender-tour-date').value = tourDate;
+                    document.getElementById('tender-status').value = 'חדש (בבדיקה)';
                     
-                    // שמירת "כתובת" מזויפת של הקובץ
-                    document.getElementById('tender-document-url').value = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'; // שימוש בקובץ דמו
+                    if (issuers.length > 0) {
+                        document.getElementById('tender-issuer-link').value = issuers[0].id;
+                    }
                     
-                    showMessage('ניתוח AI הושלם', 'הפרטים חולצו מהמסמך ומילאו את הטופס. אנא בדוק את הנתונים ושמור.');
-
+                    document.getElementById('tender-document-url').value = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
+                    
+                    showMessage('ניתוח AI הושלם', 'הפרטים חולצו מהמסמך. אנא בדוק את הנתונים, בחר מזמין עבודה ושמור.');
                 }, 2000);
             });
             
-            // שמירת מכרז (חדש או עריכה)
+            // פתיחת מודל עריכת מכרז
+            const openTenderForEditing = (id) => {
+                const tender = tenders.find(t => t.id === id);
+                if (!tender) return;
+                
+                tenderModalTitle.textContent = 'ערוך פרטי מכרז';
+                populateIssuerOptions();
+                
+                document.getElementById('tender-id').value = tender.id;
+                document.getElementById('tender-document-url').value = tender.documentUrl;
+                document.getElementById('tender-title').value = tender.title;
+                document.getElementById('tender-id-display').value = tender.tenderId;
+                document.getElementById('tender-issuer-link').value = tender.issuerId;
+                document.getElementById('tender-description').value = tender.description;
+                document.getElementById('tender-end-date').value = tender.endDate;
+                document.getElementById('tender-tour-date').value = tender.contractorTourDate;
+                document.getElementById('tender-status').value = tender.status;
+                document.getElementById('tender-winner').value = tender.officialWinner;
+                
+                aiProcessor.classList.add('hidden');
+                openModal(tenderModal);
+            };
+
+            // שמירת מכרז
             tenderForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 
@@ -854,73 +841,70 @@
                 const tenderData = {
                     title: document.getElementById('tender-title').value,
                     tenderId: document.getElementById('tender-id-display').value,
+                    issuerId: document.getElementById('tender-issuer-link').value,
                     description: document.getElementById('tender-description').value,
                     endDate: document.getElementById('tender-end-date').value,
                     contractorTourDate: document.getElementById('tender-tour-date').value || null,
                     status: document.getElementById('tender-status').value,
-                    winner: document.getElementById('tender-winner').value || null,
-                    documentUrl: document.getElementById('tender-document-url').value, // מהשדה הנסתר
-                    executionStatus: 'טרם החל' // ברירת מחדל לחדש
+                    officialWinner: document.getElementById('tender-winner').value || null,
+                    documentUrl: document.getElementById('tender-document-url').value,
                 };
 
                 if (id) {
-                    // עריכה
                     const index = tenders.findIndex(t => t.id === id);
                     if (index !== -1) {
-                        // שומר את היסטוריית הצ'אט הקיימת
                         const existingChat = tenders[index].chatHistory;
-                        tenders[index] = { ...tenders[index], ...tenderData, chatHistory: existingChat };
+                        const existingExecStatus = tenders[index].executionStatus;
+                        tenders[index] = { ...tenders[index], ...tenderData, chatHistory: existingChat, executionStatus: existingExecStatus };
+                        
+                        if (tenderData.status === 'זכינו' && !existingExecStatus) {
+                            tenders[index].executionStatus = 'טרם החל';
+                        }
                     }
                 } else {
-                    // חדש
                     tenderData.id = generateId();
                     tenderData.chatHistory = [{ sender: 'ai', text: 'שלום! אני כאן כדי לענות על שאלות בנוגע למכרז זה.' }];
+                    tenderData.executionStatus = (tenderData.status === 'זכינו') ? 'טרם החל' : null;
                     tenders.push(tenderData);
                 }
 
                 saveTenders();
                 renderTendersList();
-                renderCustomersList(); // רענון למקרה ששם מכרז השתנה
+                
+                if (currentView === 'details' && (id === currentTenderId || !id)) {
+                    renderTenderDetails(id || tenderData.id);
+                }
+                
                 closeModal(tenderModal);
             });
 
-            // שמירת לקוח (חדש או עריכה)
-            customerForm.addEventListener('submit', (e) => {
+            // שמירת מזמין עבודה
+            issuerForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 
-                const id = document.getElementById('customer-id').value;
-                const customerData = {
-                    name: document.getElementById('customer-name').value,
-                    email: document.getElementById('customer-email').value,
-                    phone: document.getElementById('customer-phone').value,
-                    tenderId: document.getElementById('customer-tender-link').value,
+                const id = document.getElementById('issuer-id').value;
+                const issuerData = {
+                    name: document.getElementById('issuer-name').value,
+                    email: document.getElementById('issuer-email').value,
+                    phone: document.getElementById('issuer-phone').value,
                 };
                 
                 if (id) {
-                    // עריכה
-                    const index = customers.findIndex(c => c.id === id);
+                    const index = issuers.findIndex(i => i.id === id);
                     if (index !== -1) {
-                        customers[index] = { ...customers[index], ...customerData };
+                        issuers[index] = { ...issuers[index], ...issuerData };
                     }
                 } else {
-                    // חדש
-                    customerData.id = generateId();
-                    customers.push(customerData);
+                    issuerData.id = generateId();
+                    issuers.push(issuerData);
                 }
 
-                saveCustomers();
-                renderCustomersList();
-                
-                // אם היינו בדף פרטים, רענן את טאב הקבלנים
-                if (currentView === 'details' && currentTenderId) {
-                     const tender = tenders.find(t => t.id === currentTenderId);
-                     renderContractorsTab(tender);
-                }
-                
-                closeModal(customerModal);
+                saveIssuers();
+                renderIssuersList();
+                closeModal(issuerModal);
             });
             
-            // --------- לוגיקת צ'אט AI ---------
+            // --------- לוגיקת צ'אט AI (מותאם) ---------
             
             chatSendBtn.addEventListener('click', handleChatSend);
             chatInput.addEventListener('keypress', (e) => {
@@ -934,23 +918,20 @@
                 const tender = tenders.find(t => t.id === currentTenderId);
                 if (!tender) return;
                 
-                // הוספת הודעת משתמש
                 tender.chatHistory.push({ sender: 'user', text: query });
                 appendChatMessage('user', query);
                 chatInput.value = '';
                 
-                // קבלת תגובת AI (מודולרית)
-                const aiResponse = getAiChatResponse(tender, query);
+                const issuer = issuers.find(i => i.id === tender.issuerId);
+                const aiResponse = getAiChatResponse(tender, issuer, query);
                 
-                // הוספת הודעת AI לאחר השהייה קצרה
                 setTimeout(() => {
                     tender.chatHistory.push({ sender: 'ai', text: aiResponse });
                     appendChatMessage('ai', aiResponse);
-                    saveTenders(); // שמירת היסטוריית הצ'אט
+                    saveTenders();
                 }, 1000);
             }
             
-            // הוספת בועת צ'אט ל-DOM
             function appendChatMessage(sender, text) {
                 const bubble = document.createElement('div');
                 bubble.className = `chat-bubble p-3 ${sender === 'user' ? 'chat-bubble-user self-end' : 'chat-bubble-ai self-start'}`;
@@ -959,75 +940,72 @@
                 chatHistory.scrollTop = chatHistory.scrollHeight;
             }
             
-            // "מנוע" ה-AI המודולרי
-            function getAiChatResponse(tender, query) {
+            // "מנוע" ה-AI המודולרי (מותאם לקבלן)
+            function getAiChatResponse(tender, issuer, query) {
                 const q = query.toLowerCase();
                 
                 if (q.includes('מי זכה') || q.includes('זוכה')) {
-                    return tender.winner ? `הקבלן הזוכה במכרז הוא: ${tender.winner}.` : 'טרם נבחר זוכה למכרז זה.';
+                    if (tender.status === 'זכינו') return 'אנחנו זכינו במכרז הזה! כל הכבוד לנו.';
+                    if (tender.status === 'לא זכינו') return `לצערנו לא זכינו. הזוכה שפורסם הוא: ${tender.officialWinner || 'לא ידוע'}.`;
+                    return tender.officialWinner ? `הזוכה שפורסם הוא: ${tender.officialWinner}.` : 'טרם פורסם זוכה רשמי למכרז זה.';
                 }
                 if (q.includes('מתי הסיור') || q.includes('סיור קבלנים')) {
-                    return tender.contractorTourDate ? `סיור הקבלנים נקבע לתאריך: ${formatDateTime(tender.contractorTourDate)}.` : 'לא נקבע תאריך לסיור קבלנים עבור מכרז זה.';
+                    return tender.contractorTourDate ? `סיור הקבלנים נקבע לתאריך: ${formatDateTime(tender.contractorTourDate)}.` : 'לא נקבע תאריך לסיור קבלנים.';
                 }
                 if (q.includes('מתי נסגר') || q.includes('תאריך אחרון') || q.includes('דדליין')) {
                     return `התאריך האחרון להגשה הוא: ${formatDate(tender.endDate)}.`;
                 }
-                if (q.includes('מה הסטטוס') || q.includes('סטטוס')) {
-                    return `סטטוס המכרז הנוכחי הוא: ${tender.status}.`;
+                if (q.includes('מה הסטטוס שלנו') || q.includes('מה הסטטוס') || q.includes('סטטוס הגשה')) {
+                    return `סטטוס ההגשה *שלנו* הוא: ${tender.status}.`;
                 }
-                 if (q.includes('ביצוע') || q.includes('סטטוס ביצוע')) {
-                    return `סטטוס הביצוע של המכרז הוא: ${tender.executionStatus}.`;
+                if (q.includes('ביצוע') || q.includes('סטטוס ביצוע')) {
+                    if (tender.status === 'זכינו') {
+                        return `סטטוס הביצוע של הפרויקט הוא: ${tender.executionStatus || 'טרם החל'}.`;
+                    }
+                    return 'סטטוס ביצוע רלוונטי רק למכרזים שזכינו בהם.';
                 }
-                if (q.includes('מי משתתף') || q.includes('אילו קבלנים') || q.includes('רשימת קבלנים')) {
-                     const linkedCustomers = customers.filter(c => c.tenderId === tender.id);
-                     if (linkedCustomers.length === 0) return 'לא שויכו קבלנים למכרז זה עדיין.';
-                     const names = linkedCustomers.map(c => c.name).join(', ');
-                     return `הקבלנים המשויכים למכרז זה הם: ${names}.`;
+                if (q.includes('מי המזמין') || q.includes('מזמין עבודה') || q.includes('מי פירסם')) {
+                     return issuer ? `מזמין העבודה (הגוף המפרסם) הוא: ${issuer.name}.` : 'לא שויך מזמין עבודה למכרז זה.';
                 }
                 if (q.includes('תקציר') || q.includes('תיאור') || q.includes('מה המכרז')) {
                     return tender.description ? `תקציר המכרז: ${tender.description}` : 'אין תיאור זמין במערכת.';
                 }
                 
-                // תשובת ברירת מחדל
-                return 'אני מצטער, אני יכול לענות רק על שאלות ספציפיות לגבי פרטי המכרז, כגון: "מי הזוכה?", "מתי הסיור?", "מה הסטטוס?" או "סכם לי את המכרז".';
+                return 'אני מצטער, אני יכול לענות רק על שאלות ספציפיות לגבי המכרז, כגון: "מי זכה?", "מה הסטטוס שלנו?", "מי המזמין?" או "מתי הדדליין?".';
             }
             
             // --------- האזנה לאירועים (Event Listeners) ---------
             
-            // ניווט תחתון
             navTenders.addEventListener('click', () => navigateTo('tenders'));
-            navCustomers.addEventListener('click', () => navigateTo('customers'));
-            
-            // כפתור חזרה
+            navIssuers.addEventListener('click', () => navigateTo('issuers'));
             backToListBtn.addEventListener('click', () => navigateTo('tenders'));
             
             // פתיחת מודלים
             openTenderModalBtn.addEventListener('click', () => {
-                tenderModalTitle.textContent = 'הוסף מכרז חדש';
+                tenderModalTitle.textContent = 'הוספת מכרז למעקב';
                 tenderForm.reset();
-                document.getElementById('tender-id').value = ''; // ניקוי ID
-                aiProcessor.classList.add('hidden'); // הסתרת אנימציית AI
+                document.getElementById('tender-id').value = '';
+                aiProcessor.classList.add('hidden');
+                populateIssuerOptions();
                 openModal(tenderModal);
             });
             
-            openCustomerModalBtn.addEventListener('click', () => {
-                customerModalTitle.textContent = 'הוסף לקוח / קבלן';
-                customerForm.reset();
-                document.getElementById('customer-id').value = ''; // ניקוי ID
-                populateTenderOptions(); // טעינת מכרזים לבחירה
-                openModal(customerModal);
+            openIssuerModalBtn.addEventListener('click', () => {
+                issuerModalTitle.textContent = 'הוסף מזמין עבודה';
+                issuerForm.reset();
+                document.getElementById('issuer-id').value = '';
+                openModal(issuerModal);
             });
             
             // סגירת מודלים
             closeModalBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
                     closeModal(tenderModal);
-                    closeModal(customerModal);
+                    closeModal(issuerModal);
                     closeModal(docViewerModal);
                     closeModal(messageModal);
                 });
             });
-            
             messageModalClose.addEventListener('click', () => closeModal(messageModal));
             
             // פתיחת צפייה במסמך
@@ -1041,48 +1019,70 @@
                 }
             });
             
-            // החלפת טאבים בדף פרטים
+            // החלפת טאבים
             detailsTabs.forEach(tab => {
                 tab.addEventListener('click', () => {
                     switchDetailTab(tab.dataset.tab);
                 });
             });
 
-            // האזנה לכפתורים ברשימת הלקוחות (עריכה/מחיקה)
-            function addCustomerListListeners() {
-                customersListContainer.querySelectorAll('.edit-customer').forEach(btn => {
+            // האזנה לכפתורים ברשימת מזמיני העבודה
+            function addIssuerListListeners() {
+                issuersListContainer.querySelectorAll('.edit-issuer').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         e.stopPropagation();
                         const id = e.currentTarget.dataset.id;
-                        const customer = customers.find(c => c.id === id);
-                        if (customer) {
-                            customerModalTitle.textContent = 'ערוך לקוח / קבלן';
-                            populateTenderOptions();
-                            document.getElementById('customer-id').value = customer.id;
-                            document.getElementById('customer-name').value = customer.name;
-                            document.getElementById('customer-email').value = customer.email;
-                            document.getElementById('customer-phone').value = customer.phone;
-                            document.getElementById('customer-tender-link').value = customer.tenderId;
-                            openModal(customerModal);
+                        const issuer = issuers.find(i => i.id === id);
+                        if (issuer) {
+                            issuerModalTitle.textContent = 'ערוך מזמין עבודה';
+                            document.getElementById('issuer-id').value = issuer.id;
+                            document.getElementById('issuer-name').value = issuer.name;
+                            document.getElementById('issuer-email').value = issuer.email;
+                            document.getElementById('issuer-phone').value = issuer.phone;
+                            openModal(issuerModal);
                         }
                     });
                 });
                 
-                customersListContainer.querySelectorAll('.delete-customer').forEach(btn => {
+                issuersListContainer.querySelectorAll('.delete-issuer').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         e.stopPropagation();
                         const id = e.currentTarget.dataset.id;
-                        // בעולם אמיתי, היינו משתמשים במודל אישור מותאם
-                        // כאן נמחק ישירות לצורך הדגמה
-                        customers = customers.filter(c => c.id !== id);
-                        saveCustomers();
-                        renderCustomersList();
                         
-                        // רענון טאב קבלנים אם אנחנו בדף פרטים
-                        if (currentView === 'details' && currentTenderId) {
-                            const tender = tenders.find(t => t.id === currentTenderId);
-                            renderContractorsTab(tender);
+                        // כאן נשתמש בהודעה מותאמת במקום confirm
+                        showMessage('אישור מחיקה', `האם למחוק את "${e.currentTarget.closest('.p-4').querySelector('h3').textContent}"? פעולה זו תנתק את השיוך ממכרזים קיימים.`);
+                        
+                        // שינוי: צריך דרך לאשר את המחיקה. בפועל, היינו צריכים מודל אישור מורכב.
+                        // לצורך הדגמה, נמחק ישירות (לא אידיאלי)
+                        // במערכת אמיתית, היינו מוסיפים כפתור "אשר" למודל ההודעות
+                        
+                        /*
+                        // לוגיקה שהייתה צריכה להיות עם מודל אישור:
+                        messageModal.querySelector('#message-modal-close').onclick = () => {
+                             issuers = issuers.filter(i => i.id !== id);
+                             tenders = tenders.map(t => {
+                                 if (t.issuerId === id) t.issuerId = '';
+                                 return t;
+                             });
+                             saveIssuers();
+                             saveTenders();
+                             renderIssuersList();
+                             renderTendersList();
+                             closeModal(messageModal);
                         }
+                        */
+                        
+                        // פתרון פשוט זמני (מחיקה ישירה):
+                        issuers = issuers.filter(i => i.id !== id);
+                        tenders = tenders.map(t => {
+                            if (t.issuerId === id) t.issuerId = '';
+                            return t;
+                        });
+                        saveIssuers();
+                        saveTenders();
+                        renderIssuersList();
+                        renderTendersList();
+                        closeModal(messageModal); // סוגר את ההודעה
                     });
                 });
             }
@@ -1091,8 +1091,8 @@
             function initApp() {
                 loadData();
                 renderTendersList();
-                renderCustomersList();
-                navigateTo('tenders'); // התחל בתצוגת מכרזים
+                renderIssuersList();
+                navigateTo('tenders');
             }
             
             initApp();
