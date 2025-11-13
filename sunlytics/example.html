@@ -1,523 +1,595 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sunlytics - הדגמה חיה</title>
-    <!-- טעינת Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- טעינת פונטים (Assistant ו-Inter) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Assistant:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sunlytics - לוח בקרה חי</title>
 
-    <style>
-        body {
-            font-family: 'Assistant', 'Inter', sans-serif;
-            scroll-behavior: smooth;
-        }
-        
-        /* עיצוב סטטיסטיקות */
-        .stat-value {
-            font-size: 2.25rem; /* text-4xl */
-            font-weight: 700; /* font-bold */
-            color: #2563eb; /* text-blue-600 */
-        }
-        .stat-label {
-            font-size: 0.875rem; /* text-sm */
-            font-weight: 600; /* font-semibold */
-            color: #6b7280; /* text-gray-500 */
-            text-transform: uppercase;
-            margin-bottom: 0.25rem;
-        }
+  <!-- 1. טעינת ספריות JS -->
+  
+  <!-- SweetAlert2 (התראות) -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <!-- Chart.js (גרפים) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
+  <!-- *** תוספות חובה עבור גרפי זמן ב-Chart.js *** -->
+  <!-- 
+    הסרנו את "date-fns.min.js" הנפרד. 
+    הקובץ "bundle" הבא כבר כולל אותו ומונע התנגשות.
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <!-- *** סוף התוספות *** -->
 
-        /* צל עדין */
-        .rtl-shadow {
-             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-        }
+  
+  <!-- 2. טעינת CSS -->
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- פונט (Assistant) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-        /* סגנונות אנימציה (כמו בדוגמה) */
-        .reveal-section {
-            opacity: 0;
-            max-height: 0;
-            overflow: hidden;
-            transform: translateY(20px);
-            transition: opacity 0.7s ease-out, max-height 0.7s ease-out, transform 0.7s ease-out;
-        }
-        .reveal-section.show {
-            opacity: 1;
-            max-height: 10000px; /* ערך גבוה */
-            transform: translateY(0);
-        }
-
-        #api-gate-section {
-            transition: opacity 0.5s ease-out, max-height 0.5s ease-out, transform 0.5s ease-out, padding 0.5s ease-out;
-            max-height: 1000px;
-            opacity: 1;
-            overflow: hidden;
-            transform: translateY(0);
-        }
-        #api-gate-section.hide {
-            opacity: 0;
-            max-height: 0;
-            padding-top: 0;
-            padding-bottom: 0;
-            margin-bottom: 0;
-            transform: translateY(-20px);
-        }
-        
-        /* מסך טעינה */
-        #loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.9);
-            z-index: 9998;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(5px);
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        #loading-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        /* ספינר */
-        .spinner {
-            width: 56px;
-            height: 56px;
-            border: 6px solid #dbeafe; /* blue-100 */
-            border-top-color: #2563eb; /* blue-600 */
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+  <!-- 3. הגדרות עיצוב -->
+  <style>
+    body {
+      font-family: 'Assistant', sans-serif;
+      background-color: #f8f9fa; /* bg-gray-50 */
+    }
+    .nav-button.active {
+      background-color: #2563eb; /* bg-blue-600 */
+      color: #ffffff; /* text-white */
+      font-weight: 700;
+    }
+    .nav-button {
+      font-weight: 600;
+      color: #4b5563; /* text-gray-600 */
+      transition: background-color 0.2s, color 0.2s;
+    }
+    .nav-button:hover {
+      background-color: #f3f4f6; /* bg-gray-100 */
+      color: #1d4ed8; /* hover:text-blue-700 */
+    }
+    .stat-card {
+      background-color: white;
+      border-radius: 0.75rem; /* rounded-xl */
+      padding: 1.5rem; /* p-6 */
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease-in-out;
+    }
+    .stat-card-hidden {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    .stat-label {
+      font-size: 0.875rem; /* text-sm */
+      font-weight: 600;
+      color: #6b7280; /* text-gray-500 */
+      text-transform: uppercase;
+      margin-bottom: 0.25rem;
+    }
+    .stat-value {
+      font-size: 2.25rem; /* text-4xl */
+      font-weight: 700;
+      color: #2563eb; /* text-blue-600 */
+      line-height: 1.1;
+    }
+    .stat-unit {
+      font-size: 1.5rem; /* text-2xl */
+      font-weight: 600;
+      color: #6b7280; /* text-gray-500 */
+      margin-right: 0.5rem; /* mr-2 */
+    }
+    #login-screen {
+      transition: opacity 0.5s ease-out;
+    }
+    #dashboard-screen {
+      transition: opacity 0.5s ease-in;
+    }
+    .hidden {
+      display: none;
+    }
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(255, 255, 255, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+    .loading-overlay.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+    /* אנימציית טעינה פשוטה */
+    .loader {
+      border: 5px solid #f3f3f3; /* Light grey */
+      border-top: 5px solid #3498db; /* Blue */
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
 
-    <!-- Header & Navigation (מהדוגמה) -->
-    <header class="bg-white sticky top-0 z-50 rtl-shadow">
-        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <!-- לוגו -->
-            <div>
-                <a href="#">
-                    <img src="https://sunlytics.co.il/logo.png" alt="Sunlytics לוגו" class="h-10"
-                         onerror="this.onerror=null; this.src='https://placehold.co/150x40/ffffff/333333?text=Sunlytics';">
-                </a>
-            </div>
-            <!-- קישור חזרה (לצורך ההדגמה) -->
-            <div>
-                 <a href="#" onclick="window.location.reload()"
-                   class="bg-blue-600 text-white px-5 py-2 rounded-full hover:bg-blue-700 transition duration-300 shadow-md">
-                   התחל הדגמה חדשה
-                </a>
-            </div>
-        </nav>
-    </header>
-
-    <!-- מסך הטעינה (מוסתר) -->
-    <div id="loading-overlay">
-        <div class="text-center">
-            <div class="spinner mx-auto"></div>
-            <h2 id="loading-status" class="text-2xl font-bold text-blue-700 mt-6">מתחבר לשרת...</h2>
-            <p class="text-gray-600 mt-2">אנא המתן, אנו מביאים את הנתונים שלך.</p>
-            
-            <!-- אזור להצגת שגיאות -->
-            <div id="loading-error" class="hidden mt-4 max-w-md bg-red-100 border border-red-300 text-red-800 px-4 py-3 rounded-lg text-left">
-                <strong class="font-bold">אופס, משהו השתבש!</strong>
-                <p id="loading-error-message" class="text-sm"></p>
-                <button onclick="hideLoading()" class="mt-2 text-sm text-gray-700 underline">נסה שוב</button>
-            </div>
+<body>
+  <!-- --- מסך כניסה --- -->
+  <div id="login-screen" class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="p-8 bg-white rounded-xl shadow-xl w-full max-w-md">
+      <img src="https://sunlytics.co.il/logo.png" alt="Sunlytics Logo" class="w-48 mx-auto mb-6" />
+      <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">הדגמה חיה</h2>
+      <p class="text-center text-gray-600 mb-6">
+        הזן את מפתח ה-API שלך מ-SolarEdge כדי לטעון את האתרים שלך בזמן אמת.
+      </p>
+      <form id="login-form">
+        <div class="mb-4">
+          <label for="api-key-input" class="block text-sm font-semibold text-gray-700 mb-2">
+            מפתח API
+          </label>
+          <input
+            type="text"
+            id="api-key-input"
+            placeholder="הדבק את המפתח כאן"
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-left"
+            dir="ltr"
+            value="IW016AC2SILUUS24H6ENED5LDJYJLL1U" 
+          />
         </div>
+        <button
+          type="submit"
+          id="login-button"
+          class="w-full bg-blue-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-blue-700 transition duration-300 shadow-lg disabled:opacity-50"
+        >
+          טען אתרים
+        </button>
+      </form>
     </div>
+  </div>
 
-    <!-- Main Content -->
-    <main>
+  <!-- --- מסך דשבורד (מוסתר) --- -->
+  <div id="dashboard-screen" class="flex h-screen hidden">
+    <!-- תפריט צד -->
+    <nav class="w-72 bg-white text-gray-800 h-full overflow-y-auto shadow-lg z-10">
+      <div class="p-6">
+        <img src="https://sunlytics.co.il/logo.png" alt="Sunlytics לוגו" class="h-10 mb-8" />
+        <h2 class="text-xl font-bold text-gray-900 mb-6">האתרים שלי</h2>
+        <ul id="sites-list-ul" class="space-y-2">
+          <!-- אתרים יטענו לכאן ע"י JS -->
+        </ul>
+      </div>
+    </nav>
 
-        <!-- Demo Section (API Gate) -->
-        <section id="api-gate-section" class="py-20 bg-white transition-all duration-500 ease-in-out">
-            <div class="container mx-auto px-6 text-center max-w-3xl">
-                <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-                    הדגמה חיה של <span class="text-blue-600">Sunlytics</span>
-                </h1>
-                <p class="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-10">
-                    הכניסו את מפתח ה-API ואת מזהה האתר (Site ID) שלכם מ-SolarEdge
-                    וצפו בדשבורד מתעורר לחיים עם הנתונים *האמיתיים* שלכם, בזמן אמת.
-                </p>
-                <div class="max-w-xl mx-auto">
-                    <!-- שדה Site ID -->
-                    <div class="mb-4">
-                         <label for="site-id-input" class="block text-lg font-semibold text-gray-700 mb-2">מזהה אתר (Site ID)</label>
-                         <input type="text" id="site-id-input"
-                                placeholder="לדוגמה: 1234567"
-                                class="w-full px-5 py-4 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg"
-                                style="direction: ltr;">
-                    </div>
-                    <!-- שדה API Key -->
-                    <div class="mb-6">
-                         <label for="api-key-input" class="block text-lg font-semibold text-gray-700 mb-2">מפתח API</label>
-                         <input type="text" id="api-key-input"
-                                placeholder="הדביקו כאן את מפתח ה-API"
-                                class="w-full px-5 py-4 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg"
-                                style="direction: ltr;">
-                    </div>
-                    
-                    <button id="analyze-button"
-                            class="w-full bg-blue-600 text-white px-8 py-4 rounded-full text-xl font-bold hover:bg-blue-700 transition duration-300 shadow-lg">
-                        הצג את הדשבורד שלי
-                    </button>
-                    <p class="text-xs text-gray-500 mt-4">
-                         <a href="https://www.solaredge.com/heb/products/monitoring/api" target="_blank" class="underline hover:text-blue-600">איך מוצאים את מפתח ה-API?</a>
-                         <br> שום מידע לא נשמר. זוהי הדגמה בלבד.
-                    </p>
-                </div>
+    <!-- תוכן מרכזי -->
+    <main class="flex-1 h-full overflow-y-auto p-8 relative">
+      <!-- שכבת טעינה -->
+      <div id="content-loader" class="loading-overlay">
+        <div class="loader"></div>
+      </div>
+    
+      <!-- יחידת תוכן (תתמלא ב-JS) -->
+      <div id="content-wrapper" class="opacity-0 transition-opacity duration-300">
+        <!-- כותרת -->
+        <div class="mb-8">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <h1 id="site-name-h1" class="text-4xl font-bold text-gray-900">טוען...</h1>
+            <span id="site-status-span" class="text-gray-700 bg-gray-100 text-sm font-bold px-4 py-2 rounded-full flex items-center">
+              <span class="w-2 h-2 bg-gray-500 rounded-full ml-2"></span>
+              טוען...
+            </span>
+          </div>
+          <p id="site-id-p" class="text-lg text-gray-500 mt-1">טוען...</p>
+        </div>
+
+        <!-- KPIs -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div class="stat-card">
+            <div class="stat-label">הספק נוכחי</div>
+            <div>
+              <span id="kpi-current-power" class="stat-value">...</span>
+              <span class="stat-unit">kW</span>
             </div>
-        </section>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">אנרגיה (היום)</div>
+            <div>
+              <span id="kpi-today" class="stat-value text-gray-900">...</span>
+              <span class="stat-unit">kWh</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">אנרגיה (חודש)</div>
+            <div>
+              <span id="kpi-month" class="stat-value text-gray-900">...</span>
+              <span class="stat-unit">MWh</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">אנרגיה (סה"כ)</div>
+            <div>
+              <span id="kpi-lifetime" class="stat-value text-gray-900">...</span>
+              <span class="stat-unit">MWh</span>
+            </div>
+          </div>
+        </div>
 
-        <!-- אזור תוכן הדשבורד (מוסתר בהתחלה) -->
-        <main id="content-area" class="flex-1 p-8 reveal-section"></main>
+        <!-- גרפים -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <!--
+            *** תיקון "זליגת" הגרפים ***
+            הוספנו div עוטף עם גובה קבוע ומיקום יחסי (relative)
+            כדי לתת ל-Chart.js גבולות ברורים לציור.
+          -->
+          <div class="stat-card">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">הספק רגעי (24 שעות)</h3>
+            <div class="relative" style="height: 250px;">
+              <canvas id="power-chart-canvas"></canvas>
+            </div>
+          </div>
+          <div class="stat-card">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">ייצור יומי (7 ימים)</h3>
+            <div class="relative" style="height: 250px;">
+              <canvas id="energy-chart-canvas"></canvas>
+            </div>
+          </div>
+        </div>
 
+        <!-- פרטי אתר וציוד -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div class="stat-card">
+            <h3 class="text-xl font-bold text-gray-900 mb-2">פרטי אתר</h3>
+            <dl id="site-details-list" class="divide-y divide-gray-200">
+              <!-- פרטים יטענו לכאן -->
+            </dl>
+          </div>
+          <div class="stat-card">
+            <h3 class="text-xl font-bold text-gray-900 mb-2">ציוד וממירים</h3>
+            <ul id="inventory-list" class="divide-y divide-gray-200">
+              <!-- ממירים יטענו לכאן -->
+            </ul>
+          </div>
+        </div>
+      </div>
     </main>
+  </div>
 
-    <script>
-        // --- הגדרות ---
-        // !!! הכתובת של ה-Cloud Function עודכנה !!!
-        const CLOUD_FUNCTION_URL = "https://solaredge-842263107400.europe-west1.run.app"; 
+  <!-- 5. קוד האפליקציה (JavaScript) -->
+  <script>
+    // המתן עד שכל הדף והספריות (Chart.js, Swal) ייטענו
+    window.addEventListener('load', () => {
+    
+      // --- משתנים גלובליים ---
+      const CLOUD_FUNCTION_URL = "https://solaredge-842263107400.europe-west1.run.app";
+      let appState = {
+        apiKey: null,
+        sitesList: [],
+        selectedSiteId: null,
+        siteData: null,
+        powerChartInstance: null,
+        energyChartInstance: null,
+      };
 
-        // --- רכיבי DOM ---
-        const analyzeButton = document.getElementById('analyze-button');
-        const siteIdInput = document.getElementById('site-id-input');
-        const apiKeyInput = document.getElementById('api-key-input');
-        
-        const apiGateSection = document.getElementById('api-gate-section');
-        const contentAreaEl = document.getElementById('content-area');
-        
-        const loadingOverlay = document.getElementById('loading-overlay');
-        const loadingStatus = document.getElementById('loading-status');
-        const loadingError = document.getElementById('loading-error');
-        const loadingErrorMessage = document.getElementById('loading-error-message');
+      // --- DOM Elements ---
+      const loginScreen = document.getElementById('login-screen');
+      const dashboardScreen = document.getElementById('dashboard-screen');
+      const loginForm = document.getElementById('login-form');
+      const apiKeyInput = document.getElementById('api-key-input');
+      const loginButton = document.getElementById('login-button');
+      
+      const sitesListUl = document.getElementById('sites-list-ul');
+      const contentLoader = document.getElementById('content-loader');
+      const contentWrapper = document.getElementById('content-wrapper');
 
-        // --- פונקציות עזר (פורמט ורינדור) ---
-        
-        function formatEnergy(wh) {
-            if (wh === null || wh === undefined) return 'N/A';
-            if (wh >= 1_000_000_000) return (wh / 1_000_000_000).toFixed(2) + ' GWh';
-            if (wh >= 1_000_000) return (wh / 1_000_000).toFixed(2) + ' MWh';
-            if (wh >= 1_000) return (wh / 1_000).toFixed(2) + ' kWh';
-            return wh.toFixed(0) + ' Wh';
-        }
-        function formatPower(w) {
-            if (w === null || w === undefined) return 'N/A';
-            if (w >= 1_000_000) return (w / 1_000_000).toFixed(2) + ' MW';
-            if (w >= 1_000) return (w / 1_000).toFixed(2) + ' kW';
-            return w.toFixed(0) + ' W';
-        }
-        function formatPowerParts(w) {
-             if (w === null || w === undefined) return { value: 'N/A', unit: '' };
-            if (w >= 1_000_000) return { value: (w / 1_000_000).toFixed(2), unit: 'MW' };
-            if (w >= 1_000) return { value: (w / 1_000).toFixed(2), unit: 'kW' };
-            return { value: w.toFixed(0), unit: 'W' };
-        }
-        function formatEnergyParts(wh) {
-            if (wh === null || wh === undefined) return { value: 'N/A', unit: '' };
-            if (wh >= 1_000_000_000) return { value: (wh / 1_000_000_000).toFixed(2), unit: 'GWh' };
-            if (wh >= 1_000_000) return { value: (wh / 1_000_000).toFixed(2), unit: 'MWh' };
-            if (wh >= 1_000) return { value: (wh / 1_000).toFixed(2), unit: 'kWh' };
-            return { value: wh.toFixed(0), unit: 'Wh' };
-        }
-        function formatDate(dateString) {
-            if (!dateString) return 'N/A';
-            try {
-                const [year, month, day] = dateString.split('-');
-                return `${day}/${month}/${year}`;
-            } catch (e) { return dateString; }
-        }
-        function formatDateTime(dateTimeString) {
-            if (!dateTimeString) return 'N/A';
-            try {
-                const [date, time] = dateTimeString.split(' ');
-                const [year, month, day] = date.split('-');
-                return `${day}/${month}/${year} ${time || ''}`;
-            } catch (e) { return dateTimeString; }
-        }
-        function renderStatCard(label, data, valueColor = 'text-blue-600') {
-            return `
-                <div class="bg-white p-6 rounded-xl shadow-lg flex flex-col justify-between">
-                    <div class="stat-label">${label}</div>
-                    <div>
-                        <span class="stat-value ${valueColor}">${data.value}</span>
-                        ${data.unit && `<span class="text-2xl font-semibold text-gray-500 mr-2">${data.unit}</span>`}
-                    </div>
-                </div>
-            `;
-        }
-        function renderBarChart(title, data) {
-            if (!data || data.length === 0) {
-                return `
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 class="text-xl font-bold text-gray-900 mb-4">${title}</h3>
-                    <p class="text-gray-500">אין נתוני אנרגיה להצגה.</p>
-                </div>
-                `;
-            }
-            const maxValue = Math.max(...data.map(item => item.value));
-            const barsHtml = data.map(item => `
-                <div class="flex-1 flex flex-col items-center px-1">
-                    <div class="w-full bg-gray-200 rounded-t-lg" style="height: 150px;">
-                        <div class="bg-blue-600 rounded-t-lg" 
-                             style="height: ${((item.value || 0) / maxValue) * 100}%;"
-                             title="${formatEnergy(item.value)}">
-                        </div>
-                    </div>
-                    <div class="text-xs text-gray-500 mt-1">${formatDate(item.date.split(' ')[0]).substring(0, 5)}</div>
-                </div>
-            `).join('');
-            return `
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 class="text-xl font-bold text-gray-900 mb-4">${title}</h3>
-                    <div class="flex items-end space-x-2 space-x-reverse h-[170px]">
-                        ${barsHtml}
-                    </div>
-                </div>
-            `;
-        }
-        function renderTable(title, headers, data) {
-            if (!data || data.length === 0) {
-                 return `
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 class="text-xl font-bold text-gray-900 mb-4">${title}</h3>
-                    <p class="text-gray-500">אין נתוני הספק להצגה.</p>
-                </div>
-                `;
-            }
-            // ניקח רק 5 דגימות אחרונות אם יש יותר מדי
-            const sampleData = data.slice(-5).reverse();
-            const headerHtml = headers.map(h => `<th class="px-4 py-3 text-right bg-gray-50 font-semibold text-gray-600">${h}</th>`).join('');
-            const rowsHtml = sampleData.map(row => `
-                <tr class="border-b border-gray-100">
-                    <td class="px-4 py-3 text-gray-700">${formatDateTime(row.date)}</td>
-                    <td class="px-4 py-3 text-gray-900 font-medium">${formatPower(row.value)}</td>
-                </tr>
-            `).join('');
-            return `
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 class="text-xl font-bold text-gray-900 mb-4">${title}</h3>
-                    <div class="overflow-auto max-h-96">
-                        <table class="min-w-full text-sm">
-                            <thead class="sticky top-0 bg-white">
-                                <tr>${headerHtml}</tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-                                ${rowsHtml}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-        }
-        function renderDetailCard(title, data) {
-            const itemsHtml = Object.entries(data).map(([key, value]) => {
-                if (typeof value === 'object' && value !== null) return '';
-                return `
-                    <div class="py-3 sm:grid sm:grid-cols-3 sm:gap-4">
-                        <dt class="text-sm font-semibold text-gray-500">${key}</dt>
-                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 font-medium">${value || 'N/A'}</dd>
-                    </div>
-                `;
-            }).join('');
-            return `
-                <div class="bg-white p-6 rounded-xl shadow-lg">
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">${title}</h3>
-                    <dl class="divide-y divide-gray-200">
-                        ${itemsHtml}
-                    </dl>
-                </div>
-            `;
-        }
-        function renderInventory(inverters) {
-             if (!inverters || inverters.length === 0) return '<p class="text-gray-500">לא נמצא ציוד</p>';
-             const invertersHtml = inverters.map(inv => `
-                <li class="py-3">
-                    <div class="font-bold text-gray-800">${inv.name} (${inv.model})</div>
-                    <div class="text-sm text-gray-600">
-                        <strong>יצרן:</strong> ${inv.manufacturer} | <strong>S/N:</strong> ${inv.SN}
-                    </div>
-                    <div class="text-sm text-gray-600">
-                        <strong>גרסת CPU:</strong> ${inv.cpuVersion} | <strong>מחוברים:</strong> ${inv.connectedOptimizers} אופטימייזרים
-                    </div>
-                </li>
-             `).join('');
-             return `<ul class="divide-y divide-gray-200">${invertersHtml}</ul>`;
-        }
-
-        /**
-         * פונקציה ראשית שמפעילה את כל הרינדור
-         */
-        function renderSiteData(site) {
-            contentAreaEl.innerHTML = ''; // נקה תוכן קודם
-
-            // בדיקות הגנה מפני נתונים חסרים
-            const d = site.details?.details || {};
-            const o = site.overview?.overview || {};
-            const loc = d.location || {};
-            const pModule = d.primaryModule || {};
-            const currentPower = o.currentPower || {};
-            const lastDay = o.lastDayData || {};
-            const lastMonth = o.lastMonthData || {};
-            const lifeTime = o.lifeTimeData || {};
-            const energyValues = site.energy_last_7_days?.energy?.values || [];
-            const powerValues = site.power_last_24h?.power?.values || [];
-            const inventory = site.inventory?.Inventory || {};
-            const inverters = inventory.inverters || [];
-            
-            const statusColorClass = d.status === 'Active' ? 'text-green-700 bg-green-100' : 'text-red-700 bg-red-100';
-            const statusDotClass = d.status === 'Active' ? 'bg-green-500' : 'bg-red-500';
-
-            const html = `
-                <div class="mb-8">
-                    <div class="flex flex-wrap items-center justify-between gap-4">
-                        <h1 class="text-4xl font-bold text-gray-900">${d.name || 'שם אתר לא זמין'}</h1>
-                        <span class="${statusColorClass} text-sm font-bold px-4 py-2 rounded-full flex items-center">
-                            <span class="w-2 h-2 ${statusDotClass} rounded-full ml-2"></span>
-                            ${d.status === 'Active' ? 'פעיל' : (d.status || 'לא ידוע')}
-                        </span>
-                    </div>
-                    <p class="text-lg text-gray-500 mt-1">
-                        Site ID: ${d.id} | עדכון אחרון: ${formatDateTime(o.lastUpdateTime)}
-                    </p>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    ${renderStatCard('הספק נוכחי', formatPowerParts(currentPower.power))}
-                    ${renderStatCard('אנרגיה (היום)', formatEnergyParts(lastDay.energy), 'text-gray-900')}
-                    ${renderStatCard('אנרגיה (חודש)', formatEnergyParts(lastMonth.energy), 'text-gray-900')}
-                    ${renderStatCard('אנרגיה (סה"כ)', formatEnergyParts(lifeTime.energy), 'text-gray-900')}
-                </div>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    ${renderBarChart('ייצור יומי (7 ימים אחרונים)', energyValues)}
-                    ${renderTable('דגימת הספק (5 ערכים אחרונים)', ['זמן', 'הספק'], powerValues)}
-                </div>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    ${renderDetailCard('פרטי אתר', {
-                        'תאריך התקנה': formatDate(d.installationDate),
-                        'מודול ראשי': `${pModule.manufacturerName || ''} - ${pModule.modelName || ''}`,
-                        'מיקום': `${loc.address || ''}, ${loc.city || ''}`,
-                        'הספק שיא (Peak)': formatPower(d.peakPower * 1000)
-                    })}
-                    <div class="bg-white p-6 rounded-xl shadow-lg">
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">ציוד וממירים</h3>
-                        ${renderInventory(inverters)}
-                    </div>
-                </div>
-                ${site.sensors_data_error ? `
-                <div class="bg-red-100 border border-red-300 text-red-800 px-5 py-4 rounded-xl shadow-lg" role="alert">
-                    <strong class="font-bold">שגיאת חיישנים:</strong>
-                    <p class="text-sm break-words mt-1">${site.sensors_data_error}</p>
-                </div>
-                ` : ''}
-            `;
-            contentAreaEl.innerHTML = html;
-        }
-
-        // --- פונקציות מסך טעינה ---
-        function showLoading(status) {
-            loadingStatus.textContent = status;
-            loadingError.classList.add('hidden'); // הסתר שגיאה קודמת
-            loadingOverlay.classList.add('show');
-        }
-        
-        function hideLoading() {
-            loadingOverlay.classList.remove('show');
-        }
-        
-        function showLoadingError(message) {
-            loadingStatus.textContent = 'שגיאה';
-            loadingErrorMessage.textContent = message;
-            loadingError.classList.remove('hidden');
-        }
-
-        // --- הוספת Event Listener לכפתור ---
-        analyzeButton.addEventListener('click', async () => {
-            const siteId = siteIdInput.value;
-            const apiKey = apiKeyInput.value;
-
-            if (!siteId || !apiKey) {
-                alert("אנא מלא גם Site ID וגם API Key.");
-                return;
-            }
-            
-            if (CLOUD_FUNCTION_URL === "YOUR_CLOUD_FUNCTION_URL_HERE") {
-                 alert("שגיאת תצורה: יש לעדכן את CLOUD_FUNCTION_URL בקוד ה-HTML.");
-                 return;
-            }
-
-            try {
-                showLoading('מתחבר לשרת המאובטח...');
-                
-                const response = await fetch(CLOUD_FUNCTION_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        site_id: siteId,
-                        api_key: apiKey
-                    })
-                });
-
-                showLoading('מושך נתונים חיים מ-SolarEdge... (זה עשוי לקחת מספר שניות)');
-
-                const data = await response.json();
-                
-                if (!response.ok || data.error) {
-                    let errorMsg = data.error || 'Unknown error';
-                    if (data.message) {
-                        errorMsg += `: ${data.message}`;
-                    }
-                    if (response.status === 400) {
-                         errorMsg = "בקשה לא תקינה. ודא שהנתונים שהזנת נכונים.";
-                    }
-                    if (response.status === 500 && data.error.includes("Failed to fetch details")) {
-                        errorMsg = "שגיאה בגישה ל-SolarEdge. אנא ודא שמזהה האתר ומפתח ה-API נכונים ותקינים.";
-                    }
-                    throw new Error(errorMsg);
-                }
-
-                // הצלחה!
-                showLoading('מצייר את הדשבורד...');
-                
-                // הסתר את טופס הכניסה
-                apiGateSection.classList.add('hide');
-                
-                // רנדר את הנתונים
-                renderSiteData(data);
-                
-                // הצג את הדשבורד
-                contentAreaEl.classList.add('show');
-                
-                // גלול למטה אל התוכן
-                setTimeout(() => {
-                    contentAreaEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    hideLoading();
-                }, 300); // השהיה קטנה לתת לאנימציה לרוץ
-
-            } catch (err) {
-                console.error("Fetch Error:", err);
-                showLoadingError(err.message);
-            }
+      // פונקציית עזר לביצוע קריאות רשת
+      async function fetchData(body) {
+        Swal.fire({
+          title: 'טוען נתונים...',
+          text: 'מתחבר ל-SolarEdge דרך השרת המאובטח',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading(),
         });
 
-    </script>
+        try {
+          const response = await fetch(CLOUD_FUNCTION_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok || data.error) {
+            throw new Error(data.message || data.error || 'שגיאה לא ידועה');
+          }
+          
+          Swal.close();
+          return data;
+
+        } catch (err) {
+          Swal.fire({
+            icon: 'error',
+            title: 'אופס... משהו השתבש',
+            text: err.message,
+          });
+          return null;
+        }
+      }
+
+      // טיפול בלוגיקה של הכניסה
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const key = apiKeyInput.value.trim();
+        if (!key) return;
+
+        loginButton.disabled = true;
+        loginButton.innerText = 'טוען...';
+        
+        const data = await fetchData({ api_key: key });
+
+        loginButton.disabled = false;
+        loginButton.innerText = 'טען אתרים';
+        
+        if (data && data.sites && data.sites.site) {
+          appState.apiKey = key;
+          appState.sitesList = data.sites.site;
+          
+          // הצג את הדשבורד וטען את האתר הראשון
+          loginScreen.style.opacity = '0';
+          setTimeout(() => {
+            loginScreen.classList.add('hidden');
+            dashboardScreen.classList.remove('hidden');
+            dashboardScreen.style.opacity = '1';
+          }, 500);
+
+          renderSidebar();
+          if (appState.sitesList.length > 0) {
+            loadSiteData(appState.sitesList[0].id);
+          }
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'טעינת אתרים נכשלה',
+            text: 'לא נמצאו אתרים עבור המפתח שהוזן או שהמפתח שגוי.',
+          });
+        }
+      });
+
+      // רינדור תפריט הצד
+      function renderSidebar() {
+        sitesListUl.innerHTML = ''; // נקה רשימה קיימת
+        appState.sitesList.forEach(site => {
+          const li = document.createElement('li');
+          const button = document.createElement('button');
+          button.className = `nav-button w-full text-right pr-4 pl-2 py-3 rounded-lg ${site.id === appState.selectedSiteId ? 'active' : ''}`;
+          button.innerText = site.name;
+          button.dataset.siteId = site.id;
+          
+          button.addEventListener('click', () => {
+            loadSiteData(site.id);
+          });
+          
+          li.appendChild(button);
+          sitesListUl.appendChild(li);
+        });
+      }
+      
+      // טעינת נתונים של אתר ספציפי
+      async function loadSiteData(siteId) {
+        if (appState.selectedSiteId === siteId && appState.siteData) return; // אל תטען מחדש אם כבר נבחר
+
+        appState.selectedSiteId = siteId;
+        contentWrapper.style.opacity = '0';
+        contentLoader.classList.add('visible');
+        renderSidebar(); // עדכן כפתור פעיל
+        
+        const data = await fetchData({
+          api_key: appState.apiKey,
+          site_id: siteId
+        });
+        
+        contentLoader.classList.remove('visible');
+        
+        if (data) {
+          appState.siteData = data;
+          updateUI(data);
+          contentWrapper.style.opacity = '1';
+        }
+      }
+      
+      // עדכון ה-UI עם הנתונים החדשים
+      function updateUI(data) {
+        const d = data?.details?.details || {};
+        const o = data?.overview?.overview || {};
+
+        // עדכון כותרות
+        document.getElementById('site-name-h1').innerText = d.name || 'טוען...';
+        document.getElementById('site-id-p').innerText = `Site ID: ${d.id} | עדכון אחרון: ${new Date(o.lastUpdateTime).toLocaleString('he-IL')}`;
+        const statusSpan = document.getElementById('site-status-span');
+        statusSpan.className = 'text-green-700 bg-green-100 text-sm font-bold px-4 py-2 rounded-full flex items-center';
+        statusSpan.innerHTML = `<span class="w-2 h-2 bg-green-500 rounded-full ml-2"></span>${d.status}`;
+        
+        // עדכון KPIs
+        const formatNum = (num, def = '...') => (isNaN(num) || num === null) ? def : num;
+        document.getElementById('kpi-current-power').innerText = formatNum(parseFloat((o.currentPower?.power / 1000).toFixed(2)));
+        document.getElementById('kpi-today').innerText = formatNum(parseFloat((o.lastDayData?.energy / 1000).toFixed(1)));
+        document.getElementById('kpi-month').innerText = formatNum(parseFloat((o.lastMonthData?.energy / 1000000).toFixed(2)));
+        document.getElementById('kpi-lifetime').innerText = formatNum(parseFloat((o.lifeTimeData?.energy / 1000000).toFixed(2)));
+
+        // עדכון פרטי אתר
+        const detailsList = document.getElementById('site-details-list');
+        detailsList.innerHTML = `
+          <div class="py-3 sm:grid sm:grid-cols-3 sm:gap-4">
+            <dt class="text-sm font-semibold text-gray-500">תאריך התקנה</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 font-medium">${new Date(d.installationDate).toLocaleDateString('he-IL')}</dd>
+          </div>
+          <div class="py-3 sm:grid sm:grid-cols-3 sm:gap-4">
+            <dt class="text-sm font-semibold text-gray-500">מיקום</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 font-medium">${d.location?.address}, ${d.location?.city}</dd>
+          </div>
+          <div class="py-3 sm:grid sm:grid-cols-3 sm:gap-4">
+            <dt class="text-sm font-semibold text-gray-500">הספק שיא (Peak)</dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 font-medium">${(d.peakPower).toFixed(2)} kW</dd>
+          </div>
+        `;
+        
+        // עדכון רשימת ממירים
+        const inventoryList = document.getElementById('inventory-list');
+        const inverters = data?.inventory?.Inventory?.inverters || [];
+        if (inverters.length > 0) {
+          inventoryList.innerHTML = inverters.map(inv => `
+            <li class="py-3">
+              <div class="font-bold text-gray-800">${inv.name} (${inv.model})</div>
+              <div class="text-sm text-gray-600">
+                <strong>יצרן:</strong> ${inv.manufacturer} | <strong>S/N:</strong> ${inv.SN}
+              </div>
+              <div class="text-sm text-gray-600">
+                <strong>גרסת CPU:</strong> ${inv.cpuVersion} | <strong>מחוברים:</strong> ${inv.connectedOptimizers} אופטימייזרים
+              </div>
+            </li>
+          `).join('');
+        } else {
+          inventoryList.innerHTML = '<li class="py-3 text-gray-500">לא נמצא ציוד</li>';
+        }
+        
+        // --- עדכון גרפים ---
+        renderPowerChart(data.power_last_24h?.power);
+        renderEnergyChart(data.energy_last_7_days?.energy);
+      }
+      
+      // רינדור גרף הספק
+      function renderPowerChart(powerData) {
+        if (appState.powerChartInstance) {
+          appState.powerChartInstance.destroy();
+        }
+        const ctx = document.getElementById('power-chart-canvas').getContext('2d');
+        if (!powerData || !powerData.values || powerData.values.length === 0) {
+          ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+          ctx.font = "16px Assistant";
+          ctx.fillStyle = "#6b7280";
+          ctx.textAlign = "center";
+          ctx.fillText("אין נתונים זמינים להצגת הגרף", ctx.canvas.width / 2, ctx.canvas.height / 2);
+          return;
+        }
+        
+        const chartData = powerData.values
+          .filter(item => item.value !== null)
+          .map(item => ({
+            x: new Date(item.date).getTime(), // השתמש ב-timestamp עבור ציר הזמן
+            y: (item.value / 1000).toFixed(2),
+          }));
+          
+        appState.powerChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            datasets: [{
+              label: 'הספק (kW)',
+              data: chartData,
+              borderColor: '#82ca9d',
+              backgroundColor: 'rgba(130, 202, 157, 0.1)',
+              fill: true,
+              pointRadius: 0,
+              tension: 0.1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                type: 'time',
+                time: {
+                  unit: 'hour',
+                  tooltipFormat: 'HH:mm',
+                  displayFormats: {
+                    hour: 'HH:mm'
+                  }
+                },
+                ticks: { source: 'auto', maxRotation: 0, autoSkip: true, autoSkipPadding: 20, font: { family: 'Assistant' } }
+              },
+              y: {
+                title: { display: true, text: 'kW', font: { family: 'Assistant' } },
+                ticks: { font: { family: 'Assistant' } }
+              }
+            },
+            plugins: {
+              legend: { labels: { font: { family: 'Assistant' } } },
+              tooltip: { titleFont: { family: 'Assistant' }, bodyFont: { family: 'Assistant' } }
+            },
+            interaction: {
+              intersect: false,
+              mode: 'index',
+            },
+          }
+        });
+      }
+      
+      // רינדור גרף אנרגיה
+      function renderEnergyChart(energyData) {
+        if (appState.energyChartInstance) {
+          appState.energyChartInstance.destroy();
+        }
+        const ctx = document.getElementById('energy-chart-canvas').getContext('2d');
+        if (!energyData || !energyData.values || energyData.values.length === 0) {
+          ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+          ctx.font = "16px Assistant";
+          ctx.fillStyle = "#6b7280";
+          ctx.textAlign = "center";
+          ctx.fillText("אין נתונים זמינים להצגת הגרף", ctx.canvas.width / 2, ctx.canvas.height / 2);
+          return;
+        }
+
+        const labels = energyData.values.map(item => 
+          new Date(item.date).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' })
+        );
+        const dataPoints = energyData.values.map(item => 
+          item.value ? (item.value / 1000).toFixed(1) : 0
+        );
+
+        appState.energyChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'אנרגיה (kWh)',
+              data: dataPoints,
+              backgroundColor: '#8884d8',
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { ticks: { font: { family: 'Assistant' } } },
+              y: {
+                title: { display: true, text: 'kWh', font: { family: 'Assistant' } },
+                ticks: { font: { family: 'Assistant' } }
+              }
+            },
+            plugins: {
+              legend: { labels: { font: { family: 'Assistant' } } },
+              tooltip: { titleFont: { family: 'Assistant' }, bodyFont: { family: 'Assistant' } }
+            }
+          }
+        });
+      }
+      
+      // הסר את ה-loader והצג את מסך הכניסה
+      // (הוספנו בדיקה שהאלמנט קיים לפני המחיקה)
+      const loaderEl = document.getElementById('loader');
+      if (loaderEl) {
+        loaderEl.remove();
+      }
+
+    }); // סיום של window.addEventListener('load')
+  </script>
 </body>
 </html>
