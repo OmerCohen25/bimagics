@@ -8,12 +8,6 @@
   <!-- 1. טעינת ספריות JS -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  
-  <!-- 
-    *** תיקון שגיאת תאריכים ***
-    הקובץ הבא (bundle) כולל גם את Chart.js וגם את date-fns.
-    אין צורך לטעון את date-fns בנפרד.
-  -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
   
   <!-- 2. טעינת CSS -->
@@ -21,12 +15,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- אייקונים של Bootstrap (עבור ההמבורגר) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
 
   <!-- 3. הגדרות עיצוב -->
   <style>
     body {
       font-family: 'Assistant', sans-serif;
       background-color: #f8f9fa; /* bg-gray-50 */
+      overflow-x: hidden; /* מניעת גלילה אופקית במובייל */
     }
     .nav-button.active {
       background-color: #2563eb; /* bg-blue-600 */
@@ -42,16 +40,31 @@
       background-color: #f3f4f6; /* bg-gray-100 */
       color: #1d4ed8; /* hover:text-blue-700 */
     }
+    .nav-key-header {
+      font-weight: 700;
+      color: #1f2937; /* text-gray-800 */
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid #e5e7eb;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .nav-key-header:hover {
+      background-color: #f9fafb; /* bg-gray-50 */
+    }
+    .nav-key-header .arrow {
+      transition: transform 0.2s;
+    }
+    .nav-key-header.open .arrow {
+      transform: rotate(180deg);
+    }
     .stat-card {
       background-color: white;
       border-radius: 0.75rem; /* rounded-xl */
       padding: 1.5rem; /* p-6 */
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease-in-out;
-    }
-    .stat-card-hidden {
-      opacity: 0;
-      transform: translateY(20px);
     }
     .stat-label {
       font-size: 0.875rem; /* text-sm */
@@ -71,15 +84,6 @@
       font-weight: 600;
       color: #6b7280; /* text-gray-500 */
       margin-right: 0.5rem; /* mr-2 */
-    }
-    #login-screen {
-      transition: opacity 0.5s ease-out;
-    }
-    #dashboard-screen {
-      transition: opacity 0.5s ease-in;
-    }
-    .hidden {
-      display: none;
     }
     .loading-overlay {
       position: absolute;
@@ -109,69 +113,117 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    /* עיצובים למובייל */
+    #mobile-menu-backdrop {
+      transition: opacity 0.3s;
+    }
+    #mobile-nav {
+      transition: transform 0.3s ease-in-out;
+    }
+    #dashboard-screen {
+      /* מאפשר גלילה אנכית בדף כולו במובייל */
+      height: auto; 
+      min-height: 100vh;
+    }
+    @media (min-width: 768px) { /* md */
+      #dashboard-screen {
+        height: 100vh; /* מחזיר גובה מסך מלא בדסקטופ */
+      }
+    }
   </style>
 </head>
 
 <body>
-  <!-- --- מסך כניסה --- -->
-  <div id="login-screen" class="flex items-center justify-center min-h-screen bg-gray-100">
-    <div class="p-8 bg-white rounded-xl shadow-xl w-full max-w-md">
-      <img src="https://sunlytics.co.il/logo.png" alt="Sunlytics Logo" class="w-48 mx-auto mb-6" />
-      <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">הדגמה חיה</h2>
-      <p class="text-center text-gray-600 mb-6">
-        הזן את מפתח ה-API שלך מ-SolarEdge כדי לטעון את האתרים שלך בזמן אמת.
-      </p>
-      <form id="login-form">
-        <div class="mb-4">
-          <label for="api-key-input" class="block text-sm font-semibold text-gray-700 mb-2">
-            מפתח API
-          </label>
-          <input
-            type="text"
-            id="api-key-input"
-            placeholder="הדבק את המפתח כאן"
-            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-left"
-            dir="ltr"
-            value="IW016AC2SILUUS24H6ENED5LDJYJLL1U" 
-          />
-        </div>
-        <button
-          type="submit"
-          id="login-button"
-          class="w-full bg-blue-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-blue-700 transition duration-300 shadow-lg disabled:opacity-50"
-        >
+
+  <!-- --- מודל להוספת מפתח --- -->
+  <dialog id="add-key-modal" class="p-6 bg-white rounded-xl shadow-xl w-full max-w-md backdrop:bg-black/50">
+    <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">הוספת מפתח API</h2>
+    <form id="add-key-form">
+      <div class="mb-4">
+        <label for="key-name-input" class="block text-sm font-semibold text-gray-700 mb-2">כינוי למפתח (לדוגמה: "הבית שלי")</label>
+        <input type="text" id="key-name-input" placeholder="כינוי" required
+          class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <div class="mb-6">
+        <label for="api-key-input" class="block text-sm font-semibold text-gray-700 mb-2">מפתח API</label>
+        <input type="text" id="api-key-input" placeholder="הדבק את המפתח כאן" required
+          class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-left" dir="ltr" />
+      </div>
+      <div class="flex justify-end gap-3">
+        <button type="button" id="cancel-add-key-btn"
+          class="bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-semibold hover:bg-gray-300 transition duration-300">
+          ביטול
+        </button>
+        <button type="submit" id="submit-add-key-btn"
+          class="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-blue-700 transition duration-300 shadow-lg disabled:opacity-50">
           טען אתרים
         </button>
-      </form>
-    </div>
-  </div>
+      </div>
+    </form>
+  </dialog>
 
-  <!-- --- מסך דשבורד (מוסתר) --- -->
-  <div id="dashboard-screen" class="flex h-screen hidden">
-    <!-- תפריט צד -->
-    <nav class="w-72 bg-white text-gray-800 h-full overflow-y-auto shadow-lg z-10">
+  <!-- --- רקע שחור למובייל --- -->
+  <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden"></div>
+
+  <!-- --- תפריט צד מובייל (מגירה) --- -->
+  <nav id="mobile-nav" class="fixed top-0 right-0 h-full w-72 bg-white text-gray-800 overflow-y-auto shadow-lg z-40 transform translate-x-full transition-transform md:hidden">
+    <div class="p-6">
+      <img src="https://sunlytics.co.il/logo.png" alt="Sunlytics לוגו" class="h-10 mb-8" />
+      <h2 class="text-xl font-bold text-gray-900 mb-4">ניהול אתרים</h2>
+      <button id="add-key-btn-mobile" class="w-full bg-blue-600 text-white px-4 py-2 rounded-full font-semibold hover:bg-blue-700 transition duration-300 shadow">
+        + הוסף מפתח API
+      </button>
+    </div>
+    <div id="sites-accordion-mobile" class="flex-1 overflow-y-auto">
+      <!-- אקורדיון מובייל יטען כאן -->
+    </div>
+  </nav>
+
+  <!-- --- דשבורד --- -->
+  <div id="dashboard-screen" class="flex md:h-screen w-full">
+    <!-- תפריט צד דסקטופ -->
+    <nav class="w-72 bg-white text-gray-800 h-full overflow-y-auto shadow-lg z-10 flex-col hidden md:flex">
       <div class="p-6">
         <img src="https://sunlytics.co.il/logo.png" alt="Sunlytics לוגו" class="h-10 mb-8" />
-        <h2 class="text-xl font-bold text-gray-900 mb-6">האתרים שלי</h2>
-        <ul id="sites-list-ul" class="space-y-2">
-          <!-- אתרים יטענו לכאן ע"י JS -->
-        </ul>
+        <h2 class="text-xl font-bold text-gray-900 mb-4">ניהול אתרים</h2>
+        <button id="add-key-btn-desktop" class="w-full bg-blue-600 text-white px-4 py-2 rounded-full font-semibold hover:bg-blue-700 transition duration-300 shadow">
+          + הוסף מפתח API
+        </button>
+      </div>
+      <div id="sites-accordion-desktop" class="flex-1 overflow-y-auto">
+        <!-- אקורדיון דסקטופ יטען כאן -->
       </div>
     </nav>
 
     <!-- תוכן מרכזי -->
-    <main class="flex-1 h-full overflow-y-auto p-8 relative">
+    <main class="flex-1 h-full overflow-y-auto p-4 md:p-8 relative">
+      <!-- כפתור המבורגר למובייל -->
+      <button id="hamburger-btn" class="md:hidden fixed top-4 right-4 z-20 bg-white p-2 rounded-lg shadow-md">
+        <i class="bi bi-list text-2xl"></i>
+      </button>
+
       <!-- שכבת טעינה -->
-      <div id="content-loader" class="loading-overlay">
+      <div id="content-loader" class="loading-overlay visible">
         <div class="loader"></div>
       </div>
-    
+      
+      <!-- מצב ריק (אם אין אתרים) -->
+      <div id="empty-state" class="hidden h-full flex flex-col items-center justify-center text-center py-20">
+         <!-- אייקון SVG תקין -->
+         <svg class="w-32 h-32 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6-4v.01M12 12v.01M12 12v.01M12 12v-.01M12 16.5v.01M12 16.5v-.01"></path>
+         </svg>
+        <h2 class="mt-6 text-2xl font-bold text-gray-800">ברוכים הבאים ל-Sunlytics</h2>
+        <p class="mt-2 text-lg text-gray-500">עדיין לא הוספת מפתח API.</p>
+        <p class="text-gray-500">לחץ על "הוסף מפתח API" בתפריט כדי להתחיל.</p>
+      </div>
+
       <!-- יחידת תוכן (תתמלא ב-JS) -->
-      <div id="content-wrapper" class="opacity-0 transition-opacity duration-300">
+      <div id="content-wrapper" class="opacity-0 transition-opacity duration-300 hidden">
         <!-- כותרת + שדה תעריף -->
         <div class="mb-8">
           <div class="flex flex-wrap items-center justify-between gap-4">
-            <h1 id="site-name-h1" class="text-4xl font-bold text-gray-900">...</h1>
+            <h1 id="site-name-h1" class="text-3xl md:text-4xl font-bold text-gray-900">...</h1>
             <span id="site-status-span" class="text-gray-700 bg-gray-100 text-sm font-bold px-4 py-2 rounded-full flex items-center">
               <span class="w-2 h-2 bg-gray-500 rounded-full ml-2"></span>
               ...
@@ -263,30 +315,36 @@
       // --- משתנים גלובליים ---
       const CLOUD_FUNCTION_URL = "https://solaredge-842263107400.europe-west1.run.app";
       let appState = {
-        apiKey: null,
-        sitesList: [],
+        apiKeys: [], // [{ name: "My Home", key: "..." }]
+        sites: {},   // { "api_key": [site1, site2] }
+        currentTariff: 0.48, // 48 אגורות
         selectedSiteId: null,
+        selectedApiKey: null,
         siteData: null,
         powerChartInstance: null,
         energyChartInstance: null,
       };
-      
-      // אתחול תעריף משדה הקלט
-      const tariffInput = document.getElementById('tariff-input');
-      appState.currentTariff = parseFloat(tariffInput.value) / 100 || 0.48;
 
       // --- DOM Elements ---
-      const loginScreen = document.getElementById('login-screen');
-      const dashboardScreen = document.getElementById('dashboard-screen');
-      const loginForm = document.getElementById('login-form');
-      const apiKeyInput = document.getElementById('api-key-input');
-      const loginButton = document.getElementById('login-button');
+      const addKeyModal = document.getElementById('add-key-modal');
+      const addKeyForm = document.getElementById('add-key-form');
+      const cancelAddKeyBtn = document.getElementById('cancel-add-key-btn');
+      const addKeyBtnDesktop = document.getElementById('add-key-btn-desktop');
+      const addKeyBtnMobile = document.getElementById('add-key-btn-mobile');
       
-      const sitesListUl = document.getElementById('sites-list-ul');
+      const sitesAccordionDesktop = document.getElementById('sites-accordion-desktop');
+      const sitesAccordionMobile = document.getElementById('sites-accordion-mobile');
+      
       const contentLoader = document.getElementById('content-loader');
       const contentWrapper = document.getElementById('content-wrapper');
+      const emptyState = document.getElementById('empty-state');
+      const tariffInput = document.getElementById('tariff-input');
+      
+      const hamburgerBtn = document.getElementById('hamburger-btn');
+      const mobileNav = document.getElementById('mobile-nav');
+      const mobileBackdrop = document.getElementById('mobile-menu-backdrop');
 
-      // פונקציית עזר לביצוע קריאות רשת
+      // --- פונקציית עזר ל-API ---
       async function fetchData(body, title = 'טוען נתונים...') {
         Swal.fire({
           title: title,
@@ -321,37 +379,48 @@
         }
       }
 
-      // טיפול בלוגיקה של הכניסה
-      loginForm.addEventListener('submit', async (e) => {
+      // --- אירועים ---
+      
+      const openAddKeyModal = () => {
+        addKeyForm.reset();
+        addKeyModal.showModal();
+        closeMobileMenu();
+      };
+      
+      addKeyBtnDesktop.addEventListener('click', openAddKeyModal);
+      addKeyBtnMobile.addEventListener('click', openAddKeyModal);
+      
+      cancelAddKeyBtn.addEventListener('click', () => {
+        addKeyModal.close();
+      });
+      
+      addKeyForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const key = apiKeyInput.value.trim();
-        if (!key) return;
+        const btn = document.getElementById('submit-add-key-btn');
+        btn.disabled = true;
+        btn.innerText = 'טוען...';
 
-        loginButton.disabled = true;
-        loginButton.innerText = 'טוען...';
+        const keyName = document.getElementById('key-name-input').value;
+        const apiKey = document.getElementById('api-key-input').value.trim();
         
-        const data = await fetchData({ api_key: key }, 'טוען רשימת אתרים...');
-
-        loginButton.disabled = false;
-        loginButton.innerText = 'טען אתרים';
+        const data = await fetchData({ api_key: apiKey }, 'טוען רשימת אתרים...');
+        
+        btn.disabled = false;
+        btn.innerText = 'טען אתרים';
         
         if (data && data.sites && data.sites.site) {
-          appState.apiKey = key;
-          appState.sitesList = data.sites.site;
+          appState.apiKeys.push({ name: keyName, key: apiKey });
+          appState.sites[apiKey] = data.sites.site;
           
-          // הצג את הדשבורד וטען את האתר הראשון
-          loginScreen.style.opacity = '0';
-          setTimeout(() => {
-            loginScreen.classList.add('hidden');
-            dashboardScreen.classList.remove('hidden');
-            contentWrapper.classList.add('hidden'); // הסתר תוכן לפני טעינה
-            dashboardScreen.style.opacity = '1';
-          }, 500);
-
           renderSidebar();
-          if (appState.sitesList.length > 0) {
-            loadSiteData(appState.sitesList[0].id);
+          
+          if (appState.sites[apiKey].length > 0) {
+            loadSiteData(appState.sites[apiKey][0].id, apiKey);
           }
+          
+          addKeyModal.close();
+          emptyState.classList.add('hidden');
+          contentWrapper.classList.remove('hidden');
         } else {
           Swal.fire({
             icon: 'error',
@@ -361,47 +430,113 @@
         }
       });
       
-      // עדכון תעריף
       tariffInput.addEventListener('change', (e) => {
         const agorot = parseFloat(e.target.value);
-        appState.currentTariff = isNaN(agorot) ? 0 : agorot / 100; // המרה לשקלים
+        appState.currentTariff = isNaN(agorot) ? 0 : agorot / 100;
         if (appState.siteData) {
-          updateUI(appState.siteData); // עדכן חישובים כלכליים
+          updateUI(appState.siteData);
         }
       });
+      
+      // --- ניהול תפריט מובייל ---
+      const openMobileMenu = () => {
+        mobileNav.classList.remove('translate-x-full');
+        mobileBackdrop.classList.remove('hidden');
+      };
+      
+      const closeMobileMenu = () => {
+        mobileNav.classList.add('translate-x-full');
+        mobileBackdrop.classList.add('hidden');
+      };
 
+      hamburgerBtn.addEventListener('click', openMobileMenu);
+      mobileBackdrop.addEventListener('click', closeMobileMenu);
 
-      // רינדור תפריט הצד
+      // --- פונקציות רינדור ---
+
       function renderSidebar() {
-        sitesListUl.innerHTML = ''; // נקה רשימה קיימת
-        appState.sitesList.forEach(site => {
-          const li = document.createElement('li');
-          const button = document.createElement('button');
-          button.className = `nav-button w-full text-right pr-4 pl-2 py-3 rounded-lg ${site.id === appState.selectedSiteId ? 'active' : ''}`;
-          button.innerText = site.name;
-          button.dataset.siteId = site.id;
+        // נקה את שני התפריטים
+        sitesAccordionDesktop.innerHTML = '';
+        sitesAccordionMobile.innerHTML = '';
+        
+        if (appState.apiKeys.length === 0) {
+           emptyState.classList.remove('hidden');
+           contentWrapper.classList.add('hidden');
+           contentLoader.classList.remove('visible');
+           return;
+        }
+        
+        appState.apiKeys.forEach(keyObj => {
+          const sites = appState.sites[keyObj.key] || [];
           
-          button.addEventListener('click', () => {
-            loadSiteData(site.id);
-          });
+          // פונקציה ליצירת "בלוק" אקורדיון
+          const createAccordionBlock = (onSiteClick) => {
+            const keyDiv = document.createElement('div');
+            keyDiv.className = 'border-b border-gray-200';
+            
+            const header = document.createElement('div');
+            header.className = 'nav-key-header';
+            header.innerHTML = `<span>${keyObj.name}</span><span class="arrow text-sm text-gray-400">▼</span>`;
+            
+            const sitesUl = document.createElement('ul');
+            sitesUl.className = 'space-y-1 p-2 pl-6 bg-gray-50 hidden'; // מוסתר כברירת מחדל
+            
+            header.addEventListener('click', () => {
+               sitesUl.classList.toggle('hidden');
+               header.classList.toggle('open');
+            });
+
+            sites.forEach(site => {
+              const li = document.createElement('li');
+              const button = document.createElement('button');
+              button.className = `nav-button w-full text-right pr-4 pl-2 py-2 rounded-lg text-sm ${site.id === appState.selectedSiteId ? 'active' : ''}`;
+              button.innerText = site.name;
+              button.dataset.siteId = site.id;
+              
+              button.addEventListener('click', () => {
+                onSiteClick(site.id, keyObj.key);
+              });
+              
+              li.appendChild(button);
+              sitesUl.appendChild(li);
+            });
+            
+            keyDiv.appendChild(header);
+            keyDiv.appendChild(sitesUl);
+
+            if (keyObj.key === appState.selectedApiKey) {
+               sitesUl.classList.remove('hidden');
+               header.classList.add('open');
+            }
+            return keyDiv;
+          };
           
-          li.appendChild(button);
-          sitesListUl.appendChild(li);
+          // צור ושרשר לדסקטופ
+          sitesAccordionDesktop.appendChild(createAccordionBlock((siteId, apiKey) => {
+            loadSiteData(siteId, apiKey);
+          }));
+
+          // צור ושרשר למובייל
+          sitesAccordionMobile.appendChild(createAccordionBlock((siteId, apiKey) => {
+            loadSiteData(siteId, apiKey);
+            closeMobileMenu(); // סגור תפריט אחרי בחירה
+          }));
         });
       }
       
       // טעינת נתונים של אתר ספציפי
-      async function loadSiteData(siteId) {
-        if (appState.selectedSiteId === siteId && appState.siteData) return; // אל תטען מחדש
+      async function loadSiteData(siteId, apiKey) {
+        if (appState.selectedSiteId === siteId) return;
 
         appState.selectedSiteId = siteId;
+        appState.selectedApiKey = apiKey;
         contentWrapper.style.opacity = '0';
         contentWrapper.classList.add('hidden');
         contentLoader.classList.add('visible');
         renderSidebar(); // עדכן כפתור פעיל
         
         const data = await fetchData({
-          api_key: appState.apiKey,
+          api_key: apiKey,
           site_id: siteId
         });
         
@@ -412,6 +547,12 @@
           updateUI(data);
           contentWrapper.classList.remove('hidden');
           contentWrapper.style.opacity = '1';
+          emptyState.classList.add('hidden');
+        } else {
+          // אם הטעינה נכשלת, בדוק אם יש עוד אתרים להציג
+          if (appState.apiKeys.length === 0) {
+            emptyState.classList.remove('hidden');
+          }
         }
       }
       
@@ -424,13 +565,13 @@
         document.getElementById('site-name-h1').innerText = d.name || 'טוען...';
         document.getElementById('site-id-p').innerText = `Site ID: ${d.id} | עדכון אחרון: ${new Date(o.lastUpdateTime).toLocaleString('he-IL')}`;
         const statusSpan = document.getElementById('site-status-span');
-        statusSpan.className = 'text-green-700 bg-green-100 text-sm font-bold px-4 py-2 rounded-full flex items-center';
-        statusSpan.innerHTML = `<span class="w-2 h-2 bg-green-500 rounded-full ml-2"></span>${d.status}`;
+        statusSpan.className = `text-sm font-bold px-4 py-2 rounded-full flex items-center ${d.status === 'Active' ? 'text-green-700 bg-green-100' : 'text-red-700 bg-red-100'}`;
+        statusSpan.innerHTML = `<span class="w-2 h-2 ${d.status === 'Active' ? 'bg-green-500' : 'bg-red-500'} rounded-full ml-2"></span>${d.status}`;
         
         // עדכון KPIs
         const formatNum = (num, def = '...') => (isNaN(num) || num === null) ? def : num;
         const todayKwh = (o.lastDayData?.energy / 1000);
-        const monthKwh = (o.lastMonthData?.energy / 1000); // זה חודש, לא MWh
+        const monthKwh = (o.lastMonthData?.energy / 1000);
         const lifeMwh = (o.lifeTimeData?.energy / 1000000);
         
         document.getElementById('kpi-current-power').innerText = formatNum(parseFloat((o.currentPower?.power / 1000).toFixed(2)));
@@ -610,6 +751,10 @@
           }
         });
       }
+      
+      // --- התחלת האפליקציה ---
+      // (אין צורך בטעינה מ-localStorage)
+      renderSidebar(); // יציג את המצב הריק
 
     }); // סיום של window.addEventListener('load')
   </script>
