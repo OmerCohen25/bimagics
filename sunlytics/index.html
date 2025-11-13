@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
     <title>Sunlytics - ניטור, ניהול ומחשבון סולארי</title>
     <!-- טעינת Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,6 +19,7 @@
         body {
             font-family: 'Assistant', 'Inter', sans-serif;
             scroll-behavior: smooth; /* לגלילה חלקה */
+            overflow-x: hidden; /* מניעת גלילה אופקית */
         }
 
         /* עיצוב עדין לצלליות שמתאים ל-RTL */
@@ -79,7 +80,7 @@
         }
         /* --- סוף עיצוב סליידרים --- */
 
-        /* --- סגנונות אנימציה לחשיפה --- */
+        /* --- [החזרה] סגנונות אנימציה לחשיפה (עבור הדגמת API) --- */
         .reveal-section {
             opacity: 0;
             max-height: 0;
@@ -110,6 +111,121 @@
             margin-bottom: 0;
             transform: translateY(-20px);
         }
+        
+        /* --- [חדש] עיצוב אנימציית זרימה --- */
+        
+        /* תיבת אלמנט בזרימה */
+        .flow-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 1rem 1.5rem;
+            border: 1px solid #e5e7eb; /* gray-200 */
+            border-radius: 0.75rem; /* rounded-xl */
+            background-color: #ffffff; /* white */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            width: 200px;
+            height: 120px;
+        }
+
+        /* ליבת ה-AI (המרכז) */
+        .flow-core {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 99px; /* rounded-full */
+            background-color: #2563eb; /* blue-600 */
+            color: #ffffff; /* white */
+            width: 180px;
+            height: 180px;
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); /* shadow-blue-500/70 */
+            z-index: 10;
+        }
+
+        /* קו מחבר (בסיס) */
+        .flow-line {
+            background-color: #d1d5db; /* gray-300 */
+            position: absolute;
+            z-index: 0;
+        }
+
+        /* נקודת מידע (בסיס) */
+        .flow-dot {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #3b82f6; /* blue-500 */
+            border-radius: 50%;
+            opacity: 0;
+            z-index: 5;
+            /* האנימציה תופעל ע"י JS */
+            animation: none; 
+        }
+
+        /* הגדרת אנימציות Keyframes */
+        
+        /* [שינוי] זרימה שמאלה (דסקטופ - כניסה) */
+        @keyframes flow-left-in {
+            0% { transform: translateX(0); opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateX(-100px); opacity: 0; }
+        }
+        
+        /* זרימה שמאלה (דסקטופ - יציאה) */
+        @keyframes flow-left-out {
+            0% { transform: translateX(0); opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateX(-100px); opacity: 0; }
+        }
+
+        /* זרימה למטה (מובייל) */
+        @keyframes flow-down {
+            0% { transform: translateY(0); opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(60px); opacity: 0; }
+        }
+
+        /* הבהוב הליבה (AI) */
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 0 20px 5px rgba(59, 130, 246, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 35px 15px rgba(59, 130, 246, 0.5);
+            }
+        }
+
+        /* הפעלת האנימציות כשהקלאס .is-animating נוסף */
+        .is-animating .flow-core {
+            animation: pulse-glow 2.5s infinite ease-in-out;
+        }
+
+        /* אנימציות דסקטופ (md ומעלה) */
+        @media (min-width: 768px) {
+            .is-animating .dot-in {
+                animation: flow-left-in 3s linear infinite;
+            }
+            .is-animating .dot-out {
+                animation: flow-left-out 3s linear infinite;
+            }
+        }
+
+        /* אנימציות מובייל (מתחת ל-md) */
+        @media (max-width: 767px) {
+            .is-animating .dot-in,
+            .is-animating .dot-out {
+                animation: flow-down 2.5s linear infinite;
+            }
+        }
+        
     </style>
 </head>
 
@@ -129,7 +245,8 @@
             <!-- תפריט דסקטופ -->
             <div class="hidden md:flex items-center space-x-reverse space-x-6">
                 <a href="#features" class="text-gray-600 hover:text-blue-600 transition duration-300">השירותים שלנו</a>
-                <a href="#demo" class="text-gray-600 hover:text-blue-600 transition duration-300">הדגמה</a>
+                <a href="#how-it-works" class="text-gray-600 hover:text-blue-600 transition duration-300">איך זה עובד?</a> <!-- [שינוי] -->
+                <a href="#demo" class="text-gray-600 hover:text-blue-600 transition duration-300">הדגמה</a> <!-- [החזרה] -->
                 <a href="#benefits" class="text-gray-600 hover:text-blue-600 transition duration-300">למה אנחנו?</a>
                 <a href="#pricing" class="text-gray-600 hover:text-blue-600 transition duration-300">מסלולים</a>
                 <a href="#calculator" class="text-gray-600 hover:text-blue-600 transition duration-300">מחשבון סולארי</a>
@@ -155,7 +272,8 @@
         <!-- תפריט מובייל (מוסתר כברירת מחדל) -->
         <div id="mobile-menu" class="hidden md:hidden bg-white pb-4">
             <a href="#features" class="block text-center py-2 px-4 text-gray-600 hover:bg-gray-100">השירותים שלנו</a>
-            <a href="#demo" class="block text-center py-2 px-4 text-gray-600 hover:bg-gray-100">הדגמה</a>
+            <a href="#how-it-works" class="block text-center py-2 px-4 text-gray-600 hover:bg-gray-100">איך זה עובד?</a> <!-- [שינוי] -->
+            <a href="#demo" class="block text-center py-2 px-4 text-gray-600 hover:bg-gray-100">הדגמה</a> <!-- [החזרה] -->
             <a href="#benefits" class="block text-center py-2 px-4 text-gray-600 hover:bg-gray-100">למה אנחנו?</a>
             <a href="#pricing" class="block text-center py-2 px-4 text-gray-600 hover:bg-gray-100">מסלולים</a>
             <a href="#calculator" class="block text-center py-2 px-4 text-gray-600 hover:bg-gray-100">מחשבון סולארי</a>
@@ -188,7 +306,7 @@
                         class="bg-blue-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-blue-700 transition duration-300 shadow-lg">
                         לפרטים והצטרפות
                     </a>
-                    <a href="#features"
+                    <a href="#how-it-works"
                         class="bg-gray-100 text-gray-700 px-8 py-3 rounded-full text-lg font-semibold hover:bg-gray-200 transition duration-300">
                         איך זה עובד?
                     </a>
@@ -199,11 +317,12 @@
         <!-- Features Section -->
         <section id="features" class="py-20 bg-gray-50">
             <div class="container mx-auto px-6">
+                <!-- === [שינוי] כותרת עודכנה להדגשת AI === -->
                 <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-16">
-                    כל מה שהמערכת שלכם צריכה במקום אחד
+                    כל מה שהמערכת שלכם צריכה, מופעל על ידי AI
                 </h2>
                 <div class="grid md:grid-cols-3 gap-10">
-                    <!-- Feature 1: Real-time Monitoring -->
+                    <!-- Feature 1: Real-time Monitoring (ללא שינוי) -->
                     <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
                         <div
                             class="bg-blue-100 text-blue-600 w-16 h-16 rounded-full flex items-center justify-center mb-6">
@@ -223,7 +342,7 @@
                             ומוודאים שהכל עובד בתפוקה מלאה.
                         </p>
                     </div>
-                    <!-- Feature 2: WhatsApp Alerts -->
+                    <!-- Feature 2: WhatsApp Alerts (ללא שינוי) -->
                     <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
                         <div
                             class="bg-green-100 text-green-600 w-16 h-16 rounded-full flex items-center justify-center mb-6">
@@ -241,30 +360,137 @@
                             לעשות. לא עוד המתנה לדוח חודשי.
                         </p>
                     </div>
-                    <!-- Feature 3: Reports -->
+                    
+                    <!-- === [שינוי] כרטיס שלישי הוחלף: מדוחות לאגירה === -->
                     <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
                         <div
-                            class="bg-indigo-100 text-indigo-600 w-16 h-16 rounded-full flex items-center justify-center mb-6">
-                            <!-- אייקון: דוח / גרף -->
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                </path>
+                            class="bg-yellow-100 text-yellow-600 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                            <!-- אייקון: סוללה / אגירה -->
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 9v6h-1A1 1 0 0118 14V10a1 1 0 011-1h1zM4 15V9a1 1 0 011-1h10a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-2xl font-bold text-gray-900 mb-4">דוחות סיכום וביצועים</h3>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-4">תכנון תוכנית אגירה</h3>
                         <p class="text-gray-600">
-                            בסוף כל חודש, קבלו דוח סיכום תפוקה מפורט וברור. הדוח יכלול השוואות, ניתוח ביצועים, וסיכום של
-                            כל האירועים והתקלות שאותרו וטופלו.
+                            מערכת ה-AI שלנו מנתחת את דפוסי הייצור והצריכה שלכם כדי לבנות תוכנית אגירה אופטימלית, הממקסמת את החיסכון ומבטיחה זמינות אנרגיה.
                         </p>
                     </div>
+                    <!-- === סוף שינוי === -->
+
                 </div>
             </div>
         </section>
 
-        <!-- Demo Section (API Gate) -->
-        <section id="demo" class="py-20 bg-white transition-all duration-500 ease-in-out">
+        <!-- === [חדש] סעיף הדגמה מונפש === -->
+        <section id="how-it-works" class="py-24 bg-white overflow-hidden">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-6">
+                    איך ה-AI שלנו עובד?
+                </h2>
+                <p class="text-lg md:text-xl text-gray-600 text-center max-w-2xl mx-auto mb-24">
+                    מאיסוף נתונים ועד תובנה מיידית - צפו בזרימת המידע בזמן אמת.
+                </p>
+
+                <!-- קונטיינר ראשי של האנימציה -->
+                <div id="flow-animation-container" class="relative w-full max-w-6xl mx-auto">
+                    <!--
+                      מבנה רספונסיבי: 
+                      - מובייל: flex-col (אנכי)
+                      - דסקטופ: flex-row (אופקי)
+                    -->
+                    <div class="flex flex-col md:flex-row items-center justify-between">
+                        
+                        <!-- 1. מקורות (כניסה) -->
+                        <div class="flex flex-col gap-6 md:gap-10 z-10">
+                            <h3 class="text-xl font-bold text-gray-700 text-center md:text-right">שלב 1: איסוף נתונים</h3>
+                            <!-- מקור 1: מונה חכם -->
+                            <div class="flow-box">
+                                <svg class="w-10 h-10 text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-8 6h10M8 3a1 1 0 011-1h6a1 1 0 011 1v4a1 1 0 01-1 1H9a1 1 0 01-1-1V3zM7 11h10a1 1 0 011 1v7a1 1 0 01-1 1H7a1 1 0 01-1-1v-7a1 1 0 011-1z"></path></svg>
+                                <span class="font-semibold text-gray-800">מונה חכם</span>
+                            </div>
+                            <!-- מקור 2: API -->
+                            <div class="flow-box">
+                                <svg class="w-10 h-10 text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-1.72-9.77A4 4 0 106.3 13H6a4 4 0 00-3 2z"></path></svg>
+                                <span class="font-semibold text-gray-800">SolarEdge API</span>
+                            </div>
+                        </div>
+
+                        <!-- 2. מחבר (קווים ונקודות) - כניסה -->
+                        <div class="relative w-full h-24 md:h-auto md:w-32 md:flex-1">
+                            <!-- קו אנכי (מובייל) -->
+                            <div class="flow-line w-1 h-full left-1/2 -translate-x-1/2 md:hidden"></div>
+                            <!-- [חדש] חץ למטה (מובייל) -->
+                            <svg class="w-6 h-6 text-gray-400 absolute bottom-0 left-1/2 -translate-x-1/2 -mb-3 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                            
+                            <!-- קו אופקי (דסקטופ) -->
+                            <div class="flow-line h-1 w-full top-1/2 -translate-y-1/2 hidden md:block"></div>
+                            <!-- [חדש] חץ שמאלה (דסקטופ) -->
+                            <svg class="w-6 h-6 text-gray-400 absolute top-1/2 left-0 -translate-y-1/2 -ml-3 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 12H3m0 0l4 4m-4-4l4-4"></path></svg>
+                            
+                            <!-- נקודות זורמות (כניסה) -->
+                            <div class="flow-dot dot-in" style="top: 10%; left: 50%; transform: translateX(-5px); animation-delay: 0s;"></div>
+                            <div class="flow-dot dot-in" style="top: 30%; left: 50%; transform: translateX(-5px); animation-delay: 1s;"></div>
+                            <div class="flow-dot dot-in" style="top: 50%; left: 50%; transform: translateX(-5px); animation-delay: 2s;"></div>
+                        </div>
+
+                        <!-- 3. ליבת AI (מרכז) -->
+                        <div class="flex-shrink-0 flex flex-col items-center gap-4 z-10 my-8 md:my-0">
+                            <h3 class="text-xl font-bold text-blue-600 text-center">שלב 2: ניתוח AI</h3>
+                            <div class="flow-core">
+                                <!-- [שינוי] הוחלף מאייקון ללוגו בעיגול לבן -->
+                                <div class="bg-white w-40 h-40 rounded-full flex items-center justify-center shadow-lg">
+                                    <img src="https://sunlytics.co.il/logo.png" alt="Sunlytics AI" class="h-10">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. מחבר (קווים ונקודות) - יציאה -->
+                        <div class="relative w-full h-24 md:h-auto md:w-32 md:flex-1">
+                            <!-- קו אנכי (מובייל) -->
+                            <div class="flow-line w-1 h-full left-1/2 -translate-x-1/2 md:hidden"></div>
+                            <!-- [חדש] חץ למטה (מובייל) -->
+                            <svg class="w-6 h-6 text-gray-400 absolute bottom-0 left-1/2 -translate-x-1/2 -mb-3 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+
+                            <!-- קו אופקי (דסקטופ) -->
+                            <div class="flow-line h-1 w-full top-1/2 -translate-y-1/2 hidden md:block"></div>
+                            <!-- [חדש] חץ שמאלה (דסקטופ) -->
+                            <svg class="w-6 h-6 text-gray-400 absolute top-1/2 left-0 -translate-y-1/2 -ml-3 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 12H3m0 0l4 4m-4-4l4-4"></path></svg>
+
+                            <!-- נקודות זורמות (יציאה) -->
+                            <div class="flow-dot dot-out" style="top: 15%; left: 50%; transform: translateX(-5px); animation-delay: 0.5s;"></div>
+                            <div class="flow-dot dot-out" style="top: 40%; left: 50%; transform: translateX(-5px); animation-delay: 1.5s;"></div>
+                            <div class="flow-dot dot-out" style="top: 65%; left: 50%; transform: translateX(-5px); animation-delay: 2.5s;"></div>
+                        </div>
+
+                        <!-- 5. תוצרים (יציאה) -->
+                        <div class="flex flex-col gap-6 md:gap-10 z-10">
+                            <h3 class="text-xl font-bold text-gray-700 text-center md:text-left">שלב 3: הפקת ערך</h3>
+                            <!-- תוצר 1: התראות -->
+                            <div class="flow-box border-green-300 bg-green-50">
+                                <svg class="w-10 h-10 text-green-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341A6.002 6.002 0 006 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                <span class="font-semibold text-green-800">התראות 24/7 בוואטסאפ</span>
+                            </div>
+                            <!-- תוצר 2: אגירה -->
+                            <div class="flow-box border-yellow-300 bg-yellow-50">
+                                <svg class="w-10 h-10 text-yellow-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path><path d="M18.5 9.5H20v5h-1.5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                                <span class="font-semibold text-yellow-800">תכנון תוכנית אגירה</span>
+                            </div>
+                            <!-- תוצר 3: תחזוקה -->
+                            <div class="flow-box border-red-300 bg-red-50">
+                                <svg class="w-10 h-10 text-red-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.096 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                <span class="font-semibold text-red-800">הפניה לתחזוקה וניקיון</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+        <!-- === סוף סעיף הדגמה מונפש === -->
+
+        <!-- === [החזרה] סעיף הדגמה מקורי (API Gate) === -->
+        <section id="demo" class="py-20 bg-gray-50 transition-all duration-500 ease-in-out">
             <div id="api-gate-section" class="container mx-auto px-6 text-center max-w-3xl">
                 <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-6">
                     הדגמה חיה: רק לחבר ולהרוויח
@@ -290,9 +516,9 @@
                             <span class="button-text">נתחו את המערכת שלי</span>
                         </button>
                     </div>
-                     <p class="text-xs text-gray-500 mt-3">
-                        <a href="https://www.solaredge.com/heb/products/monitoring/api" target="_blank" class="underline hover:text-blue-600">איך מוצאים את מפתח ה-API?</a>
-                    </p>
+                       <p class="text-xs text-gray-500 mt-3">
+                            <a href="https://www.solaredge.com/heb/products/monitoring/api" target="_blank" class="underline hover:text-blue-600">איך מוצאים את מפתח ה-API?</a>
+                       </p>
                 </div>
             </div>
             
@@ -443,10 +669,11 @@
                 </div>
             </div>
         </section>
+        <!-- === סוף סעיף הדגמה === -->
 
 
         <!-- Benefits Section -->
-        <section id="benefits" class="py-20 bg-gray-50">
+        <section id="benefits" class="py-20 bg-white"> <!-- [שינוי] רקע ללבן -->
             <div class="container mx-auto px-6">
                 <div class="grid md:grid-cols-2 gap-16 items-center">
                     <!-- תמונה / איור -->
@@ -517,7 +744,7 @@
         </section>
 
         <!-- Pricing Section -->
-        <section id="pricing" class="py-20 bg-white">
+        <section id="pricing" class="py-20 bg-gray-50"> <!-- [שינוי] רקע לאפור -->
             <div class="container mx-auto px-6">
                 <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-16">
                     מסלולי שירות משתלמים
@@ -655,7 +882,7 @@
         </section>
 
         <!-- --- סקשן מחשבון סולארי --- -->
-        <section id="calculator" class="py-20 bg-gray-50">
+        <section id="calculator" class="py-20 bg-white"> <!-- [שינוי] רקע ללבן -->
             <div class="container mx-auto px-6 max-w-4xl">
                 <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-6">
                     כמה כסף הגג שלכם שווה?
@@ -808,7 +1035,7 @@
 
 
         <!-- Contact Section -->
-        <section id="contact" class="py-20 bg-white">
+        <section id="contact" class="py-20 bg-gray-50"> <!-- [שינוי] רקע לאפור -->
             <div class="container mx-auto px-6 max-w-4xl">
                 <h2 class="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-8">
                     רוצים לשמוע עוד?
@@ -887,7 +1114,8 @@
                 <!-- קישורים -->
                 <div class="flex gap-6">
                     <a href="#features" class="text-gray-400 hover:text-white transition duration-300">שירותים</a>
-                    <a href="#demo" class="text-gray-400 hover:text-white transition duration-300">הדגמה</a>
+                    <a href="#how-it-works" class="text-gray-400 hover:text-white transition duration-300">איך זה עובד?</a> <!-- [שינוי] -->
+                    <a href="#demo" class="text-gray-400 hover:text-white transition duration-300">הדגמה</a> <!-- [החזרה] -->
                     <a href="#pricing" class="text-gray-400 hover:text-white transition duration-300">מסלולים</a>
                     <a href="#contact" class="text-gray-400 hover:text-white transition duration-300">צרו קשר</a>
                     <a href="https://sunlytics.co.il/" target="_blank"
@@ -908,88 +1136,18 @@
             menuButton.addEventListener('click', () => {
                 mobileMenu.classList.toggle('hidden');
             });
-
-            // סגירת תפריט מובייל בלחיצה על קישור
-            document.querySelectorAll('#mobile-menu a').forEach(link => {
-                link.addEventListener('click', () => {
-                    mobileMenu.classList.add('hidden');
-                });
-            });
+            /* --- [החזרה] סקריפט לדף הדגמה (API Gate) --- */
             
-            // סגירת תפריט מובייל בלחיצה על קישור ניווט פנימי
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
-                    // סגור תפריט מובייל אם פתוח
-                    if (!mobileMenu.classList.contains('hidden')) {
-                         mobileMenu.classList.add('hidden');
-                    }
-                });
-            });
-
-            // --- טיפול בטופס יצירת קשר ---
-            const contactForm = document.getElementById('contact-form');
-            if (contactForm) {
-                const successMessage = document.getElementById('form-success-message');
-                contactForm.addEventListener('submit', (e) => {
-                    e.preventDefault(); // מונע שליחה אמיתית של הטופס
-                    // כאן הייתם שולחים את הנתונים לשרת
-                    
-                    successMessage.classList.remove('hidden'); // הצגת הודעת ההצלחה
-                    contactForm.reset(); // איפוס הטופס
-
-                    // גלילה למעלה להודעה (במיוחד במובייל)
-                    successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                    // הסתרת ההודעה לאחר 5 שניות
-                    setTimeout(() => {
-                        successMessage.classList.add('hidden');
-                    }, 5000);
-                });
-            }
-
-
-            /* --- סקריפט לדף מחשבון ו-API --- */
-            
-            // --- קבועים ---
-            const M2_PER_KW = 7; // כמה מ"ר צריך עבור 1 קילוואט-פיק
-
             // --- רפרנסים לשער ה-API ---
             const analyzeButton = document.getElementById('analyze-button');
-            const buttonText = analyzeButton.querySelector('.button-text');
-            const buttonSpinner = analyzeButton.querySelector('svg');
-            const apiGateSection = document.getElementById('api-gate-section');
-            const demoContentSection = document.getElementById('demo-content-section');
-            const apiKeyInput = document.getElementById('api-key-input');
-
-            // --- רפרנסים לטאבים של המחשבון ---
-            const tabPotential = document.getElementById('tab-potential');
-            const tabProduction = document.getElementById('tab-production');
-            const calcPotential = document.getElementById('calc-potential');
-            const calcProduction = document.getElementById('calc-production');
-
-            // --- רפרנסים למחשבון פוטנציאל ---
-            const sliderRoofSize = document.getElementById('slider-roof-size');
-            const roofSizeValue = document.getElementById('roof-size-value');
-            const sliderRatioPotential = document.getElementById('slider-ratio-potential');
-            const ratioPotentialValue = document.getElementById('ratio-potential-value');
-            const sliderTariffPotential = document.getElementById('slider-tariff-potential');
-            const tariffPotentialValue = document.getElementById('tariff-potential-value');
-            const resultKw = document.getElementById('result-kw');
-            const resultProduction = document.getElementById('result-production');
-            const resultIncome = document.getElementById('result-income');
-
-            // --- רפרנסים למחשבון ייצור ---
-            const sliderSystemSize = document.getElementById('slider-system-size');
-            const systemSizeValue = document.getElementById('system-size-value');
-            const sliderRatioProduction = document.getElementById('slider-ratio-production');
-            const ratioProductionValue = document.getElementById('ratio-production-value');
-            const sliderTariffProduction = document.getElementById('slider-tariff-production');
-            const tariffProductionValue = document.getElementById('tariff-production-value');
-            const resultProductionProd = document.getElementById('result-production-prod');
-            const resultIncomeProd = document.getElementById('result-income-prod');
-
-            // --- לוגיקת הפעלת ההדגמה (לחיצה על כפתור ניתוח) ---
             if (analyzeButton) {
+                const buttonText = analyzeButton.querySelector('.button-text');
+                const buttonSpinner = analyzeButton.querySelector('svg');
+                const apiGateSection = document.getElementById('api-gate-section');
+                const demoContentSection = document.getElementById('demo-content-section');
+                const apiKeyInput = document.getElementById('api-key-input');
+
+                // --- לוגיקת הפעלת ההדגמה (לחיצה על כפתור ניתוח) ---
                 analyzeButton.addEventListener('click', (e) => {
                     e.preventDefault();
                     
@@ -1017,6 +1175,62 @@
                 });
             }
 
+
+            /* --- [חדש] סקריפט הפעלת אנימציית זרימה --- */
+            const flowContainer = document.getElementById('flow-animation-container');
+            
+            if (flowContainer) {
+                // יצירת Intersection Observer
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            // כשהאלמנט נכנס למסך, הוסף קלאס להפעלת האנימציה
+                            flowContainer.classList.add('is-animating');
+                        } else {
+                            // (אופציונלי) כשיוצאים מהמסך, הסר את הקלאס כדי לעצור (טוב לביצועים)
+                            flowContainer.classList.remove('is-animating');
+                        }
+                    });
+                }, {
+                    threshold: 0.3 // הפעל כ-30% מהאלמנט נראה
+                });
+
+                // התחל לצפות באלמנט
+                observer.observe(flowContainer);
+            }
+
+
+            /* --- סקריפט לדף מחשבון --- */
+            
+            // --- קבועים ---
+            const M2_PER_KW = 7; // כמה מ"ר צריך עבור 1 קילוואט-פיק
+
+            // --- רפרנסים לטאבים של המחשבון ---
+            const tabPotential = document.getElementById('tab-potential');
+            const tabProduction = document.getElementById('tab-production');
+            const calcPotential = document.getElementById('calc-potential');
+            const calcProduction = document.getElementById('calc-production');
+
+            // --- רפרנסים למחשבון פוטנציאל ---
+            const sliderRoofSize = document.getElementById('slider-roof-size');
+            const roofSizeValue = document.getElementById('roof-size-value');
+            const sliderRatioPotential = document.getElementById('slider-ratio-potential');
+            const ratioPotentialValue = document.getElementById('ratio-potential-value');
+            const sliderTariffPotential = document.getElementById('slider-tariff-potential');
+            const tariffPotentialValue = document.getElementById('tariff-potential-value');
+            const resultKw = document.getElementById('result-kw');
+            const resultProduction = document.getElementById('result-production');
+            const resultIncome = document.getElementById('result-income');
+
+            // --- רפרנסים למחשבון ייצור ---
+            const sliderSystemSize = document.getElementById('slider-system-size');
+            const systemSizeValue = document.getElementById('system-size-value');
+            const sliderRatioProduction = document.getElementById('slider-ratio-production');
+            const ratioProductionValue = document.getElementById('ratio-production-value');
+            const sliderTariffProduction = document.getElementById('slider-tariff-production');
+            const tariffProductionValue = document.getElementById('tariff-production-value');
+            const resultProductionProd = document.getElementById('result-production-prod');
+            const resultIncomeProd = document.getElementById('result-income-prod');
 
             // --- לוגיקת החלפת טאבים (במחשבון) ---
             if (tabPotential) {
