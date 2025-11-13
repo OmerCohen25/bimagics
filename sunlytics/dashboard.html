@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sunlytics - דשבורד ניהול</title>
+
+  <!-- 1. טעינת ספריות JS -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  
+  <!-- 2. טעינת CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- 3. הגדרות עיצוב -->
+  <style>
+    body {
+      font-family: 'Assistant', sans-serif;
+      background-color: #f8f9fa; /* bg-gray-50 */
+    }
+    .stat-card {
+      background-color: white;
+      border-radius: 0.75rem; /* rounded-xl */
+      padding: 1.5rem; /* p-6 */
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    }
+    .stat-label {
+      font-size: 1rem; /* text-base */
+      font-weight: 600; /* font-semibold */
+      color: #6b7280; /* text-gray-500 */
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .stat-value {
+      font-size: 2.5rem; /* text-4xl */
+      font-weight: 700; /* font-bold */
+      color: #1f2937; /* text-gray-900 */
+      line-height: 1;
+      /* אנימציה עדינה לשינוי מספר */
+      transition: all 0.3s ease-in-out;
+    }
+    .stat-sub {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #4b5563; /* text-gray-600 */
+    }
+    .stat-icon {
+      font-size: 2.5rem;
+      color: #9ca3af; /* text-gray-400 */
+    }
+    /* סגנון לאינפוטים קטנים בלוח הבקרה */
+    .control-input {
+      background-color: #f3f4f6; /* bg-gray-100 */
+      border: 1px solid #d1d5db; /* border-gray-300 */
+      border-radius: 0.375rem; /* rounded-md */
+      padding: 0.25rem 0.5rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50">
+
+  <!-- --- כותרת עליונה --- -->
+  <header class="bg-white shadow-md p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <div class="flex items-center">
+        <img src="https://sunlytics.co.il/logo.png" alt="Sunlytics לוגו" class="h-10 ml-4" />
+        <h1 class="text-3xl font-bold text-gray-800">דשבורד ניהול</h1>
+      </div>
+      <div class="text-left">
+        <div class="text-sm text-gray-500">עדכון אחרון:</div>
+        <div id="last-updated" class="text-lg font-semibold text-gray-700">טוען...</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- --- תוכן מרכזי --- -->
+  <main class="container mx-auto p-4 md:p-8">
+
+    <!-- לוח בקרה עסקי -->
+    <div class="stat-card mb-8">
+      <h3 class="text-xl font-bold text-gray-900 mb-4">בקרת מודל עסקי</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <label for="model-select" class="block text-sm font-semibold text-gray-700 mb-1">מודל חישוב הכנסה</label>
+          <select id="model-select" class="control-input w-full">
+            <option value="commission">עמלה לפי ייצור (אג')</option>
+            <option value="saas">SaaS חודשי (₪)</option>
+          </select>
+        </div>
+        <div>
+          <label for="commission-input" class="block text-sm font-semibold text-gray-700 mb-1">עמלה (אג' ל-kWh)</label>
+          <input type="number" id="commission-input" value="1.0" step="0.1" min="0.5" max="2" class="control-input w-full" />
+        </div>
+        <div>
+          <label for="saas-input" class="block text-sm font-semibold text-gray-700 mb-1">מחיר SaaS (₪ לחודש)</label>
+          <input type="number" id="saas-input" value="49" step="1" min="0" max="89" class="control-input w-full" />
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs ראשיים -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <!-- משתמשים רשומים -->
+      <div class="stat-card flex items-center justify-between">
+        <div>
+          <div class="stat-label">משתמשים רשומים</div>
+          <div id="kpi-users" class="stat-value">...</div>
+          <div id="kpi-users-sub" class="stat-sub text-green-500">+... היום</div>
+        </div>
+        <i class="bi bi-people-fill stat-icon text-blue-500"></i>
+      </div>
+
+      <!-- אתרים מנוהלים -->
+      <div class="stat-card flex items-center justify-between">
+        <div>
+          <div class="stat-label">אתרים מנוהלים</div>
+          <div id="kpi-sites" class="stat-value">...</div>
+          <div id="kpi-sites-sub" class="stat-sub text-green-500">+... היום</div>
+        </div>
+        <i class="bi bi-diagram-3-fill stat-icon text-indigo-500"></i>
+      </div>
+
+      <!-- הספק מנוהל -->
+      <div class="stat-card flex items-center justify-between">
+        <div>
+          <div class="stat-label">הספק מנוהל (Live)</div>
+          <div id="kpi-power" class="stat-value">...</div>
+          <div class="stat-sub text-gray-500">kWp</div>
+        </div>
+        <i class="bi bi-lightning-charge-fill stat-icon text-yellow-500"></i>
+      </div>
+      
+      <!-- ייצור יומי -->
+      <div class="stat-card flex items-center justify-between">
+        <div>
+          <div class="stat-label">ייצור יומי (כללי)</div>
+          <div id="kpi-energy" class="stat-value">...</div>
+          <div class="stat-sub text-gray-500">kWh</div>
+        </div>
+        <i class="bi bi-sun-fill stat-icon text-orange-500"></i>
+      </div>
+    </div>
+    
+    <!-- KPIs הכנסות -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- הכנסה יומית -->
+      <div class="stat-card flex items-center justify-between bg-green-600 text-white">
+        <div>
+          <div class="stat-label text-green-100">הכנסה יומית (משוער)</div>
+          <div id="kpi-our-daily" class="stat-value text-white">...</div>
+          <div class="stat-sub text-green-100">₪</div>
+        </div>
+        <i class="bi bi-cash-stack stat-icon text-green-300"></i>
+      </div>
+      
+        <!-- הכנסה חודשית -->
+      <div class="stat-card flex items-center justify-between bg-green-700 text-white">
+        <div>
+          <div class="stat-label text-green-100">הכנסה חודשית (צפי)</div>
+          <div id="kpi-our-monthly" class="stat-value text-white">...</div>
+          <div class="stat-sub text-green-100">₪</div>
+        </div>
+        <i class="bi bi-calendar-month stat-icon text-green-300"></i>
+      </div>
+      
+        <!-- הכנסה שנתית -->
+      <div class="stat-card flex items-center justify-between bg-green-800 text-white">
+        <div>
+          <div class="stat-label text-green-100">הכנסה שנתית (צפי)</div>
+          <div id="kpi-our-annual" class="stat-value text-white">...</div>
+          <div class="stat-sub text-green-100">₪</div>
+        </div>
+        <i class="bi bi-graph-up-arrow stat-icon text-green-300"></i>
+      </div>
+    </div>
+
+
+    <!-- גרפים וטבלאות -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      
+      <!-- משתמשים חדשים (30 יום) -->
+      <div class="stat-card lg:col-span-2">
+        <h3 class="text-xl font-bold text-gray-900 mb-4">משתמשים חדשים (30 יום)</h3>
+        <div class="relative" style="height: 300px;">
+          <canvas id="users-chart-canvas"></canvas>
+        </div>
+      </div>
+      
+      <!-- סטטוס מערכות (דונאט) -->
+      <div class="stat-card">
+        <h3 class="text-xl font-bold text-gray-900 mb-4">סטטוס מערכות</h3>
+        <div class="relative" style="height: 300px;">
+          <canvas id="status-chart-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- טבלת מעקב -->
+      <div class="stat-card lg:col-span-1">
+        <h3 class="text-xl font-bold text-gray-900 mb-4">אתרים פעילים לאחרונה</h3>
+        <div class="overflow-auto max-h-96">
+          <table class="min-w-full text-sm">
+            <thead class="sticky top-0 bg-white border-b">
+              <tr>
+                <th class="px-4 py-3 text-right font-semibold text-gray-600">שם אתר</th>
+                <th class="px-4 py-3 text-right font-semibold text-gray-600">משתמש</th>
+                <th class="px-4 py-3 text-right font-semibold text-gray-600">סטטוס</th>
+              </tr>
+            </thead>
+            <tbody id="live-feed-body" class="divide-y divide-gray-100">
+              <!-- יתמלא ב-JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- ייצור אנרגיה כולל (30 יום) -->
+      <div class="stat-card lg:col-span-2">
+        <h3 class="text-xl font-bold text-gray-900 mb-4">ייצור אנרגיה כולל (30 יום)</h3>
+        <div class="relative" style="height: 300px;">
+          <canvas id="energy-chart-canvas"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- 5. קוד האפליקציה (JavaScript) -->
+  <script>
+    // המתן עד שכל הדף והספריות ייטענו
+    window.addEventListener('load', () => {
+    
+      // --- משתנים גלובליים ואינסטנסים של גרפים ---
+      let appState = {
+        usersChart: null,
+        energyChart: null,
+        statusChart: null,
+        kpis: {
+          totalUsers: 142,
+          newUsersToday: 3,
+          totalSites: 210,
+          newSitesToday: 5,
+          currentTotalPowerKWp: 12450.5, // הספק "חי" התחלתי
+          totalEnergyTodayKWh: 58400.2,
+          // אין צורך לשמור תעריפים כאן, נקרא מה-DOM
+        }
+      };
+      
+      // --- קבועים ---
+      const UPDATE_INTERVAL_MS = 2000; // רענון כל 2 שניות
+
+      // --- DOM Elements ---
+      const kpiUsersEl = document.getElementById('kpi-users');
+      const kpiUsersSubEl = document.getElementById('kpi-users-sub');
+      const kpiSitesEl = document.getElementById('kpi-sites');
+      const kpiSitesSubEl = document.getElementById('kpi-sites-sub');
+      const kpiPowerEl = document.getElementById('kpi-power');
+      const kpiEnergyEl = document.getElementById('kpi-energy');
+      
+      // הכנסות
+      const kpiOurDailyEl = document.getElementById('kpi-our-daily');
+      const kpiOurMonthlyEl = document.getElementById('kpi-our-monthly');
+      const kpiOurAnnualEl = document.getElementById('kpi-our-annual');
+      
+      // בקרים
+      // const tariffInput = document.getElementById('tariff-input'); // <-- This ID was removed from the HTML, but referenced in JS.
+      // This was the probable cause of the crash, even if the error message was misleading.
+      // We will now use commissionInput and saasInput instead.
+      const commissionInput = document.getElementById('commission-input');
+      const saasInput = document.getElementById('saas-input');
+      const modelSelect = document.getElementById('model-select');
+      
+      const lastUpdatedEl = document.getElementById('last-updated');
+      const liveFeedBody = document.getElementById('live-feed-body');
+
+      // --- נתוני דמה ---
+      const dummyData = {
+        newUsersDaily: Array.from({length: 30}, (_, i) => ({
+          date: new Date(Date.now() - (29 - i) * 86400000).toISOString().split('T')[0],
+          count: Math.floor(Math.random() * 5) + 1
+        })),
+        totalEnergyDaily: Array.from({length: 30}, (_, i) => ({
+          date: new Date(Date.now() - (29 - i) * 86400000).toISOString().split('T')[0],
+          energy: Math.floor(Math.random() * 20000) + 40000
+        })),
+        siteStatus: { active: 195, error: 8, pending: 7 },
+        liveFeed: [
+          { siteName: "מערכת גג - כפר סבא", userName: "ישראל ישראלי", status: "פעיל" },
+          { siteName: "גג סולארי בעמק", userName: "דנה כהן", status: "פעיל" },
+          { siteName: "מערכת קיבוץ גזר", userName: "אביב גורן", status: "תקלה" },
+          { siteName: "בית פרטי רעננה", userName: "יעל לוי", status: "פעיל" },
+          { siteName: "לול תרנגולות צפון", userName: "משה דץ", status: "ממתין" },
+        ]
+      };
+
+      // --- פונקציות רינדור ---
+
+      function formatNum(num) {
+        return num.toLocaleString('he-IL', { maximumFractionDigits: 0 });
+      }
+      
+      function formatNumWithDecimal(num) {
+         return num.toLocaleString('he-IL', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+      }
+
+      function renderKPIs() {
+        const { kpis } = appState;
+        
+        // קריאת ערכי הבקרה
+        const model = modelSelect.value;
+        const commissionAgorot = parseFloat(commissionInput.value) || 0;
+        const saasPrice = parseFloat(saasInput.value) || 0;
+        
+        // עדכון KPIs בסיסיים
+        kpiUsersEl.innerText = formatNum(kpis.totalUsers);
+        kpiUsersSubEl.innerText = `+${kpis.newUsersToday} היום`;
+        kpiSitesEl.innerText = formatNum(kpis.totalSites);
+        kpiSitesSubEl.innerText = `+${kpis.newSitesToday} היום`;
+        kpiPowerEl.innerText = formatNumWithDecimal(kpis.currentTotalPowerKWp);
+        kpiEnergyEl.innerText = formatNumWithDecimal(kpis.totalEnergyTodayKWh);
+        
+        // חישוב הכנסות Sunlytics
+        let ourDailyIncome = 0;
+        let ourMonthlyIncome = 0;
+        let ourAnnualIncome = 0;
+        
+        if (model === 'commission') {
+          const commissionNIS = commissionAgorot / 100;
+          ourDailyIncome = kpis.totalEnergyTodayKWh * commissionNIS;
+          // אקסטרפולציה חודשית ושנתית מבוססת על היום הנוכחי (פחות מדויק)
+          ourMonthlyIncome = ourDailyIncome * 30; 
+          ourAnnualIncome = ourDailyIncome * 365;
+        } else if (model === 'saas') {
+          ourMonthlyIncome = kpis.totalUsers * saasPrice;
+          ourAnnualIncome = ourMonthlyIncome * 12;
+          ourDailyIncome = ourMonthlyIncome / 30;
+        }
+
+        // עדכון KPIs הכנסות
+        kpiOurDailyEl.innerText = formatNumWithDecimal(ourDailyIncome);
+        kpiOurMonthlyEl.innerText = formatNum(ourMonthlyIncome);
+        kpiOurAnnualEl.innerText = formatNum(ourAnnualIncome);
+        
+        lastUpdatedEl.innerText = new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      }
+      
+      function renderLiveFeed() {
+        liveFeedBody.innerHTML = dummyData.liveFeed.map(item => {
+          let statusClass = "text-gray-500";
+          if (item.status === "פעיל") statusClass = "text-green-600";
+          if (item.status === "תקלה") statusClass = "text-red-600";
+          
+          return `
+            <tr class="border-b border-gray-100 hover:bg-gray-50">
+              <td class="px-4 py-3 text-gray-900 font-medium">${item.siteName}</td>
+              <td class="px-4 py-3 text-gray-700">${item.userName}</td>
+              <td class="px-4 py-3 font-semibold ${statusClass}">${item.status}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      function renderNewUsersChart() {
+        if (appState.usersChart) appState.usersChart.destroy();
+        const ctx = document.getElementById('users-chart-canvas').getContext('2d');
+        appState.usersChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: dummyData.newUsersDaily.map(d => new Date(d.date).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit'})),
+            datasets: [{
+              label: 'משתמשים חדשים',
+              data: dummyData.newUsersDaily.map(d => d.count),
+              borderColor: '#2563eb',
+              backgroundColor: 'rgba(37, 99, 235, 0.1)',
+              fill: true,
+              tension: 0.3
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { ticks: { font: { family: 'Assistant' }, autoSkipPadding: 20, maxRotation: 0 } },
+              y: { title: { display: true, text: 'מספר משתמשים', font: { family: 'Assistant' } }, ticks: { font: { family: 'Assistant' } }, beginAtZero: true }
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: { titleFont: { family: 'Assistant' }, bodyFont: { family: 'Assistant' } }
+            }
+          }
+        });
+      }
+      
+      function renderTotalEnergyChart() {
+        if (appState.energyChart) appState.energyChart.destroy();
+        const ctx = document.getElementById('energy-chart-canvas').getContext('2d');
+        appState.energyChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: dummyData.totalEnergyDaily.map(d => new Date(d.date).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit'})),
+            datasets: [{
+              label: 'סה"כ ייצור (kWh)',
+              data: dummyData.totalEnergyDaily.map(d => (d.energy / 1000).toFixed(0)),
+              backgroundColor: '#8884d8',
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { ticks: { font: { family: 'Assistant' }, autoSkipPadding: 20, maxRotation: 0 } },
+              y: { title: { display: true, text: 'kWh', font: { family: 'Assistant' } }, ticks: { font: { family: 'Assistant' } } }
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: { titleFont: { family: 'Assistant' }, bodyFont: { family: 'Assistant' } }
+            }
+          }
+        });
+      }
+      
+      function renderSiteStatusChart() {
+        if (appState.statusChart) appState.statusChart.destroy();
+        const ctx = document.getElementById('status-chart-canvas').getContext('2d');
+        appState.statusChart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['פעיל', 'תקלה', 'ממתין'],
+            datasets: [{
+              data: [dummyData.siteStatus.active, dummyData.siteStatus.error, dummyData.siteStatus.pending],
+              backgroundColor: ['#22c55e', '#ef4444', '#f59e0b']
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { font: { family: 'Assistant', size: 14 } } },
+              tooltip: { titleFont: { family: 'Assistant' }, bodyFont: { family: 'Assistant' } }
+            }
+          }
+        });
+      }
+      
+      // --- הדמיית רענון נתונים "חי" ---
+      function simulateLiveUpdate() {
+        setInterval(() => {
+          const { kpis } = appState;
+          
+          // הדמיית הספק חי משתנה
+          const basePower = kpis.currentTotalPowerKWp;
+          const fluctuation = (Math.random() - 0.5) * 50; // תנודה קטנה
+          kpis.currentTotalPowerKWp = Math.max(12000, basePower + fluctuation); // Keep it roughly around base
+          
+          // צבירת אנרגיה יומית
+          // (הספק נוכחי ב-kW * שבריר שעה)
+          const energyAddedKWh = kpis.currentTotalPowerKWp * (UPDATE_INTERVAL_MS / 1000 / 3600);
+          kpis.totalEnergyTodayKWh += energyAddedKWh;
+
+          // הוספת משתמש או אתר חדשים מדי פעם
+          if (Math.random() > 0.98) {
+             kpis.totalUsers += 1;
+             kpis.newUsersToday += 1;
+          }
+          if (Math.random() > 0.97) {
+             kpis.totalSites += 1;
+             kpis.newSitesToday += 1;
+          }
+          
+          // עדכן את ה-KPIs
+          renderKPIs();
+          
+        }, UPDATE_INTERVAL_MS); // כל 2 שניות
+      }
+
+      // --- התחלת האפליקציה ---
+      
+      // רנדר ראשוני
+      renderKPIs();
+      renderLiveFeed();
+      renderNewUsersChart();
+      renderTotalEnergyChart();
+      renderSiteStatusChart();
+      
+      // התחל הדמיית רענון חי
+      simulateLiveUpdate();
+      
+      // האזנה לשינוי בקרי המודל העסקי
+      commissionInput.addEventListener('input', renderKPIs);
+      saasInput.addEventListener('input', renderKPIs);
+      modelSelect.addEventListener('change', renderKPIs);
+      // Remove listener for the old tariffInput
+      // tariffInput.addEventListener('input', renderKPIs); 
+
+    }); // סיום של window.addEventListener('load')
+  </script>
+</body>
+</html>
