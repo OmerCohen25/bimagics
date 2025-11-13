@@ -68,8 +68,8 @@
 
   <!-- --- כותרת עליונה --- -->
   <header class="bg-white shadow-md p-4">
-    <div class="container mx-auto flex justify-between items-center">
-      <div class="flex items-center">
+    <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
+      <div class="flex items-center mb-2 md:mb-0">
         <img src="https://sunlytics.co.il/logo.png" alt="Sunlytics לוגו" class="h-10 ml-4" />
         <h1 class="text-3xl font-bold text-gray-800">דשבורד ניהול</h1>
       </div>
@@ -85,44 +85,51 @@
 
     <!-- לוח בקרה עסקי -->
     <div class="stat-card mb-8">
-      <h3 class="text-xl font-bold text-gray-900 mb-4">בקרת מודל עסקי</h3>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <h3 class="text-xl font-bold text-gray-900 mb-4">סימולטור מודל עסקי</h3>
+      <!-- פריסה חדשה של 2x2 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div>
-          <label for="model-select" class="block text-sm font-semibold text-gray-700 mb-1">מודל חישוב הכנסה</label>
+          <label for="sites-input" class="block text-sm font-semibold text-gray-700 mb-1">מספר אתרים</label>
+          <input type="number" id="sites-input" value="210" step="1" min="0" class="control-input w-full" />
+        </div>
+        <div>
+          <label for="avg-power-input" class="block text-sm font-semibold text-gray-700 mb-1">הספק ממוצע (kWp)</label>
+          <input type="number" id="avg-power-input" value="15" step="1" min="0" class="control-input w-full" />
+        </div>
+        
+        <!-- בורר מודלים -->
+        <div>
+          <label for="model-select" class="block text-sm font-semibold text-gray-700 mb-1">מודל חישוב</label>
           <select id="model-select" class="control-input w-full">
-            <option value="commission">עמלה לפי ייצור (אג')</option>
-            <option value="saas">SaaS חודשי (₪)</option>
+            <option value="commission">עמלה לפי ייצור</option>
+            <option value="saas">SaaS חודשי</option>
           </select>
         </div>
+
+        <!-- שדה קלט דינמי -->
         <div>
-          <label for="commission-input" class="block text-sm font-semibold text-gray-700 mb-1">עמלה (אג' ל-kWh)</label>
-          <input type="number" id="commission-input" value="1.0" step="0.1" min="0.5" max="2" class="control-input w-full" />
+          <!-- שדה עמלה (יוצג/יוסתר) -->
+          <div id="commission-control">
+            <label for="commission-input" class="block text-sm font-semibold text-gray-700 mb-1">עמלה (אג' ל-kWh)</label>
+            <input type="number" id="commission-input" value="1.0" step="0.1" min="0.5" max="2" class="control-input w-full" />
+          </div>
+          <!-- שדה SaaS (יוצג/יוסתר) -->
+          <div id="saas-control" class="hidden">
+            <label for="saas-input" class="block text-sm font-semibold text-gray-700 mb-1">מחיר SaaS (₪ לחודש)</label>
+            <input type="number" id="saas-input" value="49" step="1" min="0" max="89" class="control-input w-full" />
+          </div>
         </div>
-        <div>
-          <label for="saas-input" class="block text-sm font-semibold text-gray-700 mb-1">מחיר SaaS (₪ לחודש)</label>
-          <input type="number" id="saas-input" value="49" step="1" min="0" max="89" class="control-input w-full" />
-        </div>
+        
       </div>
     </div>
 
-    <!-- KPIs ראשיים -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <!-- משתמשים רשומים -->
-      <div class="stat-card flex items-center justify-between">
-        <div>
-          <div class="stat-label">משתמשים רשומים</div>
-          <div id="kpi-users" class="stat-value">...</div>
-          <div id="kpi-users-sub" class="stat-sub text-green-500">+... היום</div>
-        </div>
-        <i class="bi bi-people-fill stat-icon text-blue-500"></i>
-      </div>
-
+    <!-- KPIs ראשיים (3 עמודות) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <!-- אתרים מנוהלים -->
       <div class="stat-card flex items-center justify-between">
         <div>
           <div class="stat-label">אתרים מנוהלים</div>
           <div id="kpi-sites" class="stat-value">...</div>
-          <div id="kpi-sites-sub" class="stat-sub text-green-500">+... היום</div>
         </div>
         <i class="bi bi-diagram-3-fill stat-icon text-indigo-500"></i>
       </div>
@@ -150,7 +157,7 @@
     
     <!-- KPIs הכנסות -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <!-- הכנסה יומית -->
+      <!-- הכנסה יומית -->
       <div class="stat-card flex items-center justify-between bg-green-600 text-white">
         <div>
           <div class="stat-label text-green-100">הכנסה יומית (משוער)</div>
@@ -160,7 +167,7 @@
         <i class="bi bi-cash-stack stat-icon text-green-300"></i>
       </div>
       
-        <!-- הכנסה חודשית -->
+      <!-- הכנסה חודשית -->
       <div class="stat-card flex items-center justify-between bg-green-700 text-white">
         <div>
           <div class="stat-label text-green-100">הכנסה חודשית (צפי)</div>
@@ -170,7 +177,7 @@
         <i class="bi bi-calendar-month stat-icon text-green-300"></i>
       </div>
       
-        <!-- הכנסה שנתית -->
+      <!-- הכנסה שנתית -->
       <div class="stat-card flex items-center justify-between bg-green-800 text-white">
         <div>
           <div class="stat-label text-green-100">הכנסה שנתית (צפי)</div>
@@ -243,24 +250,19 @@
         energyChart: null,
         statusChart: null,
         kpis: {
-          totalUsers: 142,
-          newUsersToday: 3,
-          totalSites: 210,
-          newSitesToday: 5,
-          currentTotalPowerKWp: 12450.5, // הספק "חי" התחלתי
-          totalEnergyTodayKWh: 58400.2,
-          // אין צורך לשמור תעריפים כאן, נקרא מה-DOM
-        }
+          currentTotalPowerKWp: 0, // הספק "חי" התחלתי
+          totalEnergyTodayKWh: 0,  // ייצור יומי מצטבר
+        },
+        currentDay: new Date().toDateString(), // למעקב אחרי איפוס יומי
+        lastTickTime: Date.now()
       };
       
       // --- קבועים ---
       const UPDATE_INTERVAL_MS = 2000; // רענון כל 2 שניות
+      const AVG_KWH_PER_KWP_PER_DAY = 4.5; // ממוצע ייצור יומי בישראל
 
       // --- DOM Elements ---
-      const kpiUsersEl = document.getElementById('kpi-users');
-      const kpiUsersSubEl = document.getElementById('kpi-users-sub');
       const kpiSitesEl = document.getElementById('kpi-sites');
-      const kpiSitesSubEl = document.getElementById('kpi-sites-sub');
       const kpiPowerEl = document.getElementById('kpi-power');
       const kpiEnergyEl = document.getElementById('kpi-energy');
       
@@ -270,27 +272,35 @@
       const kpiOurAnnualEl = document.getElementById('kpi-our-annual');
       
       // בקרים
-      // const tariffInput = document.getElementById('tariff-input'); // <-- This ID was removed from the HTML, but referenced in JS.
-      // This was the probable cause of the crash, even if the error message was misleading.
-      // We will now use commissionInput and saasInput instead.
+      const sitesInput = document.getElementById('sites-input');
+      const avgPowerInput = document.getElementById('avg-power-input'); 
       const commissionInput = document.getElementById('commission-input');
       const saasInput = document.getElementById('saas-input');
       const modelSelect = document.getElementById('model-select');
       
+      // בקרי הצגה/הסתרה
+      const commissionControl = document.getElementById('commission-control');
+      const saasControl = document.getElementById('saas-control');
+      
       const lastUpdatedEl = document.getElementById('last-updated');
       const liveFeedBody = document.getElementById('live-feed-body');
 
-      // --- נתוני דמה ---
+      // --- נתוני דמה (סטטיים) ---
       const dummyData = {
         newUsersDaily: Array.from({length: 30}, (_, i) => ({
           date: new Date(Date.now() - (29 - i) * 86400000).toISOString().split('T')[0],
           count: Math.floor(Math.random() * 5) + 1
         })),
-        totalEnergyDaily: Array.from({length: 30}, (_, i) => ({
-          date: new Date(Date.now() - (29 - i) * 86400000).toISOString().split('T')[0],
-          energy: Math.floor(Math.random() * 20000) + 40000
-        })),
-        siteStatus: { active: 195, error: 8, pending: 7 },
+        totalEnergyDaily: Array.from({length: 30}, (_, i) => {
+           // מחשב את הנתונים ההיסטוריים על בסיס ערכי ברירת המחדל
+           const sites = parseInt(sitesInput.value);
+           const avgPower = parseFloat(avgPowerInput.value);
+           const dailyEnergy = (sites * avgPower * AVG_KWH_PER_KWP_PER_DAY * (Math.random() * 0.3 + 0.85));
+           return {
+             date: new Date(Date.now() - (29 - i) * 86400000).toISOString().split('T')[0],
+             energy: dailyEnergy * 1000 // המרה ל-Wh
+           }
+        }),
         liveFeed: [
           { siteName: "מערכת גג - כפר סבא", userName: "ישראל ישראלי", status: "פעיל" },
           { siteName: "גג סולארי בעמק", userName: "דנה כהן", status: "פעיל" },
@@ -309,39 +319,62 @@
       function formatNumWithDecimal(num) {
          return num.toLocaleString('he-IL', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
       }
+      
+      // פונקציה להצגה/הסתרת בקרי מודל
+      function updateModelControlsVisibility() {
+        const model = modelSelect.value;
+        if (model === 'commission') {
+          commissionControl.classList.remove('hidden');
+          saasControl.classList.add('hidden');
+        } else if (model === 'saas') {
+          commissionControl.classList.add('hidden');
+          saasControl.classList.remove('hidden');
+        }
+      }
 
       function renderKPIs() {
         const { kpis } = appState;
         
-        // קריאת ערכי הבקרה
+        // --- קריאת ערכי הבקרה ---
+        const totalSites = parseInt(sitesInput.value) || 0;
+        const avgPower = parseFloat(avgPowerInput.value) || 0;
         const model = modelSelect.value;
         const commissionAgorot = parseFloat(commissionInput.value) || 0;
         const saasPrice = parseFloat(saasInput.value) || 0;
         
         // עדכון KPIs בסיסיים
-        kpiUsersEl.innerText = formatNum(kpis.totalUsers);
-        kpiUsersSubEl.innerText = `+${kpis.newUsersToday} היום`;
-        kpiSitesEl.innerText = formatNum(kpis.totalSites);
-        kpiSitesSubEl.innerText = `+${kpis.newSitesToday} היום`;
+        kpiSitesEl.innerText = formatNum(totalSites);
         kpiPowerEl.innerText = formatNumWithDecimal(kpis.currentTotalPowerKWp);
         kpiEnergyEl.innerText = formatNumWithDecimal(kpis.totalEnergyTodayKWh);
         
-        // חישוב הכנסות Sunlytics
+        // --- לוגיקת הכנסות ---
+        
         let ourDailyIncome = 0;
         let ourMonthlyIncome = 0;
         let ourAnnualIncome = 0;
         
+        // *** חישוב ייצור יומי צפוי (לצורך תחזית) ***
+        const expectedTotalDailyKWh = totalSites * avgPower * AVG_KWH_PER_KWP_PER_DAY;
+
         if (model === 'commission') {
+          // 1. הכנסה מעמלות (מבוססת על ייצור)
           const commissionNIS = commissionAgorot / 100;
-          ourDailyIncome = kpis.totalEnergyTodayKWh * commissionNIS;
-          // אקסטרפולציה חודשית ושנתית מבוססת על היום הנוכחי (פחות מדויק)
-          ourMonthlyIncome = ourDailyIncome * 30; 
-          ourAnnualIncome = ourDailyIncome * 365;
+          
+          // הכנסה יומית היא ההכנסה *שנצברה עד כה*
+          ourDailyIncome = kpis.totalEnergyTodayKWh * commissionNIS; 
+          
+          // הכנסה חודשית ושנתית מבוססות על *הצפי* המלא
+          ourMonthlyIncome = expectedTotalDailyKWh * commissionNIS * 30;
+          ourAnnualIncome = expectedTotalDailyKWh * commissionNIS * 365;
+          
         } else if (model === 'saas') {
-          ourMonthlyIncome = kpis.totalUsers * saasPrice;
+          // 2. הכנסה מ-SaaS (מבוססת על אתרים)
+          ourMonthlyIncome = totalSites * saasPrice;
           ourAnnualIncome = ourMonthlyIncome * 12;
           ourDailyIncome = ourMonthlyIncome / 30;
         }
+
+        // --- סוף לוגיקת הכנסות ---
 
         // עדכון KPIs הכנסות
         kpiOurDailyEl.innerText = formatNumWithDecimal(ourDailyIncome);
@@ -428,13 +461,20 @@
       
       function renderSiteStatusChart() {
         if (appState.statusChart) appState.statusChart.destroy();
+        
+        // עדכון נתוני הסטטוס בהתאם לקלט
+        const totalSites = parseInt(sitesInput.value) || 0;
+        const active = Math.floor(totalSites * 0.9); // 90%
+        const error = Math.floor(totalSites * 0.05); // 5%
+        const pending = totalSites - active - error; // השאר
+        
         const ctx = document.getElementById('status-chart-canvas').getContext('2d');
         appState.statusChart = new Chart(ctx, {
           type: 'doughnut',
           data: {
             labels: ['פעיל', 'תקלה', 'ממתין'],
             datasets: [{
-              data: [dummyData.siteStatus.active, dummyData.siteStatus.error, dummyData.siteStatus.pending],
+              data: [active, error, pending],
               backgroundColor: ['#22c55e', '#ef4444', '#f59e0b']
             }]
           },
@@ -453,28 +493,51 @@
       function simulateLiveUpdate() {
         setInterval(() => {
           const { kpis } = appState;
+          const now = new Date();
           
-          // הדמיית הספק חי משתנה
-          const basePower = kpis.currentTotalPowerKWp;
-          const fluctuation = (Math.random() - 0.5) * 50; // תנודה קטנה
-          kpis.currentTotalPowerKWp = Math.max(12000, basePower + fluctuation); // Keep it roughly around base
+          // --- לוגיקת סימולציה חדשה ---
+          const totalSites = parseInt(sitesInput.value) || 0;
+          const avgPower = parseFloat(avgPowerInput.value) || 15;
           
-          // צבירת אנרגיה יומית
-          // (הספק נוכחי ב-kW * שבריר שעה)
-          const energyAddedKWh = kpis.currentTotalPowerKWp * (UPDATE_INTERVAL_MS / 1000 / 3600);
+          // 1. חשב הספק בסיס לפי הבקרים
+          const totalSystemPowerKWp = totalSites * avgPower;
+          
+          // 2. הדמיית הספק חי משתנה (תנודה של 5% סביב הבסיס)
+          const hour = now.getHours() + (now.getMinutes() / 60);
+          // פקטור סינוס פשוט לדימוי יום (שיא ב-13:30, זריחה ב-4:00, שקיעה ב-23:00)
+          const sunFactor = Math.max(0, Math.sin((hour - 4) / (23 - 4) * Math.PI));
+          const fluctuation = (Math.random() - 0.5) * (totalSystemPowerKWp * 0.05);
+          kpis.currentTotalPowerKWp = Math.max(0, (totalSystemPowerKWp * sunFactor) + fluctuation);
+          
+          // 3. צבירת אנרגיה יומית
+          const nowMs = now.getTime();
+          const deltaMs = nowMs - appState.lastTickTime;
+          appState.lastTickTime = nowMs;
+
+          // איפוס בחצות
+          const today = now.toDateString();
+          if (appState.currentDay !== today) {
+              appState.currentDay = today;
+              kpis.totalEnergyTodayKWh = 0;
+          }
+
+          // צבירת אנרגיה יומית מבוססת על ההספק הנוכחי
+          // *** תיקון לוגיקה ***
+          // במקום לצבור מ-0, נחשב את הייצור הצפוי עד לשעה זו של היום
+          const totalExpectedDailyKWh = totalSites * avgPower * AVG_KWH_PER_KWP_PER_DAY;
+          // שימוש בפקטור סינוס גס כדי להעריך כמה מהיום עבר
+          const dayProgressFactor = (hour - 4) / (23 - 4); // 0-1
+          // נשתמש ב-Math.sin(PI * x) אבל ננרמל
+          const energyAccumulationFactor = Math.max(0, Math.sin(dayProgressFactor * Math.PI));
+
+          // ** תיקון לוגיקה פשוט יותר: **
+          // נשתמש בחישוב המקורי שלך, אבל נוודא שהבסיס נכון
+          // החישוב הקודם היה נכון, הבעיה הייתה רק באופן החישוב של ההכנסה החודשית
+          const energyAddedKWh = kpis.currentTotalPowerKWp * (deltaMs / 1000 / 3600);
           kpis.totalEnergyTodayKWh += energyAddedKWh;
 
-          // הוספת משתמש או אתר חדשים מדי פעם
-          if (Math.random() > 0.98) {
-             kpis.totalUsers += 1;
-             kpis.newUsersToday += 1;
-          }
-          if (Math.random() > 0.97) {
-             kpis.totalSites += 1;
-             kpis.newSitesToday += 1;
-          }
-          
-          // עדכן את ה-KPIs
+
+          // 4. עדכן את ה-KPIs
           renderKPIs();
           
         }, UPDATE_INTERVAL_MS); // כל 2 שניות
@@ -483,21 +546,29 @@
       // --- התחלת האפליקציה ---
       
       // רנדר ראשוני
-      renderKPIs();
+      renderKPIs(); // קורא את הערכים מה-input ומציג
       renderLiveFeed();
       renderNewUsersChart();
       renderTotalEnergyChart();
       renderSiteStatusChart();
+      updateModelControlsVisibility(); // קריאה ראשונית להצגת השדה הנכון
       
       // התחל הדמיית רענון חי
       simulateLiveUpdate();
       
       // האזנה לשינוי בקרי המודל העסקי
+      sitesInput.addEventListener('input', () => {
+          renderKPIs();
+          renderSiteStatusChart(); // עדכן את גרף הדונאט
+      });
+      avgPowerInput.addEventListener('input', renderKPIs); 
       commissionInput.addEventListener('input', renderKPIs);
       saasInput.addEventListener('input', renderKPIs);
-      modelSelect.addEventListener('change', renderKPIs);
-      // Remove listener for the old tariffInput
-      // tariffInput.addEventListener('input', renderKPIs); 
+      
+      modelSelect.addEventListener('change', () => {
+        renderKPIs();
+        updateModelControlsVisibility(); // קריאה לעדכון תצוגת הבקרים
+      });
 
     }); // סיום של window.addEventListener('load')
   </script>
