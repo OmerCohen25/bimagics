@@ -6,27 +6,18 @@
   <title>Sunlytics - לוח בקרה חי</title>
 
   <!-- 1. טעינת ספריות JS -->
-  
-  <!-- SweetAlert2 (התראות) -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  
-  <!-- Chart.js (גרפים) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   
-  <!-- *** תוספות חובה עבור גרפי זמן ב-Chart.js *** -->
   <!-- 
-    הסרנו את "date-fns.min.js" הנפרד. 
-    הקובץ "bundle" הבא כבר כולל אותו ומונע התנגשות.
+    *** תיקון שגיאת תאריכים ***
+    הקובץ הבא (bundle) כולל גם את Chart.js וגם את date-fns.
+    אין צורך לטעון את date-fns בנפרד.
   -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-  <!-- *** סוף התוספות *** -->
-
   
   <!-- 2. טעינת CSS -->
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- פונט (Assistant) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -106,10 +97,9 @@
       opacity: 1;
       pointer-events: all;
     }
-    /* אנימציית טעינה פשוטה */
     .loader {
-      border: 5px solid #f3f3f3; /* Light grey */
-      border-top: 5px solid #3498db; /* Blue */
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #3498db;
       border-radius: 50%;
       width: 50px;
       height: 50px;
@@ -178,66 +168,73 @@
     
       <!-- יחידת תוכן (תתמלא ב-JS) -->
       <div id="content-wrapper" class="opacity-0 transition-opacity duration-300">
-        <!-- כותרת -->
+        <!-- כותרת + שדה תעריף -->
         <div class="mb-8">
           <div class="flex flex-wrap items-center justify-between gap-4">
-            <h1 id="site-name-h1" class="text-4xl font-bold text-gray-900">טוען...</h1>
+            <h1 id="site-name-h1" class="text-4xl font-bold text-gray-900">...</h1>
             <span id="site-status-span" class="text-gray-700 bg-gray-100 text-sm font-bold px-4 py-2 rounded-full flex items-center">
               <span class="w-2 h-2 bg-gray-500 rounded-full ml-2"></span>
-              טוען...
+              ...
             </span>
           </div>
-          <p id="site-id-p" class="text-lg text-gray-500 mt-1">טוען...</p>
+          <p id="site-id-p" class="text-lg text-gray-500 mt-1">...</p>
+          
+          <!-- מחשבון תעריף -->
+          <div class="mt-4 max-w-xs">
+            <label for="tariff-input" class="block text-sm font-semibold text-gray-700 mb-1">הזן תעריף (אגורות ל-kWh)</label>
+            <input type="number" id="tariff-input" value="48" step="0.1"
+              class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
         </div>
 
-        <!-- KPIs -->
+        <!-- KPIs אנרגיה -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div class="stat-card">
             <div class="stat-label">הספק נוכחי</div>
-            <div>
-              <span id="kpi-current-power" class="stat-value">...</span>
-              <span class="stat-unit">kW</span>
-            </div>
+            <div><span id="kpi-current-power" class="stat-value">...</span><span class="stat-unit">kW</span></div>
           </div>
           <div class="stat-card">
             <div class="stat-label">אנרגיה (היום)</div>
-            <div>
-              <span id="kpi-today" class="stat-value text-gray-900">...</span>
-              <span class="stat-unit">kWh</span>
-            </div>
+            <div><span id="kpi-today" class="stat-value text-gray-900">...</span><span class="stat-unit">kWh</span></div>
           </div>
           <div class="stat-card">
             <div class="stat-label">אנרגיה (חודש)</div>
-            <div>
-              <span id="kpi-month" class="stat-value text-gray-900">...</span>
-              <span class="stat-unit">MWh</span>
-            </div>
+            <div><span id="kpi-month" class="stat-value text-gray-900">...</span><span class="stat-unit">kWh</span></div>
           </div>
           <div class="stat-card">
             <div class="stat-label">אנרגיה (סה"כ)</div>
-            <div>
-              <span id="kpi-lifetime" class="stat-value text-gray-900">...</span>
-              <span class="stat-unit">MWh</span>
-            </div>
+            <div><span id="kpi-lifetime" class="stat-value text-gray-900">...</span><span class="stat-unit">MWh</span></div>
+          </div>
+        </div>
+        
+        <!-- KPIs כלכליים -->
+         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div class="stat-card">
+            <div class="stat-label">רווח (היום)</div>
+            <div><span id="kpi-today-earnings" class="stat-value text-green-600">...</span><span class="stat-unit">₪</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">רווח (חודש)</div>
+            <div><span id="kpi-month-earnings" class="stat-value text-green-600">...</span><span class="stat-unit">₪</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">רווח (סה"כ)</div>
+            <div><span id="kpi-lifetime-earnings" class="stat-value text-green-600">...</span><span class="stat-unit">₪</span></div>
           </div>
         </div>
 
         <!-- גרפים -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <!--
-            *** תיקון "זליגת" הגרפים ***
-            הוספנו div עוטף עם גובה קבוע ומיקום יחסי (relative)
-            כדי לתת ל-Chart.js גבולות ברורים לציור.
-          -->
+        <div class="grid grid-cols-1 lg:grid-cols-1 gap-6 mb-8">
+          <!-- *** תיקון "זליגת" הגרפים *** -->
           <div class="stat-card">
-            <h3 class="text-xl font-bold text-gray-900 mb-4">הספק רגעי (24 שעות)</h3>
-            <div class="relative" style="height: 250px;">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">הספק רגעי (7 ימים)</h3>
+            <div class="relative" style="height: 300px;">
               <canvas id="power-chart-canvas"></canvas>
             </div>
           </div>
           <div class="stat-card">
-            <h3 class="text-xl font-bold text-gray-900 mb-4">ייצור יומי (7 ימים)</h3>
-            <div class="relative" style="height: 250px;">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">ייצור יומי (שנה אחרונה)</h3>
+            <div class="relative" style="height: 300px;">
               <canvas id="energy-chart-canvas"></canvas>
             </div>
           </div>
@@ -247,15 +244,11 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <div class="stat-card">
             <h3 class="text-xl font-bold text-gray-900 mb-2">פרטי אתר</h3>
-            <dl id="site-details-list" class="divide-y divide-gray-200">
-              <!-- פרטים יטענו לכאן -->
-            </dl>
+            <dl id="site-details-list" class="divide-y divide-gray-200"></dl>
           </div>
           <div class="stat-card">
             <h3 class="text-xl font-bold text-gray-900 mb-2">ציוד וממירים</h3>
-            <ul id="inventory-list" class="divide-y divide-gray-200">
-              <!-- ממירים יטענו לכאן -->
-            </ul>
+            <ul id="inventory-list" class="divide-y divide-gray-200"></ul>
           </div>
         </div>
       </div>
@@ -277,6 +270,10 @@
         powerChartInstance: null,
         energyChartInstance: null,
       };
+      
+      // אתחול תעריף משדה הקלט
+      const tariffInput = document.getElementById('tariff-input');
+      appState.currentTariff = parseFloat(tariffInput.value) / 100 || 0.48;
 
       // --- DOM Elements ---
       const loginScreen = document.getElementById('login-screen');
@@ -290,10 +287,10 @@
       const contentWrapper = document.getElementById('content-wrapper');
 
       // פונקציית עזר לביצוע קריאות רשת
-      async function fetchData(body) {
+      async function fetchData(body, title = 'טוען נתונים...') {
         Swal.fire({
-          title: 'טוען נתונים...',
-          text: 'מתחבר ל-SolarEdge דרך השרת המאובטח',
+          title: title,
+          text: 'מתחבר לשרת המאובטח...',
           allowOutsideClick: false,
           didOpen: () => Swal.showLoading(),
         });
@@ -333,7 +330,7 @@
         loginButton.disabled = true;
         loginButton.innerText = 'טוען...';
         
-        const data = await fetchData({ api_key: key });
+        const data = await fetchData({ api_key: key }, 'טוען רשימת אתרים...');
 
         loginButton.disabled = false;
         loginButton.innerText = 'טען אתרים';
@@ -347,6 +344,7 @@
           setTimeout(() => {
             loginScreen.classList.add('hidden');
             dashboardScreen.classList.remove('hidden');
+            contentWrapper.classList.add('hidden'); // הסתר תוכן לפני טעינה
             dashboardScreen.style.opacity = '1';
           }, 500);
 
@@ -362,6 +360,16 @@
           });
         }
       });
+      
+      // עדכון תעריף
+      tariffInput.addEventListener('change', (e) => {
+        const agorot = parseFloat(e.target.value);
+        appState.currentTariff = isNaN(agorot) ? 0 : agorot / 100; // המרה לשקלים
+        if (appState.siteData) {
+          updateUI(appState.siteData); // עדכן חישובים כלכליים
+        }
+      });
+
 
       // רינדור תפריט הצד
       function renderSidebar() {
@@ -384,10 +392,11 @@
       
       // טעינת נתונים של אתר ספציפי
       async function loadSiteData(siteId) {
-        if (appState.selectedSiteId === siteId && appState.siteData) return; // אל תטען מחדש אם כבר נבחר
+        if (appState.selectedSiteId === siteId && appState.siteData) return; // אל תטען מחדש
 
         appState.selectedSiteId = siteId;
         contentWrapper.style.opacity = '0';
+        contentWrapper.classList.add('hidden');
         contentLoader.classList.add('visible');
         renderSidebar(); // עדכן כפתור פעיל
         
@@ -401,6 +410,7 @@
         if (data) {
           appState.siteData = data;
           updateUI(data);
+          contentWrapper.classList.remove('hidden');
           contentWrapper.style.opacity = '1';
         }
       }
@@ -419,10 +429,20 @@
         
         // עדכון KPIs
         const formatNum = (num, def = '...') => (isNaN(num) || num === null) ? def : num;
+        const todayKwh = (o.lastDayData?.energy / 1000);
+        const monthKwh = (o.lastMonthData?.energy / 1000); // זה חודש, לא MWh
+        const lifeMwh = (o.lifeTimeData?.energy / 1000000);
+        
         document.getElementById('kpi-current-power').innerText = formatNum(parseFloat((o.currentPower?.power / 1000).toFixed(2)));
-        document.getElementById('kpi-today').innerText = formatNum(parseFloat((o.lastDayData?.energy / 1000).toFixed(1)));
-        document.getElementById('kpi-month').innerText = formatNum(parseFloat((o.lastMonthData?.energy / 1000000).toFixed(2)));
-        document.getElementById('kpi-lifetime').innerText = formatNum(parseFloat((o.lifeTimeData?.energy / 1000000).toFixed(2)));
+        document.getElementById('kpi-today').innerText = formatNum(parseFloat(todayKwh.toFixed(1)));
+        document.getElementById('kpi-month').innerText = formatNum(parseFloat(monthKwh.toFixed(1)));
+        document.getElementById('kpi-lifetime').innerText = formatNum(parseFloat(lifeMwh.toFixed(2)));
+        
+        // עדכון KPIs כלכליים
+        const tariff = appState.currentTariff;
+        document.getElementById('kpi-today-earnings').innerText = formatNum(parseFloat((todayKwh * tariff).toFixed(2)));
+        document.getElementById('kpi-month-earnings').innerText = formatNum(parseFloat((monthKwh * tariff).toFixed(0)).toLocaleString());
+        document.getElementById('kpi-lifetime-earnings').innerText = formatNum(parseFloat((lifeMwh * 1000000 * tariff).toFixed(0)).toLocaleString());
 
         // עדכון פרטי אתר
         const detailsList = document.getElementById('site-details-list');
@@ -433,7 +453,7 @@
           </div>
           <div class="py-3 sm:grid sm:grid-cols-3 sm:gap-4">
             <dt class="text-sm font-semibold text-gray-500">מיקום</dt>
-            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 font-medium">${d.location?.address}, ${d.location?.city}</dd>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 font-medium">${d.location?.address || ''}, ${d.location?.city || ''}</dd>
           </div>
           <div class="py-3 sm:grid sm:grid-cols-3 sm:gap-4">
             <dt class="text-sm font-semibold text-gray-500">הספק שיא (Peak)</dt>
@@ -461,11 +481,11 @@
         }
         
         // --- עדכון גרפים ---
-        renderPowerChart(data.power_last_24h?.power);
-        renderEnergyChart(data.energy_last_7_days?.energy);
+        renderPowerChart(data.power_last_7_days?.power);
+        renderEnergyChart(data.energy_last_365_days?.energy);
       }
       
-      // רינדור גרף הספק
+      // רינדור גרף הספק (7 ימים)
       function renderPowerChart(powerData) {
         if (appState.powerChartInstance) {
           appState.powerChartInstance.destroy();
@@ -476,14 +496,14 @@
           ctx.font = "16px Assistant";
           ctx.fillStyle = "#6b7280";
           ctx.textAlign = "center";
-          ctx.fillText("אין נתונים זמינים להצגת הגרף", ctx.canvas.width / 2, ctx.canvas.height / 2);
+          ctx.fillText("אין נתוני הספק זמינים", ctx.canvas.width / 2, 125);
           return;
         }
         
         const chartData = powerData.values
           .filter(item => item.value !== null)
           .map(item => ({
-            x: new Date(item.date).getTime(), // השתמש ב-timestamp עבור ציר הזמן
+            x: new Date(item.date).getTime(),
             y: (item.value / 1000).toFixed(2),
           }));
           
@@ -507,10 +527,10 @@
               x: {
                 type: 'time',
                 time: {
-                  unit: 'hour',
-                  tooltipFormat: 'HH:mm',
+                  unit: 'day',
+                  tooltipFormat: 'dd/MM/yy HH:mm',
                   displayFormats: {
-                    hour: 'HH:mm'
+                    day: 'dd/MM'
                   }
                 },
                 ticks: { source: 'auto', maxRotation: 0, autoSkip: true, autoSkipPadding: 20, font: { family: 'Assistant' } }
@@ -532,7 +552,7 @@
         });
       }
       
-      // רינדור גרף אנרגיה
+      // רינדור גרף אנרגיה (שנה)
       function renderEnergyChart(energyData) {
         if (appState.energyChartInstance) {
           appState.energyChartInstance.destroy();
@@ -543,24 +563,23 @@
           ctx.font = "16px Assistant";
           ctx.fillStyle = "#6b7280";
           ctx.textAlign = "center";
-          ctx.fillText("אין נתונים זמינים להצגת הגרף", ctx.canvas.width / 2, ctx.canvas.height / 2);
+          ctx.fillText("אין נתוני אנרגיה זמינים", ctx.canvas.width / 2, 125);
           return;
         }
 
-        const labels = energyData.values.map(item => 
-          new Date(item.date).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' })
-        );
-        const dataPoints = energyData.values.map(item => 
-          item.value ? (item.value / 1000).toFixed(1) : 0
-        );
+        const chartData = energyData.values
+          .filter(item => item.value !== null)
+          .map(item => ({
+            x: new Date(item.date).getTime(),
+            y: (item.value / 1000).toFixed(1)
+          }));
 
         appState.energyChartInstance = new Chart(ctx, {
           type: 'bar',
           data: {
-            labels: labels,
             datasets: [{
-              label: 'אנרגיה (kWh)',
-              data: dataPoints,
+              label: 'אנרגיה יומית (kWh)',
+              data: chartData,
               backgroundColor: '#8884d8',
             }]
           },
@@ -568,7 +587,17 @@
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-              x: { ticks: { font: { family: 'Assistant' } } },
+              x: {
+                type: 'time',
+                time: {
+                  unit: 'month',
+                  tooltipFormat: 'dd/MM/yyyy',
+                  displayFormats: {
+                    month: 'MMM yyyy'
+                  }
+                },
+                ticks: { source: 'auto', maxRotation: 0, autoSkip: true, autoSkipPadding: 30, font: { family: 'Assistant' } }
+              },
               y: {
                 title: { display: true, text: 'kWh', font: { family: 'Assistant' } },
                 ticks: { font: { family: 'Assistant' } }
@@ -580,13 +609,6 @@
             }
           }
         });
-      }
-      
-      // הסר את ה-loader והצג את מסך הכניסה
-      // (הוספנו בדיקה שהאלמנט קיים לפני המחיקה)
-      const loaderEl = document.getElementById('loader');
-      if (loaderEl) {
-        loaderEl.remove();
       }
 
     }); // סיום של window.addEventListener('load')
