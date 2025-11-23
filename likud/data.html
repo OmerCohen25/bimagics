@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Likudata.ai - מערכת לניהול קמפיין</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Heebo', sans-serif;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen overflow-hidden">
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- Icons Components (Inline SVGs to ensure single-file reliability) ---
+        const Icon = ({ path, className, size = 24 }) => (
+            <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width={size} 
+                height={size} 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className={className}
+            >
+                {path}
+            </svg>
+        );
+
+        const Icons = {
+            Activity: (props) => <Icon {...props} path={<polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />} />,
+            Users: (props) => <Icon {...props} path={<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></>} />,
+            Vote: (props) => <Icon {...props} path={<><path d="m9 12 2 2 4-4"/><path d="M5 7c0-1.1.9-2 2-2h10a2 2 0 0 1 2 2v12H5V7Z"/><path d="M22 19H2"/></>} />,
+            Megaphone: (props) => <Icon {...props} path={<><path d="m3 11 18-5v12L3 14v-3z" /><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" /></>} />,
+            FileText: (props) => <Icon {...props} path={<><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /></>} />,
+            Smartphone: (props) => <Icon {...props} path={<><rect width="14" height="20" x="5" y="2" rx="2" ry="2" /><path d="M12 18h.01" /></>} />,
+            Map: (props) => <Icon {...props} path={<><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" /><line x1="9" x2="9" y1="3" y2="18" /><line x1="15" x2="15" y1="6" y2="21" /></>} />,
+            Shield: (props) => <Icon {...props} path={<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />} />,
+            TrendingUp: (props) => <Icon {...props} path={<><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" /></>} />,
+            Search: (props) => <Icon {...props} path={<><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></>} />,
+            Menu: (props) => <Icon {...props} path={<><line x1="4" x2="20" y1="12" y2="12" /><line x1="4" x2="20" y1="6" y2="6" /><line x1="4" x2="20" y1="18" y2="18" /></>} />,
+            X: (props) => <Icon {...props} path={<><path d="M18 6 6 18" /><path d="m6 6 12 12" /></>} />,
+            Send: (props) => <Icon {...props} path={<><line x1="22" x2="11" y1="2" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></>} />,
+            UserCheck: (props) => <Icon {...props} path={<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><polyline points="16 11 18 13 22 9" /></>} />,
+            Building2: (props) => <Icon {...props} path={<><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" /><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" /><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" /><path d="M10 6h4" /><path d="M10 10h4" /><path d="M10 14h4" /><path d="M10 18h4" /></>} />,
+            PieChart: (props) => <Icon {...props} path={<><path d="M21.21 15.89A10 10 0 1 1 8 2.83" /><path d="M22 12A10 10 0 0 0 12 2v10z" /></>} />,
+        };
+
+
+        // --- Main App Component ---
+
+        const LikudataApp = () => {
+            const [activeTab, setActiveTab] = useState('dashboard');
+            const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+            const [currentPoll, setCurrentPoll] = useState(32);
+
+            const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+            // Mock Data
+            const mkData = [
+                { name: 'שר הבטחון', mediaScore: 90, actionScore: 85, img: '🛡️' },
+                { name: 'שר התחבורה', mediaScore: 95, actionScore: 40, img: '🚂' },
+                { name: 'יו"ר הקואליציה', mediaScore: 60, actionScore: 92, img: '⚖️' },
+                { name: 'שרת ההסברה', mediaScore: 98, actionScore: 20, img: '📢' },
+                { name: 'ח"כ דוד ביטן', mediaScore: 75, actionScore: 75, img: '👔' },
+            ];
+
+            const branches = [
+                { city: 'ירושלים', members: 12500, votingRate: 82, status: 'חזק' },
+                { city: 'תל אביב', members: 4200, votingRate: 45, status: 'חלש' },
+                { city: 'בת ים', members: 8900, votingRate: 78, status: 'חזק' },
+                { city: 'אשדוד', members: 11000, votingRate: 72, status: 'בינוני' },
+            ];
+
+            const renderContent = () => {
+                switch (activeTab) {
+                    case 'dashboard': return <DashboardView currentPoll={currentPoll} />;
+                    case 'crm': return <CrmView branches={branches} />;
+                    case 'parliament': return <ParliamentView mkData={mkData} />;
+                    case 'primaries': return <PrimariesView />;
+                    case 'eday': return <ElectionDayView />;
+                    default: return <DashboardView currentPoll={currentPoll} />;
+                }
+            };
+
+            return (
+                <div className="flex h-screen bg-slate-50 font-sans text-slate-800 overflow-hidden">
+                    {/* Sidebar */}
+                    <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-blue-900 text-white transition-all duration-300 flex flex-col shadow-2xl z-20`}>
+                        <div className="p-4 flex items-center justify-between border-b border-blue-800">
+                            <div className={`flex items-center gap-3 ${!isSidebarOpen && 'justify-center w-full'}`}>
+                                <div className="bg-white text-blue-900 p-2 rounded-lg font-bold text-xl">ל</div>
+                                {isSidebarOpen && <span className="font-bold text-xl tracking-wider">Likudata.ai</span>}
+                            </div>
+                            <button onClick={toggleSidebar} className="text-blue-200 hover:text-white lg:hidden">
+                                <Icons.X size={24} />
+                            </button>
+                        </div>
+
+                        <nav className="flex-1 overflow-y-auto py-4">
+                            <SidebarItem icon={<Icons.Activity />} label="מרכז שליטה" id="dashboard" activeTab={activeTab} setActiveTab={setActiveTab} isOpen={isSidebarOpen} />
+                            <SidebarItem icon={<Icons.Users />} label="שטח ומתפקדים" id="crm" activeTab={activeTab} setActiveTab={setActiveTab} isOpen={isSidebarOpen} />
+                            <SidebarItem icon={<Icons.Building2 />} label="מדד הפרלמנט" id="parliament" activeTab={activeTab} setActiveTab={setActiveTab} isOpen={isSidebarOpen} />
+                            <SidebarItem icon={<Icons.Vote />} label="ניהול פריימריז" id="primaries" activeTab={activeTab} setActiveTab={setActiveTab} isOpen={isSidebarOpen} />
+                            <SidebarItem icon={<Icons.Map />} label="יום הבוחר (GOTV)" id="eday" activeTab={activeTab} setActiveTab={setActiveTab} isOpen={isSidebarOpen} />
+                        </nav>
+
+                        <div className="p-4 border-t border-blue-800 bg-blue-950">
+                            <div className={`flex items-center gap-3 ${!isSidebarOpen && 'justify-center'}`}>
+                                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-xs font-bold">מ.מ</div>
+                                {isSidebarOpen && (
+                                    <div className="text-sm">
+                                        <p className="font-semibold">מנהל מטה</p>
+                                        <p className="text-blue-300 text-xs">מצודת זאב, ת"א</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </aside>
+
+                    {/* Main Content */}
+                    <main className="flex-1 flex flex-col overflow-hidden relative">
+                        <header className="h-16 bg-white shadow-sm flex items-center justify-between px-6 z-10">
+                            <div className="flex items-center gap-4">
+                                <button onClick={toggleSidebar} className="text-slate-500 hover:text-blue-900">
+                                    <Icons.Menu size={24} />
+                                </button>
+                                <h2 className="text-xl font-bold text-slate-700 hidden md:block">
+                                    {activeTab === 'dashboard' && 'לוח בקרה ארצי'}
+                                    {activeTab === 'crm' && 'ניהול מתפקדים וספר בוחרים'}
+                                    {activeTab === 'parliament' && 'ביצועי שרים וח"כים'}
+                                    {activeTab === 'primaries' && 'מטה פריימריז ודילים'}
+                                    {activeTab === 'eday' && 'חדר מלחמה - יום הבחירות'}
+                                </h2>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div className="hidden md:flex items-center gap-2 bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
+                                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                    <span className="text-sm font-medium text-blue-800">AI פעיל</span>
+                                </div>
+                                <div className="bg-slate-100 p-2 rounded-full relative cursor-pointer hover:bg-slate-200">
+                                    <Icons.Megaphone size={20} className="text-slate-600" />
+                                    <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50">
+                            {renderContent()}
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        // --- View Components ---
+
+        const SidebarItem = ({ icon, label, id, activeTab, setActiveTab, isOpen }) => (
+            <button 
+                onClick={() => setActiveTab(id)}
+                className={`w-full flex items-center gap-4 px-4 py-3 transition-colors ${
+                    activeTab === id 
+                        ? 'bg-blue-800 text-white border-r-4 border-blue-400' 
+                        : 'text-blue-100 hover:bg-blue-800/50'
+                }`}
+            >
+                <span className="min-w-[20px]">{icon}</span>
+                {isOpen && <span className="text-sm font-medium">{label}</span>}
+            </button>
+        );
+
+        const DashboardView = ({ currentPoll }) => (
+            <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <KpiCard title="מנדטים (סקר מעודכן)" value={currentPoll} trend="+2" trendColor="text-green-600" icon={<Icons.TrendingUp />} color="bg-blue-600" />
+                    <KpiCard title="מתפקדים רשומים" value="142,593" trend="+1.5%" trendColor="text-green-600" icon={<Icons.Users />} color="bg-indigo-600" />
+                    <KpiCard title="חברי מרכז" value="3,800" trend="0%" trendColor="text-slate-500" icon={<Icons.Shield />} color="bg-purple-600" />
+                    <KpiCard title="תקציב קמפיין שנותר" value="₪4.2M" trend="-12%" trendColor="text-red-500" icon={<Icons.PieChart />} color="bg-emerald-600" />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                            <Icons.Activity size={20} className="text-blue-600" />
+                            מגמת מנדטים - גוש הימין
+                        </h3>
+                        <div className="h-64 flex items-end justify-between gap-2 px-2">
+                            {[28, 29, 30, 29, 31, 32, 33, 32].map((val, idx) => (
+                                <div key={idx} className="flex-1 flex flex-col items-center gap-2 group">
+                                    <span className="text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">{val}</span>
+                                    <div className="w-full bg-blue-100 rounded-t-md relative overflow-hidden group-hover:bg-blue-200 transition-colors" style={{ height: `${val * 3}px` }}>
+                                        <div className="absolute bottom-0 w-full bg-blue-600 rounded-t-md transition-all duration-500" style={{ height: `${val * 2}%` }}></div>
+                                    </div>
+                                    <span className="text-xs text-slate-400">שבוע {idx + 1}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-indigo-900 to-blue-900 text-white p-6 rounded-xl shadow-lg relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-32 h-32 bg-white opacity-5 rounded-full -translate-x-10 -translate-y-10"></div>
+                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2 z-10 relative">
+                            <Icons.Smartphone size={20} />
+                            LikudAI Insights
+                        </h3>
+                        <div className="space-y-4 relative z-10">
+                            <div className="bg-white/10 p-3 rounded-lg backdrop-blur-sm border border-white/10">
+                                <p className="text-xs text-blue-200 mb-1">המלצה אסטרטגית</p>
+                                <p className="text-sm">זוהתה ירידה בתמיכה בקרב צעירים בחדרה. מומלץ לתגבר סיורי שרים באזור השרון בשבוע הקרוב.</p>
+                            </div>
+                            <div className="bg-white/10 p-3 rounded-lg backdrop-blur-sm border border-white/10">
+                                <p className="text-xs text-blue-200 mb-1">ניתוח סנטימנט</p>
+                                <p className="text-sm">הקמפיין האחרון בנושא יוקר המחיה מקבל סנטימנט חיובי של 78% ברשתות החברתיות.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const CrmView = ({ branches }) => (
+            <div className="space-y-6">
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-4 items-center justify-between">
+                    <div className="relative w-full md:w-96">
+                        <input type="text" placeholder="חיפוש חבר מרכז / מתפקד..." className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right" dir="rtl" />
+                        <Icons.Search className="absolute right-3 top-2.5 text-slate-400" size={18} />
+                    </div>
+                    <div className="flex gap-2 w-full md:w-auto">
+                        <button className="flex-1 md:flex-none px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center justify-center gap-2">
+                            <Icons.UserCheck size={16} />
+                            הוסף מתפקד
+                        </button>
+                        <button className="flex-1 md:flex-none px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50">
+                            ייצוא לאקסל
+                        </button>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 bg-white rounded-xl shadow-sm overflow-hidden border border-slate-100">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-right text-sm">
+                                <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
+                                    <tr>
+                                        <th className="p-4 font-medium">שם הסניף</th>
+                                        <th className="p-4 font-medium">מספר מתפקדים</th>
+                                        <th className="p-4 font-medium">אחוז הצבעה</th>
+                                        <th className="p-4 font-medium">סטטוס שטח</th>
+                                        <th className="p-4 font-medium">פעולות</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {branches.map((branch, i) => (
+                                        <tr key={i} className="border-b border-slate-50 last:border-0 hover:bg-blue-50/50 transition-colors">
+                                            <td className="p-4 font-bold text-slate-700">{branch.city}</td>
+                                            <td className="p-4">{branch.members.toLocaleString()}</td>
+                                            <td className="p-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                                        <div className="h-full bg-blue-500" style={{ width: `${branch.votingRate}%` }}></div>
+                                                    </div>
+                                                    <span>{branch.votingRate}%</span>
+                                                </div>
+                                            </td>
+                                            <td className="p-4">
+                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                    branch.status === 'חזק' ? 'bg-green-100 text-green-700' :
+                                                    branch.status === 'חלש' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                                                }`}>
+                                                    {branch.status}
+                                                </span>
+                                            </td>
+                                            <td className="p-4">
+                                                <button className="text-blue-600 hover:text-blue-800 text-xs font-bold">נהל</button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                        <h4 className="font-bold text-slate-700 mb-4">פילוח דמוגרפי - מתפקדים</h4>
+                        <div className="space-y-4">
+                            {[
+                                { label: 'צעירים (18-35)', val: 35, color: 'bg-blue-500' },
+                                { label: 'ביניים (36-60)', val: 45, color: 'bg-indigo-500' },
+                                { label: 'גיל שלישי (60+)', val: 20, color: 'bg-slate-500' }
+                            ].map((item, i) => (
+                                <div key={i}>
+                                    <div className="flex justify-between text-xs mb-1">
+                                        <span>{item.label}</span>
+                                        <span className="font-bold">{item.val}%</span>
+                                    </div>
+                                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                        <div className={`h-full ${item.color}`} style={{ width: `${item.val}%` }}></div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        
+                        <div className="mt-8 pt-6 border-t border-slate-100">
+                            <h4 className="font-bold text-slate-700 mb-2">יום הולדת לליכודניקים 🎂</h4>
+                            <p className="text-sm text-slate-500 mb-3">ישנם 420 מתפקדים החוגגים יום הולדת היום.</p>
+                            <button className="w-full py-2 border border-blue-600 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50 flex items-center justify-center gap-2">
+                                <Icons.Send size={14} />
+                                שלח SMS ברכה אוטומטי
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const ParliamentView = ({ mkData }) => (
+            <div className="space-y-6">
+                <div className="bg-indigo-50 border border-indigo-100 p-6 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h3 className="text-xl font-bold text-indigo-900">מדד עשייה vs. תקשורת</h3>
+                        <p className="text-indigo-700 mt-1">ניתוח פעילות נבחרי ציבור: חקיקה ונוכחות לעומת ראיונות ורשתות.</p>
+                    </div>
+                    <div className="flex gap-2">
+                        <span className="px-3 py-1 bg-white rounded shadow-sm text-xs font-bold text-blue-600 border border-blue-100">תקשורת</span>
+                        <span className="px-3 py-1 bg-white rounded shadow-sm text-xs font-bold text-green-600 border border-green-100">עשייה פרלמנטרית</span>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {mkData.map((mk, idx) => (
+                        <div key={idx} className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-shadow">
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-2xl border border-slate-200">
+                                    {mk.img}
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-lg text-slate-800">{mk.name}</h4>
+                                    <p className="text-xs text-slate-500">דירוג כולל: #{idx + 1}</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <div className="flex justify-between text-xs mb-1">
+                                        <span className="text-blue-600 font-medium flex items-center gap-1"><Icons.Megaphone size={12}/> נוכחות תקשורתית</span>
+                                        <span className="font-bold">{mk.mediaScore}/100</span>
+                                    </div>
+                                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                        <div className="h-full bg-blue-500" style={{ width: `${mk.mediaScore}%` }}></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div className="flex justify-between text-xs mb-1">
+                                        <span className="text-green-600 font-medium flex items-center gap-1"><Icons.FileText size={12}/> עשייה בפועל</span>
+                                        <span className="font-bold">{mk.actionScore}/100</span>
+                                    </div>
+                                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                        <div className="h-full bg-green-500" style={{ width: `${mk.actionScore}%` }}></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+
+        const PrimariesView = () => (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+                <div className="lg:col-span-2 space-y-6">
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                        <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-slate-800">
+                            <Icons.Vote className="text-blue-600" />
+                            מעקב דילים ורשימות מומלצים
+                        </h3>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-right text-sm">
+                                <thead>
+                                    <tr className="bg-slate-50 text-slate-500">
+                                        <th className="p-3 rounded-r-lg">שם הקבוצה / דיל</th>
+                                        <th className="p-3">ראש הקבוצה</th>
+                                        <th className="p-3">כוח אלקטורלי (משוער)</th>
+                                        <th className="p-3 rounded-l-lg">סטטוס תמיכה</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    <tr>
+                                        <td className="p-3 font-medium">הליכודניקים החדשים</td>
+                                        <td className="p-3">דני ו.</td>
+                                        <td className="p-3">5,000 קולות</td>
+                                        <td className="p-3"><span className="text-yellow-600 bg-yellow-50 px-2 py-1 rounded text-xs">במו"מ</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td className="p-3 font-medium">התעשייה האווירית</td>
+                                        <td className="p-3">חיים כ.</td>
+                                        <td className="p-3">3,200 קולות</td>
+                                        <td className="p-3"><span className="text-green-600 bg-green-50 px-2 py-1 rounded text-xs">תומכים</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td className="p-3 font-medium">פורום המרכז</td>
+                                        <td className="p-3">יוסי א.</td>
+                                        <td className="p-3">1,800 קולות</td>
+                                        <td className="p-3"><span className="text-red-600 bg-red-50 px-2 py-1 rounded text-xs">עוין</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-blue-100 transition-colors">
+                            <Icons.FileText size={32} className="text-blue-600 mb-2" />
+                            <h4 className="font-bold text-blue-900">הפקת פלייר מומלצים</h4>
+                            <p className="text-xs text-blue-700 mt-1">צור רשימת חיסול/מומלצים להדפסה</p>
+                        </div>
+                        <div className="bg-green-50 p-6 rounded-xl border border-green-100 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-green-100 transition-colors">
+                            <Icons.Smartphone size={32} className="text-green-600 mb-2" />
+                            <h4 className="font-bold text-green-900">SMS המרצה אישי</h4>
+                            <p className="text-xs text-green-700 mt-1">שליחה ממוקדת לפי אזורי חיוג</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                    <h3 className="font-bold text-lg mb-6">מפת חום - פריימריז</h3>
+                    <div className="bg-slate-100 rounded-lg h-64 flex items-center justify-center relative overflow-hidden">
+                        <Icons.Map size={64} className="text-slate-300 opacity-20" />
+                        <div className="absolute top-10 right-10 w-4 h-4 bg-red-500 rounded-full animate-ping opacity-75"></div>
+                        <div className="absolute top-10 right-10 w-4 h-4 bg-red-500 rounded-full border-2 border-white"></div>
+                        <div className="absolute bottom-20 left-20 w-6 h-6 bg-blue-500 rounded-full animate-pulse opacity-75"></div>
+                        <div className="absolute top-1/2 left-1/2 w-8 h-8 bg-blue-600 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-[10px] text-white font-bold">ת"א</div>
+                    </div>
+                    <div className="mt-4 space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                            <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                            <span>מעוזים חזקים (צביעת קלפיות)</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                            <span>אזורים לחיזוק</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const ElectionDayView = () => (
+            <div className="flex flex-col h-full space-y-6">
+                <div className="bg-slate-900 text-white p-6 rounded-xl flex flex-col md:flex-row justify-between items-center shadow-lg gap-4 text-center md:text-right">
+                    <div>
+                        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-yellow-400">מבצע "ליכוד גדול"</h2>
+                        <p className="text-slate-300 mt-1">יום הבחירות לכנסת ה-26 | חמ"ל מרכזי</p>
+                    </div>
+                    <div className="text-left">
+                        <div className="text-4xl font-mono font-bold">14:32:05</div>
+                        <div className="text-sm text-red-400 font-bold uppercase tracking-widest animate-pulse">Live Feed</div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-white p-4 rounded-lg border-b-4 border-blue-600 shadow-sm">
+                        <p className="text-slate-500 text-xs font-bold uppercase">אחוז הצבעה ארצי</p>
+                        <p className="text-3xl font-bold text-slate-800">42.8%</p>
+                        <p className="text-xs text-green-600 mt-1">↑ 2% מבחירות קודמות</p>
+                    </div>
+                    <div className="bg-white p-4 rounded-lg border-b-4 border-yellow-500 shadow-sm">
+                        <p className="text-slate-500 text-xs font-bold uppercase">יעד מצביעים (ליכוד)</p>
+                        <p className="text-3xl font-bold text-slate-800">842,000</p>
+                        <div className="w-full h-1.5 bg-slate-100 rounded-full mt-2">
+                           <div className="h-full bg-yellow-500 w-[65%]"></div>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-1">65% מהיעד הושלם</p>
+                    </div>
+                    <div className="bg-white p-4 rounded-lg border-b-4 border-red-500 shadow-sm">
+                        <p className="text-slate-500 text-xs font-bold uppercase">קלפיות בעייתיות</p>
+                        <p className="text-3xl font-bold text-red-600">12</p>
+                        <p className="text-xs text-slate-500 mt-1">נדרשת התערבות משפטית</p>
+                    </div>
+                    <div className="bg-blue-600 text-white p-4 rounded-lg shadow-md cursor-pointer hover:bg-blue-700 transition-colors flex flex-col justify-center items-center text-center">
+                        <Icons.Megaphone size={24} className="mb-2" />
+                        <p className="font-bold">הפעל נוהל המרצה</p>
+                        <p className="text-xs opacity-80">SMS חירום לכל המאגר</p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
+                    <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                        <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                            <h3 className="font-bold text-slate-700">סטטוס ערים בזמן אמת</h3>
+                            <div className="flex gap-2">
+                                <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                                <span className="text-xs text-slate-500">תנועה ערה</span>
+                                <span className="w-3 h-3 bg-red-500 rounded-full ml-2"></span>
+                                <span className="text-xs text-slate-500">תנועה דלילה</span>
+                            </div>
+                        </div>
+                        <div className="flex-1 overflow-auto p-4 space-y-3">
+                            {[
+                                { city: 'ירושלים', pct: 62, target: 70, trend: 'high' },
+                                { city: 'בת ים', pct: 58, target: 65, trend: 'high' },
+                                { city: 'ראשון לציון', pct: 45, target: 55, trend: 'low' },
+                                { city: 'נתניה', pct: 51, target: 60, trend: 'med' },
+                                { city: 'שדרות', pct: 72, target: 75, trend: 'high' },
+                            ].map((item, i) => (
+                                <div key={i} className="flex items-center gap-4">
+                                    <span className="w-24 font-bold text-sm">{item.city}</span>
+                                    <div className="flex-1 h-8 bg-slate-100 rounded-md relative overflow-hidden">
+                                        <div 
+                                            className={`h-full flex items-center justify-end px-2 text-xs font-bold text-white transition-all duration-1000 ${
+                                                item.trend === 'high' ? 'bg-green-500' : item.trend === 'low' ? 'bg-red-500' : 'bg-yellow-500'
+                                            }`} 
+                                            style={{ width: `${item.pct}%` }}
+                                        >
+                                            {item.pct}%
+                                        </div>
+                                        <div className="absolute top-0 bottom-0 w-0.5 bg-black/20 z-10 border-r border-dashed border-black/50" style={{ left: `${item.target}%` }}></div>
+                                    </div>
+                                    <span className="text-xs text-slate-400 w-12">יעד: {item.target}%</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col">
+                        <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                            <Icons.Activity size={18} />
+                            מערך הסעות
+                        </h3>
+                        <div className="space-y-4 flex-1">
+                           <div className="bg-slate-50 p-3 rounded border border-slate-100">
+                               <div className="flex justify-between items-center mb-1">
+                                   <span className="font-bold text-sm">מרכזיות פעילות</span>
+                                   <span className="text-green-600 font-bold text-sm">42</span>
+                               </div>
+                               <p className="text-xs text-slate-500">סה"כ קריאות פתוחות: 154</p>
+                           </div>
+                           
+                           <div className="bg-slate-50 p-3 rounded border border-slate-100">
+                               <div className="flex justify-between items-center mb-1">
+                                   <span className="font-bold text-sm">מוניות בשטח</span>
+                                   <span className="text-blue-600 font-bold text-sm">210</span>
+                               </div>
+                               <div className="w-full bg-slate-200 h-1.5 rounded-full mt-2">
+                                    <div className="bg-blue-600 h-full w-3/4"></div>
+                               </div>
+                           </div>
+
+                           <div className="mt-auto pt-4">
+                              <button className="w-full py-3 bg-slate-800 text-white rounded-lg font-bold text-sm hover:bg-slate-700">
+                                פתח קריאה להסעה
+                              </button>
+                           </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const KpiCard = ({ title, value, trend, trendColor, icon, color }) => (
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-start justify-between hover:shadow-md transition-shadow">
+                <div>
+                    <p className="text-slate-500 text-sm font-medium mb-1">{title}</p>
+                    <h3 className="text-3xl font-bold text-slate-800">{value}</h3>
+                    <p className={`text-xs font-bold mt-2 ${trendColor} flex items-center gap-1`}>
+                        {trend} מהחודש שעבר
+                    </p>
+                </div>
+                <div className={`${color} p-3 rounded-lg text-white shadow-lg shadow-blue-900/10`}>
+                    {icon}
+                </div>
+            </div>
+        );
+
+        // Mount the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<LikudataApp />);
+    </script>
+</body>
+</html>
