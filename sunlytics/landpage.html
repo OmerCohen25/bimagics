@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sunlytics - ניטור סולארי חכם</title>
+    
+    <!-- טעינת Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- טעינת React ו-ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- טעינת Babel לקימפול JSX בדפדפן -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- הגדרות עיצוב נוספות -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Assistant', sans-serif;
+        }
+        
+        .animate-pulse-slow {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+
+        /* התאמות לסליידרים */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            margin-top: -8px; 
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #dbeafe;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- ספריית אייקונים (Lucide Alternative) ---
+        // מכיוון שאנחנו בקובץ HTML יחיד, הטמענו את ה-SVG ישירות כקומפוננטות React
+        const IconBase = ({ children, className, ...props }) => (
+            <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="24" height="24" viewBox="0 0 24 24" 
+                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                className={className} {...props}
+            >
+                {children}
+            </svg>
+        );
+
+        const Sun = (props) => <IconBase {...props}><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></IconBase>;
+        const Activity = (props) => <IconBase {...props}><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></IconBase>;
+        const CheckCircle = (props) => <IconBase {...props}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></IconBase>;
+        const AlertTriangle = (props) => <IconBase {...props}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></IconBase>;
+        const Zap = (props) => <IconBase {...props}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></IconBase>;
+        const Settings = (props) => <IconBase {...props}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></IconBase>;
+        const FileText = (props) => <IconBase {...props}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></IconBase>;
+        const ShieldCheck = (props) => <IconBase {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></IconBase>;
+        const ChevronRight = (props) => <IconBase {...props}><path d="m9 18 6-6-6-6"/></IconBase>;
+        const Lock = (props) => <IconBase {...props}><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></IconBase>;
+        const ArrowLeft = (props) => <IconBase {...props}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></IconBase>;
+        const ArrowRight = (props) => <IconBase {...props}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></IconBase>;
+        const MessageCircle = (props) => <IconBase {...props}><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></IconBase>;
+        const Battery = (props) => <IconBase {...props}><rect width="16" height="10" x="2" y="7" rx="2" ry="2"/><line x1="22" x2="22" y1="11" y2="13"/></IconBase>;
+        const Wrench = (props) => <IconBase {...props}><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></IconBase>;
+        const LogOut = (props) => <IconBase {...props}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></IconBase>;
+        const Menu = (props) => <IconBase {...props}><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></IconBase>;
+        const X = (props) => <IconBase {...props}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></IconBase>;
+        const Loader2 = (props) => <IconBase {...props}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></IconBase>;
+
+        // --- קונפיגורציה עסקית ---
+        const PRICING_CONFIG = {
+            basePricePerKW: 1.00,
+            yearlyDiscountFactor: 0.85,
+            currencySymbol: '₪'
+        };
+
+        // --- רכיבי UI בסיסיים ---
+        const Button = ({ children, onClick, variant = 'primary', className = '', isLoading = false, disabled = false }) => {
+            const baseStyle = "py-3 px-6 rounded-full font-bold text-lg transition-all transform active:scale-95 flex items-center justify-center gap-2 shadow-lg select-none";
+            const variants = {
+                primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-500/30",
+                cta: "bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:brightness-110 shadow-orange-500/30",
+                secondary: "bg-white text-gray-800 border border-gray-200 hover:bg-gray-50",
+                ghost: "bg-transparent text-gray-500 shadow-none hover:bg-gray-100 py-2",
+                dark: "bg-gray-900 text-white hover:bg-black"
+            };
+
+            return (
+                <button 
+                    onClick={onClick} 
+                    disabled={disabled || isLoading}
+                    className={`${baseStyle} ${variants[variant]} ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                    {isLoading ? <Loader2 className="animate-spin w-5 h-5" /> : children}
+                </button>
+            );
+        };
+
+        const Card = ({ children, className = '', onClick }) => (
+            <div onClick={onClick} className={`bg-white rounded-2xl shadow-xl shadow-gray-100/80 p-6 border border-white ${className}`}>
+                {children}
+            </div>
+        );
+
+        // --- קומפוננטות האפליקציה ---
+
+        const CalculatorSection = () => {
+            const [activeTab, setActiveTab] = useState('potential');
+            const [roofSize, setRoofSize] = useState(150);
+            const [systemSize, setSystemSize] = useState(25);
+            const [tariff, setTariff] = useState(0.48);
+            
+            const M2_PER_KW = 7;
+            const ANNUAL_YIELD_PER_KW = 1700;
+
+            const estimatedKw = roofSize / M2_PER_KW;
+            const productionFromRoof = estimatedKw * ANNUAL_YIELD_PER_KW;
+            const incomeFromRoof = productionFromRoof * tariff;
+
+            const productionFromSystem = systemSize * ANNUAL_YIELD_PER_KW;
+            const incomeFromSystem = productionFromSystem * tariff;
+
+            return (
+                <section id="calculator" className="py-20 bg-white">
+                    <div className="container mx-auto px-6 max-w-4xl">
+                        <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-6">
+                            כמה כסף הגג שלכם שווה?
+                        </h2>
+                        <p className="text-lg text-gray-600 text-center mb-12 max-w-2xl mx-auto">
+                            גלו את פוטנציאל החיסכון וההכנסה. הזיזו את הסליידרים וצפו בתוצאות בזמן אמת.
+                        </p>
+
+                        <div className="bg-white p-8 md:p-12 rounded-2xl shadow-xl border border-gray-100">
+                            <div className="flex mb-8 border-b border-gray-200">
+                                <button 
+                                    onClick={() => setActiveTab('potential')}
+                                    className={`px-6 py-3 font-bold transition-all duration-300 border-b-2 ${activeTab === 'potential' ? 'text-blue-600 border-blue-600' : 'text-gray-500 border-transparent hover:text-gray-800'}`}
+                                >
+                                    לפי גודל גג
+                                </button>
+                                <button 
+                                    onClick={() => setActiveTab('production')}
+                                    className={`px-6 py-3 font-bold transition-all duration-300 border-b-2 ${activeTab === 'production' ? 'text-blue-600 border-blue-600' : 'text-gray-500 border-transparent hover:text-gray-800'}`}
+                                >
+                                    לפי גודל מערכת
+                                </button>
+                            </div>
+
+                            {activeTab === 'potential' && (
+                                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <div>
+                                        <label className="flex justify-between items-center text-lg font-semibold text-gray-700 mb-3">
+                                            <span>גודל הגג (במ"ר)</span>
+                                            <span className="font-bold text-blue-600 text-xl">{roofSize} מ"ר</span>
+                                        </label>
+                                        <input 
+                                            type="range" min="50" max="2000" step="10" value={roofSize}
+                                            onChange={(e) => setRoofSize(Number(e.target.value))}
+                                            className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                        />
+                                    </div>
+                                    
+                                    <div className="grid md:grid-cols-3 gap-6 mt-8 pt-8 border-t border-gray-100">
+                                        <div className="bg-gray-50 p-6 rounded-xl text-center">
+                                            <h4 className="text-sm font-semibold text-gray-500 mb-1">גודל מערכת משוער</h4>
+                                            <p className="text-3xl font-bold text-blue-600">{estimatedKw.toFixed(1)} <span className="text-xl">kWp</span></p>
+                                        </div>
+                                        <div className="bg-gray-50 p-6 rounded-xl text-center">
+                                            <h4 className="text-sm font-semibold text-gray-500 mb-1">ייצור חשמל שנתי</h4>
+                                            <p className="text-3xl font-bold text-gray-900">{Math.round(productionFromRoof).toLocaleString()} <span className="text-xl">קוט"ש</span></p>
+                                        </div>
+                                        <div className="bg-green-50 p-6 rounded-xl text-center border border-green-100">
+                                            <h4 className="text-sm font-semibold text-green-700 mb-1">הכנסה שנתית מוערכת</h4>
+                                            <p className="text-3xl font-bold text-green-600">{Math.round(incomeFromRoof).toLocaleString()} ₪</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'production' && (
+                                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <div>
+                                        <label className="flex justify-between items-center text-lg font-semibold text-gray-700 mb-3">
+                                            <span>גודל המערכת (kWp)</span>
+                                            <span className="font-bold text-blue-600 text-xl">{systemSize} kWp</span>
+                                        </label>
+                                        <input 
+                                            type="range" min="5" max="500" step="1" value={systemSize}
+                                            onChange={(e) => setSystemSize(Number(e.target.value))}
+                                            className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                        />
+                                    </div>
+
+                                    <div className="grid md:grid-cols-2 gap-6 mt-8 pt-8 border-t border-gray-100">
+                                        <div className="bg-gray-50 p-6 rounded-xl text-center">
+                                            <h4 className="text-sm font-semibold text-gray-500 mb-1">ייצור חשמל שנתי</h4>
+                                            <p className="text-3xl font-bold text-gray-900">{Math.round(productionFromSystem).toLocaleString()} <span className="text-xl">קוט"ש</span></p>
+                                        </div>
+                                        <div className="bg-green-50 p-6 rounded-xl text-center border border-green-100">
+                                            <h4 className="text-sm font-semibold text-green-700 mb-1">הכנסה שנתית מוערכת</h4>
+                                            <p className="text-3xl font-bold text-green-600">{Math.round(incomeFromSystem).toLocaleString()} ₪</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            <p className="text-center text-xs text-gray-400 mt-6">
+                                * ההערכות הינן לצרכי הדגמה בלבד. תעריף ברירת מחדל: 0.48 ש"ח לקוט"ש.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        const FlowAnimation = () => {
+            const [isVisible, setIsVisible] = useState(false);
+            const sectionRef = useRef(null);
+
+            useEffect(() => {
+                const observer = new IntersectionObserver(
+                    ([entry]) => setIsVisible(entry.isIntersecting),
+                    { threshold: 0.3 }
+                );
+                if (sectionRef.current) observer.observe(sectionRef.current);
+                return () => observer.disconnect();
+            }, []);
+
+            return (
+                <section ref={sectionRef} className="py-24 bg-white overflow-hidden">
+                    <div className="container mx-auto px-6">
+                        <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-6">
+                            איך ה-AI שלנו עובד?
+                        </h2>
+                        <div className="relative w-full max-w-5xl mx-auto mt-16">
+                            <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative">
+                                <div className="hidden md:block absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -z-10 -translate-y-1/2"></div>
+                                
+                                <div className={`transition-all duration-1000 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+                                    <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-lg w-64 text-center z-10 relative">
+                                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600">
+                                            <Settings className="w-8 h-8" />
+                                        </div>
+                                        <h3 className="font-bold text-lg">איסוף נתונים</h3>
+                                        <p className="text-sm text-gray-500">חיבור ישיר ל-API של הממיר והמונה החכם</p>
+                                    </div>
+                                </div>
+
+                                <div className="hidden md:flex space-x-2 space-x-reverse">
+                                    <div className={`w-2 h-2 rounded-full bg-blue-400 animate-bounce`} style={{animationDelay: '0s'}}></div>
+                                    <div className={`w-2 h-2 rounded-full bg-blue-400 animate-bounce`} style={{animationDelay: '0.2s'}}></div>
+                                    <div className={`w-2 h-2 rounded-full bg-blue-400 animate-bounce`} style={{animationDelay: '0.4s'}}></div>
+                                </div>
+
+                                <div className={`transition-all duration-1000 delay-300 transform ${isVisible ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}>
+                                    <div className="w-48 h-48 bg-blue-600 rounded-full flex flex-col items-center justify-center text-white shadow-2xl shadow-blue-500/50 relative z-20 animate-pulse-slow">
+                                        <Activity className="w-16 h-16 mb-2" />
+                                        <span className="font-bold text-xl">Core AI</span>
+                                        <span className="text-xs text-blue-200">ניתוח זמן אמת</span>
+                                    </div>
+                                </div>
+
+                                <div className="hidden md:flex space-x-2 space-x-reverse">
+                                    <div className={`w-2 h-2 rounded-full bg-green-400 animate-bounce`} style={{animationDelay: '0.6s'}}></div>
+                                    <div className={`w-2 h-2 rounded-full bg-green-400 animate-bounce`} style={{animationDelay: '0.8s'}}></div>
+                                    <div className={`w-2 h-2 rounded-full bg-green-400 animate-bounce`} style={{animationDelay: '1s'}}></div>
+                                </div>
+
+                                <div className={`transition-all duration-1000 delay-600 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+                                    <div className="bg-white p-6 rounded-xl border-2 border-green-100 bg-green-50 shadow-lg w-64 text-center z-10">
+                                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
+                                            <MessageCircle className="w-8 h-8" />
+                                        </div>
+                                        <h3 className="font-bold text-lg text-green-800">תובנות ופעולה</h3>
+                                        <p className="text-sm text-green-700">התראות לוואטסאפ, הפקת חשבוניות והמלצות אגירה</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        // --- האפליקציה הראשית ---
+
+        const SolarUnifiedApp = () => {
+            const [view, setView] = useState('landing'); 
+            const [flowStep, setFlowStep] = useState('login'); 
+            const [user, setUser] = useState(null);
+            const [systemData, setSystemData] = useState(null);
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
+            const [notification, setNotification] = useState(null);
+            const [billingCycle, setBillingCycle] = useState('yearly');
+            const [isProcessing, setIsProcessing] = useState(false);
+
+            const showNotification = (msg, type = 'success') => {
+                setNotification({ msg, type });
+                setTimeout(() => setNotification(null), 4000);
+            };
+
+            const calculatePricing = (kwSize) => {
+                const monthlyRegular = kwSize * PRICING_CONFIG.basePricePerKW;
+                const yearlyTotal = monthlyRegular * 12 * PRICING_CONFIG.yearlyDiscountFactor;
+                const yearlyMonthlyEquivalent = yearlyTotal / 12;
+
+                return {
+                    monthlyPayment: Math.round(monthlyRegular),
+                    yearlyTotalPayment: Math.round(yearlyTotal),
+                    yearlyMonthlyEquivalent: Math.round(yearlyMonthlyEquivalent),
+                    savings: Math.round((monthlyRegular * 12) - yearlyTotal)
+                };
+            };
+
+            const startOnboarding = () => {
+                setView('auth-flow');
+                setFlowStep('login');
+                setIsMenuOpen(false);
+                window.scrollTo(0,0);
+            };
+
+            const handleGoogleLogin = () => {
+                setIsProcessing(true);
+                setTimeout(() => {
+                    setUser({
+                        name: "דניאל סולאר",
+                        email: "daniel@gmail.com",
+                        photo: "https://api.dicebear.com/7.x/avataaars/svg?seed=Daniel"
+                    });
+                    setIsProcessing(false);
+                    setFlowStep('api');
+                }, 1200);
+            };
+
+            const handleApiConnect = (e) => {
+                e.preventDefault();
+                setIsProcessing(true);
+                setTimeout(() => {
+                    setSystemData({
+                        siteId: "998877",
+                        name: "משק כהן - מערכת דרומית",
+                        size: 22.5,
+                        panels: 48,
+                        status: "Warning",
+                        lastProduction: "105 kWh"
+                    });
+                    setIsProcessing(false);
+                    setFlowStep('analyze');
+                }, 1500);
+            };
+
+            useEffect(() => {
+                if (flowStep === 'analyze') {
+                    const timer = setTimeout(() => setFlowStep('offer'), 3500);
+                    return () => clearTimeout(timer);
+                }
+            }, [flowStep]);
+
+            const handlePayment = () => {
+                setIsProcessing(true);
+                setTimeout(() => {
+                    setIsProcessing(false);
+                    setView('dashboard');
+                    showNotification("המנוי הופעל בהצלחה! חשבונית נשלחה למייל.", "success");
+                }, 2000);
+            };
+
+            const handleUpsell = (serviceName, price) => {
+                if (window.confirm(`לחייב את הכרטיס השמור בסך ₪${price} עבור ${serviceName}?`)) {
+                    setIsProcessing(true);
+                    setTimeout(() => {
+                        setIsProcessing(false);
+                        showNotification("השירות הוזמן! טכנאי ייצור קשר תוך 24 שעות.");
+                    }, 1500);
+                }
+            };
+
+            // Header Component
+            const Header = () => (
+                <header className="bg-white sticky top-0 z-50 shadow-sm" dir="rtl">
+                    <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
+                        <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('landing')}>
+                            <Sun className="text-orange-500 w-8 h-8" />
+                            <span className="text-2xl font-bold text-gray-800 hidden md:block">Sunlytics</span>
+                        </div>
+
+                        <div className="hidden md:flex items-center space-x-reverse space-x-8 font-medium text-gray-600">
+                            <button onClick={() => { setView('landing'); setTimeout(()=>document.getElementById('features')?.scrollIntoView({behavior: 'smooth'}), 100); }} className="hover:text-blue-600">שירותים</button>
+                            <button onClick={() => { setView('landing'); setTimeout(()=>document.getElementById('calculator')?.scrollIntoView({behavior: 'smooth'}), 100); }} className="hover:text-blue-600">מחשבון</button>
+                            <button onClick={() => { setView('landing'); setTimeout(()=>document.getElementById('pricing')?.scrollIntoView({behavior: 'smooth'}), 100); }} className="hover:text-blue-600">מחירים</button>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            {user ? (
+                                <div className="flex items-center gap-3 cursor-pointer" onClick={() => setView('dashboard')}>
+                                    <span className="text-sm font-bold hidden md:block">{user.name}</span>
+                                    <img src={user.photo} className="w-9 h-9 rounded-full border border-gray-200" alt="" />
+                                </div>
+                            ) : (
+                                <Button variant="primary" onClick={startOnboarding} className="text-sm py-2 px-5">
+                                    כניסה למערכת
+                                </Button>
+                            )}
+                            
+                            <button className="md:hidden text-gray-600" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                                {isMenuOpen ? <X /> : <Menu />}
+                            </button>
+                        </div>
+                    </nav>
+                    
+                    {isMenuOpen && (
+                        <div className="md:hidden bg-white border-t border-gray-100 p-4 space-y-4 shadow-lg absolute w-full">
+                            <button onClick={() => { setIsMenuOpen(false); setView('landing'); }} className="block w-full text-right py-2 font-medium text-gray-600">דף הבית</button>
+                            <button onClick={startOnboarding} className="block w-full text-right py-2 font-bold text-blue-600">התחבר / הרשם</button>
+                        </div>
+                    )}
+                </header>
+            );
+
+            // Landing Page Content
+            const LandingContent = () => (
+                <div dir="rtl">
+                    <section className="bg-gradient-to-b from-white to-blue-50 pt-20 pb-32">
+                        <div className="container mx-auto px-6 text-center max-w-4xl">
+                            <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-4 py-2 rounded-full font-bold text-sm mb-8 animate-bounce-slow">
+                                <Zap className="w-4 h-4 fill-current" />
+                                <span>חדש! זיהוי תקלות אוטומטי מבוסס AI</span>
+                            </div>
+                            <h1 className="text-5xl md:text-7xl font-black text-gray-900 mb-8 leading-tight tracking-tight">
+                                השקט הנפשי שלכם. <br/>
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">
+                                    התפוקה המקסימלית שלנו.
+                                </span>
+                            </h1>
+                            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed">
+                                מערכת ניטור חכמה שמתחברת ישירות ל-SolarEdge, מזהה ירידה בתפוקה ושולחת התראות לוואטסאפ לפני שאתם מפסידים כסף.
+                            </p>
+                            <div className="flex flex-col md:flex-row justify-center gap-4">
+                                <Button variant="cta" onClick={startOnboarding} className="text-xl px-10 py-4 shadow-orange-500/40">
+                                    התחילו סריקה חינם
+                                    <ArrowLeft className="w-5 h-5 mr-2" />
+                                </Button>
+                                <Button variant="secondary" onClick={() => document.getElementById('calculator').scrollIntoView({behavior: 'smooth'})}>
+                                    כמה המערכת שווה?
+                                </Button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="features" className="py-20 bg-white relative z-10 -mt-16">
+                        <div className="container mx-auto px-6">
+                            <div className="grid md:grid-cols-3 gap-8">
+                                {[
+                                    { icon: Sun, color: "text-orange-500", bg: "bg-orange-50", title: "ניטור רציף 24/7", desc: "מעקב אוטומטי אחרי ביצועי הממירים והפאנלים בכל רגע נתון." },
+                                    { icon: MessageCircle, color: "text-green-500", bg: "bg-green-50", title: "התראות לוואטסאפ", desc: "קיבלתם התראה? סימן שיש בעיה אמיתית. בלי ספאם, רק תכלס." },
+                                    { icon: Battery, color: "text-yellow-500", bg: "bg-yellow-50", title: "אופטימיזציית אגירה", desc: "ה-AI לומד את הרגלי הצריכה וממליץ מתי לפרוק את הסוללה." }
+                                ].map((f, i) => (
+                                    <Card key={i} className="hover:translate-y-[-5px] transition-transform duration-300">
+                                        <div className={`${f.bg} ${f.color} w-14 h-14 rounded-2xl flex items-center justify-center mb-6`}>
+                                            <f.icon className="w-8 h-8" />
+                                        </div>
+                                        <h3 className="text-2xl font-bold mb-3 text-gray-900">{f.title}</h3>
+                                        <p className="text-gray-600 leading-relaxed">{f.desc}</p>
+                                    </Card>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+
+                    <FlowAnimation />
+                    <CalculatorSection />
+
+                    <section id="pricing" className="bg-gray-900 text-white py-20">
+                        <div className="container mx-auto px-6 text-center">
+                            <h2 className="text-3xl md:text-4xl font-bold mb-8">מוכנים להפסיק להפסיד כסף?</h2>
+                            <p className="text-xl text-gray-400 mb-10">הצטרפו למאות בעלי מערכות שכבר נהנים משקט נפשי</p>
+                            <div className="max-w-md mx-auto bg-white/10 p-8 rounded-3xl backdrop-blur-sm border border-white/10">
+                                <h3 className="font-bold text-xl mb-6">הדגמה חיה: רק לחבר ולהרוויח</h3>
+                                <div className="flex gap-2">
+                                    <input type="text" placeholder="הדביקו כאן API Token" className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ltr" />
+                                    <Button variant="cta" onClick={startOnboarding} className="whitespace-nowrap">
+                                        נתח מערכת
+                                    </Button>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-3 text-right">לא שומרים נתונים ללא אישורכם.</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            );
+
+            // Auth Flow Content
+            const AuthFlow = () => (
+                <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto font-sans" dir="rtl">
+                    <div className="w-full bg-gray-200 h-1.5">
+                        <div 
+                            className="bg-orange-500 h-full transition-all duration-500" 
+                            style={{ width: flowStep === 'login' ? '25%' : flowStep === 'api' ? '50%' : flowStep === 'analyze' ? '75%' : '100%' }}
+                        ></div>
+                    </div>
+
+                    <div className="p-6">
+                        <button onClick={() => setView('landing')} className="mb-6 text-gray-400 hover:text-gray-600"><ArrowRight /></button>
+                        
+                        {flowStep === 'login' && (
+                            <div className="animate-in slide-in-from-bottom-10 fade-in">
+                                <h2 className="text-3xl font-black mb-2">הזדהות מהירה</h2>
+                                <p className="text-gray-500 mb-8 text-lg">כדי שנדע לאן לשלוח את הדוחות והחשבוניות</p>
+                                <button 
+                                    onClick={handleGoogleLogin}
+                                    className="w-full py-4 rounded-xl bg-white border-2 border-gray-200 flex items-center justify-center gap-3 font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm active:scale-95 text-lg relative overflow-hidden"
+                                >
+                                    {isProcessing ? <Loader2 className="animate-spin text-gray-400"/> : <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-6 h-6" alt="Google" />}
+                                    המשך עם Google
+                                </button>
+                            </div>
+                        )}
+
+                        {flowStep === 'api' && (
+                            <div className="animate-in slide-in-from-bottom-10 fade-in">
+                                <h2 className="text-3xl font-black mb-2">חיבור ל-SolarEdge</h2>
+                                <p className="text-gray-500 mb-8 text-lg">העתיקו את מפתח ה-API מפורטל הניהול</p>
+                                <form onSubmit={handleApiConnect} className="space-y-6">
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-900 mb-2">API Key</label>
+                                        <input type="text" className="w-full p-4 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 outline-none text-left ltr font-mono text-lg shadow-sm" defaultValue="solaredge_api_token_demo" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-900 mb-2">Site ID</label>
+                                        <input type="text" className="w-full p-4 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 outline-none text-left ltr font-mono text-lg shadow-sm" defaultValue="1294402" />
+                                    </div>
+                                    <Button variant="cta" type="submit" isLoading={isProcessing} className="w-full">
+                                        סרוק את המערכת
+                                    </Button>
+                                </form>
+                            </div>
+                        )}
+
+                        {flowStep === 'analyze' && (
+                            <div className="flex flex-col items-center justify-center text-center pt-20">
+                                <div className="relative mb-10">
+                                    <div className="absolute inset-0 bg-orange-500 blur-2xl opacity-30 rounded-full animate-pulse"></div>
+                                    <Activity className="w-20 h-20 text-orange-500 animate-bounce relative z-10" />
+                                </div>
+                                <h2 className="text-3xl font-bold mb-4">מנתח ביצועים...</h2>
+                                <div className="space-y-3 w-full max-w-xs text-right text-gray-500 text-sm">
+                                    <div className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100">
+                                        <CheckCircle className="w-4 h-4 text-green-500" /> מתחבר לשרתי SolarEdge
+                                    </div>
+                                    <div className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-500">
+                                        <CheckCircle className="w-4 h-4 text-green-500" /> מושך היסטוריית תפוקה
+                                    </div>
+                                    <div className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-1000">
+                                        <Loader2 className="w-4 h-4 text-orange-500 animate-spin" /> מחשב הפסדים פוטנציאליים
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {flowStep === 'offer' && (
+                            <div className="animate-in zoom-in-95 duration-500">
+                                <div className="bg-gray-900 text-white p-8 rounded-3xl shadow-2xl mb-8 relative overflow-hidden">
+                                    <div className="absolute top-0 left-0 w-full h-full bg-orange-500 opacity-10 blur-3xl"></div>
+                                    <div className="relative z-10">
+                                        <div className="text-gray-400 text-sm mb-1">נמצאה מערכת</div>
+                                        <h1 className="text-3xl font-bold mb-2">{systemData?.name}</h1>
+                                        <div className="flex items-baseline gap-2 mb-4">
+                                            <span className="text-5xl font-black text-orange-400">{systemData?.size}</span>
+                                            <span className="text-xl">kWp</span>
+                                        </div>
+                                        <div className="inline-flex items-center gap-2 bg-red-500/20 border border-red-500/30 px-3 py-1 rounded-full text-sm text-red-200">
+                                            <AlertTriangle className="w-4 h-4" />
+                                            <span>זוהתה ירידה בתפוקה בחודש האחרון</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <Card className="mb-24">
+                                    <div className="bg-gray-100 p-1.5 rounded-xl flex relative mb-8">
+                                        <div className={`absolute inset-y-1.5 w-[calc(50%-6px)] bg-white rounded-lg shadow-sm transition-all duration-300 ease-out ${billingCycle === 'yearly' ? 'translate-x-0 right-1.5' : 'translate-x-[-100%] right-full mr-1.5'}`}></div>
+                                        <button onClick={() => setBillingCycle('yearly')} className={`flex-1 py-3 text-sm font-bold relative z-10 transition-colors ${billingCycle === 'yearly' ? 'text-gray-900' : 'text-gray-500'}`}>שנתי (מומלץ 🔥)</button>
+                                        <button onClick={() => setBillingCycle('monthly')} className={`flex-1 py-3 text-sm font-bold relative z-10 transition-colors ${billingCycle === 'monthly' ? 'text-gray-900' : 'text-gray-500'}`}>חודשי</button>
+                                    </div>
+
+                                    <div className="text-center mb-6">
+                                        <div className="text-gray-500 text-sm font-medium mb-2">{billingCycle === 'yearly' ? 'סה״כ לשלם בחודש (בחישוב שנתי)' : 'מחיר קבוע ללא התחייבות'}</div>
+                                        <div className="flex items-start justify-center gap-1 text-gray-900">
+                                            <span className="text-3xl font-medium mt-2">₪</span>
+                                            <span className="text-7xl font-black tracking-tighter">
+                                                {billingCycle === 'yearly' ? calculatePricing(systemData.size).yearlyMonthlyEquivalent : calculatePricing(systemData.size).monthlyPayment}
+                                            </span>
+                                            <span className="text-xl text-gray-400 mt-auto mb-3">/mo</span>
+                                        </div>
+                                        {billingCycle === 'yearly' ? (
+                                            <div className="mt-4 bg-green-50 border border-green-100 rounded-lg p-3 inline-block">
+                                                <div className="text-green-700 font-bold text-sm">חסוך ₪{calculatePricing(systemData.size).savings} בשנה!</div>
+                                                <div className="text-green-600 text-xs mt-1">חיוב חד פעמי של ₪{calculatePricing(systemData.size).yearlyTotalPayment}</div>
+                                            </div>
+                                        ) : (
+                                            <div className="mt-4 text-gray-400 text-sm p-3">1 ₪ לקילו-וואט בדיוק.</div>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-4 border-t border-gray-100 pt-6">
+                                        {["ניטור רציף 24/7", "חשבוניות מס אוטומטיות", "חודש ראשון עלינו"].map((item, i) => (
+                                            <div key={i} className="flex items-center gap-3">
+                                                <div className="bg-orange-100 p-1 rounded-full"><CheckCircle className="w-4 h-4 text-orange-600"/></div>
+                                                <span className="text-gray-600 font-medium">{item}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </Card>
+
+                                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 pb-8 z-30 shadow-up">
+                                    <Button variant="cta" onClick={handlePayment} className="w-full text-xl py-4" isLoading={isProcessing}>
+                                        הפעל שירות מיידית
+                                    </Button>
+                                    <div className="flex items-center justify-center gap-2 text-xs text-gray-400 mt-3">
+                                        <Lock className="w-3 h-3" /> מאובטח בתקן PCI DSS ע״י Grow
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+
+            // Dashboard Content
+            const Dashboard = () => (
+                <div className="min-h-screen bg-gray-50 pb-24 font-sans" dir="rtl">
+                    {notification && (
+                        <div className="fixed top-20 right-4 left-4 bg-gray-900 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-in slide-in-from-top-10">
+                            <CheckCircle className="text-green-400 w-6 h-6" />
+                            <span className="text-sm font-medium">{notification.msg}</span>
+                        </div>
+                    )}
+
+                    <div className="container mx-auto px-6 pt-8">
+                        <div className="bg-gray-900 text-white p-6 rounded-3xl shadow-xl mb-8 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-green-500 opacity-20 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                            <div className="relative z-10">
+                                <div className="flex justify-between items-start mb-6">
+                                    <div>
+                                        <h2 className="text-2xl font-bold">{systemData?.name}</h2>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                                            <span className="text-green-400 text-sm font-medium">מערכת תקינה ומנוטרת</span>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white/10 p-2 rounded-xl"><Activity className="text-white" /></div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                                        <div className="text-gray-400 text-xs mb-1">ייצור יומי</div>
+                                        <div className="text-2xl font-bold">24.5 <span className="text-sm font-normal text-gray-400">kWh</span></div>
+                                    </div>
+                                    <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                                        <div className="text-gray-400 text-xs mb-1">רווח משוער</div>
+                                        <div className="text-2xl font-bold">₪11.7</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 className="font-bold text-gray-900 mb-4 text-lg">פעולות מהירות (בקליק)</h3>
+                        <div className="grid grid-cols-2 gap-4 mb-8">
+                            <button onClick={() => handleUpsell('ניקוי פאנלים', 450)} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-right hover:border-blue-200 transition-all active:scale-95 group">
+                                <div className="bg-blue-50 w-10 h-10 rounded-xl flex items-center justify-center mb-3 group-hover:bg-blue-100 transition-colors text-blue-600">
+                                    <Zap className="w-5 h-5" />
+                                </div>
+                                <div className="font-bold text-gray-900 mb-1">הזמנת ניקוי</div>
+                                <div className="text-xs text-gray-500 mb-2">חיוב בכרטיס השמור</div>
+                                <div className="text-sm font-black text-blue-600">₪450</div>
+                            </button>
+
+                            <button onClick={() => handleUpsell('בדיקת טכנאי', 350)} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-right hover:border-orange-200 transition-all active:scale-95 group">
+                                <div className="bg-orange-50 w-10 h-10 rounded-xl flex items-center justify-center mb-3 group-hover:bg-orange-100 transition-colors text-orange-600">
+                                    <Wrench className="w-5 h-5" />
+                                </div>
+                                <div className="font-bold text-gray-900 mb-1">טכנאי עד הבית</div>
+                                <div className="text-xs text-gray-500 mb-2">חיוב בכרטיס השמור</div>
+                                <div className="text-sm font-black text-orange-600">₪350</div>
+                            </button>
+                        </div>
+
+                        <div className="bg-white rounded-2xl p-4 border border-gray-100 flex justify-between items-center shadow-sm hover:bg-gray-50 cursor-pointer transition-colors" onClick={() => showNotification("פותח היסטוריית חשבוניות...", "success")}>
+                            <div className="flex items-center gap-4">
+                                <div className="bg-purple-50 p-2.5 rounded-xl"><FileText className="text-purple-600 w-5 h-5" /></div>
+                                <div>
+                                    <div className="font-bold text-sm text-gray-900">חשבוניות וקבלות</div>
+                                    <div className="text-xs text-gray-500">מופק ע״י מורנינג</div>
+                                </div>
+                            </div>
+                            <ChevronRight className="text-gray-300 w-5 h-5" />
+                        </div>
+                        
+                        <div className="mt-8 text-center">
+                            <button onClick={() => { setUser(null); setView('landing'); }} className="text-red-500 text-sm font-medium flex items-center justify-center gap-2 mx-auto">
+                                <LogOut className="w-4 h-4" /> התנתק
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="font-sans text-gray-800 bg-white min-h-screen">
+                    <Header />
+                    {view === 'landing' && <LandingContent />}
+                    {view === 'auth-flow' && <AuthFlow />}
+                    {view === 'dashboard' && <Dashboard />}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<SolarUnifiedApp />);
+    </script>
+</body>
+</html>
