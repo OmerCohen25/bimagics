@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מנתח ריפוזיטורי אולטימטיבי</title>
+    
+    <!-- ספריות חיצוניות (Tailwind, JSZip, Chart.js, FontAwesome) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700&display=swap');
+        
+        body {
+            font-family: 'Heebo', sans-serif;
+            background-color: #f3f4f6;
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .drop-zone {
+            transition: all 0.3s ease;
+            border: 2px dashed #cbd5e1;
+        }
+        
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+            transform: scale(1.01);
+        }
+
+        /* אנימציית טעינה */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #3b82f6;
+            width: 40px;
+            height: 40px;
+            -webkit-animation: spin 1s linear infinite; /* Safari */
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stat-card {
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white py-6 shadow-lg">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-code-branch text-3xl text-blue-400"></i>
+                <div>
+                    <h1 class="text-2xl font-bold">מנתח ריפוזיטורי עמוק</h1>
+                    <p class="text-slate-400 text-sm">ניתוח סטטיסטי מלא של קוד מתוך קובץ ZIP</p>
+                </div>
+            </div>
+            <button onclick="location.reload()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm transition">
+                <i class="fa-solid fa-rotate-right ml-2"></i> ניתוח חדש
+            </button>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+
+        <!-- אזור העלאה -->
+        <div id="uploadSection" class="max-w-2xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-xl p-8 text-center drop-zone cursor-pointer relative" id="dropZone">
+                <input type="file" id="fileInput" accept=".zip" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                <div class="space-y-4 pointer-events-none">
+                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto text-blue-600">
+                        <i class="fa-solid fa-cloud-arrow-up text-4xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-700">גרירת קובץ ZIP לכאן</h2>
+                    <p class="text-gray-500">או לחץ כדי לבחור קובץ מהמחשב</p>
+                    <div class="text-xs text-gray-400 bg-gray-100 inline-block px-3 py-1 rounded-full">
+                        <i class="fa-solid fa-lock ml-1"></i> כל העיבוד מתבצע בדפדפן שלך. שום דבר לא נשלח לשרת.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- אזור טעינה -->
+        <div id="loadingSection" class="hidden max-w-2xl mx-auto text-center py-12">
+            <div class="loader mx-auto mb-4"></div>
+            <h3 class="text-xl font-bold text-gray-700 mb-2">מנתח את הריפוזיטורי...</h3>
+            <p id="loadingText" class="text-gray-500 text-sm">קורא קבצים...</p>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mt-4">
+                <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- אזור התוצאות -->
+        <div id="resultsSection" class="hidden space-y-8 fade-in">
+            
+            <!-- כותרת ניתוח -->
+            <div class="flex items-center justify-between border-b pb-4">
+                <h2 id="repoName" class="text-2xl font-bold text-gray-800">תוצאות ניתוח</h2>
+                <span id="analysisTime" class="text-sm text-gray-500"></span>
+            </div>
+
+            <!-- כרטיסי סיכום ראשיים -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- סה"כ קבצים -->
+                <div class="glass-panel p-6 rounded-xl stat-card border-l-4 border-blue-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">סה"כ קבצים</p>
+                            <h3 id="totalFiles" class="text-3xl font-bold text-gray-800 mt-1">-</h3>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-lg text-blue-600">
+                            <i class="fa-regular fa-file-code text-xl"></i>
+                        </div>
+                    </div>
+                    <p id="totalFolders" class="text-xs text-gray-400 mt-2">בתוך - תיקיות</p>
+                </div>
+
+                <!-- סה"כ שורות קוד -->
+                <div class="glass-panel p-6 rounded-xl stat-card border-l-4 border-emerald-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">סה"כ שורות (LOC)</p>
+                            <h3 id="totalLines" class="text-3xl font-bold text-gray-800 mt-1">-</h3>
+                        </div>
+                        <div class="bg-emerald-100 p-3 rounded-lg text-emerald-600">
+                            <i class="fa-solid fa-list-ol text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-2 text-xs">
+                        <span class="text-gray-500"><span id="emptyLines" class="font-bold">-</span> ריקות</span>
+                        <span class="text-gray-300">|</span>
+                        <span class="text-emerald-600 font-bold"><span id="codeLines">-</span> נטו</span>
+                    </div>
+                </div>
+
+                <!-- גודל פיזי -->
+                <div class="glass-panel p-6 rounded-xl stat-card border-l-4 border-purple-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">נפח כולל</p>
+                            <h3 id="totalSize" class="text-3xl font-bold text-gray-800 mt-1">-</h3>
+                        </div>
+                        <div class="bg-purple-100 p-3 rounded-lg text-purple-600">
+                            <i class="fa-solid fa-database text-xl"></i>
+                        </div>
+                    </div>
+                    <p id="avgFileSize" class="text-xs text-gray-400 mt-2">ממוצע לקובץ: -</p>
+                </div>
+
+                <!-- מגוון שפות -->
+                <div class="glass-panel p-6 rounded-xl stat-card border-l-4 border-orange-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">שפות תכנות</p>
+                            <h3 id="languageCount" class="text-3xl font-bold text-gray-800 mt-1">-</h3>
+                        </div>
+                        <div class="bg-orange-100 p-3 rounded-lg text-orange-600">
+                            <i class="fa-solid fa-language text-xl"></i>
+                        </div>
+                    </div>
+                    <p id="mainLanguage" class="text-xs text-gray-400 mt-2">דומיננטית: -</p>
+                </div>
+            </div>
+
+            <!-- אזור הגרפים -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- גרף התפלגות שפות -->
+                <div class="glass-panel p-6 rounded-xl">
+                    <h3 class="text-lg font-bold mb-4 text-gray-700 border-b pb-2">התפלגות שפות (לפי שורות קוד)</h3>
+                    <div class="h-64">
+                        <canvas id="languagesChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- גרף סוגי קבצים -->
+                <div class="glass-panel p-6 rounded-xl">
+                    <h3 class="text-lg font-bold mb-4 text-gray-700 border-b pb-2">התפלגות סוגי קבצים (כמות)</h3>
+                    <div class="h-64">
+                        <canvas id="filesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- סטטיסטיקות מתקדמות -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- טבלת השפות המפורטת -->
+                <div class="glass-panel p-6 rounded-xl col-span-2">
+                    <h3 class="text-lg font-bold mb-4 text-gray-700 border-b pb-2">פירוט שפות מלא</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-right">
+                            <thead class="bg-gray-50 text-gray-600">
+                                <tr>
+                                    <th class="p-3">שפה / סיומת</th>
+                                    <th class="p-3">קבצים</th>
+                                    <th class="p-3">שורות קוד</th>
+                                    <th class="p-3">אחוז מהקוד</th>
+                                </tr>
+                            </thead>
+                            <tbody id="languagesTableBody" class="divide-y">
+                                <!-- יתמלא דינמית -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- הקבצים הגדולים ביותר -->
+                <div class="glass-panel p-6 rounded-xl">
+                    <h3 class="text-lg font-bold mb-4 text-gray-700 border-b pb-2">הקבצים הגדולים ביותר (שורות)</h3>
+                    <ul id="largestFilesList" class="space-y-3 text-sm">
+                        <!-- יתמלא דינמית -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- פעילות לאורך זמן -->
+            <div class="glass-panel p-6 rounded-xl">
+                <h3 class="text-lg font-bold mb-4 text-gray-700 border-b pb-2">פעילות (לפי תאריך שינוי קובץ אחרון)</h3>
+                <p class="text-xs text-gray-500 mb-2">*מבוסס על תאריך 'Last Modified' של הקבצים ב-ZIP. עשוי להשתנות בהתאם לאופן יצירת ה-ZIP.</p>
+                <div class="h-64">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // --- קבועים ומיפוי שפות ---
+        const languageMap = {
+            'js': 'JavaScript', 'jsx': 'React', 'ts': 'TypeScript', 'tsx': 'React TS',
+            'html': 'HTML', 'css': 'CSS', 'scss': 'SASS', 'less': 'LESS',
+            'py': 'Python', 'java': 'Java', 'c': 'C', 'cpp': 'C++', 'cs': 'C#',
+            'php': 'PHP', 'rb': 'Ruby', 'go': 'Go', 'rs': 'Rust',
+            'swift': 'Swift', 'kt': 'Kotlin', 'json': 'JSON', 'xml': 'XML',
+            'yml': 'YAML', 'yaml': 'YAML', 'md': 'Markdown', 'sql': 'SQL',
+            'sh': 'Shell', 'bat': 'Batch', 'vue': 'Vue', 'ng': 'Angular'
+        };
+
+        const binaryExtensions = ['png', 'jpg', 'jpeg', 'gif', 'ico', 'svg', 'woff', 'woff2', 'ttf', 'eot', 'mp4', 'mp3', 'pdf', 'zip', 'rar', 'exe', 'dll', 'bin', 'dat', 'psd', 'ai'];
+
+        // --- משתני Global ---
+        let charts = {};
+
+        // --- Event Listeners ---
+        document.getElementById('dropZone').addEventListener('click', () => document.getElementById('fileInput').click());
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+
+        const dropZone = document.getElementById('dropZone');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('bg-blue-50', 'border-blue-500'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('bg-blue-50', 'border-blue-500'), false);
+        });
+
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type === "application/zip" || file.name.endsWith('.zip')) {
+                    processZip(file);
+                } else {
+                    alert("נא להעלות קובץ ZIP בלבד.");
+                }
+            }
+        }
+
+        // --- הלוגיקה הראשית ---
+        async function processZip(file) {
+            // UI Reset
+            document.getElementById('uploadSection').classList.add('hidden');
+            document.getElementById('loadingSection').classList.remove('hidden');
+            document.getElementById('resultsSection').classList.add('hidden');
+            
+            const zip = new JSZip();
+            let repoStats = {
+                totalFiles: 0,
+                totalFolders: 0,
+                totalSize: 0,
+                totalLines: 0,
+                emptyLines: 0,
+                extensions: {},
+                fileTypes: {}, // ספירת קבצים לפי סוג
+                filesDetails: [], // { name, lines, size, date }
+                dates: {} // YYYY-MM count
+            };
+
+            try {
+                const content = await zip.loadAsync(file);
+                
+                // חישוב כמות קבצים לטיפול ב-ProgressBar
+                const filePaths = Object.keys(content.files);
+                const totalPaths = filePaths.length;
+                let processedCount = 0;
+
+                // עדכון שם הריפו
+                document.getElementById('repoName').textContent = `תוצאות עבור: ${file.name}`;
+                document.getElementById('analysisTime').textContent = new Date().toLocaleString('he-IL');
+
+                for (const relativePath of filePaths) {
+                    const zipEntry = content.files[relativePath];
+                    
+                    // עדכון התקדמות
+                    processedCount++;
+                    if (processedCount % 10 === 0) {
+                        updateProgress(Math.round((processedCount / totalPaths) * 100));
+                        document.getElementById('loadingText').textContent = `מנתח: ${relativePath}`;
+                        await new Promise(r => setTimeout(r, 0)); // שחרור ה-UI לרגע
+                    }
+
+                    if (zipEntry.dir) {
+                        repoStats.totalFolders++;
+                        continue;
+                    }
+
+                    repoStats.totalFiles++;
+                    // גודל לא דחוס (משוער, JSZip מספק נתונים על גודל)
+                    // _data.uncompressedSize קיים לעיתים, אחרת נצטרך לקרוא.
+                    // עבור דייקנות נשתמש במה ש-JSZip מדווח אם אפשר או באורך הטקסט.
+                    
+                    const ext = relativePath.split('.').pop().toLowerCase();
+                    const isBinary = binaryExtensions.includes(ext) || relativePath.includes('node_modules') || relativePath.includes('.git/');
+                    
+                    let lines = 0;
+                    let isEmptyLines = 0;
+                    let size = 0;
+
+                    // ניתוח תאריך
+                    const date = zipEntry.date;
+                    if (date) {
+                        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                        repoStats.dates[key] = (repoStats.dates[key] || 0) + 1;
+                    }
+
+                    if (!isBinary) {
+                        try {
+                            const text = await zipEntry.async("string");
+                            size = text.length; // גודל בבתים (בערך, ל-ASCII)
+                            
+                            const textLines = text.split(/\r\n|\r|\n/);
+                            lines = textLines.length;
+                            isEmptyLines = textLines.filter(line => line.trim() === '').length;
+                            
+                            // צבירת סטטיסטיקה
+                            repoStats.totalLines += lines;
+                            repoStats.emptyLines += isEmptyLines;
+                            
+                            // סיווג שפה
+                            const lang = languageMap[ext] || `.${ext}`;
+                            
+                            if (!repoStats.extensions[lang]) {
+                                repoStats.extensions[lang] = { files: 0, lines: 0, size: 0 };
+                            }
+                            repoStats.extensions[lang].files++;
+                            repoStats.extensions[lang].lines += lines;
+                            repoStats.extensions[lang].size += size;
+
+                            repoStats.filesDetails.push({
+                                name: relativePath,
+                                lines: lines,
+                                size: size,
+                                lang: lang
+                            });
+
+                        } catch (e) {
+                            console.warn("Could not read file text", relativePath);
+                        }
+                    } else {
+                        // קובץ בינארי - רק גודל וכמות
+                        // ננסה לקחת גודל מהמטאדאטה של הזיפ כדי לא לטעון לזיכרון
+                        // לצורך הדוגמא נטען כ-blob רק לגודל אם קריטי, אבל פה נדלג על תוכן
+                         if (zipEntry._data && zipEntry._data.uncompressedSize) {
+                             size = zipEntry._data.uncompressedSize;
+                         }
+                    }
+                    repoStats.totalSize += size;
+                }
+
+                renderResults(repoStats);
+
+            } catch (err) {
+                console.error(err);
+                alert("אירעה שגיאה בעיבוד הקובץ: " + err.message);
+                location.reload();
+            }
+        }
+
+        function updateProgress(percent) {
+            document.getElementById('progressBar').style.width = `${percent}%`;
+        }
+
+        // --- פונקציות תצוגה ---
+        function formatBytes(bytes, decimals = 2) {
+            if (!+bytes) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+        }
+
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function renderResults(stats) {
+            // הסתרת טעינה והצגת תוצאות
+            document.getElementById('loadingSection').classList.add('hidden');
+            document.getElementById('resultsSection').classList.remove('hidden');
+
+            // כרטיסים
+            document.getElementById('totalFiles').textContent = formatNumber(stats.totalFiles);
+            document.getElementById('totalFolders').textContent = `בתוך ${formatNumber(stats.totalFolders)} תיקיות`;
+            document.getElementById('totalLines').textContent = formatNumber(stats.totalLines);
+            document.getElementById('emptyLines').textContent = formatNumber(stats.emptyLines);
+            document.getElementById('codeLines').textContent = formatNumber(stats.totalLines - stats.emptyLines);
+            document.getElementById('totalSize').textContent = formatBytes(stats.totalSize);
+            document.getElementById('avgFileSize').textContent = `ממוצע לקובץ: ${formatBytes(stats.totalSize / stats.totalFiles)}`;
+            
+            const languages = Object.keys(stats.extensions);
+            document.getElementById('languageCount').textContent = languages.length;
+
+            // חישוב שפה דומיננטית
+            let mainLang = '-';
+            let maxLines = 0;
+            for (const [lang, data] of Object.entries(stats.extensions)) {
+                if (data.lines > maxLines) {
+                    maxLines = data.lines;
+                    mainLang = lang;
+                }
+            }
+            document.getElementById('mainLanguage').textContent = `דומיננטית: ${mainLang}`;
+
+            // --- טבלה מפורטת ---
+            const tbody = document.getElementById('languagesTableBody');
+            tbody.innerHTML = '';
+            
+            // מיון שפות לפי שורות קוד
+            const sortedLangs = languages.sort((a, b) => stats.extensions[b].lines - stats.extensions[a].lines);
+
+            sortedLangs.forEach(lang => {
+                const data = stats.extensions[lang];
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 border-b";
+                const percentage = ((data.lines / stats.totalLines) * 100).toFixed(1);
+                
+                tr.innerHTML = `
+                    <td class="p-3 font-medium text-gray-700">${lang}</td>
+                    <td class="p-3 text-gray-500">${formatNumber(data.files)}</td>
+                    <td class="p-3 text-gray-500">${formatNumber(data.lines)}</td>
+                    <td class="p-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs w-8">${percentage}%</span>
+                            <div class="w-24 bg-gray-200 rounded-full h-1.5">
+                                <div class="bg-blue-500 h-1.5 rounded-full" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // --- קבצים גדולים ---
+            const filesList = document.getElementById('largestFilesList');
+            filesList.innerHTML = '';
+            stats.filesDetails
+                .sort((a, b) => b.lines - a.lines)
+                .slice(0, 5)
+                .forEach(file => {
+                    const li = document.createElement('li');
+                    li.className = "flex justify-between items-center bg-gray-50 p-2 rounded border";
+                    // קיצור שם הקובץ לתצוגה
+                    const displayName = file.name.length > 50 ? '...' + file.name.slice(-47) : file.name;
+                    
+                    li.innerHTML = `
+                        <div class="flex items-center gap-2 overflow-hidden">
+                            <i class="fa-regular fa-file-code text-gray-400"></i>
+                            <span class="truncate font-mono text-xs text-gray-700" title="${file.name}">${displayName}</span>
+                        </div>
+                        <span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full font-bold whitespace-nowrap">${formatNumber(file.lines)} שורות</span>
+                    `;
+                    filesList.appendChild(li);
+                });
+
+            renderCharts(stats, sortedLangs);
+        }
+
+        function renderCharts(stats, sortedLangs) {
+            // צבעים לגרפים
+            const colors = [
+                '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6366f1', '#14b8a6', '#f97316'
+            ];
+
+            // 1. שפות (עוגה)
+            const ctxLang = document.getElementById('languagesChart').getContext('2d');
+            
+            // ניקח רק את ה-TOP 8 ושאר ב-"אחר"
+            let chartLabels = sortedLangs.slice(0, 8);
+            let chartData = chartLabels.map(l => stats.extensions[l].lines);
+            
+            if (sortedLangs.length > 8) {
+                const otherLines = sortedLangs.slice(8).reduce((sum, l) => sum + stats.extensions[l].lines, 0);
+                chartLabels.push('אחר');
+                chartData.push(otherLines);
+            }
+
+            charts.lang = new Chart(ctxLang, {
+                type: 'doughnut',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        data: chartData,
+                        backgroundColor: colors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'left', rtl: true, labels: { font: { family: 'Heebo' } } }
+                    }
+                }
+            });
+
+            // 2. סוגי קבצים (עמודות) - לפי כמות קבצים
+            const ctxFiles = document.getElementById('filesChart').getContext('2d');
+            const fileCounts = chartLabels.map(l => l === 'אחר' ? 
+                sortedLangs.slice(8).reduce((sum, x) => sum + stats.extensions[x].files, 0) : 
+                stats.extensions[l].files
+            );
+
+            charts.files = new Chart(ctxFiles, {
+                type: 'bar',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'כמות קבצים',
+                        data: fileCounts,
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // 3. פעילות (קו)
+            const ctxActivity = document.getElementById('activityChart').getContext('2d');
+            const datesSorted = Object.keys(stats.dates).sort();
+            const activityData = datesSorted.map(d => stats.dates[d]);
+
+            charts.activity = new Chart(ctxActivity, {
+                type: 'line',
+                data: {
+                    labels: datesSorted,
+                    datasets: [{
+                        label: 'קבצים ששונו/נוצרו',
+                        data: activityData,
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: { intersect: false, mode: 'index' }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
