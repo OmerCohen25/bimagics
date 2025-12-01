@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sunlytics Storage Marketplace</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+        }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .gradient-text {
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(to right, #4ade80, #3b82f6);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- Icons ---
+        const Icon = ({ path, className }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{path}</svg>
+        );
+
+        const Icons = {
+            Battery: (props) => <Icon {...props} path={<><rect width="16" height="10" x="2" y="7" rx="2" ry="2"/><line x1="22" x2="22" y1="11" y2="13"/></>} />,
+            Zap: (props) => <Icon {...props} path={<><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></>} />,
+            TrendingUp: (props) => <Icon {...props} path={<><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></>} />,
+            CheckCircle: (props) => <Icon {...props} path={<><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>} />,
+            Home: (props) => <Icon {...props} path={<><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>} />,
+            Briefcase: (props) => <Icon {...props} path={<><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></>} />,
+            ArrowLeft: (props) => <Icon {...props} path={<><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></>} />,
+            Coins: (props) => <Icon {...props} path={<><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m7.1 13.8 3.8-7"/></>} />,
+            BarChart: (props) => <Icon {...props} path={<><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></>} />,
+            Sun: (props) => <Icon {...props} path={<><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41-1.41"/><path d="m19.07 4.93-1.41 1.41"/></>} />,
+            Moon: (props) => <Icon {...props} path={<><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></>} />,
+            Cpu: (props) => <Icon {...props} path={<><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></>} />,
+            FileText: (props) => <Icon {...props} path={<><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></>} />
+        };
+
+        // --- Mock Data ---
+
+        const CUSTOMER_DATA = {
+            currentBill: 1200,
+            production: 1800, // kWh per month
+            selfUse: 30, // %
+            gridExport: 70, // %
+            exportRate: 0.14, // NIS
+            importRate: 0.60, // NIS
+            potentialSavings: 850, // NIS per month with battery
+        };
+
+        const INSTALLER_LEADS = [
+            {
+                id: 'L-8821',
+                clientName: 'משפחת לוי',
+                location: 'פרדס חנה',
+                systemSize: '15kW',
+                inverter: 'SolarEdge 17kW (Storage Ready)',
+                avgBill: '1,400 ₪',
+                recommendedBattery: '10kWh LFP',
+                status: 'ready_to_close',
+                revenue: 28000,
+                commission: 1200,
+                aiScore: 98,
+                consumptionPattern: 'High Evening Usage'
+            },
+            {
+                id: 'L-8902',
+                clientName: 'עסק - נגריה',
+                location: 'א.ת. עמק חפר',
+                systemSize: '50kW',
+                inverter: 'Huawei Sun2000',
+                avgBill: '4,500 ₪',
+                recommendedBattery: '30kWh Commercial',
+                status: 'pending_approval',
+                revenue: 85000,
+                commission: 3500,
+                aiScore: 92,
+                consumptionPattern: 'Daytime Peak'
+            }
+        ];
+
+        // --- Shared Components ---
+        
+        const Button = ({ children, onClick, variant = 'primary', className = '' }) => {
+            const baseClass = "px-6 py-3 rounded-xl font-bold transition-all transform active:scale-95 flex items-center justify-center gap-2";
+            const variants = {
+                primary: "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-900/50 hover:shadow-green-500/30",
+                secondary: "bg-slate-700 text-white hover:bg-slate-600",
+                outline: "border-2 border-slate-600 text-slate-300 hover:border-slate-400 hover:text-white",
+                accent: "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-900/50"
+            };
+            return (
+                <button onClick={onClick} className={`${baseClass} ${variants[variant]} ${className}`}>
+                    {children}
+                </button>
+            );
+        };
+
+        // --- CUSTOMER FLOW COMPONENTS ---
+
+        const CustomerAnalysis = ({ onNext }) => (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="mb-6">
+                    <h2 className="text-2xl font-bold text-white mb-2">ניתוח דפוסי אנרגיה</h2>
+                    <p className="text-slate-400 text-sm">Sunlytics AI ניתח את הנתונים שלך מ-12 החודשים האחרונים.</p>
+                </div>
+
+                {/* Main Graph Visualization */}
+                <div className="glass-panel p-6 rounded-2xl mb-6 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl"></div>
+                    
+                    <div className="flex justify-between items-end h-48 gap-2 mb-4">
+                        {/* Day Bar */}
+                        <div className="w-1/2 flex flex-col gap-2 relative group">
+                            <div className="text-center text-xs text-yellow-400 font-bold mb-1 flex items-center justify-center gap-1">
+                                <Icons.Sun className="w-3 h-3" /> ייצור (יום)
+                            </div>
+                            <div className="h-full bg-slate-800 rounded-t-lg relative overflow-hidden flex flex-col justify-end">
+                                {/* Used Energy */}
+                                <div className="h-[30%] bg-green-500/80 w-full flex items-center justify-center text-[10px] text-white font-bold border-b border-white/10">צריכה עצמית 30%</div>
+                                {/* Wasted Energy (Export) */}
+                                <div className="h-[70%] bg-yellow-500/80 w-full flex items-center justify-center text-[10px] text-black font-bold animate-pulse">נמכר בזול (בזבוז)</div>
+                            </div>
+                        </div>
+
+                        {/* Night Bar */}
+                        <div className="w-1/2 flex flex-col gap-2">
+                             <div className="text-center text-xs text-blue-400 font-bold mb-1 flex items-center justify-center gap-1">
+                                <Icons.Moon className="w-3 h-3" /> צריכה (לילה)
+                            </div>
+                            <div className="h-full bg-slate-800 rounded-t-lg relative flex flex-col justify-end">
+                                {/* Grid Import */}
+                                <div className="h-[80%] bg-red-500/80 w-full flex items-center justify-center text-[10px] text-white font-bold">קנייה מהרשת (יקר!)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="text-center bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                        <span className="text-red-400 font-bold block text-lg">אתה זורק כסף.</span>
+                        <span className="text-slate-400 text-xs">אתה מוכר חשמל ב-14 אג' ביום, וקונה אותו בחזרה ב-60 אג' בלילה.</span>
+                    </div>
+                </div>
+
+                <Button onClick={onNext} className="w-full">
+                    הצג לי את הפתרון
+                    <Icons.TrendingUp className="w-4 h-4" />
+                </Button>
+            </div>
+        );
+
+        const CustomerProposal = ({ onNext }) => {
+            const [years, setYears] = useState(5);
+
+            return (
+                <div className="animate-in fade-in slide-in-from-right-8 duration-500">
+                     <div className="mb-6">
+                        <span className="bg-green-500/20 text-green-400 text-xs font-bold px-2 py-1 rounded mb-2 inline-block">המלצה מותאמת אישית</span>
+                        <h2 className="text-2xl font-bold text-white mb-2">פתרון האגירה שלך</h2>
+                    </div>
+
+                    {/* Battery Card */}
+                    <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-6 rounded-2xl mb-6 shadow-2xl relative">
+                        <div className="absolute top-4 left-4 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">ROI: 18% שנתי</div>
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="bg-slate-700 p-4 rounded-xl">
+                                <Icons.Battery className="w-8 h-8 text-green-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-white">10kWh LFP Battery</h3>
+                                <p className="text-slate-400 text-sm">תואם לממיר SolarEdge קיים</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3 mb-6">
+                            <div className="flex justify-between text-sm border-b border-slate-700 pb-2">
+                                <span className="text-slate-400">חיסכון חודשי ממוצע</span>
+                                <span className="text-green-400 font-bold text-lg">₪850</span>
+                            </div>
+                            <div className="flex justify-between text-sm border-b border-slate-700 pb-2">
+                                <span className="text-slate-400">תשואה לכסף (5 שנים)</span>
+                                <span className="text-white font-bold">₪51,000</span>
+                            </div>
+                             <div className="flex justify-between text-sm">
+                                <span className="text-slate-400">עלות המערכת (הכל כלול)</span>
+                                <span className="text-white font-bold">₪28,000</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Financing Slider */}
+                    <div className="glass-panel p-4 rounded-xl mb-6">
+                        <div className="flex justify-between items-center mb-4">
+                            <h4 className="text-white font-bold flex items-center gap-2">
+                                <Icons.Coins className="w-4 h-4 text-yellow-400" />
+                                מימון חכם
+                            </h4>
+                            <span className="text-xs text-slate-400">הלוואה ע"ח החיסכון</span>
+                        </div>
+                        
+                        <input 
+                            type="range" min="3" max="10" step="1" 
+                            value={years} onChange={(e) => setYears(e.target.value)}
+                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer mb-2 accent-green-500"
+                        />
+                        <div className="flex justify-between text-xs text-slate-400 mb-4">
+                            <span>3 שנים</span>
+                            <span className="text-white font-bold">{years} שנים</span>
+                            <span>10 שנים</span>
+                        </div>
+
+                        <div className="bg-slate-800 p-3 rounded-lg flex justify-between items-center">
+                            <span className="text-slate-300 text-sm">החזר חודשי:</span>
+                            <div className="text-right">
+                                <span className="block text-xl font-bold text-white">₪{(28000 / (years * 12) * 1.05).toFixed(0)}</span>
+                                <span className="text-[10px] text-green-400 font-bold">מכוסה ע"י החיסכון!</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <Button onClick={onNext} className="w-full">
+                         הזמן התקנה
+                         <Icons.CheckCircle className="w-4 h-4" />
+                    </Button>
+                    <p className="text-center text-xs text-slate-500 mt-3">המחיר כולל התקנה, היתרים ומע"מ. ללא הפתעות.</p>
+                </div>
+            );
+        };
+
+        const CustomerSuccess = () => (
+             <div className="text-center py-12 animate-in zoom-in duration-500">
+                <div className="inline-flex items-center justify-center w-24 h-24 bg-green-500/20 rounded-full mb-6 relative">
+                    <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping"></div>
+                    <Icons.CheckCircle className="w-12 h-12 text-green-500" />
+                </div>
+                <h2 className="text-3xl font-bold text-white mb-4">הזמנה התקבלה!</h2>
+                <p className="text-slate-400 mb-8 max-w-xs mx-auto">
+                    חברת ההתקנות קיבלה את פרטי המערכת שלך ואת האפיון הטכני. הם יצרו איתך קשר ב-24 שעות הקרובות לתיאום מועד התקנה.
+                </p>
+                <div className="bg-slate-800 rounded-xl p-4 max-w-xs mx-auto text-sm text-left border border-slate-700">
+                    <div className="flex justify-between mb-2">
+                        <span className="text-slate-400">מספר הזמנה:</span>
+                        <span className="text-white font-mono">#ORD-9921</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-slate-400">סטטוס:</span>
+                        <span className="text-yellow-400">ממתין לאישור קבלן</span>
+                    </div>
+                </div>
+            </div>
+        );
+
+        // --- INSTALLER FLOW COMPONENTS ---
+
+        const LeadBoard = ({ onSelect }) => (
+            <div className="animate-in fade-in slide-in-from-left-4 duration-500">
+                 <div className="mb-6 flex justify-between items-end">
+                    <div>
+                        <h2 className="text-2xl font-bold text-white">לידים חמים</h2>
+                        <p className="text-slate-400 text-sm">עסקאות סגורות הממתינות לאישור טכני</p>
+                    </div>
+                    <div className="bg-blue-600/20 text-blue-400 px-3 py-1 rounded-full text-xs font-bold border border-blue-600/30">
+                        2 ממתינים
+                    </div>
+                </div>
+
+                <div className="space-y-4">
+                    {INSTALLER_LEADS.map(lead => (
+                        <div key={lead.id} className="bg-slate-800 border border-slate-700 hover:border-blue-500/50 rounded-xl p-4 cursor-pointer transition-all" onClick={() => onSelect(lead)}>
+                            <div className="flex justify-between items-start mb-3">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <h3 className="font-bold text-white text-lg">{lead.clientName}</h3>
+                                        <span className="bg-green-500/20 text-green-400 text-[10px] px-1.5 rounded font-bold">מאומת AI</span>
+                                    </div>
+                                    <div className="flex items-center gap-1 text-slate-400 text-xs">
+                                        <Icons.Home className="w-3 h-3" /> {lead.location}
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <span className="block font-bold text-white text-lg">₪{lead.revenue.toLocaleString()}</span>
+                                    <span className="text-xs text-slate-500">הכנסה לפרויקט</span>
+                                </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                                <div className="bg-slate-900/50 p-2 rounded border border-slate-700/50">
+                                    <span className="block text-slate-500">מערכת קיימת</span>
+                                    <span className="text-white font-bold">{lead.systemSize}</span>
+                                </div>
+                                <div className="bg-slate-900/50 p-2 rounded border border-slate-700/50">
+                                    <span className="block text-slate-500">צורך באגירה</span>
+                                    <span className="text-white font-bold">{lead.recommendedBattery}</span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-700/50">
+                                <span className="text-xs text-blue-400 font-bold">Sunlytics Score: {lead.aiScore}</span>
+                                <span className="text-xs text-slate-400">לחץ לפרטים ואישור &rarr;</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+
+        const LeadDetails = ({ lead, onApprove, onBack }) => (
+            <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                <button onClick={onBack} className="text-slate-400 text-sm mb-4 flex items-center gap-1 hover:text-white transition-colors">
+                    <Icons.ArrowLeft className="w-4 h-4" /> חזרה לרשימה
+                </button>
+
+                <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 mb-6">
+                    <div className="flex justify-between items-start mb-6">
+                        <div>
+                            <h1 className="text-2xl font-bold text-white mb-1">{lead.clientName}</h1>
+                            <p className="text-slate-400 text-sm">ID: {lead.id}</p>
+                        </div>
+                        <div className="text-right">
+                            <span className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-bold shadow-lg shadow-blue-900/50">מוכן לביצוע</span>
+                        </div>
+                    </div>
+
+                    {/* Technical Specs */}
+                    <h3 className="text-white font-bold mb-3 flex items-center gap-2">
+                        <Icons.Cpu className="w-4 h-4 text-blue-400" />
+                        מפרט טכני (AI Generated)
+                    </h3>
+                    <div className="bg-slate-900/80 rounded-xl p-4 grid grid-cols-2 gap-4 mb-6 text-sm">
+                        <div>
+                            <span className="text-slate-500 block mb-1">ממיר קיים</span>
+                            <span className="text-white font-mono">{lead.inverter}</span>
+                        </div>
+                        <div>
+                            <span className="text-slate-500 block mb-1">גודל מערכת</span>
+                            <span className="text-white font-mono">{lead.systemSize}</span>
+                        </div>
+                        <div>
+                            <span className="text-slate-500 block mb-1">דפוס צריכה</span>
+                            <span className="text-white font-mono">{lead.consumptionPattern}</span>
+                        </div>
+                        <div>
+                            <span className="text-slate-500 block mb-1">סוללה נדרשת</span>
+                            <span className="text-green-400 font-bold font-mono">{lead.recommendedBattery}</span>
+                        </div>
+                    </div>
+
+                    {/* Financials */}
+                    <h3 className="text-white font-bold mb-3 flex items-center gap-2">
+                        <Icons.FileText className="w-4 h-4 text-yellow-400" />
+                        סיכום עסקה
+                    </h3>
+                    <div className="space-y-3 mb-6 bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                        <div className="flex justify-between text-sm">
+                            <span className="text-slate-400">מחיר ללקוח (כולל מע"מ)</span>
+                            <span className="text-white font-bold">₪{lead.revenue.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-slate-400">עמלת פלטפורמה (Sunlytics)</span>
+                            <span className="text-red-400 font-mono">-₪{lead.commission.toLocaleString()}</span>
+                        </div>
+                        <div className="border-t border-slate-700 my-2 pt-2 flex justify-between">
+                            <span className="text-white font-bold">הכנסה נקייה לקבלן</span>
+                            <span className="text-green-400 font-bold text-lg">₪{(lead.revenue - lead.commission).toLocaleString()}</span>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                        <Button onClick={onApprove} variant="accent" className="flex-1">
+                            אשר עסקה ושריין מלאי
+                            <Icons.CheckCircle className="w-4 h-4" />
+                        </Button>
+                    </div>
+                    <p className="text-center text-xs text-slate-500 mt-3">אישור העסקה מהווה התחייבות ליצירת קשר עם הלקוח תוך 24 שעות.</p>
+                </div>
+            </div>
+        );
+
+
+        // --- MAIN APP ORCHESTRATOR ---
+
+        const App = () => {
+            const [userType, setUserType] = useState('landing'); // landing, customer, installer
+            const [customerStep, setCustomerStep] = useState(1);
+            const [selectedLead, setSelectedLead] = useState(null);
+
+            // Landing Screen
+            if (userType === 'landing') {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#0f172a] relative overflow-hidden text-center">
+                         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-500/20 rounded-full blur-[120px]"></div>
+                         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-500/20 rounded-full blur-[120px]"></div>
+                        
+                        <div className="mb-10 z-10">
+                            <div className="flex justify-center mb-4">
+                                <div className="bg-white/10 p-3 rounded-2xl backdrop-blur-sm">
+                                    <Icons.Zap className="w-10 h-10 text-yellow-400" />
+                                </div>
+                            </div>
+                            <h1 className="text-4xl font-black text-white mb-2 tracking-tight">
+                                Sunlytics <span className="gradient-text">Storage</span>
+                            </h1>
+                            <p className="text-slate-400 text-lg">פלטפורמת האגירה החכמה של ישראל</p>
+                        </div>
+
+                        <div className="space-y-4 w-full max-w-sm z-10">
+                            <button 
+                                onClick={() => setUserType('customer')}
+                                className="w-full bg-slate-800 border border-slate-700 hover:border-green-500 p-6 rounded-2xl flex items-center justify-between group transition-all hover:bg-slate-800/80"
+                            >
+                                <div className="text-right">
+                                    <span className="block text-white font-bold text-lg group-hover:text-green-400 transition-colors">אני בעל מערכת סולארית</span>
+                                    <span className="text-slate-400 text-sm">רוצה לחסוך בחשמל ולהתקין אגירה</span>
+                                </div>
+                                <div className="bg-green-500/10 p-3 rounded-full group-hover:bg-green-500 group-hover:text-white transition-all text-green-500">
+                                    <Icons.Home className="w-6 h-6" />
+                                </div>
+                            </button>
+
+                            <button 
+                                onClick={() => setUserType('installer')}
+                                className="w-full bg-slate-800 border border-slate-700 hover:border-blue-500 p-6 rounded-2xl flex items-center justify-between group transition-all hover:bg-slate-800/80"
+                            >
+                                <div className="text-right">
+                                    <span className="block text-white font-bold text-lg group-hover:text-blue-400 transition-colors">אני חברת התקנות</span>
+                                    <span className="text-slate-400 text-sm">מחפש עסקאות סגורות לביצוע</span>
+                                </div>
+                                <div className="bg-blue-500/10 p-3 rounded-full group-hover:bg-blue-500 group-hover:text-white transition-all text-blue-500">
+                                    <Icons.Briefcase className="w-6 h-6" />
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Customer View
+            if (userType === 'customer') {
+                return (
+                    <div className="min-h-screen bg-[#0f172a] text-white">
+                        <header className="p-4 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-[#0f172a]/95 backdrop-blur z-50">
+                            <div className="flex items-center gap-2" onClick={() => {setUserType('landing'); setCustomerStep(1);}}>
+                                <Icons.ArrowLeft className="w-6 h-6 text-slate-400 cursor-pointer" />
+                                <span className="font-bold text-lg">אפיון מערכת אגירה</span>
+                            </div>
+                            <div className="flex gap-1">
+                                {[1,2,3].map(step => (
+                                    <div key={step} className={`h-1.5 w-6 rounded-full ${step <= customerStep ? 'bg-green-500' : 'bg-slate-700'}`}></div>
+                                ))}
+                            </div>
+                        </header>
+
+                        <main className="max-w-md mx-auto p-6 pb-24">
+                            {customerStep === 1 && <CustomerAnalysis onNext={() => setCustomerStep(2)} />}
+                            {customerStep === 2 && <CustomerProposal onNext={() => setCustomerStep(3)} />}
+                            {customerStep === 3 && <CustomerSuccess />}
+                        </main>
+                    </div>
+                );
+            }
+
+            // Installer View
+            if (userType === 'installer') {
+                return (
+                    <div className="min-h-screen bg-[#0b1120] text-white">
+                        <header className="p-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between sticky top-0 z-50">
+                             <div className="flex items-center gap-2 cursor-pointer" onClick={() => selectedLead ? setSelectedLead(null) : setUserType('landing')}>
+                                {!selectedLead ? <Icons.Briefcase className="w-5 h-5 text-blue-500" /> : null}
+                                <span className="font-bold text-lg tracking-wide">
+                                    Sunlytics <span className="text-blue-500 font-light">Pro</span>
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
+                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                <span className="text-xs font-bold">מחובר</span>
+                            </div>
+                        </header>
+
+                        <main className="max-w-md mx-auto p-4 pb-24">
+                            {!selectedLead ? (
+                                <LeadBoard onSelect={setSelectedLead} />
+                            ) : (
+                                <LeadDetails 
+                                    lead={selectedLead} 
+                                    onBack={() => setSelectedLead(null)}
+                                    onApprove={() => {
+                                        alert("העסקה אושרה בהצלחה! פרטי הלקוח נשלחו למייל.");
+                                        setSelectedLead(null);
+                                    }}
+                                />
+                            )}
+                        </main>
+                    </div>
+                );
+            }
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
+
