@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SolarEdge Fleet Map</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Leaflet CSS & JS (Maps) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap');
+        body { font-family: 'Assistant', sans-serif; }
+        #map { height: 100%; width: 100%; z-index: 1; }
+        
+        /* Custom Marker Styles */
+        .custom-pin {
+            background-color: white;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+        .pin-active { background-color: #10b981; } /* Emerald-500 */
+        .pin-pending { background-color: #f59e0b; } /* Amber-500 */
+        .pin-error { background-color: #ef4444; }   /* Red-500 */
+
+        /* Toast Animation */
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .toast { animation: slideIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 h-screen flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 shadow-sm z-20 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-2 rounded-lg shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h1 class="text-lg font-bold text-slate-800">SolarEdge Fleet Map</h1>
+        </div>
+        <div class="flex items-center gap-2">
+             <div id="globalStatus" class="text-xs font-bold text-slate-400">מוכן</div>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden relative">
+        
+        <!-- Sidebar Controls -->
+        <aside class="w-96 bg-white border-l border-slate-200 flex flex-col shadow-xl z-10">
+            <div class="p-5 border-b border-slate-100 bg-slate-50">
+                <label class="block text-sm font-bold text-slate-700 mb-2">הזנת מפתחות API</label>
+                <textarea id="apiKeysInput" 
+                    class="w-full h-32 p-3 border border-slate-300 rounded-xl text-xs font-mono focus:ring-2 focus:ring-blue-500 outline-none resize-none shadow-sm" 
+                    placeholder="הדבק כאן רשימת מפתחות (כל מפתח בשורה חדשה)..."></textarea>
+                
+                <div class="flex gap-3 mt-4">
+                    <button onclick="startScanning()" id="scanBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition-all shadow-md shadow-blue-200 flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        <span>סרוק והצג הכל</span>
+                    </button>
+                    <button onclick="clearMap()" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 py-2.5 px-4 rounded-xl text-sm transition-colors">
+                        נקה
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results List -->
+            <div class="flex-1 overflow-y-auto bg-slate-50/50 p-2 space-y-2" id="resultsContainer">
+                <div class="text-center text-slate-400 mt-12 flex flex-col items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 opacity-20 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0121 18.382V7.618a1 1 0 01-.447-.894L15 7m0 13V7m0 0L9.553 2.276A1 1 0 019 1.618v10.764" /></svg>
+                    <span class="text-sm">המפה ריקה</span>
+                </div>
+            </div>
+            
+            <!-- Footer Stats -->
+            <div class="p-3 bg-white border-t border-slate-100 text-xs flex justify-between text-slate-500">
+                <span id="sitesCount">0 אתרים</span>
+                <span id="keysCount">0 מפתחות</span>
+            </div>
+        </aside>
+
+        <!-- Map -->
+        <main class="flex-1 relative">
+            <div id="map"></div>
+            
+            <!-- Toast Container -->
+            <div id="toastContainer" class="absolute bottom-6 left-6 flex flex-col gap-2 pointer-events-none z-[2000]"></div>
+
+            <!-- Legend -->
+            <div class="absolute top-4 left-4 bg-white/90 backdrop-blur p-3 rounded-xl shadow-lg border border-slate-200 z-[1000] text-xs">
+                <div class="font-bold mb-2 text-slate-700">מקרא סטטוסים</div>
+                <div class="flex items-center gap-2 mb-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 shadow-sm"></span> <span class="text-slate-600">Active</span></div>
+                <div class="flex items-center gap-2 mb-1.5"><span class="w-3 h-3 rounded-full bg-amber-500 shadow-sm"></span> <span class="text-slate-600">Pending</span></div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-500 shadow-sm"></span> <span class="text-slate-600">Error/Offline</span></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- Config ---
+        // שימוש ב-corsproxy.io שהוא לרוב יציב יותר
+        const PROXY_URL = "https://corsproxy.io/?";
+        const API_BASE = "https://monitoringapi.solaredge.com";
+
+        // --- State ---
+        let map;
+        let markers = [];
+        let sites = [];
+        let processedKeys = new Set();
+
+        // --- Init ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initMap();
+        });
+
+        function initMap() {
+            // מרכז ישראל
+            map = L.map('map', { zoomControl: false }).setView([31.4, 35.0], 7);
+            
+            // מפות נקיות (CartoDB Voyager)
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 20
+            }).addTo(map);
+
+            L.control.zoom({ position: 'topright' }).addTo(map);
+        }
+
+        // --- Logic ---
+
+        async function startScanning() {
+            const input = document.getElementById('apiKeysInput').value;
+            const keys = input.split(/[\n,]+/).map(k => k.trim()).filter(k => k.length > 10);
+
+            if (keys.length === 0) {
+                showToast('אנא הזן לפחות מפתח תקין אחד', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('scanBtn');
+            btn.innerHTML = `<svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> <span>סורק...</span>`;
+            btn.disabled = true;
+
+            document.getElementById('globalStatus').innerText = `סורק ${keys.length} מפתחות...`;
+            document.getElementById('resultsContainer').innerHTML = ''; 
+            
+            clearMap(false); 
+
+            let success = 0;
+            let errors = 0;
+
+            for (const key of keys) {
+                if (processedKeys.has(key)) continue;
+
+                try {
+                    await processKeyFullFlow(key); // הפונקציה החדשה והחכמה
+                    success++;
+                    processedKeys.add(key);
+                } catch (e) {
+                    console.error(e);
+                    errors++;
+                    addErrorCard(key, e);
+                }
+            }
+
+            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg> <span>סרוק והצג הכל</span>`;
+            btn.disabled = false;
+            
+            document.getElementById('globalStatus').innerText = 'סריקה הושלמה';
+            
+            if (success > 0) {
+                showToast(`נטענו בהצלחה ${success} מפתחות`, 'success');
+                fitMapBounds();
+            }
+            if (errors > 0) {
+                showToast(`${errors} מפתחות נכשלו`, 'error');
+            }
+
+            updateStats();
+        }
+
+        // פונקציה ראשית שמשלבת שליפת רשימה + שליפת פרטים לכל אתר
+        async function processKeyFullFlow(key) {
+            // 1. שליפת רשימת אתרים (ללא קואורדינטות)
+            const listUrl = `${API_BASE}/sites/list?api_key=${key}`;
+            const listProxyUrl = PROXY_URL + encodeURIComponent(listUrl);
+            const listRes = await axios.get(listProxyUrl);
+            const data = listRes.data;
+
+            if (data.sites && data.sites.site) {
+                const siteList = Array.isArray(data.sites.site) ? data.sites.site : [data.sites.site];
+                
+                // 2. עבור כל אתר ברשימה, שולפים פרטים מלאים כדי לקבל מיקום
+                for (const basicSite of siteList) {
+                    try {
+                        const fullDetails = await fetchSiteDetails(basicSite.id, key);
+                        
+                        // מיזוג המידע
+                        const mergedSite = { ...basicSite, ...fullDetails, _apiKey: key };
+                        
+                        sites.push(mergedSite);
+                        addSiteToMap(mergedSite);
+                        addSiteToList(mergedSite);
+                        
+                    } catch (err) {
+                        console.warn(`Failed to fetch details for site ${basicSite.id}`, err);
+                        // מוסיפים לרשימה גם אם אין מיקום, אבל מסמנים כשגיאה במפה
+                        const fallbackSite = { ...basicSite, _apiKey: key, location: { city: 'Unknown (Error)', country: '-' } };
+                        sites.push(fallbackSite);
+                        addSiteToList(fallbackSite);
+                    }
+                }
+            } else {
+                throw new Error("No sites found or invalid format");
+            }
+        }
+
+        // שליפת פרטים מלאים לאתר בודד (כולל Lat/Lon)
+        async function fetchSiteDetails(siteId, key) {
+            const detailsUrl = `${API_BASE}/site/${siteId}/details?api_key=${key}`;
+            const detailsProxyUrl = PROXY_URL + encodeURIComponent(detailsUrl);
+            
+            const res = await axios.get(detailsProxyUrl);
+            // המבנה ב-Response הוא usually { details: { ... } }
+            if (res.data && res.data.details) {
+                return res.data.details;
+            }
+            return {};
+        }
+
+        // --- UI Rendering ---
+
+        function addSiteToMap(site) {
+            // הגנה מפני קריסה: אם אין קואורדינטות, לא מוסיפים למפה ויוצאים בשקט
+            if (!site.location || 
+                site.location.latitude === undefined || 
+                site.location.longitude === undefined ||
+                site.location.latitude === null || 
+                site.location.longitude === null) {
+                return;
+            }
+
+            const lat = site.location.latitude;
+            const lon = site.location.longitude;
+            
+            let colorClass = 'pin-active';
+            if (site.status === 'Pending') colorClass = 'pin-pending';
+            if (site.status !== 'Active' && site.status !== 'Pending') colorClass = 'pin-error';
+
+            const icon = L.divIcon({
+                className: 'bg-transparent',
+                html: `<div class="custom-pin ${colorClass}" style="width: 14px; height: 14px;"></div>`,
+                iconSize: [14, 14],
+                iconAnchor: [7, 7]
+            });
+
+            const marker = L.marker([lat, lon], { icon }).addTo(map);
+            
+            // Popup
+            const popupContent = `
+                <div style="font-family: sans-serif; text-align: center; min-width: 150px;">
+                    <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">${site.name}</div>
+                    <div style="font-size: 12px; color: #64748b;">${site.location.city || ''}, ${site.location.country || ''}</div>
+                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee; display: flex; justify-content: space-between; font-size: 11px;">
+                        <span><b>${site.peakPower}</b> kWp</span>
+                        <span style="color: ${site.status === 'Active' ? 'green' : 'red'}">${site.status}</span>
+                    </div>
+                    <div style="font-size: 9px; color: #94a3b8; margin-top: 4px;">ID: ${site.id}</div>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent);
+            marker._siteId = site.id;
+            markers.push(marker);
+        }
+
+        function addSiteToList(site) {
+            const container = document.getElementById('resultsContainer');
+            const el = document.createElement('div');
+            
+            let statusDot = 'bg-emerald-500';
+            if (site.status !== 'Active') statusDot = 'bg-red-500';
+            
+            // בדיקה האם יש מיקום לתצוגה ברשימה
+            const hasLocation = site.location && site.location.latitude;
+            const locationText = hasLocation ? '📍 על המפה' : '⚠️ אין מיקום';
+            const locationClass = hasLocation ? 'text-blue-500' : 'text-orange-500';
+
+            el.className = "bg-white p-3 rounded-lg border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer group";
+            
+            // לחיצה תעבוד רק אם יש מיקום
+            if (hasLocation) {
+                el.onclick = () => focusSite(site.id);
+            } else {
+                el.classList.add('opacity-70');
+            }
+
+            el.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div class="font-bold text-sm text-slate-700 truncate w-40" title="${site.name}">${site.name}</div>
+                    <div class="flex items-center gap-1.5 bg-slate-50 px-1.5 py-0.5 rounded text-[10px] text-slate-500 font-mono">
+                        <div class="w-1.5 h-1.5 rounded-full ${statusDot}"></div>
+                        ID:${site.id}
+                    </div>
+                </div>
+                <div class="mt-1 flex items-center gap-2 text-xs text-slate-500">
+                    <span class="truncate max-w-[120px]">${site.location?.city || '-'}</span>
+                    <span class="text-slate-300">|</span>
+                    <span class="font-semibold text-slate-700">${site.peakPower} kWp</span>
+                </div>
+                <div class="flex justify-between items-center mt-2">
+                    <div class="text-[9px] text-slate-300 font-mono truncate w-24">Key: ...${site._apiKey.substr(-6)}</div>
+                    <div class="text-[10px] ${locationClass}">${locationText}</div>
+                </div>
+            `;
+            container.appendChild(el);
+        }
+
+        function addErrorCard(key, error) {
+            const container = document.getElementById('resultsContainer');
+            const el = document.createElement('div');
+            el.className = "bg-rose-50 p-3 rounded-lg border border-rose-100 opacity-80";
+            
+            let msg = "שגיאת תקשורת";
+            if (error.response && error.response.status === 403) msg = "מפתח חסום/שגוי (403)";
+            if (error.response && error.response.status === 429) msg = "חריגת מכסה יומית (429)";
+
+            el.innerHTML = `
+                <div class="flex items-center gap-2 mb-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span class="text-xs font-bold text-rose-700">שגיאה במפתח</span>
+                </div>
+                <div class="font-mono text-[10px] text-rose-800 break-all mb-1">${key}</div>
+                <div class="text-[10px] text-rose-600">${msg}</div>
+            `;
+            container.appendChild(el);
+        }
+
+        // --- Helpers ---
+
+        function fitMapBounds() {
+            if (markers.length === 0) return;
+            const group = new L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.1));
+        }
+
+        function focusSite(siteId) {
+            const site = sites.find(s => s.id === siteId);
+            // הגנה כפולה: לא מנסים להתמקד אם אין מיקום
+            if (!site || !site.location || !site.location.latitude) {
+                showToast('לאתר זה אין נתוני מיקום', 'error');
+                return;
+            }
+            
+            map.flyTo([site.location.latitude, site.location.longitude], 13);
+            const marker = markers.find(m => m._siteId === siteId);
+            if (marker) marker.openPopup();
+        }
+
+        function clearMap(clearInput = true) {
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+            sites = [];
+            processedKeys.clear();
+            document.getElementById('resultsContainer').innerHTML = '';
+            if (clearInput) document.getElementById('apiKeysInput').value = '';
+            updateStats();
+            document.getElementById('globalStatus').innerText = 'מוכן';
+        }
+
+        function updateStats() {
+            document.getElementById('sitesCount').innerText = `${sites.length} אתרים`;
+            document.getElementById('keysCount').innerText = `${processedKeys.size} מפתחות`;
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const el = document.createElement('div');
+            
+            const colors = {
+                success: 'bg-emerald-600 text-white',
+                error: 'bg-rose-600 text-white',
+                info: 'bg-slate-800 text-white'
+            };
+
+            el.className = `toast px-4 py-3 rounded-lg shadow-lg text-sm font-medium flex items-center gap-2 ${colors[type] || colors.info}`;
+            el.innerHTML = `<span>${message}</span>`;
+            
+            container.appendChild(el);
+            
+            setTimeout(() => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(10px)';
+                el.style.transition = 'all 0.3s ease';
+                setTimeout(() => el.remove(), 300);
+            }, 3000);
+        }
+
+    </script>
+</body>
+</html>
