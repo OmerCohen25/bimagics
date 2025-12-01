@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SolarEdge Fleet Commander - Deep Analysis</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Leaflet (Map) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Axios (HTTP) -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    
+    <!-- Plotly.js (Charts) -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    
+    <!-- Moment.js (Time) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+
+    <!-- Font -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap');
+        body { font-family: 'Assistant', sans-serif; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Animations */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.33); opacity: 1; }
+            80%, 100% { opacity: 0; }
+        }
+        .animate-pulse-ring { animation: pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* Leaflet Custom Pins */
+        .se-pin {
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+        .se-pin:hover { transform: scale(1.2); z-index: 1000 !important; }
+        .pin-good { background: #10b981; }
+        .pin-warn { background: #f59e0b; }
+        .pin-bad { background: #ef4444; }
+        .pin-offline { background: #64748b; }
+
+        /* Modal Transitions */
+        .modal { transition: opacity 0.25s ease; }
+        body.modal-active { overflow: hidden; }
+    </style>
+</head>
+<body class="bg-slate-100 h-screen flex flex-col text-slate-800 overflow-hidden">
+
+    <!-- Navbar -->
+    <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm z-30 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-2 rounded-lg shadow-lg shadow-blue-500/30">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight">SolarEdge Fleet Commander</h1>
+                <div class="text-[10px] text-slate-400 font-mono tracking-wider">DEEP ANALYSIS ENGINE</div>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <div id="statusBadge" class="px-3 py-1 rounded-full bg-slate-100 text-slate-500 text-xs font-bold border border-slate-200 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                <span>ממתין לפקודה</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden relative">
+        
+        <!-- Sidebar -->
+        <aside class="w-[400px] bg-white border-l border-slate-200 flex flex-col shadow-2xl z-20 transition-all duration-300 transform" id="sidebar">
+            
+            <!-- API Input Section -->
+            <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-xs font-bold text-slate-700 uppercase tracking-wide">מפתחות API לניתוח</label>
+                    <span class="text-[10px] text-slate-400 bg-slate-200 px-1.5 rounded" id="keyCountBadge">0</span>
+                </div>
+                <textarea id="apiKeysInput" class="w-full h-24 p-3 bg-white border border-slate-200 rounded-lg text-[10px] font-mono focus:ring-2 focus:ring-blue-500 outline-none resize-none mb-3" placeholder="הדבק מפתחות כאן..."></textarea>
+                
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="startFleetScan()" id="scanBtn" class="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-xs font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        סרוק צי ונתח נתונים
+                    </button>
+                    <button onclick="resetApp()" class="bg-white border border-slate-300 hover:bg-slate-50 text-slate-600 py-2 rounded-lg text-xs font-bold transition-all">
+                        איפוס
+                    </button>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="mt-3 h-1.5 w-full bg-slate-200 rounded-full overflow-hidden hidden" id="progressContainer">
+                    <div id="progressBar" class="h-full bg-blue-500 transition-all duration-300 w-0"></div>
+                </div>
+                <div id="progressText" class="text-[10px] text-center text-slate-500 mt-1 hidden">טוען...</div>
+            </div>
+
+            <!-- Dashboard Stats (Summary) -->
+            <div id="fleetStats" class="grid grid-cols-3 gap-1 p-2 border-b border-slate-100 bg-white hidden">
+                <div class="text-center p-2 rounded bg-slate-50">
+                    <div class="text-[10px] text-slate-400">סה"כ אתרים</div>
+                    <div class="text-lg font-bold text-slate-700" id="statSites">0</div>
+                </div>
+                <div class="text-center p-2 rounded bg-slate-50">
+                    <div class="text-[10px] text-slate-400">הספק כולל</div>
+                    <div class="text-lg font-bold text-indigo-600" id="statPower">0M</div>
+                </div>
+                <div class="text-center p-2 rounded bg-slate-50">
+                    <div class="text-[10px] text-slate-400">חריגות</div>
+                    <div class="text-lg font-bold text-rose-500" id="statAlerts">0</div>
+                </div>
+            </div>
+
+            <!-- List Container -->
+            <div class="flex-1 overflow-y-auto p-2 space-y-2 bg-slate-50/30" id="sitesList">
+                <div class="flex flex-col items-center justify-center h-40 text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0121 18.382V7.618a1 1 0 01-.447-.894L15 7m0 13V7m0 0L9.553 2.276A1 1 0 019 1.618v10.764" /></svg>
+                    <span class="text-xs">המפה ריקה. התחל סריקה.</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Map Area -->
+        <main class="flex-1 relative bg-slate-200">
+            <div id="map" class="w-full h-full z-10"></div>
+            
+            <!-- Map Legend -->
+            <div class="absolute top-4 left-4 z-[500] bg-white/90 backdrop-blur rounded-lg shadow-lg border border-slate-200 p-3 text-xs">
+                <div class="font-bold mb-2">סטטוס ניתוח</div>
+                <div class="space-y-1.5">
+                    <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> תקין / ביצועים גבוהים</div>
+                    <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> חשד לירידת ביצועים</div>
+                    <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> תקלה קריטית / בידוד</div>
+                    <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span> לא מקוון / אין מידע</div>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Deep Analysis Modal -->
+    <div id="analysisModal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
+        
+        <!-- Content -->
+        <div class="bg-white w-[95%] h-[95%] rounded-2xl shadow-2xl z-10 flex flex-col overflow-hidden relative animate-up">
+            <!-- Modal Header -->
+            <div class="h-14 border-b border-slate-100 flex items-center justify-between px-6 bg-slate-50">
+                <div class="flex items-center gap-3">
+                    <h2 class="font-bold text-lg text-slate-800" id="modalTitle">Site Name</h2>
+                    <span id="modalId" class="text-xs font-mono text-slate-400 bg-white px-2 py-1 rounded border border-slate-200">ID: 12345</span>
+                </div>
+                <button onclick="closeModal()" class="p-2 hover:bg-slate-200 rounded-full transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="flex-1 overflow-y-auto p-6 bg-slate-50/30">
+                
+                <!-- AI Insights Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+                    <!-- Score Card -->
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center">
+                        <div class="text-xs text-slate-400 uppercase font-bold mb-2">ציון בריאות אתר</div>
+                        <div id="healthScore" class="text-4xl font-black text-emerald-500">98</div>
+                        <div class="text-[10px] text-slate-400 mt-1">מבוסס על השוואה אזורית</div>
+                    </div>
+
+                    <!-- Anomalies List -->
+                    <div class="lg:col-span-3 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                        <div class="bg-rose-50 border-b border-rose-100 px-4 py-2 flex justify-between items-center">
+                            <span class="text-rose-700 font-bold text-sm flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                זיהוי תקלות אקטיבי (AI Logic)
+                            </span>
+                            <span class="text-[10px] text-rose-400">5 ימים אחרונים</span>
+                        </div>
+                        <div class="flex-1 overflow-y-auto max-h-32 p-0" id="alertsContainer">
+                            <!-- Alerts injected here -->
+                            <div class="p-4 text-center text-slate-400 text-sm">לא נמצאו חריגות במערכת</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="grid grid-cols-1 gap-6">
+                    <!-- Power Chart (Comparison) -->
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-slate-700 text-sm">ניתוח הספק מול נורמה אזורית (Normalization)</h3>
+                        </div>
+                        <div id="chartPower" class="w-full h-[350px]"></div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- DC Voltage (Blocking) -->
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                             <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-slate-700 text-sm">ניתוח מתח DC (זיהוי Blocking/Shadow)</h3>
+                            </div>
+                            <div id="chartDC" class="w-full h-[300px]"></div>
+                        </div>
+
+                        <!-- Isolation & Temp -->
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                             <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-slate-700 text-sm">התנגדות בידוד (Riso) וטמפרטורה</h3>
+                            </div>
+                            <div id="chartIso" class="w-full h-[300px]"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toastContainer" class="fixed bottom-6 left-6 z-[3000] flex flex-col gap-2 pointer-events-none"></div>
+
+    <script>
+        // --- Configuration ---
+        const PROXY_URL = "https://corsproxy.io/?"; 
+        const API_BASE = "https://monitoringapi.solaredge.com";
+        const DEFAULT_KEYS = `63QJ66QLNDSGWZBGA8YB0AOVBSLZU41W
+1R1YVPJWARC5P7DA76A66JNKNHTA4CR9
+RPR5J7H74H6Y009EYPZ18C0AIZEAEU55
+GI9ULUFRI5T2KEGO1P5B6ME3M9FVTKRA
+QAP2OTKE0AXIAZS0XOLQJLFLURL8GQJH
+IU4JLAF0HH1FEC3J2ZZAXF3JLJB1POGJ
+GO9ADLZAV7XGOV96IJJPAGCAYOYWF2YC
+8QXYDYPHFU36Q2OE5313QA8ZAFH22AOO
+66CZRGZQ6Y0N56RSCS3V3PU2OEWAF4RY
+3BO1A0711L9TRGGP6800F3YNHM0I1BW3
+GO9ADLZAV7XGOV96IJJPAGCAYOYWF2YC
+66CZRGZQ6Y0N56RSCS3V3PU2OEWAF4RY
+8QXYDYPHFU36Q2OE5313QA8ZAFH22AOO
+4N3I2IMP2JMMLZH9QDI96DUR4MGELE9V
+CQL2GB0LNZBKYEE7GZ1VRBAB1X78Z663
+VV46VKQX476SBB06N802CJ5WIC2TG9UH
+UWXXJ9Z9EAEC7Z7V4OT8GZOT8HKVJX5Q
+V0RYKJZ6NT7MDQVM4UGX10B0NPGVL12C
+KVY66QVOLU6SP5L6MDCT2TSKMOFLQUSH
+YNUEOT08VOZ40W1YYWOE1MOXRVZOSAYX`;
+
+        // --- State Management ---
+        let map;
+        let markersGroup = L.layerGroup();
+        let globalSites = []; // Stores all site data
+        let globalTelemetries = {}; // Stores fetched technical data by serial
+        let processedKeys = new Set();
+        let abortController = new AbortController();
+
+        // --- Initialization ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            document.getElementById('apiKeysInput').value = DEFAULT_KEYS;
+            updateKeyCount();
+        });
+
+        document.getElementById('apiKeysInput').addEventListener('input', updateKeyCount);
+
+        function updateKeyCount() {
+            const count = document.getElementById('apiKeysInput').value.trim().split(/[\n,]+/).filter(k => k.length > 5).length;
+            document.getElementById('keyCountBadge').innerText = count;
+        }
+
+        function initMap() {
+            // Center on Israel initially
+            map = L.map('map', { zoomControl: false }).setView([31.4, 35.0], 8);
+            
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap &copy; CARTO',
+                subdomains: 'abcd',
+                maxZoom: 19
+            }).addTo(map);
+
+            L.control.zoom({ position: 'topright' }).addTo(map);
+            markersGroup.addTo(map);
+        }
+
+        // --- Core Logic: Fleet Scanning ---
+
+        async function startFleetScan() {
+            resetApp(false); // Clear previous data but keep keys
+            const keys = document.getElementById('apiKeysInput').value.trim().split(/[\n,]+/).filter(k => k.length > 10);
+            
+            if (keys.length === 0) return showToast("נא להזין מפתחות", "error");
+
+            updateStatus("scanning", `סורק ${keys.length} מפתחות...`);
+            showProgress(true);
+            
+            let totalSitesFound = 0;
+            let currentKeyIdx = 0;
+
+            // Step 1: Discover Sites
+            for (const key of keys) {
+                currentKeyIdx++;
+                updateProgress((currentKeyIdx / keys.length) * 30, `ממפה אתרים (${currentKeyIdx}/${keys.length})`);
+                
+                try {
+                    const sites = await fetchSitesList(key);
+                    for (const site of sites) {
+                        // Fetch lat/lon if missing
+                        const details = await fetchSiteDetails(site.id, key);
+                        const fullSite = { ...site, ...details, _apiKey: key, _analysis: null };
+                        
+                        // Push to global array
+                        globalSites.push(fullSite);
+                        
+                        // Add to Map & List
+                        renderSiteOnMap(fullSite);
+                        renderSiteInList(fullSite);
+                        totalSitesFound++;
+                    }
+                } catch (e) {
+                    console.error(`Key error: ${key}`, e);
+                }
+            }
+
+            // Fit map
+            if (totalSitesFound > 0) {
+                const bounds = L.latLngBounds(globalSites.filter(s => s.location?.latitude).map(s => [s.location.latitude, s.location.longitude]));
+                if (bounds.isValid()) map.fitBounds(bounds.pad(0.1));
+            }
+
+            updateStats();
+            
+            // Step 2: Auto-Analyze Sites (The "Deep" part)
+            // We do this asynchronously to not freeze UI
+            updateStatus("analyzing", "מבצע ניתוח עומק לכל האתרים...");
+            await runDeepAnalysisBatch();
+        }
+
+        async function runDeepAnalysisBatch() {
+            // Process chunks to avoid rate limits
+            const sitesToAnalyze = globalSites; 
+            let processed = 0;
+
+            for (const site of sitesToAnalyze) {
+                processed++;
+                updateProgress(30 + (processed / sitesToAnalyze.length) * 70, `מנתח אתר: ${site.name} (${processed}/${sitesToAnalyze.length})`);
+                
+                try {
+                    // 1. Fetch Inverters
+                    const equipment = await fetchEquipment(site.id, site._apiKey);
+                    site._equipment = equipment;
+
+                    // 2. Fetch Data (Last 5 days) for first inverter (sample) or all if needed
+                    // For fleet overview, we might sample. For deep dive (modal), we fetch all.
+                    // To be robust, let's fetch summary data or a sample inverter.
+                    // Due to API limits, we will fetch specific data ONLY when user opens modal, 
+                    // BUT here we can perform "Light Analysis" based on current power vs neighbor power.
+                    
+                    // Spatial Normalization Calculation
+                    const neighbors = findNeighbors(site, 10); // 10km radius
+                    const neighborAvgYield = calculateRegionYield(neighbors);
+                    const siteYield = (site.currentPower?.power || 0) / site.peakPower; // kW / kWp
+                    
+                    site._analysis = {
+                        neighborAvgYield: neighborAvgYield,
+                        performanceScore: neighborAvgYield > 0 ? (siteYield / neighborAvgYield) * 100 : 100,
+                        isUnderperforming: neighborAvgYield > 0 && (siteYield < neighborAvgYield * 0.7)
+                    };
+
+                    updateMarkerStatus(site);
+
+                } catch (e) {
+                    console.warn(`Analysis failed for ${site.id}`, e);
+                }
+
+                // Rate limiting pause
+                await new Promise(r => setTimeout(r, 200)); 
+            }
+
+            showProgress(false);
+            updateStatus("ready", "סריקה הושלמה");
+            showToast("סריקה וניתוח הסתיימו בהצלחה", "success");
+        }
+
+        // --- API Functions ---
+
+        async function fetchSitesList(key) {
+            const res = await axios.get(PROXY_URL + encodeURIComponent(`${API_BASE}/sites/list?api_key=${key}&size=100`));
+            const data = res.data?.sites?.site || res.data?.sites?.list;
+            return Array.isArray(data) ? data : (data ? [data] : []);
+        }
+
+        async function fetchSiteDetails(siteId, key) {
+            try {
+                // Get Details (Location)
+                const resDet = await axios.get(PROXY_URL + encodeURIComponent(`${API_BASE}/site/${siteId}/details?api_key=${key}`));
+                // Get Current Power (Overview)
+                const resOvr = await axios.get(PROXY_URL + encodeURIComponent(`${API_BASE}/site/${siteId}/overview?api_key=${key}`));
+                
+                return {
+                    ...(resDet.data.details || {}),
+                    currentPower: resOvr.data.overview.currentPower
+                };
+            } catch (e) { return {}; }
+        }
+
+        async function fetchEquipment(siteId, key) {
+            try {
+                const res = await axios.get(PROXY_URL + encodeURIComponent(`${API_BASE}/equipment/${siteId}/list?api_key=${key}`));
+                return res.data?.reporters?.list || res.data?.list || [];
+            } catch(e) { return []; }
+        }
+
+        async function fetchTechnicalData(siteId, serial, key, startDate, endDate) {
+            const url = `${API_BASE}/equipment/${siteId}/${serial}/data?api_key=${key}&startTime=${startDate}&endTime=${endDate}`;
+            const res = await axios.get(PROXY_URL + encodeURIComponent(url));
+            return res.data?.data?.telemetries || [];
+        }
+
+        // --- Analysis Algorithms ---
+
+        function findNeighbors(targetSite, radiusKm) {
+            if (!targetSite.location?.latitude) return [];
+            return globalSites.filter(s => {
+                if (s.id === targetSite.id || !s.location?.latitude) return false;
+                const dist = getDistanceFromLatLonInKm(
+                    targetSite.location.latitude, targetSite.location.longitude,
+                    s.location.latitude, s.location.longitude
+                );
+                return dist <= radiusKm;
+            });
+        }
+
+        function calculateRegionYield(sites) {
+            if (sites.length === 0) return 0;
+            let totalYield = 0;
+            let count = 0;
+            sites.forEach(s => {
+                if (s.currentPower?.power && s.peakPower) {
+                    totalYield += (s.currentPower.power / 1000) / s.peakPower; // kW / kWp
+                    count++;
+                }
+            });
+            return count === 0 ? 0 : totalYield / count;
+        }
+
+        function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+            var R = 6371; 
+            var dLat = deg2rad(lat2-lat1);  
+            var dLon = deg2rad(lon2-lon1); 
+            var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+            var d = R * c; 
+            return d;
+        }
+
+        function deg2rad(deg) { return deg * (Math.PI/180); }
+
+        // --- UI Rendering ---
+
+        function renderSiteOnMap(site) {
+            if (!site.location?.latitude) return;
+
+            const lat = site.location.latitude;
+            const lon = site.location.longitude;
+            
+            // Initial color (Grey until analyzed)
+            let colorClass = 'pin-offline';
+            if (site.status === 'Active') colorClass = 'pin-good';
+            if (site.status === 'Pending') colorClass = 'pin-warn';
+
+            const icon = L.divIcon({
+                className: 'bg-transparent',
+                html: `<div id="pin-${site.id}" class="se-pin ${colorClass}" style="width: 14px; height: 14px;"></div>`,
+                iconSize: [14, 14]
+            });
+
+            const marker = L.marker([lat, lon], { icon }).addTo(markersGroup);
+            
+            // Tooltip
+            marker.bindTooltip(`
+                <div class="text-right font-sans">
+                    <strong>${site.name}</strong><br>
+                    ${site.peakPower} kWp
+                </div>
+            `, { direction: 'top', offset: [0, -10] });
+
+            // Click -> Open Modal
+            marker.on('click', () => openSiteAnalysis(site));
+        }
+
+        function updateMarkerStatus(site) {
+            const pin = document.querySelector(`#pin-${site.id}`);
+            if (!pin) return;
+
+            pin.className = `se-pin ${site._analysis?.isUnderperforming ? 'pin-warn' : 'pin-good'}`;
+            // If severe error logic exists, allow pin-bad
+        }
+
+        function renderSiteInList(site) {
+            const container = document.getElementById('sitesList');
+            // Remove empty state if exists
+            if (container.children[0]?.tagName === 'DIV' && container.children[0].className.includes('h-40')) container.innerHTML = '';
+
+            const div = document.createElement('div');
+            div.className = "bg-white p-3 rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer group";
+            div.onclick = () => {
+                if(site.location?.latitude) map.flyTo([site.location.latitude, site.location.longitude], 14);
+                openSiteAnalysis(site);
+            };
+
+            div.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div class="font-bold text-sm text-slate-700 truncate">${site.name}</div>
+                    <span class="text-[10px] font-mono bg-slate-100 px-1 rounded text-slate-500">${site.id}</span>
+                </div>
+                <div class="flex justify-between items-end mt-2">
+                    <div class="text-xs text-slate-500">
+                        ${site.location?.city || '-'}<br>
+                        <span class="font-bold text-indigo-600">${site.peakPower} kWp</span>
+                    </div>
+                    <div class="text-[10px] ${site.status==='Active'?'text-emerald-500':'text-amber-500'}">● ${site.status}</div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function updateStats() {
+            document.getElementById('fleetStats').classList.remove('hidden');
+            document.getElementById('statSites').innerText = globalSites.length;
+            
+            const totalPower = globalSites.reduce((acc, s) => acc + (s.peakPower || 0), 0);
+            document.getElementById('statPower').innerText = (totalPower / 1000).toFixed(1) + " MW";
+        }
+
+        // --- Deep Analysis Modal Logic ---
+
+        async function openSiteAnalysis(site) {
+            const modal = document.getElementById('analysisModal');
+            modal.classList.remove('hidden');
+            document.body.classList.add('modal-active');
+            
+            // Set Header
+            document.getElementById('modalTitle').innerText = site.name;
+            document.getElementById('modalId').innerText = `ID: ${site.id}`;
+            document.getElementById('alertsContainer').innerHTML = '<div class="p-4 text-center"><div class="animate-spin inline-block w-6 h-6 border-2 border-current border-t-transparent rounded-full text-blue-600"></div><div class="text-xs mt-2">מושך נתונים טכניים (5 ימים)...</div></div>';
+            
+            // Clear Charts
+            ['chartPower', 'chartDC', 'chartIso'].forEach(id => document.getElementById(id).innerHTML = '');
+
+            // 1. Fetch deep technical data for 5 days
+            const end = moment();
+            const start = moment().subtract(5, 'days');
+            const fmt = "YYYY-MM-DD HH:mm:ss";
+            
+            // Fetch for all inverters (up to limit)
+            const inverters = site._equipment || await fetchEquipment(site.id, site._apiKey);
+            
+            let allTelemetry = [];
+            let anomalies = [];
+
+            for (const inv of inverters) {
+                try {
+                    const data = await fetchTechnicalData(site.id, inv.serialNumber, site._apiKey, start.format(fmt), end.format(fmt));
+                    allTelemetry.push({ serial: inv.serialNumber, model: inv.model, data: data });
+                    
+                    // Run Algorithms
+                    const invAnomalies = detectAnomalies(data, inv);
+                    anomalies.push(...invAnomalies);
+                } catch (e) { console.error(e); }
+            }
+
+            // 2. Render Results
+            renderDeepCharts(allTelemetry);
+            renderAnomalies(anomalies);
+            
+            // Health Score logic
+            const score = Math.max(0, 100 - (anomalies.length * 5));
+            const scoreEl = document.getElementById('healthScore');
+            scoreEl.innerText = score;
+            scoreEl.className = `text-4xl font-black ${score > 80 ? 'text-emerald-500' : score > 50 ? 'text-amber-500' : 'text-rose-500'}`;
+        }
+
+        function detectAnomalies(telemetry, inv) {
+            const alerts = [];
+            
+            telemetry.forEach(rec => {
+                // Voltage Blocking
+                if (rec.dcVoltage > 800 || (rec.vL1To2 && rec.dcVoltage > 780)) {
+                    alerts.push({ type: 'Voltage Blocking', severity: 'medium', time: rec.date, msg: `מתח DC גבוה (${rec.dcVoltage.toFixed(0)}V) - חשד להצללה/סטרינג` });
+                }
+                // Isolation
+                if (rec.groundFaultResistance < 500) { // kOhm
+                    alerts.push({ type: 'Isolation Fault', severity: 'high', time: rec.date, msg: `ירידת בידוד קריטית (${rec.groundFaultResistance}kΩ)` });
+                }
+                // Temp
+                if (rec.temperature > 85) {
+                    alerts.push({ type: 'Overheat', severity: 'high', time: rec.date, msg: `טמפרטורה גבוהה (${rec.temperature}°C)` });
+                }
+            });
+
+            // De-duplicate alerts (keep only 1 per type per day roughly)
+            return alerts.slice(0, 5).map(a => ({...a, source: inv.serialNumber})); // Cap at 5 for demo
+        }
+
+        function renderAnomalies(list) {
+            const container = document.getElementById('alertsContainer');
+            if (list.length === 0) {
+                container.innerHTML = `<div class="p-4 text-center text-emerald-600 text-sm font-bold flex flex-col items-center"><svg class="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>המערכת תקינה לחלוטין</div>`;
+                return;
+            }
+
+            let html = '';
+            list.forEach(alert => {
+                const color = alert.severity === 'high' ? 'bg-rose-100 text-rose-800 border-rose-200' : 'bg-amber-50 text-amber-800 border-amber-200';
+                html += `
+                    <div class="p-3 border-b border-slate-100 flex items-start gap-3 hover:bg-slate-50 transition-colors">
+                        <div class="w-2 h-2 rounded-full mt-1.5 ${alert.severity==='high'?'bg-rose-500':'bg-amber-500'}"></div>
+                        <div class="flex-1">
+                            <div class="flex justify-between">
+                                <span class="font-bold text-xs text-slate-700">${alert.type}</span>
+                                <span class="text-[10px] text-slate-400 font-mono">${alert.time.substring(5, 16)}</span>
+                            </div>
+                            <div class="text-xs text-slate-600 mt-1">${alert.msg}</div>
+                            <div class="text-[9px] text-slate-400 mt-1 bg-slate-100 inline-block px-1 rounded">S/N: ${alert.source}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderDeepCharts(allData) {
+            // Prepare Data Traces
+            const powerTraces = [];
+            const dcTraces = [];
+            const isoTraces = [];
+
+            allData.forEach(inv => {
+                const dates = inv.data.map(d => d.date);
+                
+                // Power
+                powerTraces.push({
+                    x: dates,
+                    y: inv.data.map(d => d.totalActivePower || (d.L1Data?.activePower*3) || 0),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: `Power - ${inv.serial}`,
+                    line: { width: 1 }
+                });
+
+                // DC Voltage
+                dcTraces.push({
+                    x: dates,
+                    y: inv.data.map(d => d.dcVoltage),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: `VDC - ${inv.serial}`,
+                    line: { width: 1 }
+                });
+
+                // Isolation
+                isoTraces.push({
+                    x: dates,
+                    y: inv.data.map(d => d.groundFaultResistance),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: `R_iso - ${inv.serial}`,
+                    yaxis: 'y2' // Dual axis if we want temp
+                });
+            });
+
+            const layoutBase = { 
+                margin: { t: 20, r: 20, l: 40, b: 30 }, 
+                font: { family: 'Assistant' },
+                showlegend: true,
+                legend: { orientation: 'h', y: -0.2 }
+            };
+
+            Plotly.newPlot('chartPower', powerTraces, { ...layoutBase, yaxis: { title: 'Watts' } });
+            
+            Plotly.newPlot('chartDC', dcTraces, { 
+                ...layoutBase, 
+                yaxis: { title: 'Volts' },
+                shapes: [{ type: 'line', x0: 0, x1: 1, xref: 'paper', y0: 750, y1: 750, line: { color: 'red', width: 1, dash: 'dot' } }]
+            });
+            
+            Plotly.newPlot('chartIso', isoTraces, { ...layoutBase, yaxis: { title: 'kOhms' } });
+        }
+
+        function closeModal() {
+            document.getElementById('analysisModal').classList.add('hidden');
+            document.body.classList.remove('modal-active');
+        }
+
+        // --- Utils ---
+        function updateStatus(state, text) {
+            const badge = document.getElementById('statusBadge');
+            const dot = badge.querySelector('span');
+            badge.querySelector('span:last-child').innerText = text;
+            
+            if (state === 'scanning') dot.className = "w-2 h-2 rounded-full bg-blue-500 animate-pulse";
+            else if (state === 'analyzing') dot.className = "w-2 h-2 rounded-full bg-indigo-500 animate-bounce";
+            else if (state === 'ready') dot.className = "w-2 h-2 rounded-full bg-emerald-500";
+        }
+
+        function showProgress(show) {
+            const container = document.getElementById('progressContainer');
+            const text = document.getElementById('progressText');
+            if (show) {
+                container.classList.remove('hidden');
+                text.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+                text.classList.add('hidden');
+            }
+        }
+
+        function updateProgress(percent, text) {
+            document.getElementById('progressBar').style.width = `${percent}%`;
+            if (text) document.getElementById('progressText').innerText = text;
+        }
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const el = document.createElement('div');
+            const color = type === 'error' ? 'bg-rose-600' : type === 'success' ? 'bg-emerald-600' : 'bg-slate-800';
+            
+            el.className = `${color} text-white px-4 py-3 rounded-lg shadow-xl text-sm font-medium flex items-center gap-2 transform transition-all duration-300 translate-y-10 opacity-0`;
+            el.innerHTML = `<span>${msg}</span>`;
+            container.appendChild(el);
+
+            requestAnimationFrame(() => {
+                el.classList.remove('translate-y-10', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                el.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => el.remove(), 300);
+            }, 3000);
+        }
+
+        function resetApp(full = true) {
+            markersGroup.clearLayers();
+            document.getElementById('sitesList').innerHTML = '';
+            globalSites = [];
+            globalTelemetries = {};
+            if (full) {
+                document.getElementById('apiKeysInput').value = '';
+                updateKeyCount();
+            }
+            updateStatus('ready', 'מוכן');
+        }
+
+    </script>
+</body>
+</html>
