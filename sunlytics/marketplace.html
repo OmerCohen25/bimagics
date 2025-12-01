@@ -15,13 +15,13 @@
     <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Google Fonts (Optional but nice) -->
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&display=swap" rel="stylesheet">
 
     <style>
         body {
             font-family: 'Heebo', sans-serif;
-            background-color: #f8fafc; /* slate-50 */
+            background-color: #f1f5f9; /* slate-100 */
         }
         /* Hide scrollbar for clean mobile look */
         ::-webkit-scrollbar {
@@ -31,6 +31,13 @@
         .pb-safe {
             padding-bottom: env(safe-area-inset-bottom);
         }
+        .animate-pulse-fast {
+            animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
     </style>
 </head>
 <body>
@@ -39,18 +46,13 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- Icons Component System (Inline SVGs for single-file portability) ---
+        // --- Icons System ---
         const Icon = ({ path, className, color = "currentColor" }) => (
             <svg 
                 xmlns="http://www.w3.org/2000/svg" 
-                width="24" 
-                height="24" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke={color} 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
+                width="24" height="24" viewBox="0 0 24 24" 
+                fill="none" stroke={color} strokeWidth="2" 
+                strokeLinecap="round" strokeLinejoin="round" 
                 className={className}
             >
                 {path}
@@ -62,7 +64,6 @@
             Wrench: (props) => <Icon {...props} path={<><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></>} />,
             MapPin: (props) => <Icon {...props} path={<><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></>} />,
             CheckCircle: (props) => <Icon {...props} path={<><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>} />,
-            Battery: (props) => <Icon {...props} path={<><rect width="16" height="10" x="2" y="7" rx="2" ry="2"/><line x1="22" x2="22" y1="11" y2="13"/></>} />,
             Zap: (props) => <Icon {...props} path={<><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></>} />,
             User: (props) => <Icon {...props} path={<><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>} />,
             DollarSign: (props) => <Icon {...props} path={<><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></>} />,
@@ -70,80 +71,100 @@
             Star: (props) => <Icon {...props} path={<><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></>} />,
             ChevronRight: (props) => <Icon {...props} path={<><path d="m9 18 6-6-6-6"/></>} />,
             ShieldCheck: (props) => <Icon {...props} path={<><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></>} />,
-            AlertTriangle: (props) => <Icon {...props} path={<><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></>} />,
             Droplets: (props) => <Icon {...props} path={<><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.8-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/></>} />,
             Clock: (props) => <Icon {...props} path={<><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>} />,
             Brain: (props) => <Icon {...props} path={<><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></>} />,
             ArrowLeft: (props) => <Icon {...props} path={<><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></>} />,
             Activity: (props) => <Icon {...props} path={<><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></>} />,
-            TrendingUp: (props) => <Icon {...props} path={<><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></>} />
+            History: (props) => <Icon {...props} path={<><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></>} />,
+            Siren: (props) => <Icon {...props} path={<><path d="M7 12a5 5 0 0 1 5-5v0a5 5 0 0 1 5 5v6H7v-6Z"/><path d="M5 20a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2H5v-2Z"/><path d="M21 12h1"/><path d="M18.5 4.5 18 5"/><path d="M2 12h1"/><path d="M12 2v1"/><path d="m4.929 4.929.707.707"/><path d="M12 12v6"/></>} />,
+            Hourglass: (props) => <Icon {...props} path={<><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></>} />
         };
 
-        // --- Mock Data ---
+        // --- Mock Data with SLA ---
 
         const MOCK_JOBS = [
             {
                 id: 1,
-                type: 'cleaning',
-                title: 'ניקוי פאנלים דחוף',
-                location: 'אזור תעשייה עמק חפר, האנגר 4',
-                distance: '2.5 ק"מ',
-                price: 450,
-                urgency: 'high',
-                systemSize: '100kW',
-                description: 'מערכת הניטור Sunlytics AI זיהתה ירידה של 15% בתפוקה עקב אבק/לכלוך. נדרש ניקוי וצילום לאימות חזרה לשגרה.',
-                source: 'Sunlytics AI Monitor',
+                type: 'repair',
+                title: 'תקלת משבית - ממיר ראשי',
+                location: 'קיבוץ יקום, מפעל פלסטיק',
+                distance: '12 ק"מ',
+                price: 650,
+                slaType: 'critical', // 4 hours SLA
+                slaTimeLeft: 115, // minutes
+                slaBonus: 100, // Extra payment for meeting SLA
+                systemSize: '650kW',
+                description: 'התראה קריטית ממערכת Sunlytics: הממיר הראשי (Inverter 01) הפסיק לייצר. נדרשת הגעה מיידית לאבחון.',
+                source: 'Sunlytics Critical Alert',
                 status: 'open'
             },
             {
                 id: 2,
-                type: 'repair',
-                title: 'החלפת אופטימייזר',
-                location: 'מושב חגור, משק לוי',
-                distance: '8.1 ק"מ',
-                price: 320,
-                urgency: 'medium',
-                systemSize: '15kW',
-                description: 'התראת רכיב תקול: אופטימייזר בפאנל 12, סטרינג 2. האלגוריתם זיהה כשל נקודתי. חלק חלוף ממתין באתר.',
-                source: 'Sunlytics Fault Predictor',
+                type: 'cleaning',
+                title: 'ניקוי עקב ירידת תפוקה',
+                location: 'אזור תעשייה עמק חפר',
+                distance: '2.5 ק"מ',
+                price: 450,
+                slaType: 'standard', // 48 hours SLA
+                slaTimeLeft: 1400, // minutes
+                slaBonus: 0,
+                systemSize: '100kW',
+                description: 'ירידה של 15% בתפוקה זוהתה ע"י ה-AI. נדרש ניקוי וצילום אימות.',
+                source: 'Sunlytics AI Monitor',
                 status: 'open'
             },
             {
                 id: 3,
                 type: 'inspection',
-                title: 'ביקורת שנתית + סריקה תרמית',
-                location: 'ראש העין, גג מסחרי',
-                distance: '12 ק"מ',
-                price: 800,
-                urgency: 'low',
-                systemSize: '250kW',
-                description: 'בדיקה תקופתית מונעת. יש לבצע חיזוק ברגים וסריקת רחפן לזיהוי Hotspots.',
+                title: 'ביקורת שנתית מתוכננת',
+                location: 'מושב חגור',
+                distance: '8.1 ק"מ',
+                price: 320,
+                slaType: 'relaxed', // 1 week
+                slaTimeLeft: 5000, 
+                slaBonus: 0,
+                systemSize: '15kW',
+                description: 'בדיקה תקופתית. חיזוק ברגים, סריקת רחפן ובדיקת הארקות.',
                 source: 'Preventive Schedule',
                 status: 'open'
             }
         ];
 
-        const STORAGE_OPPORTUNITY = {
-            clientId: '8821',
-            currentSystem: '22kW',
-            avgProduction: '110kWh/day',
-            gridExport: '60%',
-            recommendation: 'סוללת LFP 10kWh',
-            potentialSaving: '1,200 ₪ / חודשי',
-            commission: 500
-        };
+        const HISTORY_JOBS = [
+            { id: 101, title: 'החלפת פאנל שבור', date: '10/10/2023', price: 350, slaStatus: 'success', slaMessage: 'עמידה ב-SLA (+50₪)' },
+            { id: 102, title: 'ניקוי מערכת מסחרית', date: '08/10/2023', price: 1200, slaStatus: 'success', slaMessage: 'עמידה ב-SLA' },
+            { id: 103, title: 'בדיקת תקשורת', date: '05/10/2023', price: 250, slaStatus: 'fail', slaMessage: 'חריגה מ-SLA' }
+        ];
 
-        // --- Components ---
+        // --- Helper Components ---
+
+        const SlaTimer = ({ minutes, type }) => {
+            // Logic to format minutes to HH:MM
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            const formatted = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+
+            let colorClass = 'bg-blue-100 text-blue-800';
+            if (type === 'critical') colorClass = 'bg-red-100 text-red-700 animate-pulse-fast font-bold';
+            if (type === 'standard' && minutes < 120) colorClass = 'bg-orange-100 text-orange-700';
+            if (type === 'relaxed') colorClass = 'bg-green-100 text-green-700';
+
+            return (
+                <div className={`flex items-center gap-1 px-2 py-1 rounded text-xs ${colorClass}`}>
+                    <Icons.Hourglass className="w-3 h-3" />
+                    <span>SLA: {formatted}</span>
+                </div>
+            );
+        };
 
         const LandingPage = ({ onStart }) => {
             return (
                 <div className="min-h-screen bg-slate-900 text-white flex flex-col relative overflow-hidden font-sans" dir="rtl">
-                    {/* Background Effects */}
                     <div className="absolute top-[-20%] left-[-20%] w-[80%] h-[50%] bg-blue-600/20 rounded-full blur-[100px]"></div>
-                    <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[40%] bg-yellow-500/10 rounded-full blur-[80px]"></div>
+                    <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[40%] bg-purple-500/10 rounded-full blur-[80px]"></div>
 
                     <div className="flex-1 flex flex-col p-6 z-10">
-                        {/* Header Logo */}
                         <div className="flex items-center gap-2 mb-8 pt-4">
                             <div className="bg-white/10 p-2 rounded-lg backdrop-blur-sm">
                                 <Icons.Sun className="text-yellow-400 w-8 h-8" />
@@ -153,28 +174,26 @@
                             </div>
                         </div>
 
-                        {/* Hero Text */}
                         <div className="mb-10">
                             <h2 className="text-4xl font-bold leading-tight mb-4">
-                                לא רק מנטרים,<br />
+                                ביצועים מעולים<br />
                                 <span className="text-transparent bg-clip-text bg-gradient-to-l from-yellow-400 to-green-400">
-                                    אנחנו גם פותרים.
+                                    שווים יותר כסף.
                                 </span>
                             </h2>
                             <p className="text-slate-400 text-lg leading-relaxed">
-                                הפלטפורמה הראשונה שמחברת בין בינה מלאכותית לזיהוי תקלות, לבין אנשי המקצוע בשטח לפתרון מהיר והגדלת רווחים.
+                                מערכת ניהול טכנאים חכמה המבוססת על SLA. קבל קריאות מדויקות, עמוד בזמנים וקבל בונוסים על ביצועים מהירים.
                             </p>
                         </div>
 
-                        {/* Feature Cards */}
                         <div className="space-y-4 flex-1">
                             <div className="bg-white/5 border border-white/10 p-4 rounded-xl flex items-start gap-4 backdrop-blur-md">
                                 <div className="bg-blue-500/20 p-3 rounded-lg text-blue-400">
                                     <Icons.Brain className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-lg mb-1">AI Monitoring & Prediction</h3>
-                                    <p className="text-slate-400 text-sm">האלגוריתם שלנו מזהה תקלות וצופה ירידה בייצור לפני שהיא קורית.</p>
+                                    <h3 className="font-bold text-lg mb-1">אבחון AI מדויק</h3>
+                                    <p className="text-slate-400 text-sm">האלגוריתם שלנו מזהה את התקלה לפני שאתה מגיע, כדי לחסוך לך זמן אבחון בשטח.</p>
                                 </div>
                             </div>
 
@@ -183,23 +202,22 @@
                                     <Icons.Wrench className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-lg mb-1">Marketplace לביצוע</h3>
-                                    <p className="text-slate-400 text-sm">מקבלים קריאות שירות מדויקות ומאומתות ישירות לנייד, כמו ב-Wolt.</p>
+                                    <h3 className="font-bold text-lg mb-1">Marketplace מבוסס מיקום</h3>
+                                    <p className="text-slate-400 text-sm">קבל קריאות הקרובות אליך גיאוגרפית. פחות נסיעות, יותר עבודה נטו.</p>
                                 </div>
                             </div>
 
                             <div className="bg-white/5 border border-white/10 p-4 rounded-xl flex items-start gap-4 backdrop-blur-md">
-                                <div className="bg-yellow-500/20 p-3 rounded-lg text-yellow-400">
-                                    <Icons.TrendingUp className="w-6 h-6" />
+                                <div className="bg-red-500/20 p-3 rounded-lg text-red-400">
+                                    <Icons.Siren className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-lg mb-1">Storage & Upsell</h3>
-                                    <p className="text-slate-400 text-sm">הופכים מנותני שירות למנהלי אנרגיה. מציעים אגירה ומגדילים הכנסה.</p>
+                                    <h3 className="font-bold text-lg mb-1">מודל SLA ובונוסים</h3>
+                                    <p className="text-slate-400 text-sm">קריאות קריטיות מתוגמלות בבונוס. עמידה ב-SLA מעלה את דירוג האמינות שלך.</p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* CTA Button */}
                         <button 
                             onClick={onStart}
                             className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-blue-900/50 flex items-center justify-center gap-3 transition-all transform active:scale-95 mt-6"
@@ -227,10 +245,10 @@
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="flex flex-col items-end">
-                        <span className="text-xs text-slate-400">סטטוס</span>
+                        <span className="text-xs text-slate-400">SLA Score</span>
                         <span className="text-sm font-medium text-green-400 flex items-center gap-1">
-                            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                            זמין לקריאות
+                            98%
+                            <Icons.CheckCircle className="w-3 h-3" />
                         </span>
                     </div>
                 </div>
@@ -241,7 +259,7 @@
             const navItems = [
                 { id: 'home', icon: Icons.Activity, label: 'קריאות' },
                 { id: 'wallet', icon: Icons.DollarSign, label: 'ארנק' },
-                { id: 'upsell', icon: Icons.Battery, label: 'הזדמנויות' },
+                { id: 'history', icon: Icons.History, label: 'היסטוריה' },
                 { id: 'profile', icon: Icons.User, label: 'פרופיל' },
             ];
 
@@ -272,20 +290,18 @@
                 }
             };
 
-            const getUrgencyColor = (urgency) => {
-                switch (urgency) {
-                    case 'high': return 'bg-red-100 text-red-700 border-red-200';
-                    case 'medium': return 'bg-orange-100 text-orange-700 border-orange-200';
-                    default: return 'bg-green-100 text-green-700 border-green-200';
-                }
-            };
-
             return (
                 <div 
                     onClick={() => onSelect(job)}
-                    className="bg-white rounded-xl shadow-sm border border-slate-100 p-4 mb-4 active:scale-95 transition-transform duration-100 cursor-pointer"
+                    className={`bg-white rounded-xl shadow-sm border p-4 mb-4 active:scale-95 transition-transform duration-100 cursor-pointer relative overflow-hidden ${job.slaType === 'critical' ? 'border-red-200 shadow-red-100' : 'border-slate-100'}`}
                 >
-                    <div className="flex justify-between items-start mb-3">
+                    {job.slaBonus > 0 && (
+                        <div className="absolute top-0 left-0 bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-br-lg z-10">
+                            +₪{job.slaBonus} בונוס SLA
+                        </div>
+                    )}
+                    
+                    <div className="flex justify-between items-start mb-3 mt-1">
                         <div className="flex gap-3">
                             <div className="bg-slate-50 p-2 rounded-lg h-fit">
                                 {getTypeIcon(job.type)}
@@ -300,9 +316,7 @@
                         </div>
                         <div className="text-right">
                             <span className="block font-bold text-lg text-slate-800">₪{job.price}</span>
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full border ${getUrgencyColor(job.urgency)}`}>
-                                {job.urgency === 'high' ? 'דחוף מאוד' : job.urgency === 'medium' ? 'דחיפות רגילה' : 'טיפול מונע'}
-                            </span>
+                            <SlaTimer minutes={job.slaTimeLeft} type={job.slaType} />
                         </div>
                     </div>
                     
@@ -320,11 +334,33 @@
             );
         };
 
-        const ActiveJobView = ({ job, onComplete, onCancel }) => {
+        const ActiveJobView = ({ job, onComplete }) => {
             const [step, setStep] = useState(1); 
+            const [time, setTime] = useState(job.slaTimeLeft * 60); // seconds
+
+            useEffect(() => {
+                const timer = setInterval(() => {
+                    setTime(t => t > 0 ? t - 1 : 0);
+                }, 1000);
+                return () => clearInterval(timer);
+            }, []);
+
+            const formatTime = (seconds) => {
+                const h = Math.floor(seconds / 3600);
+                const m = Math.floor((seconds % 3600) / 60);
+                const s = seconds % 60;
+                return `${h}:${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+            }
 
             return (
                 <div className="pb-24">
+                    {/* SLA Header */}
+                    <div className={`p-2 text-center text-white font-bold text-sm flex justify-center gap-2 items-center sticky top-0 z-40 ${job.slaType === 'critical' ? 'bg-red-500' : 'bg-blue-600'}`}>
+                         <Icons.Hourglass className="w-4 h-4 animate-spin-slow" />
+                         זמן SLA נותר: {formatTime(time)}
+                         {job.slaBonus > 0 && <span className="bg-white/20 px-2 rounded text-xs">בונוס בתוקף</span>}
+                    </div>
+
                     {/* Map placeholder */}
                     <div className="h-48 bg-slate-200 w-full relative">
                         <div className="absolute inset-0 flex items-center justify-center text-slate-400 bg-slate-100">
@@ -358,9 +394,9 @@
                                 <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
                                     <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
                                         <Icons.Clock className="w-4 h-4" />
-                                        תחילת ביצוע
+                                        תחילת מדידת ביצוע
                                     </h4>
-                                    <p className="text-sm text-blue-800 mb-3">נא לאשר הגעה לאתר הלקוח כדי לסנכרן את מערכת הניטור ל-Mode תחזוקה.</p>
+                                    <p className="text-sm text-blue-800 mb-3">שעון ה-SLA רץ. נא לאשר הגעה לאתר הלקוח כדי לסנכרן את מערכת הניטור ל-Mode תחזוקה ולעצור את שעון התגובה.</p>
                                     <button onClick={() => setStep(2)} className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors">
                                         הגעתי לאתר
                                     </button>
@@ -384,7 +420,14 @@
                         {step === 3 && (
                             <div className="space-y-4 animate-in slide-in-from-bottom-4 fade-in duration-500">
                                 <h3 className="font-bold text-lg">ביצוע טיפול</h3>
-                                <p className="text-sm text-slate-600">בצע את הטיפול הנדרש וודא שכל חיבורי החשמל תקינים.</p>
+                                <div className="bg-slate-50 p-4 rounded-lg text-sm text-slate-600 mb-2">
+                                    <strong>הנחיות טכניות:</strong>
+                                    <ul className="list-disc list-inside mt-1">
+                                        <li>נתק מפסק AC ראשי</li>
+                                        <li>וודא העדר מתח לפני נגיעה</li>
+                                        <li>בדוק רציפות ארקה לאחר החלפה</li>
+                                    </ul>
+                                </div>
                                 <label className="flex items-center gap-3 p-3 border rounded-lg bg-white shadow-sm">
                                     <input type="checkbox" className="w-5 h-5 accent-blue-600" />
                                     <span className="text-sm">בוצע ניקוי/תיקון פיזי</span>
@@ -400,7 +443,7 @@
                         )}
 
                         {step === 4 && (
-                            <VerificationModule onConfirm={onComplete} />
+                            <VerificationModule onConfirm={onComplete} slaBonus={job.slaBonus} />
                         )}
 
                     </div>
@@ -408,7 +451,7 @@
             );
         };
 
-        const VerificationModule = ({ onConfirm }) => {
+        const VerificationModule = ({ onConfirm, slaBonus }) => {
             return (
                 <div className="bg-white rounded-xl shadow-lg border border-green-100 overflow-hidden animate-in fade-in zoom-in duration-300">
                     <div className="bg-green-600 p-4 text-white text-center">
@@ -437,6 +480,13 @@
                             </div>
                         </div>
 
+                        {slaBonus > 0 && (
+                            <div className="bg-yellow-50 text-yellow-800 p-3 rounded-lg flex items-center justify-between mb-4 border border-yellow-200">
+                                <span className="text-sm font-bold">עמדת ב-SLA!</span>
+                                <span className="font-bold">+₪{slaBonus}</span>
+                            </div>
+                        )}
+
                         <div className="bg-slate-50 p-3 rounded text-center text-xs text-slate-500 mb-4 border border-slate-100">
                             מאומת ע"י Sunlytics AI Engine &bull; {new Date().toLocaleTimeString()}
                         </div>
@@ -449,59 +499,33 @@
             );
         };
 
-        const StorageUpsell = () => {
+        const HistoryView = () => {
             return (
                 <div className="p-5 pb-24">
-                    <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                        <Icons.Battery className="text-green-500" />
-                        הזדמנויות אגירה
+                     <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                        <Icons.History className="text-blue-500" />
+                        היסטוריית ביצועים
                     </h2>
-                    <p className="text-slate-500 mb-6 text-sm">
-                        Sunlytics AI זיהה דפוסי צריכה בזבזניים אצל לקוחותיך. הצע להם מערכת אגירה וייצר הכנסה נוספת.
-                    </p>
-
-                    <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
-                        
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 className="font-bold text-lg">הצעה ללקוח #{STORAGE_OPPORTUNITY.clientId}</h3>
-                                <p className="text-slate-400 text-sm">מערכת קיימת: {STORAGE_OPPORTUNITY.currentSystem}</p>
-                            </div>
-                            <span className="bg-yellow-400 text-slate-900 text-xs font-bold px-2 py-1 rounded">
-                                פוטנציאל גבוה
-                            </span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4 mb-6">
-                            <div className="bg-white/10 p-3 rounded-lg backdrop-blur-sm">
-                                <span className="block text-slate-400 text-xs">ייצור יומי ממוצע</span>
-                                <span className="font-mono font-bold text-lg">{STORAGE_OPPORTUNITY.avgProduction}</span>
-                            </div>
-                            <div className="bg-white/10 p-3 rounded-lg backdrop-blur-sm">
-                                <span className="block text-slate-400 text-xs">אחוז יצוא לרשת</span>
-                                <span className="font-mono font-bold text-lg text-red-300">{STORAGE_OPPORTUNITY.gridExport}</span>
-                            </div>
-                        </div>
-
-                        <div className="border-t border-white/10 pt-4 mb-4">
-                            <div className="flex justify-between items-center mb-1">
-                                <span className="text-sm text-slate-300">המלצה:</span>
-                                <span className="font-bold">{STORAGE_OPPORTUNITY.recommendation}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm text-slate-300">חיסכון משוער ללקוח:</span>
-                                <span className="font-bold text-green-400">{STORAGE_OPPORTUNITY.potentialSaving}</span>
-                            </div>
-                        </div>
-
-                        <button className="w-full bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-bold py-3 rounded-xl transition-colors flex justify-center items-center gap-2 shadow-lg shadow-yellow-500/20">
-                            שלח הצעה ושריין עמלה (₪{STORAGE_OPPORTUNITY.commission})
-                            <Icons.ChevronRight className="w-4 h-4" />
-                        </button>
+                    
+                    <div className="space-y-4">
+                        {HISTORY_JOBS.map(job => (
+                             <div key={job.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
+                                <div>
+                                    <h4 className="font-bold text-slate-800">{job.title}</h4>
+                                    <span className="text-xs text-slate-400">{job.date}</span>
+                                    <div className={`text-xs mt-1 font-medium ${job.slaStatus === 'success' ? 'text-green-600' : 'text-red-500'}`}>
+                                        {job.slaMessage}
+                                    </div>
+                                </div>
+                                <div className="text-left">
+                                    <span className="block font-bold text-lg">₪{job.price}</span>
+                                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">שולם</span>
+                                </div>
+                             </div>
+                        ))}
                     </div>
                 </div>
-            );
+            )
         };
 
         const ProfileView = () => (
@@ -526,8 +550,8 @@
                         <span className="text-2xl font-bold text-slate-800">₪12,450</span>
                     </div>
                     <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 text-center">
-                        <span className="text-slate-400 text-xs block mb-1">שיפור תפוקה כולל</span>
-                        <span className="text-2xl font-bold text-green-600">+18%</span>
+                        <span className="text-slate-400 text-xs block mb-1">עמידה ב-SLA</span>
+                        <span className="text-2xl font-bold text-green-600">98%</span>
                     </div>
                 </div>
 
@@ -575,8 +599,8 @@
                         {view === 'home' && (
                             <div className="p-4 pb-24">
                                 <div className="flex justify-between items-center mb-4">
-                                    <h2 className="font-bold text-lg">קריאות פתוחות באזורך</h2>
-                                    <button className="text-sm text-blue-600 font-medium">סנן תוצאות</button>
+                                    <h2 className="font-bold text-lg">קריאות פתוחות לביצוע</h2>
+                                    <button className="text-sm text-blue-600 font-medium">סנן לפי דחיפות</button>
                                 </div>
                                 
                                 {MOCK_JOBS.map(job => (
@@ -592,7 +616,7 @@
                             />
                         )}
 
-                        {view === 'upsell' && <StorageUpsell />}
+                        {view === 'history' && <HistoryView />}
                         {view === 'profile' && <ProfileView />}
                         {view === 'wallet' && (
                             <div className="p-10 text-center text-slate-400">
