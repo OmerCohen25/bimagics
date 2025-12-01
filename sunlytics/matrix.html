@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Analytics Pro v4.0</title>
+    
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Heebo', sans-serif; background-color: #f3f4f6; color: #1f2937; }
+        
+        /* Light Theme UI */
+        .card { @apply bg-white border border-gray-200 rounded-lg shadow-sm transition-shadow duration-300; }
+        .card:hover { @apply shadow-md; }
+        
+        .input-light { @apply bg-white border border-gray-300 text-gray-900 text-sm rounded focus:ring-blue-500 focus:border-blue-500 block w-full p-2; }
+        .btn-primary { @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded shadow-sm transition-all; }
+        .btn-secondary { @apply bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-medium py-2 px-4 rounded shadow-sm transition-all; }
+        
+        /* Table Styles */
+        .matrix-table th { @apply px-4 py-3 text-xs uppercase bg-gray-50 text-gray-500 font-bold sticky top-0 z-10 border-b border-gray-200 whitespace-nowrap text-right; }
+        .matrix-table td { @apply px-4 py-2 text-xs border-b border-gray-100 whitespace-nowrap font-mono text-gray-600; }
+        .matrix-table tr:hover { @apply bg-blue-50; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f3f4f6; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Loader */
+        .loader { width: 18px; height: 18px; border: 2px solid #3b82f6; border-bottom-color: transparent; border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Color Picker Reset */
+        input[type="color"] {
+            -webkit-appearance: none; border: none; width: 20px; height: 20px; padding: 0; overflow: hidden; border-radius: 4px; cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+<div id="app" class="h-full flex flex-col">
+    
+    <!-- HEADER -->
+    <header class="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center z-20 shadow-sm shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 text-white p-2 rounded-lg shadow-lg shadow-blue-200">
+                <i class="fa-solid fa-chart-line text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold leading-none text-gray-800">Solar Analytics Pro</h1>
+                <div class="text-[11px] text-gray-500 font-medium tracking-wide">Normalized Engineering Matrix</div>
+            </div>
+        </div>
+        
+        <div class="flex gap-3 items-center">
+            <div class="flex items-center bg-gray-100 rounded-md p-1">
+                <i class="fa-solid fa-key text-gray-400 px-2 text-xs"></i>
+                <input type="text" v-model="apiKey" placeholder="API Key" class="bg-transparent border-none text-xs w-24 md:w-32 focus:ring-0">
+            </div>
+            
+            <button @click="loadSites" class="btn-primary text-xs h-8 flex items-center gap-2">
+                <i class="fa-solid fa-sync" :class="{'animate-spin': loadingSites}"></i> 
+                {{ loadingSites ? 'טוען...' : 'טען אתרים' }}
+            </button>
+
+            <select v-if="sites.length > 0" v-model="selectedSite" @change="onSiteChange" class="input-light w-48 h-9 py-0 text-xs font-bold">
+                <option :value="null" disabled>בחר אתר מהרשימה...</option>
+                <option v-for="site in sites" :key="site.id" :value="site">{{ site.name }}</option>
+            </select>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden relative">
+        
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 flex flex-col p-4 md:p-6 gap-6 overflow-hidden bg-gray-50 w-full">
+            
+            <!-- EMPTY STATE -->
+            <div v-if="!selectedSite" class="flex flex-col items-center justify-center h-full text-gray-400">
+                <div class="bg-white p-8 rounded-full shadow-lg mb-6">
+                    <i class="fa-solid fa-solar-panel text-6xl text-blue-100"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-600">ברוכים הבאים למערכת הניתוח</h2>
+                <p class="text-sm mt-2">הזן מפתח API למעלה ובחר אתר כדי להתחיל לחקור</p>
+            </div>
+
+            <div v-else class="flex flex-col h-full gap-5">
+                
+                <!-- TOP BAR: Controls & Info -->
+                <div class="card p-4 flex flex-wrap gap-6 justify-between items-center shrink-0">
+                    
+                    <!-- Time Controls -->
+                    <div class="flex items-center gap-3">
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">חלון זמן</div>
+                        <div class="flex bg-gray-100 p-1 rounded-md border border-gray-200">
+                            <button @click="timeRange = 24" :class="['px-3 py-1 text-xs font-medium rounded transition', timeRange === 24 ? 'bg-white text-blue-600 shadow-sm ring-1 ring-gray-200' : 'text-gray-500 hover:text-gray-700']">24 שעות</button>
+                            <button @click="timeRange = 48" :class="['px-3 py-1 text-xs font-medium rounded transition', timeRange === 48 ? 'bg-white text-blue-600 shadow-sm ring-1 ring-gray-200' : 'text-gray-500 hover:text-gray-700']">48 שעות</button>
+                            <button @click="timeRange = 72" :class="['px-3 py-1 text-xs font-medium rounded transition', timeRange === 72 ? 'bg-white text-blue-600 shadow-sm ring-1 ring-gray-200' : 'text-gray-500 hover:text-gray-700']">72 שעות</button>
+                        </div>
+                    </div>
+
+                    <!-- System Info -->
+                    <div v-if="inventory" class="hidden md:flex gap-4 text-xs">
+                        <div class="flex flex-col">
+                            <span class="text-gray-400 font-bold uppercase text-[10px]">הספק מותקן</span>
+                            <span class="font-bold text-gray-700">{{ selectedSite.peakPower }} kWp</span>
+                        </div>
+                        <div class="w-px bg-gray-200 h-8"></div>
+                        <div class="flex flex-col">
+                            <span class="text-gray-400 font-bold uppercase text-[10px]">ממירים</span>
+                            <span class="font-bold text-gray-700">{{ inventory.inverters?.length || 0 }} יחידות</span>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <div class="flex items-center gap-3">
+                        <div v-if="statusMessage" class="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
+                            <div class="loader w-3 h-3 border-blue-500"></div>
+                            {{ statusMessage }}
+                        </div>
+                        <button @click="buildMatrix" :disabled="isBuilding" class="btn-primary shadow-blue-200 flex items-center gap-2">
+                            <i class="fa-solid fa-database"></i> 
+                            {{ isBuilding ? 'מעבד נתונים...' : 'משוך נתונים (Matrix)' }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TABS HEADER -->
+                <div v-if="matrixData.length > 0" class="flex gap-6 border-b border-gray-200 px-2">
+                    <button @click="currentTab = 'chart'" :class="['pb-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2', currentTab === 'chart' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700']">
+                        <i class="fa-solid fa-chart-line"></i> גרף אנליטי
+                    </button>
+                    <button @click="currentTab = 'table'" :class="['pb-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2', currentTab === 'table' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700']">
+                        <i class="fa-solid fa-table"></i> טבלת נתונים
+                    </button>
+                </div>
+
+                <!-- === VIEW: ANALYTIC CHART === -->
+                <div v-if="currentTab === 'chart' && matrixData.length > 0" class="flex-1 flex flex-col md:flex-row gap-4 overflow-hidden h-full">
+                    
+                    <!-- Sidebar: Legend & Controls -->
+                    <div class="w-full md:w-72 bg-white border border-gray-200 rounded-lg flex flex-col overflow-hidden shrink-0 shadow-sm h-full">
+                        
+                        <!-- Chart Settings -->
+                        <div class="p-3 bg-gray-50 border-b border-gray-200">
+                            <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">הגדרות תצוגה</div>
+                            <label class="flex items-center justify-between p-2 bg-white border border-gray-200 rounded cursor-pointer hover:border-blue-300 transition-colors">
+                                <div class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                    <i class="fa-solid fa-expand text-blue-500"></i> נרמול (0-100%)
+                                </div>
+                                <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                    <input type="checkbox" v-model="normalizeChart" @change="updateChart" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-300"/>
+                                    <label class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-300 cursor-pointer"></label>
+                                </div>
+                            </label>
+                            <p class="text-[10px] text-gray-400 mt-1 px-1 leading-tight">
+                                מאפשר להשוות ערכים בסקלות שונות (למשל וולט מול אמפר) על ידי מתיחתם לסקלה אחידה.
+                            </p>
+                        </div>
+
+                        <!-- Fields List -->
+                        <div class="flex-1 overflow-y-auto p-2 space-y-4">
+                            
+                            <!-- Site Group -->
+                            <div>
+                                <div class="text-[10px] font-bold text-gray-400 mb-2 px-2 uppercase flex items-center gap-1"><i class="fa-solid fa-globe"></i> רמת אתר</div>
+                                <div class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-50 group">
+                                    <input type="checkbox" value="sitePower" v-model="selectedChartFields" @change="updateChart" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <input type="color" v-model="fieldColors['sitePower']" @change="updateChart" class="flex-shrink-0" title="שנה צבע">
+                                    <span class="text-xs text-gray-700 font-medium">Site Total Production</span>
+                                </div>
+                            </div>
+
+                            <!-- Inverters Group -->
+                            <div v-for="inv in inventory.inverters" :key="inv.SN">
+                                <div class="text-[10px] font-bold text-blue-500 mt-3 mb-1 px-2 uppercase border-t border-gray-100 pt-3 truncate">
+                                    {{ inv.name }} <span class="text-gray-400 font-normal">({{ inv.SN.slice(-4) }})</span>
+                                </div>
+                                
+                                <div class="space-y-0.5">
+                                    <!-- General Params -->
+                                    <div v-for="field in ['DC Voltage', 'Temperature', 'Active Power']" :key="inv.SN+field" class="flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-50">
+                                        <input type="checkbox" :value="`${inv.SN}_${field}`" v-model="selectedChartFields" @change="updateChart" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <input type="color" v-model="fieldColors[`${inv.SN}_${field}`]" @change="updateChart" class="flex-shrink-0">
+                                        <span class="text-xs text-gray-600">{{ field }}</span>
+                                    </div>
+                                    
+                                    <!-- Phases -->
+                                    <div class="mt-1 pl-4 border-r-2 border-gray-100 mr-1.5">
+                                        <div v-for="phaseField in getPhaseFields(inv.SN)" :key="phaseField" class="flex items-center gap-2 py-0.5 hover:bg-gray-50 rounded px-1">
+                                            <input type="checkbox" :value="phaseField" v-model="selectedChartFields" @change="updateChart" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 scale-90">
+                                            <input type="color" v-model="fieldColors[phaseField]" @change="updateChart" class="scale-90">
+                                            <span class="text-[11px] text-gray-500 font-mono">{{ formatPhaseName(phaseField) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chart Container -->
+                    <div class="flex-1 card p-4 relative flex flex-col h-full min-h-0 bg-white">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-sm font-bold text-gray-700">תצוגה גרפית</h3>
+                            <div class="flex gap-2 text-xs">
+                                <span v-if="normalizeChart" class="text-blue-600 bg-blue-50 px-2 py-0.5 rounded font-bold border border-blue-100">מצב מנורמל פעיל</span>
+                            </div>
+                        </div>
+                        <div class="flex-1 relative w-full min-h-0">
+                            <canvas id="matrixChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- === VIEW: DATA TABLE === -->
+                <div v-if="currentTab === 'table' && matrixData.length > 0" class="flex-1 card flex flex-col relative overflow-hidden h-full">
+                    <div class="p-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                        <span class="text-xs font-bold text-gray-500">סה"כ רשומות: {{ matrixData.length }}</span>
+                        <button @click="exportCSV" class="btn-secondary text-xs py-1 px-3 flex items-center gap-2 hover:bg-green-50 hover:text-green-700 hover:border-green-200">
+                            <i class="fa-solid fa-file-excel text-green-600"></i> ייצוא ל-Excel
+                        </button>
+                    </div>
+                    
+                    <div class="flex-1 overflow-auto bg-white">
+                        <table class="w-full matrix-table text-left border-collapse">
+                            <thead>
+                                <tr>
+                                    <th class="bg-gray-100 border-r text-gray-700">Time</th>
+                                    <th class="text-blue-600 border-r bg-blue-50/50">Site Power (W)</th>
+                                    <th v-for="col in dynamicHeaders" :key="col" :class="getHeaderClass(col)">
+                                        {{ formatHeaderSimple(col) }}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(row, idx) in matrixData" :key="idx">
+                                    <td class="font-bold border-r bg-gray-50/30 text-gray-800">{{ row.time.split(' ')[1] }} <span class="text-[10px] text-gray-400 font-normal">{{row.time.split(' ')[0]}}</span></td>
+                                    <td class="text-blue-600 font-bold border-r bg-blue-50/10">{{ formatNumber(row.sitePower) }}</td>
+                                    <td v-for="col in dynamicHeaders" :key="col + idx">
+                                        {{ formatNumber(row[col]) }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+</div>
+
+<style>
+/* Toggle Switch CSS */
+.toggle-checkbox:checked { right: 0; border-color: #3b82f6; }
+.toggle-checkbox:checked + .toggle-label { background-color: #3b82f6; }
+.toggle-checkbox { right: 0; z-index: 1; border-color: #e5e7eb; transition: all 0.3s; }
+.toggle-label { width: 3rem; margin-left: -0.5rem; transition: background 0.3s; }
+</style>
+
+<script>
+const { createApp, ref, onMounted, computed, watch, nextTick, reactive } = Vue;
+
+createApp({
+    setup() {
+        // Config
+        const apiKey = ref('RPR5J7H74H6Y009EYPZ18C0AIZEAEU55');
+        const timeRange = ref(24);
+        
+        // Data
+        const sites = ref([]);
+        const selectedSite = ref(null);
+        const inventory = ref(null);
+        
+        // Matrix Engine
+        const isBuilding = ref(false);
+        const loadingSites = ref(false);
+        const statusMessage = ref('');
+        const matrixData = ref([]);
+        const dynamicHeaders = ref([]);
+        
+        // Visualization
+        const currentTab = ref('chart');
+        const normalizeChart = ref(false);
+        const selectedChartFields = ref(['sitePower']);
+        const fieldColors = reactive({}); // Stores user chosen colors
+        let chartInstance = null;
+
+        // --- Utils ---
+        const fetchJsonp = (url) => {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'jsonp_' + Math.floor(Math.random() * 1000000);
+                const script = document.createElement('script');
+                const sep = url.includes('?') ? '&' : '?';
+                script.src = `${url}${sep}api_key=${apiKey.value}&callback=${callbackName}`;
+                window[callbackName] = (data) => { delete window[callbackName]; document.body.removeChild(script); resolve(data); };
+                script.onerror = () => { delete window[callbackName]; document.body.removeChild(script); reject('Error'); };
+                document.body.appendChild(script);
+            });
+        };
+        const formatDateAPI = (d) => d.toISOString().replace('T', ' ').split('.')[0];
+        const formatNumber = (v) => (v === undefined || v === null) ? '-' : (typeof v === 'number' && v % 1 !== 0) ? v.toFixed(1) : v;
+
+        // --- Logic ---
+        const loadSites = async () => {
+            if(!apiKey.value) return;
+            loadingSites.value = true;
+            try {
+                const res = await fetchJsonp(`https://monitoringapi.solaredge.com/sites/list`);
+                sites.value = res.sites.site;
+            } catch(e) { alert("שגיאה בטעינת אתרים - בדוק מפתח API"); }
+            loadingSites.value = false;
+        };
+
+        const onSiteChange = async () => {
+            if(!selectedSite.value) return;
+            matrixData.value = [];
+            inventory.value = null;
+            try {
+                const res = await fetchJsonp(`https://monitoringapi.solaredge.com/site/${selectedSite.value.id}/inventory`);
+                inventory.value = res.Inventory;
+            } catch(e) { console.error(e); }
+        };
+
+        // --- MATRIX ENGINE (Deep Data Fetcher) ---
+        const buildMatrix = async () => {
+            if(!selectedSite.value || !inventory.value) return;
+            isBuilding.value = true;
+            matrixData.value = [];
+            dynamicHeaders.value = [];
+            
+            const end = new Date();
+            const start = new Date();
+            start.setHours(end.getHours() - timeRange.value);
+            const startTimeStr = formatDateAPI(start);
+            const endTimeStr = formatDateAPI(end);
+
+            const masterMap = new Map();
+            const getRow = (t) => {
+                const clean = t.substring(0, 16) + ':00';
+                if(!masterMap.has(clean)) masterMap.set(clean, { time: clean });
+                return masterMap.get(clean);
+            };
+
+            try {
+                // 1. Site Power
+                statusMessage.value = 'טוען נתוני ייצור אתר...';
+                const siteUrl = `https://monitoringapi.solaredge.com/site/${selectedSite.value.id}/power?startTime=${startTimeStr}&endTime=${endTimeStr}`;
+                const siteRes = await fetchJsonp(siteUrl);
+                if(siteRes.power?.values) siteRes.power.values.forEach(e => getRow(e.date).sitePower = e.value);
+
+                // 2. Inverters
+                const inverters = inventory.value.inverters || [];
+                for(let i=0; i<inverters.length; i++) {
+                    const inv = inverters[i];
+                    statusMessage.value = `מעבד ממיר ${i+1}/${inverters.length} (${inv.SN})...`;
+                    const invUrl = `https://monitoringapi.solaredge.com/equipment/${selectedSite.value.id}/${inv.SN}/data?startTime=${startTimeStr}&endTime=${endTimeStr}`;
+                    
+                    try {
+                        const invRes = await fetchJsonp(invUrl);
+                        const telemetries = invRes.data.telemetries || [];
+                        telemetries.forEach(t => {
+                            const d = t.inverterTelemetry || t;
+                            const time = t.date || d.date;
+                            if(!time) return;
+                            const row = getRow(time);
+                            const p = inv.SN;
+                            
+                            row[`${p}_DC Voltage`] = d.dcVoltage;
+                            row[`${p}_Temperature`] = d.temperature;
+                            row[`${p}_Active Power`] = d.totalActivePower || d.activePower;
+                            
+                            ['L1', 'L2', 'L3'].forEach(ph => {
+                                const pd = d[`${ph}Data`];
+                                if(pd) {
+                                    row[`${p}_${ph}_V`] = pd.acVoltage;
+                                    row[`${p}_${ph}_A`] = pd.acCurrent;
+                                    row[`${p}_${ph}_Hz`] = pd.acFrequency;
+                                    row[`${p}_${ph}_W`] = pd.activePower;
+                                }
+                            });
+                        });
+                    } catch(e) { console.warn("Failed inverter", inv.SN); }
+                }
+
+                statusMessage.value = 'בונה טבלה סופית...';
+                const final = Array.from(masterMap.values()).sort((a,b) => a.time.localeCompare(b.time));
+                
+                // Collect Headers
+                const headers = new Set();
+                final.forEach(r => Object.keys(r).forEach(k => { if(k!=='time' && k!=='sitePower') headers.add(k); }));
+                dynamicHeaders.value = Array.from(headers).sort();
+                matrixData.value = final;
+
+                // Assign default colors
+                assignDefaultColors();
+
+                statusMessage.value = '';
+                isBuilding.value = false;
+                nextTick(() => updateChart());
+
+            } catch(e) {
+                console.error(e);
+                statusMessage.value = 'שגיאה בעיבוד';
+                isBuilding.value = false;
+            }
+        };
+
+        const assignDefaultColors = () => {
+            // Site Power
+            if(!fieldColors['sitePower']) fieldColors['sitePower'] = '#16a34a'; // Green
+            
+            // Loop inverters and assign palette
+            const palette = ['#2563eb', '#dc2626', '#d97706', '#9333ea', '#0891b2'];
+            inventory.value.inverters.forEach((inv, idx) => {
+                const base = palette[idx % palette.length];
+                dynamicHeaders.value.filter(h => h.startsWith(inv.SN)).forEach(h => {
+                    if(!fieldColors[h]) {
+                        if(h.includes('Temperature')) fieldColors[h] = '#ef4444'; // Red for temp
+                        else if(h.includes('Voltage')) fieldColors[h] = '#3b82f6'; // Blue for V
+                        else if(h.includes('Power')) fieldColors[h] = '#10b981'; // Green for P
+                        else fieldColors[h] = base; 
+                    }
+                });
+            });
+        };
+
+        // --- VISUALIZATION ENGINE ---
+        const updateChart = () => {
+            if(currentTab.value !== 'chart') return;
+            const ctx = document.getElementById('matrixChart');
+            if(!ctx) return;
+            if(chartInstance) chartInstance.destroy();
+
+            const labels = matrixData.value.map(r => r.time.substring(11, 16));
+            
+            const datasets = selectedChartFields.value.map(field => {
+                const rawData = matrixData.value.map(r => r[field]);
+                let displayData = [...rawData];
+                let yAxisID = 'y';
+
+                // Normalization Logic
+                if(normalizeChart.value) {
+                    const validValues = rawData.filter(v => v !== undefined && v !== null);
+                    const min = Math.min(...validValues);
+                    const max = Math.max(...validValues);
+                    // Normalize to 0-100 range for display
+                    if(max > min) {
+                        displayData = rawData.map(v => (v === undefined) ? null : ((v - min) / (max - min)) * 100);
+                    }
+                } else {
+                    // Standard Axis Assignment
+                    if(field.includes('Voltage')) yAxisID = 'y_volt';
+                    if(field.includes('Temp')) yAxisID = 'y_temp';
+                }
+
+                return {
+                    label: formatHeaderSimple(field),
+                    data: displayData,
+                    borderColor: fieldColors[field] || '#666',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHitRadius: 20,
+                    tension: 0.3,
+                    yAxisID: normalizeChart.value ? 'y_norm' : yAxisID,
+                    // Store raw data for tooltip
+                    rawValues: rawData
+                };
+            });
+
+            const scales = normalizeChart.value ? {
+                y_norm: { display: true, min: 0, max: 105, grid: { color: '#f3f4f6' }, ticks: { callback: v => v+'%' } }
+            } : {
+                y: { display: true, position: 'left', title: {display:true, text:'Power (W)'} },
+                y_volt: { display: false, position: 'right', grid:{drawOnChartArea:false} },
+                y_temp: { display: false, position: 'right', grid:{drawOnChartArea:false} }
+            };
+
+            // Enable dynamic axes if needed
+            if(!normalizeChart.value) {
+                const ids = new Set(datasets.map(d => d.yAxisID));
+                if(ids.has('y_volt')) scales.y_volt.display = true;
+                if(ids.has('y_temp')) scales.y_temp.display = true;
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const raw = context.dataset.rawValues[context.dataIndex];
+                                    let val = (raw !== undefined && raw !== null) ? raw.toFixed(2) : '-';
+                                    return `${context.dataset.label}: ${val}`;
+                                }
+                            }
+                        },
+                        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } }
+                    },
+                    scales: {
+                        x: { grid: { display: false } },
+                        ...scales
+                    }
+                }
+            });
+        };
+
+        // --- Helpers ---
+        const getPhaseFields = (sn) => dynamicHeaders.value.filter(h => h.startsWith(sn) && /L[1-3]/.test(h));
+        const formatPhaseName = (f) => f.split('_').slice(1).join(' '); // Removes SN prefix
+        const formatHeaderSimple = (f) => f === 'sitePower' ? 'Site Production' : f.replace(/.*_/, ''); // Gets last part
+        const getHeaderClass = (h) => {
+            if(h.includes('Voltage')) return 'text-blue-600 border-r';
+            if(h.includes('Temp')) return 'text-red-600 border-r';
+            return 'text-gray-600 border-r';
+        };
+
+        const exportCSV = () => {
+            if(!matrixData.value.length) return;
+            const h = ['Time', 'Site Power', ...dynamicHeaders.value];
+            const rows = matrixData.value.map(r => [r.time, r.sitePower||'', ...dynamicHeaders.value.map(c => r[c]||'')].join(','));
+            const blob = new Blob([[h.join(','), ...rows].join('\n')], {type:'text/csv'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `solar_matrix_${timeRange.value}h.csv`;
+            link.click();
+        };
+
+        watch([currentTab, normalizeChart], () => nextTick(updateChart));
+        onMounted(loadSites);
+
+        return {
+            apiKey, sites, selectedSite, inventory, timeRange,
+            isBuilding, loadingSites, statusMessage, matrixData, dynamicHeaders,
+            currentTab, normalizeChart, selectedChartFields, fieldColors,
+            loadSites, onSiteChange, buildMatrix, updateChart, exportCSV,
+            getPhaseFields, formatPhaseName, formatHeaderSimple, getHeaderClass, formatNumber
+        };
+    }
+}).mount('#app');
+</script>
+</body>
+</html>
