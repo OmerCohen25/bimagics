@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SolarEdge Deep Monitor Pro</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Assistant', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        
+        /* Layout Utilities */
+        .card { @apply bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6 transition-all duration-300; }
+        .card:hover { @apply shadow-md border-gray-200; }
+        
+        .btn { @apply px-4 py-2 rounded-lg font-bold transition-all duration-200 flex items-center gap-2 justify-center shadow-sm; }
+        .btn-primary { @apply bg-red-600 text-white hover:bg-red-700 active:scale-95; }
+        .btn-secondary { @apply bg-slate-700 text-white hover:bg-slate-800 active:scale-95; }
+        .btn-outline { @apply border-2 border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50; }
+        
+        .input-field { @apply bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .loader {
+            width: 24px; height: 24px;
+            border: 3px solid #FFF;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+        .loader-dark { border-color: #ef4444; border-bottom-color: transparent; }
+
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+    </style>
+</head>
+<body class="overflow-hidden h-screen flex flex-col">
+
+<div id="app" class="h-full flex flex-col">
+    
+    <!-- Top Bar: Compact & Mobile Friendly -->
+    <header class="bg-slate-900 text-white shadow-lg z-50 flex-none">
+        <div class="container mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+                <div class="flex items-center gap-2">
+                    <div class="bg-red-600 p-2 rounded-lg"><i class="fa-solid fa-solar-panel text-white text-lg"></i></div>
+                    <div>
+                        <h1 class="text-lg font-bold leading-none">SE Pro Monitor</h1>
+                        <span class="text-xs text-slate-400">Deep Analytics v2.0</span>
+                    </div>
+                </div>
+                <!-- Mobile Menu Toggle (Placeholder logic) -->
+            </div>
+            
+            <div class="flex items-center gap-2 w-full md:w-auto bg-slate-800 p-1 rounded-lg border border-slate-700">
+                <i class="fa-solid fa-key text-slate-500 ml-2"></i>
+                <input type="text" v-model="apiKey" class="bg-transparent border-none text-white text-sm focus:ring-0 w-full md:w-64 placeholder-slate-500" placeholder="API Key">
+                <button @click="loadSites" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors whitespace-nowrap">
+                    <span v-if="!loading"><i class="fa-solid fa-sync"></i> טען</span>
+                    <span v-else><div class="loader w-4 h-4 border-2"></div></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden relative">
+        
+        <!-- Sidebar: Site List -->
+        <aside :class="['absolute md:relative z-40 bg-white h-full shadow-xl transition-all duration-300 flex flex-col border-l border-slate-200', showSidebar ? 'w-80 translate-x-0' : 'w-80 translate-x-full md:translate-x-0 hidden md:flex']">
+            <div class="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                <h2 class="font-bold text-slate-700">רשימת אתרים</h2>
+                <span class="bg-slate-200 text-slate-600 text-xs px-2 py-1 rounded-full">{{ sites.length }}</span>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-2 space-y-2">
+                <div v-if="sites.length === 0" class="text-center py-10 text-slate-400">
+                    <i class="fa-solid fa-plug text-4xl mb-3 opacity-20"></i>
+                    <p class="text-sm">ממתין לנתונים...</p>
+                </div>
+
+                <div v-for="site in sites" :key="site.id" 
+                     @click="selectSite(site)"
+                     :class="['p-4 rounded-xl cursor-pointer border transition-all hover:shadow-md', selectedSite?.id === site.id ? 'bg-red-50 border-red-200 ring-1 ring-red-200' : 'bg-white border-slate-100 hover:border-slate-300']">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-bold text-slate-800">{{ site.name }}</h3>
+                        <div :class="['w-2 h-2 rounded-full', site.status === 'Active' ? 'bg-green-500' : 'bg-yellow-500']"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-y-1 text-xs text-slate-500">
+                        <span><i class="fa-solid fa-hashtag w-4"></i> {{ site.id }}</span>
+                        <span><i class="fa-solid fa-bolt w-4"></i> {{ site.peakPower }} kWp</span>
+                        <span class="col-span-2 truncate"><i class="fa-solid fa-location-dot w-4"></i> {{ site.location.city }}, {{ site.location.country }}</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 bg-slate-50 overflow-y-auto overflow-x-hidden p-4 md:p-6 w-full relative">
+            
+            <!-- Mobile Sidebar Toggle -->
+            <button @click="showSidebar = !showSidebar" class="md:hidden fixed bottom-6 left-6 bg-slate-900 text-white p-4 rounded-full shadow-2xl z-50">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <div v-if="selectedSite" class="max-w-7xl mx-auto space-y-6 pb-20">
+                
+                <!-- Site Header -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-1">{{ selectedSite.name }}</h2>
+                        <div class="flex flex-wrap gap-3 text-sm text-slate-500">
+                            <span class="flex items-center gap-1"><i class="fa-regular fa-calendar"></i> התקנה: {{ selectedSite.installationDate }}</span>
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-clock-rotate-left"></i> עדכון אחרון: {{ overview?.lastUpdateTime || '...' }}</span>
+                        </div>
+                    </div>
+                    <!-- Stats Badges -->
+                    <div class="flex gap-2">
+                        <div class="text-center px-4 py-2 bg-slate-100 rounded-lg">
+                            <div class="text-xs text-slate-500">שיא הספק</div>
+                            <div class="font-bold text-slate-800">{{ selectedSite.peakPower }} kW</div>
+                        </div>
+                        <div class="text-center px-4 py-2 bg-slate-100 rounded-lg hidden md:block">
+                            <div class="text-xs text-slate-500">מטבע</div>
+                            <div class="font-bold text-slate-800">{{ selectedSite.currency }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                    <button v-for="tab in tabs" :key="tab.id" @click="currentTab = tab.id"
+                            :class="['px-5 py-2.5 rounded-full font-bold text-sm whitespace-nowrap transition-all', currentTab === tab.id ? 'bg-slate-800 text-white shadow-lg shadow-slate-300' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200']">
+                        <i :class="tab.icon + ' ml-2'"></i> {{ tab.label }}
+                    </button>
+                </div>
+
+                <!-- ERROR ALERT -->
+                <div v-if="error" class="bg-red-50 border-r-4 border-red-500 p-4 rounded-lg flex justify-between items-center">
+                    <div class="text-red-700">
+                        <i class="fa-solid fa-triangle-exclamation ml-2"></i>
+                        <span class="font-bold">שגיאה:</span> {{ error }}
+                    </div>
+                    <button @click="error = null" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-times"></i></button>
+                </div>
+
+                <!-- === TAB 1: OVERVIEW & REALTIME === -->
+                <div v-if="currentTab === 'overview'" class="space-y-6">
+                    
+                    <!-- KPI Grid -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="card bg-gradient-to-br from-green-500 to-green-600 text-white border-none">
+                            <div class="text-green-100 text-xs mb-1">אנרגיה יומית</div>
+                            <div class="text-2xl md:text-3xl font-bold">{{ formatEnergy(overview?.lastDayData?.energy) }}</div>
+                            <i class="fa-solid fa-sun absolute bottom-4 left-4 opacity-20 text-4xl"></i>
+                        </div>
+                        <div class="card bg-gradient-to-br from-blue-500 to-blue-600 text-white border-none">
+                            <div class="text-blue-100 text-xs mb-1">אנרגיה חודשית</div>
+                            <div class="text-2xl md:text-3xl font-bold">{{ formatEnergy(overview?.lastMonthData?.energy) }}</div>
+                            <i class="fa-solid fa-calendar-days absolute bottom-4 left-4 opacity-20 text-4xl"></i>
+                        </div>
+                        <div class="card bg-gradient-to-br from-purple-600 to-purple-700 text-white border-none">
+                            <div class="text-purple-100 text-xs mb-1">Lifetime Energy</div>
+                            <div class="text-2xl md:text-3xl font-bold">{{ formatEnergy(overview?.lifeTimeData?.energy, true) }}</div>
+                            <i class="fa-solid fa-infinity absolute bottom-4 left-4 opacity-20 text-4xl"></i>
+                        </div>
+                        <div class="card bg-gradient-to-br from-slate-700 to-slate-800 text-white border-none">
+                            <div class="text-slate-300 text-xs mb-1">הכנסה כוללת</div>
+                            <div class="text-2xl md:text-3xl font-bold">{{ Math.floor(overview?.lifeTimeData?.revenue || 0).toLocaleString() }} {{ selectedSite.currency }}</div>
+                            <i class="fa-solid fa-sack-dollar absolute bottom-4 left-4 opacity-20 text-4xl"></i>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Power Flow Visualization -->
+                    <div class="card relative overflow-hidden min-h-[300px] flex flex-col items-center justify-center bg-slate-900 text-white">
+                        <h3 class="absolute top-4 right-6 font-bold text-slate-400">זרימת אנרגיה (Live)</h3>
+                        
+                        <div v-if="powerFlow" class="w-full max-w-2xl relative mt-8">
+                            <!-- Diagram -->
+                            <div class="flex justify-between items-center relative z-10 px-4 md:px-12">
+                                <!-- PV (Source) -->
+                                <div class="flex flex-col items-center gap-2 group">
+                                    <div class="w-16 h-16 rounded-full bg-green-500/20 border-2 border-green-500 flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.3)] animate-pulse">
+                                        <i class="fa-solid fa-solar-panel text-2xl text-green-400"></i>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="font-bold text-xl">{{ formatPower(powerFlow.PV?.currentPower) }}</div>
+                                        <div class="text-xs text-slate-400">ייצור סולארי</div>
+                                    </div>
+                                </div>
+
+                                <!-- House (Load) -->
+                                <div class="flex flex-col items-center gap-2">
+                                    <div class="w-16 h-16 rounded-full bg-orange-500/20 border-2 border-orange-500 flex items-center justify-center">
+                                        <i class="fa-solid fa-house text-2xl text-orange-400"></i>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="font-bold text-xl">{{ formatPower(powerFlow.LOAD?.currentPower) }}</div>
+                                        <div class="text-xs text-slate-400">צריכה ביתית</div>
+                                    </div>
+                                </div>
+
+                                <!-- Grid -->
+                                <div class="flex flex-col items-center gap-2">
+                                    <div :class="['w-16 h-16 rounded-full border-2 flex items-center justify-center', isExporting ? 'bg-blue-500/20 border-blue-500' : 'bg-red-500/20 border-red-500']">
+                                        <i class="fa-solid fa-tower-broadcast text-2xl text-slate-200"></i>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="font-bold text-xl">{{ formatPower(powerFlow.GRID?.currentPower) }}</div>
+                                        <div class="text-xs text-slate-400">{{ isExporting ? 'יצוא לרשת' : 'יבוא מהרשת' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Animated Lines (CSS only visuals) -->
+                            <div class="absolute top-8 left-16 right-16 h-0.5 bg-slate-700 -z-0"></div>
+                        </div>
+                        <div v-else class="text-slate-500 mt-10">טוען נתוני זרימה... <div class="loader-dark"></div></div>
+
+                        <!-- JSON Export Button for Flow -->
+                        <div class="absolute bottom-4 left-4">
+                            <button @click="copyJson(powerFlow)" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded border border-slate-600 transition-colors">
+                                <i class="fa-solid fa-code mr-1"></i> העתק JSON זרימה
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- === TAB 2: ADVANCED CHARTS === -->
+                <div v-if="currentTab === 'charts'" class="space-y-6">
+                    <div class="card">
+                        <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                            <div>
+                                <h3 class="font-bold text-xl text-slate-800">ניתוח הספק וצריכה</h3>
+                                <p class="text-sm text-slate-500">רזולוציה של 15 דקות</p>
+                            </div>
+                            <div class="flex bg-slate-100 p-1 rounded-lg gap-1">
+                                <button @click="setChartRange(1)" :class="['px-3 py-1 text-sm rounded-md transition-all', chartDays === 1 ? 'bg-white text-slate-900 shadow' : 'text-slate-500 hover:text-slate-700']">24 שעות</button>
+                                <button @click="setChartRange(2)" :class="['px-3 py-1 text-sm rounded-md transition-all', chartDays === 2 ? 'bg-white text-slate-900 shadow' : 'text-slate-500 hover:text-slate-700']">48 שעות</button>
+                                <button @click="setChartRange(7)" :class="['px-3 py-1 text-sm rounded-md transition-all', chartDays === 7 ? 'bg-white text-slate-900 shadow' : 'text-slate-500 hover:text-slate-700']">שבוע</button>
+                            </div>
+                        </div>
+                        
+                        <div class="relative h-[400px] w-full">
+                            <canvas id="mainChart"></canvas>
+                        </div>
+                        <div v-if="loadingCharts" class="absolute inset-0 bg-white/80 flex items-center justify-center z-10"><div class="loader loader-dark border-slate-400"></div></div>
+                    </div>
+                </div>
+
+                <!-- === TAB 3: DEEP TECH (INVERTERS) === -->
+                <div v-if="currentTab === 'equipment'" class="space-y-6">
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Inventory List -->
+                        <div class="card lg:col-span-1 p-0 overflow-hidden flex flex-col max-h-[600px]">
+                            <div class="p-4 bg-slate-50 border-b font-bold text-slate-700 flex justify-between items-center">
+                                <span>רכיבי מערכת</span>
+                                <button @click="fetchSiteData" class="text-xs text-slate-500 hover:text-red-500"><i class="fa-solid fa-rotate"></i></button>
+                            </div>
+                            <div class="overflow-y-auto p-2 space-y-2 flex-1">
+                                <div v-if="inventory?.inverters" v-for="inv in inventory.inverters" :key="inv.SN"
+                                     @click="selectInverter(inv)"
+                                     :class="['p-3 rounded-lg border cursor-pointer text-sm transition-all', selectedInverter?.SN === inv.SN ? 'bg-slate-800 text-white border-slate-800' : 'bg-white hover:bg-slate-50']">
+                                    <div class="font-bold mb-1">{{ inv.name }}</div>
+                                    <div class="opacity-80 text-xs">S/N: {{ inv.SN }}</div>
+                                    <div class="mt-2 flex justify-between items-center opacity-60 text-xs">
+                                        <span>{{ inv.model }}</span>
+                                        <span>v{{ inv.cpuFirmwareVersion }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Deep Analysis Panel -->
+                        <div class="card lg:col-span-2 relative">
+                            <div v-if="!selectedInverter" class="h-full flex flex-col items-center justify-center text-slate-400 min-h-[400px]">
+                                <i class="fa-solid fa-server text-6xl mb-4 opacity-20"></i>
+                                <p>בחר ממיר מהרשימה לניתוח עומק</p>
+                            </div>
+
+                            <div v-else class="space-y-6">
+                                <div class="flex justify-between items-center border-b pb-4">
+                                    <div>
+                                        <h3 class="font-bold text-xl text-slate-800">{{ selectedInverter.name }} <span class="text-sm font-normal text-slate-500">Telemetry Analysis</span></h3>
+                                        <div class="text-xs text-slate-500 mt-1">S/N: {{ selectedInverter.SN }}</div>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button @click="fetchInverterHistory(1)" class="btn btn-sm btn-outline text-xs">24 שעות</button>
+                                        <button @click="fetchInverterHistory(3)" class="btn btn-sm btn-outline text-xs">3 ימים</button>
+                                    </div>
+                                </div>
+
+                                <!-- Tech Graphs -->
+                                <div class="h-64 relative">
+                                    <canvas id="techChart"></canvas>
+                                    <div v-if="loadingTech" class="absolute inset-0 bg-white/80 flex items-center justify-center"><div class="loader loader-dark border-slate-500"></div></div>
+                                </div>
+
+                                <!-- Raw Last Telemetry Table -->
+                                <div v-if="techData" class="overflow-x-auto bg-slate-50 rounded-lg border border-slate-200 p-2">
+                                    <table class="w-full text-xs text-center">
+                                        <thead>
+                                            <tr class="text-slate-500 border-b border-slate-200">
+                                                <th class="p-2 text-right">מדד (פאזה)</th>
+                                                <th class="p-2 text-red-600 font-bold">L1</th>
+                                                <th class="p-2 text-yellow-600 font-bold">L2</th>
+                                                <th class="p-2 text-blue-600 font-bold">L3</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="text-slate-700 font-mono">
+                                            <tr class="border-b border-slate-100">
+                                                <td class="p-2 text-right font-bold">מתח (V)</td>
+                                                <td>{{ techData.L1Data?.acVoltage.toFixed(1) }}</td>
+                                                <td>{{ techData.L2Data?.acVoltage.toFixed(1) }}</td>
+                                                <td>{{ techData.L3Data?.acVoltage.toFixed(1) }}</td>
+                                            </tr>
+                                            <tr class="border-b border-slate-100">
+                                                <td class="p-2 text-right font-bold">זרם (A)</td>
+                                                <td>{{ techData.L1Data?.acCurrent.toFixed(1) }}</td>
+                                                <td>{{ techData.L2Data?.acCurrent.toFixed(1) }}</td>
+                                                <td>{{ techData.L3Data?.acCurrent.toFixed(1) }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="p-2 text-right font-bold">תדר (Hz)</td>
+                                                <td>{{ techData.L1Data?.acFrequency.toFixed(2) }}</td>
+                                                <td>{{ techData.L2Data?.acFrequency.toFixed(2) }}</td>
+                                                <td>{{ techData.L3Data?.acFrequency.toFixed(2) }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- JSON Copy for Tech -->
+                                <div class="bg-slate-900 rounded p-3 text-xs font-mono text-green-400 relative group overflow-hidden">
+                                    <div class="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button @click="copyJson(techData)" class="bg-white text-black px-2 py-1 rounded shadow text-[10px] font-bold">COPY</button>
+                                    </div>
+                                    <div class="truncate">
+                                        // Telemetry Sample (Last Point)<br>
+                                        {{ JSON.stringify(techData).substring(0, 80) }}...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- === TAB 4: NORMALIZED MATRIX (NEW) === -->
+                <div v-if="currentTab === 'matrix'" class="space-y-6">
+                    <div class="card overflow-hidden">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-lg">מטריצת נתונים מנורמלת</h3>
+                            <button @click="copyTableToCSV" class="btn btn-secondary text-xs"><i class="fa-solid fa-file-csv"></i> העתק ל-CSV</button>
+                        </div>
+                        <p class="text-sm text-slate-500 mb-4">טבלה המרכזת את כל המדדים לפי חותמת זמן אחידה לניתוח השוואתי.</p>
+
+                        <div class="overflow-x-auto max-h-[600px]">
+                            <table class="w-full text-sm text-left border-collapse" id="dataTable">
+                                <thead class="bg-slate-800 text-white sticky top-0 z-10">
+                                    <tr>
+                                        <th class="p-3 whitespace-nowrap">זמן</th>
+                                        <th class="p-3 whitespace-nowrap bg-green-900/50">ייצור (W)</th>
+                                        <th class="p-3 whitespace-nowrap bg-orange-900/50">צריכה (W)</th>
+                                        <th class="p-3 whitespace-nowrap bg-blue-900/50">שימוש עצמי (W)</th>
+                                        <th class="p-3 whitespace-nowrap">יצוא (W)</th>
+                                        <th class="p-3 whitespace-nowrap">יבוא (W)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="font-mono text-xs">
+                                    <tr v-for="(row, index) in normalizedData" :key="index" class="border-b hover:bg-slate-50 transition-colors">
+                                        <td class="p-2 font-bold text-slate-600">{{ row.time }}</td>
+                                        <td class="p-2 text-green-700 font-bold bg-green-50/50">{{ row.production?.toFixed(0) || '-' }}</td>
+                                        <td class="p-2 text-orange-700">{{ row.consumption?.toFixed(0) || '-' }}</td>
+                                        <td class="p-2 text-blue-700">{{ row.selfConsumption?.toFixed(0) || '-' }}</td>
+                                        <td class="p-2 text-slate-600">{{ row.feedIn?.toFixed(0) || '-' }}</td>
+                                        <td class="p-2 text-slate-600">{{ row.purchased?.toFixed(0) || '-' }}</td>
+                                    </tr>
+                                    <tr v-if="normalizedData.length === 0">
+                                        <td colspan="6" class="p-8 text-center text-slate-400">אין נתונים להצגה (נסה לטעון גרפים קודם)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- === TAB 5: RAW DATA (JSON) === -->
+                <div v-if="currentTab === 'raw'" class="space-y-4">
+                    <div class="card bg-slate-900 text-slate-300">
+                        <h3 class="text-white font-bold mb-4 border-b border-slate-700 pb-2">Full Site Overview JSON</h3>
+                        <div class="relative">
+                            <button @click="copyJson(overview)" class="absolute top-0 left-0 bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 text-xs rounded">COPY</button>
+                            <pre class="text-xs font-mono text-green-400 overflow-auto h-96 p-4 pt-8 bg-black/30 rounded">{{ JSON.stringify(overview, null, 2) }}</pre>
+                        </div>
+                    </div>
+                     <div class="card bg-slate-900 text-slate-300">
+                        <h3 class="text-white font-bold mb-4 border-b border-slate-700 pb-2">Full Inventory JSON</h3>
+                        <div class="relative">
+                            <button @click="copyJson(inventory)" class="absolute top-0 left-0 bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 text-xs rounded">COPY</button>
+                            <pre class="text-xs font-mono text-blue-400 overflow-auto h-96 p-4 pt-8 bg-black/30 rounded">{{ JSON.stringify(inventory, null, 2) }}</pre>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+const { createApp, ref, onMounted, computed, watch } = Vue;
+
+createApp({
+    setup() {
+        // --- State ---
+        const apiKey = ref('RPR5J7H74H6Y009EYPZ18C0AIZEAEU55');
+        const sites = ref([]);
+        const selectedSite = ref(null);
+        const loading = ref(false);
+        const error = ref(null);
+        const currentTab = ref('overview');
+        const showSidebar = ref(false); // Mobile sidebar toggle
+
+        // Data Models
+        const overview = ref(null);
+        const powerFlow = ref(null);
+        const inventory = ref(null);
+        
+        // Charts & History
+        const chartDays = ref(1);
+        const loadingCharts = ref(false);
+        const powerDetailsData = ref(null); // Stores raw detailed power data
+        let mainChartInstance = null;
+        let techChartInstance = null;
+
+        // Tech / Inverter
+        const selectedInverter = ref(null);
+        const techData = ref(null); // Current Snapshot
+        const techHistory = ref(null); // History Array
+        const loadingTech = ref(false);
+
+        // Tabs Config
+        const tabs = [
+            { id: 'overview', label: 'סקירה כללית', icon: 'fa-solid fa-gauge' },
+            { id: 'charts', label: 'גרפים והיסטוריה', icon: 'fa-solid fa-chart-area' },
+            { id: 'equipment', label: 'חקר ממירים', icon: 'fa-solid fa-microchip' },
+            { id: 'matrix', label: 'טבלת נתונים', icon: 'fa-solid fa-table' },
+            { id: 'raw', label: 'JSON גולמי', icon: 'fa-solid fa-code' }
+        ];
+
+        // --- Computed ---
+        const isExporting = computed(() => {
+            if (!powerFlow.value?.GRID) return false;
+            // SolarEdge negative/positive logic depends on config, usually export is positive in flow API
+            // But we rely on direction arrows usually. 
+            // Simple heuristic: if grid is active and PV > Load, likely exporting.
+            return (powerFlow.value.PV?.currentPower > powerFlow.value.LOAD?.currentPower);
+        });
+
+        const normalizedData = computed(() => {
+            if (!powerDetailsData.value || !powerDetailsData.value.meters) return [];
+            
+            // We need to merge meters by timestamp
+            // powerDetails returns array of meters, each with array of values
+            const map = new Map();
+
+            powerDetailsData.value.meters.forEach(meter => {
+                meter.values.forEach(entry => {
+                    if (!map.has(entry.date)) {
+                        map.set(entry.date, { time: entry.date.split(' ')[1].substring(0,5) }); // HH:MM
+                    }
+                    const record = map.get(entry.date);
+                    // Map meter type to column
+                    if (meter.type === 'Production') record.production = entry.value;
+                    if (meter.type === 'Consumption') record.consumption = entry.value;
+                    if (meter.type === 'SelfConsumption') record.selfConsumption = entry.value;
+                    if (meter.type === 'FeedIn') record.feedIn = entry.value;
+                    if (meter.type === 'Purchased') record.purchased = entry.value;
+                });
+            });
+
+            // Convert map to array and sort by date
+            return Array.from(map.values()).sort((a,b) => a.time.localeCompare(b.time));
+        });
+
+        // --- API Helpers (JSONP) ---
+        const fetchJsonp = (url) => {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'jsonp_' + Math.floor(Math.random() * 100000);
+                const script = document.createElement('script');
+                const sep = url.includes('?') ? '&' : '?';
+                script.src = `${url}${sep}api_key=${apiKey.value}&callback=${callbackName}`;
+                
+                window[callbackName] = (data) => {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    resolve(data);
+                };
+                script.onerror = () => {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    reject('Network Error / CORS');
+                };
+                document.body.appendChild(script);
+            });
+        };
+
+        const formatDateAPI = (date) => date.toISOString().replace('T', ' ').split('.')[0];
+
+        // --- Core Logic ---
+
+        const loadSites = async () => {
+            if(!apiKey.value) return;
+            loading.value = true;
+            try {
+                const res = await fetchJsonp(`https://monitoringapi.solaredge.com/sites/list`);
+                sites.value = res.sites.site;
+            } catch(e) { error.value = "שגיאת טעינה - וודא מפתח"; }
+            loading.value = false;
+        };
+
+        const selectSite = async (site) => {
+            selectedSite.value = site;
+            showSidebar.value = false; // close sidebar on mobile
+            await fetchSiteData();
+        };
+
+        const fetchSiteData = async () => {
+            if(!selectedSite.value) return;
+            const id = selectedSite.value.id;
+            
+            // Basic Data
+            fetchJsonp(`https://monitoringapi.solaredge.com/site/${id}/overview`).then(r => overview.value = r.overview);
+            fetchJsonp(`https://monitoringapi.solaredge.com/site/${id}/currentPowerFlow`).then(r => powerFlow.value = r.siteCurrentPowerFlow);
+            fetchJsonp(`https://monitoringapi.solaredge.com/site/${id}/inventory`).then(r => inventory.value = r.Inventory);
+        };
+
+        // --- Advanced Charts Logic ---
+        const setChartRange = (days) => {
+            chartDays.value = days;
+            loadAdvancedCharts();
+        };
+
+        const loadAdvancedCharts = async () => {
+            if(!selectedSite.value) return;
+            loadingCharts.value = true;
+            const id = selectedSite.value.id;
+            
+            const end = new Date();
+            const start = new Date();
+            start.setDate(start.getDate() - chartDays.value);
+
+            // Fetch Power Details (Production + Consumption)
+            const url = `https://monitoringapi.solaredge.com/site/${id}/powerDetails?startTime=${formatDateAPI(start)}&endTime=${formatDateAPI(end)}&meters=PRODUCTION,CONSUMPTION,SELFCONSUMPTION`;
+
+            try {
+                const res = await fetchJsonp(url);
+                powerDetailsData.value = res.powerDetails;
+                renderMainChart(res.powerDetails);
+            } catch(e) { console.error(e); }
+            loadingCharts.value = false;
+        };
+
+        const renderMainChart = (data) => {
+            const ctx = document.getElementById('mainChart');
+            if(!ctx || !data.meters) return;
+            if(mainChartInstance) mainChartInstance.destroy();
+
+            // Extract Datasets
+            const datasets = [];
+            let labels = [];
+
+            data.meters.forEach(meter => {
+                const meterData = meter.values.map(v => v.value);
+                if(labels.length === 0) labels = meter.values.map(v => v.date.split(' ')[1].slice(0,5) + (chartDays.value > 1 ? '\n' + v.date.split(' ')[0].slice(5) : ''));
+                
+                let color = '#64748b'; // default
+                let fill = false;
+                if(meter.type === 'Production') { color = '#22c55e'; fill = true; }
+                if(meter.type === 'Consumption') { color = '#f97316'; }
+                if(meter.type === 'SelfConsumption') { color = '#3b82f6'; }
+
+                datasets.push({
+                    label: meter.type,
+                    data: meterData,
+                    borderColor: color,
+                    backgroundColor: color + '20', // transparent
+                    borderWidth: 2,
+                    fill: fill,
+                    tension: 0.3,
+                    pointRadius: 0,
+                    pointHitRadius: 10
+                });
+            });
+
+            mainChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } },
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' } }
+                    }
+                }
+            });
+        };
+
+        // --- Deep Inverter Logic ---
+        const selectInverter = (inv) => {
+            selectedInverter.value = inv;
+            fetchInverterHistory(1); // default 24h
+        };
+
+        const fetchInverterHistory = async (days) => {
+            if(!selectedSite.value || !selectedInverter.value) return;
+            loadingTech.value = true;
+            
+            const end = new Date();
+            const start = new Date();
+            start.setDate(start.getDate() - days);
+            
+            const url = `https://monitoringapi.solaredge.com/equipment/${selectedSite.value.id}/${selectedInverter.value.SN}/data?startTime=${formatDateAPI(start)}&endTime=${formatDateAPI(end)}`;
+
+            try {
+                const res = await fetchJsonp(url);
+                const telemetries = res.data.telemetries || [];
+                techHistory.value = telemetries;
+                
+                // Set current snapshot to last item
+                const lastItem = telemetries[telemetries.length - 1];
+                techData.value = lastItem.inverterTelemetry ? lastItem.inverterTelemetry : lastItem;
+
+                renderTechChart(telemetries);
+            } catch(e) { console.error(e); }
+            loadingTech.value = false;
+        };
+
+        const renderTechChart = (data) => {
+            const ctx = document.getElementById('techChart');
+            if(!ctx) return;
+            if(techChartInstance) techChartInstance.destroy();
+
+            // Prepare Data: DC Voltage (Left Axis), Temperature (Right Axis)
+            // Need to handle varied structure (sometimes nested in inverterTelemetry)
+            const parsed = data.map(item => {
+                const t = item.inverterTelemetry || item;
+                return {
+                    time: t.date || item.date, // sometimes date is top level
+                    dc: t.dcVoltage,
+                    temp: t.temperature
+                };
+            });
+
+            const labels = parsed.map(d => d.time.split(' ')[1].slice(0,5));
+
+            techChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'DC Voltage (V)',
+                            data: parsed.map(d => d.dc),
+                            borderColor: '#2563eb',
+                            yAxisID: 'y',
+                            tension: 0.4,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Temp (°C)',
+                            data: parsed.map(d => d.temp),
+                            borderColor: '#ef4444',
+                            yAxisID: 'y1',
+                            tension: 0.4,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        y: { type: 'linear', display: true, position: 'left', title: {display:true, text:'Volts'} },
+                        y1: { type: 'linear', display: true, position: 'right', grid: {drawOnChartArea: false}, title: {display:true, text:'°C'} },
+                        x: { ticks: { maxTicksLimit: 8 } }
+                    }
+                }
+            });
+        };
+
+        // --- Utilities ---
+        const formatPower = (v) => (!v) ? '0 W' : (v >= 1000) ? (v/1000).toFixed(2) + ' kW' : v.toFixed(0) + ' W';
+        const formatEnergy = (v, isMega) => (!v) ? '0 Wh' : (isMega || v > 1000000) ? (v/1000000).toFixed(2) + ' MWh' : (v/1000).toFixed(2) + ' kWh';
+        
+        const copyJson = (data) => {
+            navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+            alert('JSON הועתק ללוח!');
+        };
+        
+        const copyTableToCSV = () => {
+            if(normalizedData.value.length === 0) return;
+            const headers = ['Time', 'Production', 'Consumption', 'SelfConsumption', 'FeedIn', 'Purchased'];
+            const rows = normalizedData.value.map(r => [r.time, r.production, r.consumption, r.selfConsumption, r.feedIn, r.purchased].join(','));
+            const csv = [headers.join(','), ...rows].join('\n');
+            navigator.clipboard.writeText(csv);
+            alert('CSV הועתק ללוח!');
+        };
+
+        // Init
+        onMounted(() => {
+            loadSites();
+        });
+
+        // Watchers
+        watch(currentTab, (val) => {
+            if(val === 'charts' && !powerDetailsData.value) loadAdvancedCharts();
+        });
+
+        return {
+            apiKey, sites, selectedSite, loading, error, showSidebar,
+            currentTab, tabs, overview, powerFlow, inventory,
+            chartDays, loadingCharts, 
+            inventory, selectedInverter, loadingTech, techData,
+            normalizedData,
+            loadSites, selectSite, 
+            setChartRange, selectInverter, fetchInverterHistory,
+            formatPower, formatEnergy, copyJson, copyTableToCSV,
+            isExporting, fetchSiteData
+        };
+    }
+}).mount('#app');
+</script>
+</body>
+</html>
