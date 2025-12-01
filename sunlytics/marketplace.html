@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sunlytics O&M - Provider App</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Google Fonts (Optional but nice) -->
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Heebo', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        /* Hide scrollbar for clean mobile look */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- Icons Component System (Inline SVGs for single-file portability) ---
+        const Icon = ({ path, className, color = "currentColor" }) => (
+            <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="24" 
+                height="24" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke={color} 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className={className}
+            >
+                {path}
+            </svg>
+        );
+
+        const Icons = {
+            Sun: (props) => <Icon {...props} path={<><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41-1.41"/><path d="m19.07 4.93-1.41 1.41"/></>} />,
+            Wrench: (props) => <Icon {...props} path={<><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></>} />,
+            MapPin: (props) => <Icon {...props} path={<><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></>} />,
+            CheckCircle: (props) => <Icon {...props} path={<><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>} />,
+            Battery: (props) => <Icon {...props} path={<><rect width="16" height="10" x="2" y="7" rx="2" ry="2"/><line x1="22" x2="22" y1="11" y2="13"/></>} />,
+            Zap: (props) => <Icon {...props} path={<><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></>} />,
+            User: (props) => <Icon {...props} path={<><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>} />,
+            DollarSign: (props) => <Icon {...props} path={<><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></>} />,
+            BarChart3: (props) => <Icon {...props} path={<><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></>} />,
+            Star: (props) => <Icon {...props} path={<><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></>} />,
+            ChevronRight: (props) => <Icon {...props} path={<><path d="m9 18 6-6-6-6"/></>} />,
+            ShieldCheck: (props) => <Icon {...props} path={<><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></>} />,
+            AlertTriangle: (props) => <Icon {...props} path={<><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></>} />,
+            Droplets: (props) => <Icon {...props} path={<><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.8-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/></>} />,
+            Clock: (props) => <Icon {...props} path={<><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>} />,
+            Brain: (props) => <Icon {...props} path={<><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></>} />,
+            ArrowLeft: (props) => <Icon {...props} path={<><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></>} />,
+            Activity: (props) => <Icon {...props} path={<><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></>} />,
+            TrendingUp: (props) => <Icon {...props} path={<><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></>} />
+        };
+
+        // --- Mock Data ---
+
+        const MOCK_JOBS = [
+            {
+                id: 1,
+                type: 'cleaning',
+                title: 'ניקוי פאנלים דחוף',
+                location: 'אזור תעשייה עמק חפר, האנגר 4',
+                distance: '2.5 ק"מ',
+                price: 450,
+                urgency: 'high',
+                systemSize: '100kW',
+                description: 'מערכת הניטור Sunlytics AI זיהתה ירידה של 15% בתפוקה עקב אבק/לכלוך. נדרש ניקוי וצילום לאימות חזרה לשגרה.',
+                source: 'Sunlytics AI Monitor',
+                status: 'open'
+            },
+            {
+                id: 2,
+                type: 'repair',
+                title: 'החלפת אופטימייזר',
+                location: 'מושב חגור, משק לוי',
+                distance: '8.1 ק"מ',
+                price: 320,
+                urgency: 'medium',
+                systemSize: '15kW',
+                description: 'התראת רכיב תקול: אופטימייזר בפאנל 12, סטרינג 2. האלגוריתם זיהה כשל נקודתי. חלק חלוף ממתין באתר.',
+                source: 'Sunlytics Fault Predictor',
+                status: 'open'
+            },
+            {
+                id: 3,
+                type: 'inspection',
+                title: 'ביקורת שנתית + סריקה תרמית',
+                location: 'ראש העין, גג מסחרי',
+                distance: '12 ק"מ',
+                price: 800,
+                urgency: 'low',
+                systemSize: '250kW',
+                description: 'בדיקה תקופתית מונעת. יש לבצע חיזוק ברגים וסריקת רחפן לזיהוי Hotspots.',
+                source: 'Preventive Schedule',
+                status: 'open'
+            }
+        ];
+
+        const STORAGE_OPPORTUNITY = {
+            clientId: '8821',
+            currentSystem: '22kW',
+            avgProduction: '110kWh/day',
+            gridExport: '60%',
+            recommendation: 'סוללת LFP 10kWh',
+            potentialSaving: '1,200 ₪ / חודשי',
+            commission: 500
+        };
+
+        // --- Components ---
+
+        const LandingPage = ({ onStart }) => {
+            return (
+                <div className="min-h-screen bg-slate-900 text-white flex flex-col relative overflow-hidden font-sans" dir="rtl">
+                    {/* Background Effects */}
+                    <div className="absolute top-[-20%] left-[-20%] w-[80%] h-[50%] bg-blue-600/20 rounded-full blur-[100px]"></div>
+                    <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[40%] bg-yellow-500/10 rounded-full blur-[80px]"></div>
+
+                    <div className="flex-1 flex flex-col p-6 z-10">
+                        {/* Header Logo */}
+                        <div className="flex items-center gap-2 mb-8 pt-4">
+                            <div className="bg-white/10 p-2 rounded-lg backdrop-blur-sm">
+                                <Icons.Sun className="text-yellow-400 w-8 h-8" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-bold tracking-tight">Sunlytics <span className="text-blue-400 font-extralight">O&M</span></h1>
+                            </div>
+                        </div>
+
+                        {/* Hero Text */}
+                        <div className="mb-10">
+                            <h2 className="text-4xl font-bold leading-tight mb-4">
+                                לא רק מנטרים,<br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-l from-yellow-400 to-green-400">
+                                    אנחנו גם פותרים.
+                                </span>
+                            </h2>
+                            <p className="text-slate-400 text-lg leading-relaxed">
+                                הפלטפורמה הראשונה שמחברת בין בינה מלאכותית לזיהוי תקלות, לבין אנשי המקצוע בשטח לפתרון מהיר והגדלת רווחים.
+                            </p>
+                        </div>
+
+                        {/* Feature Cards */}
+                        <div className="space-y-4 flex-1">
+                            <div className="bg-white/5 border border-white/10 p-4 rounded-xl flex items-start gap-4 backdrop-blur-md">
+                                <div className="bg-blue-500/20 p-3 rounded-lg text-blue-400">
+                                    <Icons.Brain className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-lg mb-1">AI Monitoring & Prediction</h3>
+                                    <p className="text-slate-400 text-sm">האלגוריתם שלנו מזהה תקלות וצופה ירידה בייצור לפני שהיא קורית.</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-white/5 border border-white/10 p-4 rounded-xl flex items-start gap-4 backdrop-blur-md">
+                                <div className="bg-green-500/20 p-3 rounded-lg text-green-400">
+                                    <Icons.Wrench className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-lg mb-1">Marketplace לביצוע</h3>
+                                    <p className="text-slate-400 text-sm">מקבלים קריאות שירות מדויקות ומאומתות ישירות לנייד, כמו ב-Wolt.</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-white/5 border border-white/10 p-4 rounded-xl flex items-start gap-4 backdrop-blur-md">
+                                <div className="bg-yellow-500/20 p-3 rounded-lg text-yellow-400">
+                                    <Icons.TrendingUp className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-lg mb-1">Storage & Upsell</h3>
+                                    <p className="text-slate-400 text-sm">הופכים מנותני שירות למנהלי אנרגיה. מציעים אגירה ומגדילים הכנסה.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* CTA Button */}
+                        <button 
+                            onClick={onStart}
+                            className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-blue-900/50 flex items-center justify-center gap-3 transition-all transform active:scale-95 mt-6"
+                        >
+                            התחבר למערכת
+                            <Icons.ArrowLeft className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const Header = ({ view, goBack }) => (
+            <header className="bg-slate-900 text-white p-4 sticky top-0 z-50 shadow-md flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    {view !== 'home' && (
+                        <button onClick={goBack} className="p-1 rounded-full hover:bg-slate-700">
+                            <Icons.ChevronRight className="w-6 h-6" />
+                        </button>
+                    )}
+                    <div className="flex items-center gap-2">
+                        <Icons.Sun className="text-yellow-400 w-6 h-6" />
+                        <h1 className="font-bold text-xl tracking-wide">Sunlytics <span className="font-light text-blue-300">O&M</span></h1>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                    <div className="flex flex-col items-end">
+                        <span className="text-xs text-slate-400">סטטוס</span>
+                        <span className="text-sm font-medium text-green-400 flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                            זמין לקריאות
+                        </span>
+                    </div>
+                </div>
+            </header>
+        );
+
+        const BottomNav = ({ currentView, setView }) => {
+            const navItems = [
+                { id: 'home', icon: Icons.Activity, label: 'קריאות' },
+                { id: 'wallet', icon: Icons.DollarSign, label: 'ארנק' },
+                { id: 'upsell', icon: Icons.Battery, label: 'הזדמנויות' },
+                { id: 'profile', icon: Icons.User, label: 'פרופיל' },
+            ];
+
+            return (
+                <nav className="fixed bottom-0 w-full bg-white border-t border-slate-200 py-2 px-6 flex justify-between items-center z-50 text-slate-500 pb-safe">
+                    {navItems.map((item) => (
+                        <button
+                            key={item.id}
+                            onClick={() => setView(item.id)}
+                            className={`flex flex-col items-center gap-1 ${
+                                currentView === item.id ? 'text-blue-600 font-bold' : ''
+                            }`}
+                        >
+                            <item.icon className={`w-6 h-6 ${currentView === item.id ? 'fill-current' : ''}`} />
+                            <span className="text-xs">{item.label}</span>
+                        </button>
+                    ))}
+                </nav>
+            );
+        };
+
+        const JobCard = ({ job, onSelect }) => {
+            const getTypeIcon = (type) => {
+                switch (type) {
+                    case 'cleaning': return <Icons.Droplets className="text-blue-500" />;
+                    case 'repair': return <Icons.Wrench className="text-red-500" />;
+                    default: return <Icons.ShieldCheck className="text-green-500" />;
+                }
+            };
+
+            const getUrgencyColor = (urgency) => {
+                switch (urgency) {
+                    case 'high': return 'bg-red-100 text-red-700 border-red-200';
+                    case 'medium': return 'bg-orange-100 text-orange-700 border-orange-200';
+                    default: return 'bg-green-100 text-green-700 border-green-200';
+                }
+            };
+
+            return (
+                <div 
+                    onClick={() => onSelect(job)}
+                    className="bg-white rounded-xl shadow-sm border border-slate-100 p-4 mb-4 active:scale-95 transition-transform duration-100 cursor-pointer"
+                >
+                    <div className="flex justify-between items-start mb-3">
+                        <div className="flex gap-3">
+                            <div className="bg-slate-50 p-2 rounded-lg h-fit">
+                                {getTypeIcon(job.type)}
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-slate-800">{job.title}</h3>
+                                <div className="flex items-center text-slate-500 text-xs mt-1">
+                                    <Icons.MapPin className="w-3 h-3 ml-1" />
+                                    {job.location} • {job.distance}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <span className="block font-bold text-lg text-slate-800">₪{job.price}</span>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full border ${getUrgencyColor(job.urgency)}`}>
+                                {job.urgency === 'high' ? 'דחוף מאוד' : job.urgency === 'medium' ? 'דחיפות רגילה' : 'טיפול מונע'}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div className="bg-slate-50 p-2 rounded text-xs text-slate-600 mb-2 border-r-2 border-blue-400 flex items-center gap-2">
+                        <Icons.Brain className="w-3 h-3 text-blue-500" />
+                        <span className="font-semibold">מקור:</span> {job.source}
+                    </div>
+
+                    <div className="flex gap-2 mt-3">
+                        <button className="flex-1 bg-slate-900 text-white py-2 rounded-lg font-medium text-sm shadow-md shadow-slate-200">
+                            קבל עבודה
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const ActiveJobView = ({ job, onComplete, onCancel }) => {
+            const [step, setStep] = useState(1); 
+
+            return (
+                <div className="pb-24">
+                    {/* Map placeholder */}
+                    <div className="h-48 bg-slate-200 w-full relative">
+                        <div className="absolute inset-0 flex items-center justify-center text-slate-400 bg-slate-100">
+                            [מפת ניווט בזמן אמת]
+                        </div>
+                        <div className="absolute bottom-4 right-4 bg-white px-4 py-2 rounded shadow-lg text-sm font-bold flex items-center gap-2">
+                            <Icons.MapPin className="text-blue-500 w-4 h-4" />
+                            נווט לכתובת
+                        </div>
+                    </div>
+
+                    <div className="p-5">
+                        <div className="mb-6">
+                            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded mb-2 inline-block">זיהוי Sunlytics AI</span>
+                            <h2 className="text-2xl font-bold mb-2">{job.title}</h2>
+                            <p className="text-slate-500 text-sm leading-relaxed">{job.description}</p>
+                        </div>
+
+                        {/* Progress Stepper */}
+                        <div className="flex justify-between mb-8 relative">
+                            <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-200 -z-10"></div>
+                            {[1, 2, 3, 4].map((s) => (
+                                <div key={s} className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors duration-300 ${s <= step ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-slate-200 text-slate-400'}`}>
+                                    {s}
+                                </div>
+                            ))}
+                        </div>
+
+                        {step === 1 && (
+                            <div className="space-y-4 animate-in slide-in-from-bottom-4 fade-in duration-500">
+                                <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                                    <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
+                                        <Icons.Clock className="w-4 h-4" />
+                                        תחילת ביצוע
+                                    </h4>
+                                    <p className="text-sm text-blue-800 mb-3">נא לאשר הגעה לאתר הלקוח כדי לסנכרן את מערכת הניטור ל-Mode תחזוקה.</p>
+                                    <button onClick={() => setStep(2)} className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors">
+                                        הגעתי לאתר
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {step === 2 && (
+                            <div className="space-y-4 animate-in slide-in-from-bottom-4 fade-in duration-500">
+                                <h3 className="font-bold text-lg">אבחון וזיהוי</h3>
+                                <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 flex flex-col items-center justify-center text-slate-400 gap-2 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors">
+                                    <Icons.BarChart3 className="w-8 h-8" />
+                                    <span>העלה צילום לניתוח AI</span>
+                                </div>
+                                <button onClick={() => setStep(3)} className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold mt-4 shadow-lg shadow-slate-300">
+                                    המשך לטיפול
+                                </button>
+                            </div>
+                        )}
+
+                        {step === 3 && (
+                            <div className="space-y-4 animate-in slide-in-from-bottom-4 fade-in duration-500">
+                                <h3 className="font-bold text-lg">ביצוע טיפול</h3>
+                                <p className="text-sm text-slate-600">בצע את הטיפול הנדרש וודא שכל חיבורי החשמל תקינים.</p>
+                                <label className="flex items-center gap-3 p-3 border rounded-lg bg-white shadow-sm">
+                                    <input type="checkbox" className="w-5 h-5 accent-blue-600" />
+                                    <span className="text-sm">בוצע ניקוי/תיקון פיזי</span>
+                                </label>
+                                <label className="flex items-center gap-3 p-3 border rounded-lg bg-white shadow-sm">
+                                    <input type="checkbox" className="w-5 h-5 accent-blue-600" />
+                                    <span className="text-sm">נבדקו מחברים (MC4)</span>
+                                </label>
+                                <button onClick={() => setStep(4)} className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold mt-4 shadow-lg shadow-slate-300">
+                                    סיום טיפול ומעבר לאימות
+                                </button>
+                            </div>
+                        )}
+
+                        {step === 4 && (
+                            <VerificationModule onConfirm={onComplete} />
+                        )}
+
+                    </div>
+                </div>
+            );
+        };
+
+        const VerificationModule = ({ onConfirm }) => {
+            return (
+                <div className="bg-white rounded-xl shadow-lg border border-green-100 overflow-hidden animate-in fade-in zoom-in duration-300">
+                    <div className="bg-green-600 p-4 text-white text-center">
+                        <h3 className="font-bold text-lg flex items-center justify-center gap-2">
+                            <Icons.CheckCircle className="w-6 h-6" />
+                            Sunlytics Verification
+                        </h3>
+                        <p className="text-green-100 text-sm opacity-90">האלגוריתם מאמת את השיפור בביצועים</p>
+                    </div>
+                    
+                    <div className="p-6">
+                        <div className="flex items-end justify-between h-32 px-4 mb-4 gap-4">
+                            <div className="w-1/2 flex flex-col items-center gap-2 group">
+                                <span className="text-xs font-bold text-slate-400">לפני הטיפול</span>
+                                <div className="w-full bg-slate-200 rounded-t-lg h-[40%] relative group-hover:bg-slate-300 transition-colors"></div>
+                                <span className="font-mono text-slate-500">3.2kW</span>
+                            </div>
+                            <div className="w-1/2 flex flex-col items-center gap-2">
+                                <span className="text-xs font-bold text-green-600">אחרי הטיפול</span>
+                                <div className="w-full bg-green-500 rounded-t-lg h-[90%] relative shadow-[0_0_15px_rgba(34,197,94,0.5)]">
+                                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded-full whitespace-nowrap border border-green-200">
+                                        +125% שיפור
+                                    </div>
+                                </div>
+                                <span className="font-mono font-bold text-slate-800">7.2kW</span>
+                            </div>
+                        </div>
+
+                        <div className="bg-slate-50 p-3 rounded text-center text-xs text-slate-500 mb-4 border border-slate-100">
+                            מאומת ע"י Sunlytics AI Engine &bull; {new Date().toLocaleTimeString()}
+                        </div>
+
+                        <button onClick={onConfirm} className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-green-200 transition-all">
+                            אשר הצלחה וקבל תשלום
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const StorageUpsell = () => {
+            return (
+                <div className="p-5 pb-24">
+                    <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                        <Icons.Battery className="text-green-500" />
+                        הזדמנויות אגירה
+                    </h2>
+                    <p className="text-slate-500 mb-6 text-sm">
+                        Sunlytics AI זיהה דפוסי צריכה בזבזניים אצל לקוחותיך. הצע להם מערכת אגירה וייצר הכנסה נוספת.
+                    </p>
+
+                    <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                        
+                        <div className="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 className="font-bold text-lg">הצעה ללקוח #{STORAGE_OPPORTUNITY.clientId}</h3>
+                                <p className="text-slate-400 text-sm">מערכת קיימת: {STORAGE_OPPORTUNITY.currentSystem}</p>
+                            </div>
+                            <span className="bg-yellow-400 text-slate-900 text-xs font-bold px-2 py-1 rounded">
+                                פוטנציאל גבוה
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                            <div className="bg-white/10 p-3 rounded-lg backdrop-blur-sm">
+                                <span className="block text-slate-400 text-xs">ייצור יומי ממוצע</span>
+                                <span className="font-mono font-bold text-lg">{STORAGE_OPPORTUNITY.avgProduction}</span>
+                            </div>
+                            <div className="bg-white/10 p-3 rounded-lg backdrop-blur-sm">
+                                <span className="block text-slate-400 text-xs">אחוז יצוא לרשת</span>
+                                <span className="font-mono font-bold text-lg text-red-300">{STORAGE_OPPORTUNITY.gridExport}</span>
+                            </div>
+                        </div>
+
+                        <div className="border-t border-white/10 pt-4 mb-4">
+                            <div className="flex justify-between items-center mb-1">
+                                <span className="text-sm text-slate-300">המלצה:</span>
+                                <span className="font-bold">{STORAGE_OPPORTUNITY.recommendation}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-slate-300">חיסכון משוער ללקוח:</span>
+                                <span className="font-bold text-green-400">{STORAGE_OPPORTUNITY.potentialSaving}</span>
+                            </div>
+                        </div>
+
+                        <button className="w-full bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-bold py-3 rounded-xl transition-colors flex justify-center items-center gap-2 shadow-lg shadow-yellow-500/20">
+                            שלח הצעה ושריין עמלה (₪{STORAGE_OPPORTUNITY.commission})
+                            <Icons.ChevronRight className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const ProfileView = () => (
+            <div className="p-5 pb-24">
+                <div className="flex items-center gap-4 mb-8">
+                    <div className="w-16 h-16 bg-gradient-to-tr from-slate-200 to-white rounded-full flex items-center justify-center text-2xl font-bold text-slate-500 shadow-inner">
+                        ד
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-bold">דניאל כהן</h2>
+                        <div className="flex items-center gap-1 text-yellow-500">
+                            <Icons.Star className="fill-current w-4 h-4" />
+                            <span className="font-bold">4.9</span>
+                            <span className="text-slate-400 text-sm">(128 עבודות)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 text-center">
+                        <span className="text-slate-400 text-xs block mb-1">הכנסות החודש</span>
+                        <span className="text-2xl font-bold text-slate-800">₪12,450</span>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 text-center">
+                        <span className="text-slate-400 text-xs block mb-1">שיפור תפוקה כולל</span>
+                        <span className="text-2xl font-bold text-green-600">+18%</span>
+                    </div>
+                </div>
+
+                <div className="space-y-2">
+                    <h3 className="font-bold text-slate-800 mb-2">הסמכות וציוד</h3>
+                    {['חשמלאי מוסמך', 'עבודה בגובה', 'רחפן תרמי', 'מכונת שטיפה בלחץ'].map((item, i) => (
+                        <div key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                            <span className="text-sm">{item}</span>
+                            <Icons.CheckCircle className="w-4 h-4 text-green-500" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+
+        const App = () => {
+            const [view, setView] = useState('landing');
+            const [selectedJob, setSelectedJob] = useState(null);
+
+            const handleStartApp = () => {
+                setView('home');
+            };
+
+            const handleSelectJob = (job) => {
+                setSelectedJob(job);
+                setView('activeJob');
+            };
+
+            const handleCompleteJob = () => {
+                alert("העבודה אושרה! נתונים סונכרנו למערכת Sunlytics.");
+                setSelectedJob(null);
+                setView('home');
+            };
+
+            if (view === 'landing') {
+                return <LandingPage onStart={handleStartApp} />;
+            }
+
+            return (
+                <div className="min-h-screen bg-slate-50 font-sans text-slate-900" dir="rtl">
+                    <Header view={view} goBack={() => setView('home')} />
+
+                    <main className="max-w-md mx-auto bg-white min-h-screen shadow-2xl overflow-hidden relative">
+                        
+                        {view === 'home' && (
+                            <div className="p-4 pb-24">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="font-bold text-lg">קריאות פתוחות באזורך</h2>
+                                    <button className="text-sm text-blue-600 font-medium">סנן תוצאות</button>
+                                </div>
+                                
+                                {MOCK_JOBS.map(job => (
+                                    <JobCard key={job.id} job={job} onSelect={handleSelectJob} />
+                                ))}
+                            </div>
+                        )}
+
+                        {view === 'activeJob' && selectedJob && (
+                            <ActiveJobView 
+                                job={selectedJob} 
+                                onComplete={handleCompleteJob}
+                            />
+                        )}
+
+                        {view === 'upsell' && <StorageUpsell />}
+                        {view === 'profile' && <ProfileView />}
+                        {view === 'wallet' && (
+                            <div className="p-10 text-center text-slate-400">
+                                <Icons.DollarSign className="w-16 h-16 mx-auto mb-4 opacity-20" />
+                                <h3 className="text-xl font-bold mb-2">ארנק דיגיטלי</h3>
+                                <p>כאן יופיעו היסטוריית התשלומים והמשיכות שלך.</p>
+                            </div>
+                        )}
+
+                    </main>
+
+                    <BottomNav currentView={view} setView={(v) => {
+                        if(view === 'activeJob' && v !== 'activeJob') {
+                            if(confirm("לצאת ממסך עבודה פעילה?")) setSelectedJob(null); else return;
+                        }
+                        setView(v);
+                        if (v === 'home') setSelectedJob(null);
+                    }} />
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
+
