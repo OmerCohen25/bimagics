@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sunlytics Pro | הדור הבא של ניהול אנרגיה</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Icons (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body { font-family: 'Assistant', sans-serif; scroll-behavior: smooth; }
+        .font-rubik { font-family: 'Rubik', sans-serif; }
+        .gradient-text { background-clip: text; -webkit-background-clip: text; color: transparent; background-image: linear-gradient(to right, #2563eb, #0ea5e9); }
+        .hero-bg { background: radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.05) 0%, rgba(255, 255, 255, 0) 50%); }
+        .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); }
+        .tech-grid { background-image: linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px); background-size: 20px 20px; }
+        
+        /* Custom Animations */
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- Icons Component Wrapper ---
+        const Icon = ({ name, size = 24, className }) => {
+            useEffect(() => { lucide.createIcons(); }, [name]);
+            return <i data-lucide={name} width={size} height={size} className={className}></i>;
+        };
+
+        // --- Components ---
+
+        const Navbar = () => (
+            <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+                <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="bg-blue-600 text-white p-1.5 rounded-lg"><Icon name="sun" size={20} /></div>
+                        <span className="text-xl font-bold font-rubik tracking-tight text-slate-800">Sunlytics <span className="text-blue-600">Pro</span></span>
+                    </div>
+                    <div className="hidden md:flex gap-8 text-sm font-medium text-slate-600">
+                        <a href="#features" className="hover:text-blue-600 transition-colors">יכולות</a>
+                        <a href="#tech" className="hover:text-blue-600 transition-colors">טכנולוגיה</a>
+                        <a href="#vision" className="hover:text-blue-600 transition-colors">חזון ועתיד</a>
+                        <a href="#demo" className="hover:text-blue-600 transition-colors">הדגמה חיה</a>
+                    </div>
+                    <button className="bg-slate-900 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-slate-800 transition-all shadow-lg shadow-slate-200/50">
+                        כניסה למערכת
+                    </button>
+                </div>
+            </nav>
+        );
+
+        const Hero = () => (
+            <header className="pt-32 pb-20 relative overflow-hidden hero-bg">
+                <div className="container mx-auto px-6 text-center relative z-10">
+                    <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-xs font-bold mb-8 border border-blue-100 animate-bounce">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                        </span>
+                        חדש: מנוע Sentinel לזיהוי תקלות אוטומטי
+                    </div>
+                    <h1 className="text-5xl md:text-7xl font-black text-slate-900 mb-6 leading-tight tracking-tight">
+                        הופכים שמש <br/> <span className="gradient-text">לרווח נקי וחכם</span>
+                    </h1>
+                    <p className="text-xl md:text-2xl text-slate-500 max-w-3xl mx-auto mb-10 leading-relaxed font-light">
+                        פלטפורמת SaaS אוטונומית לניהול נכסים סולאריים.<br/>
+                        משלבת BigQuery ML, זיהוי תקלות בזמן אמת, וניהול טכנאים - הכל במקום אחד.
+                    </p>
+                    <div className="flex flex-col md:flex-row justify-center gap-4">
+                        <a href="#demo" className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/30 flex items-center justify-center gap-2">
+                            <Icon name="play-circle" /> נסה את הסימולטור
+                        </a>
+                        <button className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all flex items-center justify-center gap-2">
+                            <Icon name="phone-call" /> דבר עם מומחה
+                        </button>
+                    </div>
+                </div>
+                
+                {/* Abstract Background Elements */}
+                <div className="absolute top-1/2 left-10 w-64 h-64 bg-yellow-400/10 rounded-full blur-3xl -z-10 animate-float"></div>
+                <div className="absolute bottom-0 right-10 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl -z-10 animate-float" style={{animationDelay: '1s'}}></div>
+            </header>
+        );
+
+        // --- Interactive Demo Section ---
+        const LiveDemo = () => {
+            const [status, setStatus] = useState('idle'); // idle, scanning, result
+            const [logs, setLogs] = useState([]);
+            
+            const runScan = () => {
+                setStatus('scanning');
+                setLogs([]);
+                const steps = [
+                    "מתחבר ל-SolarEdge API...",
+                    "מושך נתוני טלמטריה (15 דקות אחרונות)...",
+                    "מפעיל מודל BigQuery ML...",
+                    "בודק חריגות מתח (Sentinel)...",
+                    "מחשב ציון ביצועים משוקלל..."
+                ];
+                
+                steps.forEach((step, i) => {
+                    setTimeout(() => {
+                        setLogs(prev => [...prev, step]);
+                        if (i === steps.length - 1) setStatus('result');
+                    }, (i + 1) * 800);
+                });
+            };
+
+            return (
+                <section id="demo" className="py-20 bg-white">
+                    <div className="container mx-auto px-6">
+                        <div className="bg-slate-900 rounded-3xl p-1 overflow-hidden shadow-2xl shadow-slate-900/20 max-w-5xl mx-auto">
+                            <div className="bg-slate-800 p-4 flex items-center justify-between border-b border-slate-700">
+                                <div className="flex gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                </div>
+                                <div className="text-slate-400 text-sm font-mono flex items-center gap-2">
+                                    <Icon name="lock" size={12} /> sunlytics-core.app / sentinel-engine
+                                </div>
+                            </div>
+                            
+                            <div className="p-8 md:p-12 min-h-[500px] flex flex-col items-center justify-center text-center relative overflow-hidden">
+                                {status === 'idle' && (
+                                    <div className="animate-in fade-in zoom-in duration-500">
+                                        <div className="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-400">
+                                            <Icon name="cpu" size={40} />
+                                        </div>
+                                        <h3 className="text-3xl font-bold text-white mb-4">המנוע מוכן לסריקה</h3>
+                                        <p className="text-slate-400 mb-8 max-w-md mx-auto">
+                                            לחץ להפעלת סריקת עומק (Deep Scan) על אתר דמו. המערכת תבצע אנליזה מלאה בזמן אמת.
+                                        </p>
+                                        <button onClick={runScan} className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-900/50 flex items-center gap-3 mx-auto">
+                                            <Icon name="zap" /> הפעל סריקה
+                                        </button>
+                                    </div>
+                                )}
+
+                                {status === 'scanning' && (
+                                    <div className="w-full max-w-lg text-left font-mono text-sm">
+                                        {logs.map((log, i) => (
+                                            <div key={i} className="mb-2 flex items-center gap-3 text-green-400 animate-in slide-in-from-left-4 fade-in duration-300">
+                                                <Icon name="check" size={14} /> {log}
+                                            </div>
+                                        ))}
+                                        <div className="mt-4 flex items-center gap-2 text-slate-500">
+                                            <div className="w-2 h-2 bg-slate-500 rounded-full animate-pulse"></div> מעבד נתונים...
+                                        </div>
+                                    </div>
+                                )}
+
+                                {status === 'result' && (
+                                    <div className="w-full text-left animate-in fade-in zoom-in duration-500">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                                            <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                                                <div className="text-slate-400 text-xs uppercase font-bold mb-2">ציון ביצועים (AI)</div>
+                                                <div className="text-4xl font-black text-green-400">98.5%</div>
+                                                <div className="text-xs text-slate-500 mt-2">תואם למודל החיזוי</div>
+                                            </div>
+                                            <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                                                <div className="text-slate-400 text-xs uppercase font-bold mb-2">ייצור נוכחי</div>
+                                                <div className="text-4xl font-black text-white">45.2 <span className="text-lg text-slate-500">kW</span></div>
+                                                <div className="text-xs text-green-500 mt-2">▲ 12% ביחס לאתמול</div>
+                                            </div>
+                                            <div className="bg-red-500/10 p-6 rounded-2xl border border-red-500/20 relative overflow-hidden">
+                                                <div className="absolute -right-4 -top-4 bg-red-500/20 w-20 h-20 rounded-full blur-xl"></div>
+                                                <div className="text-red-400 text-xs uppercase font-bold mb-2 flex items-center gap-2"><Icon name="alert-triangle" size={14}/> התראות Sentinel</div>
+                                                <div className="text-white font-bold mb-1">חוסר איזון פאזות</div>
+                                                <div className="text-xs text-slate-400">זוהתה סטייה של 28% בממיר 3</div>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-center mt-8">
+                                            <button onClick={() => setStatus('idle')} className="text-slate-400 hover:text-white text-sm flex items-center gap-2">
+                                                <Icon name="rotate-ccw" size={16} /> סריקה חדשה
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        // --- Tech Stack Section ---
+        const TechStack = () => (
+            <section id="tech" className="py-24 bg-slate-50 tech-grid">
+                <div className="container mx-auto px-6">
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl font-bold text-slate-900 mb-4">ארכיטקטורת Cloud-Native</h2>
+                        <p className="text-slate-600 max-w-2xl mx-auto">
+                            המערכת נבנתה על גבי Google Cloud Platform כדי לספק סקיילביליות אינסופית, אבטחה ברמה צבאית וביצועים בזמן אמת.
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        {[
+                            { icon: 'database', title: 'BigQuery ML', desc: 'אימון מודלים וחיזוי תפוקה על בסיס שנים של היסטוריה ומזג אוויר.' },
+                            { icon: 'server', title: 'Serverless Core', desc: 'Cloud Run & Cloud Functions מבטיחים שהמערכת תמיד זמינה וללא תחזוקת שרתים.' },
+                            { icon: 'shield-check', title: 'The Sentinel', desc: 'מנוע חוקים דטרמיניסטי לזיהוי תקלות חומרה (DC Voltage, Heat).' },
+                            { icon: 'cpu', title: 'Smart Workers', desc: 'מערך Cloud Tasks לניהול עומסים חכם וטיפול ב-Rate Limits של היצרנים.' }
+                        ].map((item, i) => (
+                            <div key={i} className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg transition-all hover:-translate-y-1">
+                                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-6">
+                                    <Icon name={item.icon} />
+                                </div>
+                                <h3 className="font-bold text-lg mb-3 text-slate-800">{item.title}</h3>
+                                <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+        );
+
+        // --- Vision Section ---
+        const Vision = () => (
+            <section id="vision" className="py-24 bg-white overflow-hidden">
+                <div className="container mx-auto px-6">
+                    <div className="flex flex-col lg:flex-row items-center gap-16">
+                        <div className="lg:w-1/2">
+                            <h2 className="text-4xl font-black text-slate-900 mb-6 leading-tight">
+                                מעבר לניטור.<br/>
+                                <span className="gradient-text">מערכת הפעלה סולארית.</span>
+                            </h2>
+                            <p className="text-lg text-slate-600 mb-8 leading-relaxed">
+                                אנחנו לא בונים עוד דשבורד. אנחנו בונים את המוח שינהל את האנרגיה של המחר. מצוות של שני מפתחים למכונה אוטונומית שמנהלת ג'יגה-וואטים.
+                            </p>
+                            
+                            <div className="space-y-6">
+                                {[
+                                    { title: "עצמאות בחומרה", text: "פיתוח מונה חכם עצמאי לניתוק התלות ב-API של היצרנים." },
+                                    { title: "ניהול אגירה חכם", text: "אלגוריתמים לטעינה ופריקה של סוללות מבוססי מחירי חשמל (תעו\"ז)." },
+                                    { title: "שירות אוטונומי", text: "הזמנת טכנאי (Uber for Solar) אוטומטית ברגע שמתגלה תקלה." },
+                                    { title: "Omnichannel", text: "התראות חכמות בוואטסאפ, טלגרם וסלאק למנהלי ציים." }
+                                ].map((item, i) => (
+                                    <div key={i} className="flex gap-4">
+                                        <div className="mt-1 bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center shrink-0 font-bold text-xs">{i+1}</div>
+                                        <div>
+                                            <h4 className="font-bold text-slate-800">{item.title}</h4>
+                                            <p className="text-sm text-slate-500">{item.text}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <div className="lg:w-1/2 relative">
+                            {/* Graphic Representation of Future */}
+                            <div className="relative z-10 bg-slate-900 rounded-3xl p-8 shadow-2xl text-white transform rotate-2 hover:rotate-0 transition-transform duration-500">
+                                <div className="absolute top-0 right-0 p-4 opacity-10"><Icon name="cpu" size={120} /></div>
+                                <h3 className="text-2xl font-bold mb-6">Sunlytics Roadmap</h3>
+                                <div className="space-y-4">
+                                    <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex justify-between items-center">
+                                        <span>אינטגרציה ל-Huawei & SMA</span>
+                                        <span className="bg-green-500/20 text-green-400 text-xs px-2 py-1 rounded">Q2 2025</span>
+                                    </div>
+                                    <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex justify-between items-center">
+                                        <span>מודול ניהול אגירה (Battery)</span>
+                                        <span className="bg-blue-500/20 text-blue-400 text-xs px-2 py-1 rounded">Q3 2025</span>
+                                    </div>
+                                    <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex justify-between items-center">
+                                        <span>Marketplace לטכנאים</span>
+                                        <span className="bg-purple-500/20 text-purple-400 text-xs px-2 py-1 rounded">Q4 2025</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="absolute inset-0 bg-blue-600 blur-3xl opacity-20 -z-10 rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        );
+
+        // --- Pricing/Business Model ---
+        const BusinessModel = () => (
+            <section className="py-24 bg-slate-50">
+                <div className="container mx-auto px-6 text-center">
+                    <h2 className="text-3xl font-bold text-slate-900 mb-4">מודל SaaS פשוט ושקוף</h2>
+                    <p className="text-slate-600 mb-16 max-w-xl mx-auto">
+                        שלם לפי גודל המערכת. החזר השקעה (ROI) מוכח מהחודש הראשון על ידי מניעת הפסדי ייצור.
+                    </p>
+                    
+                    <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                        {[
+                            { name: "Basic", price: "₪19", unit: "לחודש / אתר", features: ["ניטור זמן אמת", "דוחות חודשיים", "התראות במייל"] },
+                            { name: "Pro", price: "₪49", unit: "לחודש / אתר", featured: true, features: ["כל מה שב-Basic", "מנוע Sentinel לתקלות", "חיזוי AI (The Brain)", "בוט טלגרם אישי"] },
+                            { name: "Enterprise", price: "מותאם", unit: "לניהול ציים", features: ["API פתוח", "ניהול הרשאות מתקדם", "SLA מובטח", "אינטגרציה למערכות ERP"] }
+                        ].map((plan, i) => (
+                            <div key={i} className={`relative bg-white rounded-2xl p-8 border ${plan.featured ? 'border-blue-600 shadow-xl scale-105 z-10' : 'border-slate-100 shadow-sm'}`}>
+                                {plan.featured && <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold">הכי משתלם</div>}
+                                <h3 className="text-xl font-bold text-slate-800 mb-2">{plan.name}</h3>
+                                <div className="text-4xl font-black text-slate-900 mb-1">{plan.price}</div>
+                                <div className="text-xs text-slate-500 mb-8">{plan.unit}</div>
+                                <ul className="space-y-4 mb-8 text-right">
+                                    {plan.features.map((f, j) => (
+                                        <li key={j} className="flex items-center gap-3 text-sm text-slate-600">
+                                            <Icon name="check" size={16} className="text-green-500" /> {f}
+                                        </li>
+                                    ))}
+                                </ul>
+                                <button className={`w-full py-3 rounded-xl font-bold transition-colors ${plan.featured ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-100 text-slate-800 hover:bg-slate-200'}`}>
+                                    התחל ניסיון חינם
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+        );
+
+        const Footer = () => (
+            <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
+                <div className="container mx-auto px-6">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                        <div className="flex items-center gap-2">
+                            <div className="bg-blue-600 text-white p-1.5 rounded-lg"><Icon name="sun" size={16} /></div>
+                            <span className="text-lg font-bold text-white">Sunlytics Pro</span>
+                        </div>
+                        <div className="text-sm">
+                            © 2025 כל הזכויות שמורות. פותח ע"י צוות הפיתוח של Sunlytics.
+                        </div>
+                        <div className="flex gap-4">
+                            <a href="#" className="hover:text-white transition-colors"><Icon name="linkedin" /></a>
+                            <a href="#" className="hover:text-white transition-colors"><Icon name="twitter" /></a>
+                            <a href="#" className="hover:text-white transition-colors"><Icon name="github" /></a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        );
+
+        const App = () => {
+            return (
+                <div className="min-h-screen">
+                    <Navbar />
+                    <Hero />
+                    <Features />
+                    <LiveDemo />
+                    <TechStack />
+                    <Vision />
+                    <BusinessModel />
+                    <Footer />
+                </div>
+            );
+        };
+
+        const Features = () => (
+            <section id="features" className="py-20 container mx-auto px-6">
+                <div className="text-center max-w-3xl mx-auto mb-16">
+                    <h2 className="text-3xl font-bold text-slate-900 mb-4">למה Sunlytics?</h2>
+                    <p className="text-slate-600">
+                        רוב מערכות הניטור מראות לך גרפים יפים. אנחנו מראים לך איפה אתה מפסיד כסף.
+                        המערכת שלנו משלבת בינה מלאכותית עם הבנה פיזיקלית עמוקה של השדה הסולארי.
+                    </p>
+                </div>
+                <div className="grid md:grid-cols-3 gap-8">
+                    {[
+                        { title: "זיהוי תקלות מדויק", icon: "activity", text: "אל תמתין לחשבונית כדי לגלות שממיר אחד לא עבד. המערכת מזהה ירידות מתח והתחממות בזמן אמת." },
+                        { title: "חיזוי פיננסי", icon: "trending-up", text: "השווה את הייצור בפועל למודל התיאורטי. דע בדיוק כמה כסף המערכת הייתה אמורה לייצר היום." },
+                        { title: "ניהול מרובה יצרנים", icon: "layers", text: "SolarEdge, Sungrow, Huawei - הכל בדשבורד אחד אחיד. מושלם לאינטגרטורים." }
+                    ].map((f, i) => (
+                        <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                            <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4">
+                                <Icon name={f.icon} />
+                            </div>
+                            <h3 className="font-bold text-lg mb-2">{f.title}</h3>
+                            <p className="text-slate-500 text-sm leading-relaxed">{f.text}</p>
+                        </div>
+                    ))}
+                </div>
+            </section>
+        );
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
