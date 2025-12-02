@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SatVision AI - מערכת סיווג לווייני</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@200;400;700&family=Share+Tech+Mono&display=swap');
+
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-green: #0aff00;
+            --neon-red: #ff0055;
+            --bg-dark: #050b14;
+            --panel-bg: rgba(16, 24, 39, 0.8);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #e2e8f0;
+            font-family: 'Assistant', sans-serif;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 243, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 85, 0.05) 0%, transparent 20%);
+        }
+
+        .tech-font {
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border-radius: 12px;
+        }
+
+        .canvas-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            transition: all 0.3s ease;
+        }
+
+        .canvas-container:hover {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-blue);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .scanning .scan-line {
+            animation: scan 2s linear infinite;
+            opacity: 0.8;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+
+        .btn-cyber {
+            background: linear-gradient(45deg, transparent 5%, var(--neon-blue) 5%);
+            color: #000;
+            font-weight: bold;
+            box-shadow: 6px 0px 0px #00c2cc;
+            transition: all 0.2s;
+        }
+
+        .btn-cyber:hover {
+            box-shadow: 2px 0px 0px #00c2cc;
+            transform: translateX(4px);
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            backdrop-filter: blur(5px);
+        }
+
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 3px solid #FFF;
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+        .loader::after {
+            content: '';  
+            box-sizing: border-box;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-bottom-color: var(--neon-blue);
+        }
+        
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Tooltip style for pixel inspector */
+        #inspector {
+            position: fixed;
+            pointer-events: none;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid var(--neon-green);
+            padding: 10px;
+            border-radius: 4px;
+            z-index: 100;
+            display: none;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
+        <div>
+            <h1 class="text-4xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-l from-blue-400 to-cyan-300">
+                <i class="fas fa-satellite text-white mr-3"></i>SatVision AI
+            </h1>
+            <p class="text-gray-400 mt-1 tech-font text-sm">MULTI-SPECTRAL ANALYSIS // END-TO-END PIPELINE</p>
+        </div>
+        <div class="flex gap-4">
+            <button onclick="generateData()" class="px-6 py-2 bg-gray-800 border border-gray-600 hover:border-white transition rounded text-sm uppercase tracking-widest">
+                <i class="fas fa-random ml-2"></i> צור דאטה סינתטי
+            </button>
+            <label class="btn-cyber px-8 py-2 cursor-pointer inline-flex items-center">
+                <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+                <i class="fas fa-upload ml-2"></i> טען תצלום לוויין
+            </label>
+        </div>
+    </header>
+
+    <!-- Main Grid -->
+    <main class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Column: Visualizations -->
+        <div class="lg:col-span-9 grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <!-- RGB Input -->
+            <div class="glass-panel p-4 relative group">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-neon-blue tech-font"><i class="fas fa-eye ml-2"></i>RGB (Visible)</h3>
+                    <span class="text-xs bg-blue-900 px-2 py-1 rounded">Source</span>
+                </div>
+                <div class="canvas-container aspect-square" id="container-rgb">
+                    <div class="scan-line"></div>
+                    <canvas id="canvasRGB" class="w-full h-full object-cover cursor-crosshair"></canvas>
+                    <div id="overlay-rgb" class="loading-overlay hidden">
+                        <span class="loader"></span>
+                        <span class="mt-4 tech-font text-xs">LOADING SATELLITE FEED...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simulated NIR -->
+            <div class="glass-panel p-4 relative">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-red-400 tech-font"><i class="fas fa-temperature-low ml-2"></i>Near Infrared (NIR)</h3>
+                    <span class="text-xs bg-red-900 px-2 py-1 rounded">Simulated</span>
+                </div>
+                <div class="canvas-container aspect-square" id="container-nir">
+                    <div class="scan-line"></div>
+                    <canvas id="canvasNIR" class="w-full h-full object-cover cursor-crosshair"></canvas>
+                </div>
+            </div>
+
+            <!-- NDVI Calculation -->
+            <div class="glass-panel p-4 relative">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-green-400 tech-font"><i class="fas fa-leaf ml-2"></i>NDVI Index</h3>
+                    <span class="text-xs bg-green-900 px-2 py-1 rounded">Math</span>
+                </div>
+                <div class="canvas-container aspect-square" id="container-ndvi">
+                    <div class="scan-line"></div>
+                    <canvas id="canvasNDVI" class="w-full h-full object-cover cursor-crosshair"></canvas>
+                </div>
+            </div>
+
+            <!-- AI Classification -->
+            <div class="glass-panel p-4 relative">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-yellow-400 tech-font"><i class="fas fa-brain ml-2"></i>Material Class (AI)</h3>
+                    <span class="text-xs bg-yellow-900 px-2 py-1 rounded">Inference</span>
+                </div>
+                <div class="canvas-container aspect-square" id="container-class">
+                    <div class="scan-line"></div>
+                    <canvas id="canvasClass" class="w-full h-full object-cover cursor-crosshair"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Analysis & Stats -->
+        <div class="lg:col-span-3 space-y-6">
+            
+            <!-- Status Panel -->
+            <div class="glass-panel p-6">
+                <h3 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">ניתוח מערכת</h3>
+                <div class="space-y-3 tech-font text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">STATUS:</span>
+                        <span class="text-green-400" id="sysStatus">STANDBY</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">RESOLUTION:</span>
+                        <span id="resValue">0.5m/px</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">MODEL:</span>
+                        <span class="text-blue-300">ResNet-Sim-v4</span>
+                    </div>
+                    <div class="mt-4 pt-2 border-t border-gray-700">
+                        <button onclick="runPipeline()" id="runBtn" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed">
+                            הרץ עיבוד (RUN PIPELINE)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Material Distribution -->
+            <div class="glass-panel p-6">
+                <h3 class="text-lg font-bold mb-4">התפלגות חומרים</h3>
+                <canvas id="chartMaterials" height="200"></canvas>
+                
+                <div class="mt-4 space-y-2 text-xs">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span>צמחייה (Vegetation)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <span>מקורות מים (Water)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 bg-gray-400 rounded-full"></div>
+                        <span>בינוי/בטון (Built-up)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 bg-yellow-700 rounded-full"></div>
+                        <span>קרקע חשופה (Soil)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs -->
+            <div class="glass-panel p-4 h-48 overflow-y-auto text-xs tech-font" id="logs">
+                <div class="text-gray-500">> System initialized...</div>
+                <div class="text-gray-500">> Awaiting input...</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Pixel Inspector Tooltip -->
+    <div id="inspector" class="tech-font">
+        <div class="text-xs text-gray-400 mb-1">PIXEL DATA</div>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+            <span class="text-red-400">R: <span id="insp-r">0</span></span>
+            <span class="text-green-400">G: <span id="insp-g">0</span></span>
+            <span class="text-blue-400">B: <span id="insp-b">0</span></span>
+            <span class="text-purple-400">NIR: <span id="insp-nir">0</span></span>
+            <span class="col-span-2 text-white border-t border-gray-700 mt-1 pt-1">NDVI: <span id="insp-ndvi">0.00</span></span>
+            <span class="col-span-2 text-yellow-300 font-bold" id="insp-class">UNKNOWN</span>
+        </div>
+    </div>
+
+    <script>
+        // --- Core Variables ---
+        const canvasRGB = document.getElementById('canvasRGB');
+        const canvasNIR = document.getElementById('canvasNIR');
+        const canvasNDVI = document.getElementById('canvasNDVI');
+        const canvasClass = document.getElementById('canvasClass');
+        
+        const ctxRGB = canvasRGB.getContext('2d', { willReadFrequently: true });
+        const ctxNIR = canvasNIR.getContext('2d');
+        const ctxNDVI = canvasNDVI.getContext('2d');
+        const ctxClass = canvasClass.getContext('2d');
+
+        let chartInstance = null;
+        let isProcessing = false;
+
+        // --- Initialization ---
+        window.onload = function() {
+            initChart();
+            generateData(); // Start with synthetic data
+            setupInteraction();
+        };
+
+        function log(msg, type='info') {
+            const logs = document.getElementById('logs');
+            const div = document.createElement('div');
+            div.className = type === 'error' ? 'text-red-500' : type === 'success' ? 'text-neon-green' : 'text-blue-300';
+            div.innerText = `> ${msg}`;
+            logs.appendChild(div);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        // --- Data Generation (Synthetic Satellite Imagery) ---
+        function generateData() {
+            const w = 400;
+            const h = 400;
+            setCanvasSize(w, h);
+            
+            // Draw synthetic landscape
+            // 1. Soil background
+            ctxRGB.fillStyle = '#8B5A2B'; // Brown
+            ctxRGB.fillRect(0,0,w,h);
+
+            // 2. Add Perlin-ish noise for texture
+            const imageData = ctxRGB.getImageData(0,0,w,h);
+            const data = imageData.data;
+            for(let i=0; i<data.length; i+=4) {
+                const noise = (Math.random() - 0.5) * 30;
+                data[i] += noise;
+                data[i+1] += noise;
+                data[i+2] += noise;
+            }
+            ctxRGB.putImageData(imageData, 0,0);
+
+            // 3. Water body (River)
+            ctxRGB.beginPath();
+            ctxRGB.moveTo(0, 100);
+            ctxRGB.bezierCurveTo(100, 150, 200, 50, 400, 120);
+            ctxRGB.lineTo(400, 200);
+            ctxRGB.bezierCurveTo(200, 100, 100, 250, 0, 180);
+            ctxRGB.fillStyle = '#1e40af'; // Deep Blue
+            ctxRGB.fill();
+
+            // 4. Vegetation (Forest patches)
+            for(let i=0; i<8; i++) {
+                const cx = Math.random() * w;
+                const cy = Math.random() * h;
+                const r = 30 + Math.random() * 50;
+                ctxRGB.beginPath();
+                ctxRGB.arc(cx, cy, r, 0, Math.PI*2);
+                ctxRGB.fillStyle = '#166534'; // Green
+                ctxRGB.fill();
+            }
+
+            // 5. Urban Area (Concrete)
+            ctxRGB.fillStyle = '#94a3b8'; // Gray
+            ctxRGB.fillRect(250, 250, 100, 100);
+            ctxRGB.strokeStyle = '#475569';
+            ctxRGB.strokeRect(250, 250, 100, 100);
+            
+            // Add a "Building"
+            ctxRGB.fillStyle = '#cbd5e1';
+            ctxRGB.fillRect(270, 270, 40, 40);
+
+            log("Synthetic data generated successfully.");
+            runPipeline();
+        }
+
+        function setCanvasSize(w, h) {
+            [canvasRGB, canvasNIR, canvasNDVI, canvasClass].forEach(c => {
+                c.width = w;
+                c.height = h;
+            });
+        }
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    // Resize if too big for performance
+                    let w = img.width;
+                    let h = img.height;
+                    const maxDim = 600;
+                    if(w > maxDim || h > maxDim) {
+                        const ratio = Math.min(maxDim/w, maxDim/h);
+                        w *= ratio;
+                        h *= ratio;
+                    }
+                    
+                    setCanvasSize(w, h);
+                    ctxRGB.drawImage(img, 0, 0, w, h);
+                    log("Image uploaded & resized.");
+                    runPipeline();
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+
+        // --- THE CORE PIPELINE ---
+        async function runPipeline() {
+            if(isProcessing) return;
+            isProcessing = true;
+            document.getElementById('sysStatus').innerText = "PROCESSING...";
+            document.getElementById('sysStatus').className = "text-yellow-400 blink";
+            document.getElementById('runBtn').disabled = true;
+
+            // Activate scanning effect
+            document.querySelectorAll('.canvas-container').forEach(el => el.classList.add('scanning'));
+
+            // Allow UI to update before heavy lifting
+            await new Promise(r => setTimeout(r, 100));
+
+            try {
+                const w = canvasRGB.width;
+                const h = canvasRGB.height;
+                const srcData = ctxRGB.getImageData(0,0,w,h);
+                
+                const nirImg = ctxNIR.createImageData(w,h);
+                const ndviImg = ctxNDVI.createImageData(w,h);
+                const classImg = ctxClass.createImageData(w,h);
+
+                const pixels = srcData.data;
+                const nirPixels = nirImg.data;
+                const ndviPixels = ndviImg.data;
+                const classPixels = classImg.data;
+
+                // Statistics
+                let stats = { vegetation: 0, water: 0, built: 0, soil: 0 };
+
+                for(let i=0; i<pixels.length; i+=4) {
+                    const r = pixels[i];
+                    const g = pixels[i+1];
+                    const b = pixels[i+2];
+
+                    // 1. Simulate NIR Channel
+                    // Logic: Vegetation reflects High NIR. Water absorbs NIR (black).
+                    // This is a heuristic simulation since we only have RGB input.
+                    let nir;
+                    
+                    // Simple Spectral Index Simulation
+                    if (g > r && g > b) {
+                        // Looks like vegetation -> High NIR
+                        nir = Math.min(255, g * 1.8); 
+                    } else if (b > r && b > g) {
+                        // Looks like water -> Low NIR
+                        nir = b * 0.1;
+                    } else if (Math.abs(r-g) < 20 && Math.abs(g-b) < 20 && r > 100) {
+                        // Looks like concrete/gray -> Medium-High NIR
+                        nir = r * 1.1;
+                    } else {
+                        // Soil
+                        nir = r * 1.2;
+                    }
+
+                    // Write NIR Visualization (Grayscale)
+                    nirPixels[i] = nir;
+                    nirPixels[i+1] = nir;
+                    nirPixels[i+2] = nir;
+                    nirPixels[i+3] = 255;
+
+                    // 2. Calculate NDVI
+                    // Formula: (NIR - Red) / (NIR + Red)
+                    const ndvi = (nir - r) / (nir + r + 0.001); // -1 to 1
+
+                    // Visualize NDVI (Color Map: Blue->Red->Yellow->Green)
+                    let nr, ng, nb;
+                    if (ndvi < 0) { // Water
+                        nr=0; ng=0; nb=200;
+                    } else if (ndvi < 0.2) { // Soil/Built
+                        nr=180; ng=150; nb=50;
+                    } else if (ndvi < 0.5) { // Sparse veg
+                        nr=200; ng=255; nb=0;
+                    } else { // Dense veg
+                        nr=0; ng=150; nb=0;
+                    }
+                    
+                    // Heatmap effect based on value intensity
+                    ndviPixels[i] = nr;
+                    ndviPixels[i+1] = ng;
+                    ndviPixels[i+2] = nb;
+                    ndviPixels[i+3] = 255;
+
+                    // 3. Classification (Rule Based / Decision Tree)
+                    let matR=0, matG=0, matB=0;
+                    
+                    if (ndvi > 0.35) {
+                        // Vegetation
+                        matR=34; matG=197; matB=94; // Green
+                        stats.vegetation++;
+                    } else if (ndvi < 0 && b > g) {
+                        // Water
+                        matR=59; matG=130; matB=246; // Blue
+                        stats.water++;
+                    } else if (r > 100 && g > 100 && b > 100 && ndvi < 0.1) {
+                        // Built-up (Bright & low NDVI)
+                        matR=148; matG=163; matB=184; // Gray
+                        stats.built++;
+                    } else {
+                        // Soil
+                        matR=161; matG=98; matB=7; // Brown
+                        stats.soil++;
+                    }
+
+                    classPixels[i] = matR;
+                    classPixels[i+1] = matG;
+                    classPixels[i+2] = matB;
+                    classPixels[i+3] = 255;
+                }
+
+                // Update Canvases
+                ctxNIR.putImageData(nirImg, 0, 0);
+                ctxNDVI.putImageData(ndviImg, 0, 0);
+                ctxClass.putImageData(classImg, 0, 0);
+
+                updateChart(stats);
+                log("Pipeline execution complete.", 'success');
+
+            } catch (err) {
+                console.error(err);
+                log("Error in processing pipeline.", 'error');
+            } finally {
+                isProcessing = false;
+                document.querySelectorAll('.canvas-container').forEach(el => el.classList.remove('scanning'));
+                document.getElementById('sysStatus').innerText = "ONLINE";
+                document.getElementById('sysStatus').className = "text-green-400";
+                document.getElementById('runBtn').disabled = false;
+            }
+        }
+
+        // --- Interaction & Inspector ---
+        function setupInteraction() {
+            const containers = [
+                document.getElementById('container-rgb'),
+                document.getElementById('container-nir'),
+                document.getElementById('container-ndvi'),
+                document.getElementById('container-class')
+            ];
+            
+            const inspector = document.getElementById('inspector');
+
+            const handleMove = (e) => {
+                if(!canvasRGB.width) return;
+                
+                const rect = e.target.getBoundingClientRect();
+                const scaleX = canvasRGB.width / rect.width;
+                const scaleY = canvasRGB.height / rect.height;
+
+                const x = Math.floor((e.clientX - rect.left) * scaleX);
+                const y = Math.floor((e.clientY - rect.top) * scaleY);
+
+                if(x < 0 || y < 0 || x >= canvasRGB.width || y >= canvasRGB.height) return;
+
+                // Get Data
+                const pRGB = ctxRGB.getImageData(x,y,1,1).data;
+                const pNIR = ctxNIR.getImageData(x,y,1,1).data; // Using Red channel of NIR vis as value
+                
+                const r = pRGB[0], g = pRGB[1], b = pRGB[2];
+                const nir = pNIR[0];
+                const ndvi = ((nir - r) / (nir + r + 0.001)).toFixed(2);
+                
+                // Identify Class
+                let label = "SOIL";
+                if(ndvi > 0.35) label = "VEGETATION";
+                else if(ndvi < 0 && b > g) label = "WATER";
+                else if(r > 100 && ndvi < 0.1) label = "BUILT-UP";
+
+                // Update UI
+                inspector.style.display = 'block';
+                inspector.style.left = (e.clientX + 15) + 'px';
+                inspector.style.top = (e.clientY + 15) + 'px';
+
+                document.getElementById('insp-r').innerText = r;
+                document.getElementById('insp-g').innerText = g;
+                document.getElementById('insp-b').innerText = b;
+                document.getElementById('insp-nir').innerText = nir;
+                document.getElementById('insp-ndvi').innerText = ndvi;
+                document.getElementById('insp-class').innerText = label;
+
+                // Optional: Sync cursor on other canvases (complex to implement perfectly in vanilla JS without lag, skipped for smoothness)
+            };
+
+            containers.forEach(c => {
+                c.addEventListener('mousemove', handleMove);
+                c.addEventListener('mouseleave', () => inspector.style.display = 'none');
+            });
+        }
+
+        // --- Charts ---
+        function initChart() {
+            const ctx = document.getElementById('chartMaterials').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Vegetation', 'Water', 'Built-up', 'Soil'],
+                    datasets: [{
+                        data: [1, 1, 1, 1],
+                        backgroundColor: ['#22c55e', '#3b82f6', '#94a3b8', '#a16207'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function updateChart(stats) {
+            const total = stats.vegetation + stats.water + stats.built + stats.soil;
+            chartInstance.data.datasets[0].data = [
+                ((stats.vegetation/total)*100).toFixed(1),
+                ((stats.water/total)*100).toFixed(1),
+                ((stats.built/total)*100).toFixed(1),
+                ((stats.soil/total)*100).toFixed(1)
+            ];
+            chartInstance.update();
+        }
+    </script>
+</body>
+</html>
