@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>טפח-נט | מערכת ניהול טיפולים לרק"ם</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Heebo', sans-serif;
+            background-color: #1a202c; /* Dark Theme Base */
+            color: #e2e8f0;
+        }
+
+        /* Military / Tank Vibe Colors */
+        .bg-army { background-color: #4a5d23; }
+        .text-army { color: #84a98c; }
+        .border-army { border-color: #4a5d23; }
+        
+        .bg-sand { background-color: #d4c5a9; color: #2d3748; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #2d3748; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a5d23; 
+            border-radius: 4px;
+        }
+
+        /* Animations */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .status-checkbox:checked + div {
+            background-color: #4a5d23;
+            border-color: #84a98c;
+            color: white;
+        }
+
+        .tab-active {
+            border-bottom: 3px solid #84a98c;
+            color: #84a98c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- App State Container (Hidden Logic) -->
+    <div id="app-data" data-session="" data-user=""></div>
+
+    <!-- NOTIFICATION TOAST -->
+    <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-gray-800 border border-green-500 text-white px-6 py-3 rounded-full shadow-2xl z-50 hidden transition-all duration-300">
+        <i class="fas fa-check-circle ml-2 text-green-400"></i>
+        <span id="toast-msg">הודעה</span>
+    </div>
+
+    <!-- ================= VIEW 1: LOGIN / LANDING ================= -->
+    <div id="view-login" class="flex-1 flex flex-col items-center justify-center p-4 fade-in">
+        <div class="text-center mb-8">
+            <div class="inline-block p-4 rounded-full bg-army mb-4 shadow-lg ring-4 ring-gray-700">
+                <i class="fas fa-tank text-4xl text-white"></i>
+            </div>
+            <h1 class="text-4xl font-black text-gray-100 tracking-wider">טפח-נט</h1>
+            <p class="text-gray-400 text-sm mt-2">מערכת ניהול אחזקה לרק"ם</p>
+        </div>
+
+        <div class="bg-gray-800 p-6 rounded-xl shadow-xl w-full max-w-sm border border-gray-700">
+            <!-- Name Input -->
+            <div class="mb-6">
+                <label class="block text-gray-400 text-xs font-bold mb-2">שם מלא / כינוי</label>
+                <input type="text" id="username-input" class="w-full bg-gray-900 border border-gray-600 rounded p-3 text-white focus:outline-none focus:border-army transition" placeholder="למשל: דני הנהג">
+            </div>
+
+            <!-- Role Selection -->
+            <div class="mb-6">
+                <label class="block text-gray-400 text-xs font-bold mb-2">תפקיד בצוות</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="selectRole('מט״ק')" class="role-btn p-2 rounded bg-gray-700 hover:bg-gray-600 text-sm transition" data-role="מט״ק">מט״ק 👑</button>
+                    <button onclick="selectRole('תותחן')" class="role-btn p-2 rounded bg-gray-700 hover:bg-gray-600 text-sm transition" data-role="תותחן">תותחן 🎯</button>
+                    <button onclick="selectRole('טען')" class="role-btn p-2 rounded bg-gray-700 hover:bg-gray-600 text-sm transition" data-role="טען">טען 💪</button>
+                    <button onclick="selectRole('נהג')" class="role-btn p-2 rounded bg-gray-700 hover:bg-gray-600 text-sm transition" data-role="נהג">נהג 🚜</button>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <button onclick="createSession()" class="w-full bg-army hover:bg-green-700 text-white font-bold py-3 rounded shadow-lg transition flex justify-center items-center gap-2">
+                    <i class="fas fa-plus"></i> צור טיפול חדש
+                </button>
+                
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-gray-600"></div>
+                    <span class="flex-shrink mx-4 text-gray-500 text-xs">או הצטרף לקיים</span>
+                    <div class="flex-grow border-t border-gray-600"></div>
+                </div>
+
+                <div class="flex gap-2">
+                    <input type="text" id="session-code-input" class="flex-1 bg-gray-900 border border-gray-600 rounded p-3 text-center tracking-widest uppercase font-mono" placeholder="קוד טיפול">
+                    <button onclick="joinSession()" class="bg-gray-700 hover:bg-gray-600 text-white px-6 rounded font-bold transition">
+                        הצטרף
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <p class="mt-8 text-gray-500 text-xs text-center max-w-xs">
+            טיפ: פתח את הדף בטאב נוסף כדי לדמות משתמש אחר בצוות. הסנכרון הוא אוטומטי.
+        </p>
+    </div>
+
+    <!-- ================= VIEW 2: DASHBOARD ================= -->
+    <div id="view-dashboard" class="flex-1 flex flex-col hidden fade-in h-full">
+        
+        <!-- Top Bar -->
+        <header class="bg-gray-800 border-b border-gray-700 p-3 shadow-md flex justify-between items-center z-10">
+            <div class="flex items-center gap-3">
+                <div class="bg-army w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shadow">
+                    <i class="fas fa-tank"></i>
+                </div>
+                <div>
+                    <h2 class="font-bold text-white text-sm leading-tight">טיפול שבועי</h2>
+                    <div class="text-xs text-gray-400 flex gap-2">
+                        <span>קוד: <span id="display-code" class="font-mono text-green-400 font-bold select-all cursor-pointer"></span></span>
+                        <span>|</span>
+                        <span id="display-user"></span>
+                    </div>
+                </div>
+            </div>
+            <button onclick="logout()" class="text-red-400 hover:text-red-300 text-sm">
+                <i class="fas fa-sign-out-alt"></i> יציאה
+            </button>
+        </header>
+
+        <!-- Progress Bar -->
+        <div class="bg-gray-900 px-4 py-2">
+            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                <span>התקדמות כללית</span>
+                <span id="progress-text">0%</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-2.5">
+                <div id="progress-bar" class="bg-gradient-to-r from-green-600 to-green-400 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Alerts / Dgeshim Box -->
+        <div class="bg-yellow-900/30 border-r-4 border-yellow-600 p-3 m-2 mx-4 rounded flex items-start gap-3">
+            <i class="fas fa-exclamation-triangle text-yellow-500 mt-1"></i>
+            <div class="flex-1">
+                <h3 class="text-yellow-500 font-bold text-xs">דגשי המפקד</h3>
+                <p id="commander-notes" class="text-gray-300 text-sm mt-1" contenteditable="true" onblur="updateCommanderNotes(this.innerText)">
+                    נא לשים לב לגירוז בבוקים החיצוניים. לבדוק שמן ממסרת בזהירות, המנוע חם.
+                </p>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <nav class="flex justify-around bg-gray-800 border-b border-gray-700 text-sm sticky top-0 z-10">
+            <button onclick="filterTasks('all')" class="tab-btn tab-active py-3 flex-1 text-center" id="tab-all">הכל</button>
+            <button onclick="filterTasks('תובה')" class="tab-btn py-3 flex-1 text-center" id="tab-hull">תובה</button>
+            <button onclick="filterTasks('צריח')" class="tab-btn py-3 flex-1 text-center" id="tab-turret">צריח</button>
+            <button onclick="filterTasks('מזקום')" class="tab-btn py-3 flex-1 text-center" id="tab-tracks">מזקו״ם</button>
+        </nav>
+
+        <!-- Tasks List Area -->
+        <div id="tasks-container" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-900">
+            <!-- Dynamic Tasks Will Be Injected Here -->
+        </div>
+
+        <!-- Add Note / Floating Action -->
+        <div class="p-3 bg-gray-800 border-t border-gray-700 flex gap-2">
+            <input type="text" id="new-task-input" placeholder="הוסף משימה/ריג'קט..." class="flex-1 bg-gray-900 text-white rounded px-3 py-2 border border-gray-600 text-sm focus:outline-none focus:border-army">
+            <button onclick="addNewCustomTask()" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Logic Script -->
+    <script>
+        // --- State Management ---
+        const currentUser = {
+            name: '',
+            role: ''
+        };
+
+        let currentSessionCode = null;
+        
+        // Initial Mock Tasks Data
+        const defaultTasks = [
+            { id: 1, category: 'מזקום', title: 'בדיקת מתח זחל', status: 'pending', by: '', notes: '' },
+            { id: 2, category: 'מזקום', title: 'בדיקת ברגים בבוקים', status: 'pending', by: '', notes: '' },
+            { id: 3, category: 'תובה', title: 'מפלס שמן מנוע', status: 'pending', by: '', notes: '' },
+            { id: 4, category: 'תובה', title: 'מפלס נוזל קירור', status: 'pending', by: '', notes: '' },
+            { id: 5, category: 'תובה', title: 'ניקוז מים ממסנני דלק', status: 'pending', by: '', notes: '' },
+            { id: 6, category: 'צריח', title: 'בדיקת צידוד והגבהה (ידני)', status: 'pending', by: '', notes: '' },
+            { id: 7, category: 'צריח', title: 'ניקיון קנה', status: 'pending', by: '', notes: '' },
+            { id: 8, category: 'צריח', title: 'בדיקת מקלע מקביל', status: 'pending', by: '', notes: '' },
+            { id: 9, category: 'קשר', title: 'בדיקת קשר פנים', status: 'pending', by: '', notes: '' },
+            { id: 10, category: 'כללי', title: 'בדיקת מטפים', status: 'pending', by: '', notes: '' },
+        ];
+
+        let sessionData = {
+            tasks: [],
+            commanderNotes: "נא לשים לב לבטיחות בחשמל. אין לעבוד עם טבעות ושעונים.",
+            logs: []
+        };
+
+        // --- Auth & Setup Functions ---
+
+        function selectRole(role) {
+            currentUser.role = role;
+            // Visual feedback
+            document.querySelectorAll('.role-btn').forEach(btn => {
+                if(btn.dataset.role === role) {
+                    btn.classList.add('bg-green-600', 'text-white', 'ring-2', 'ring-white');
+                    btn.classList.remove('bg-gray-700');
+                } else {
+                    btn.classList.remove('bg-green-600', 'text-white', 'ring-2', 'ring-white');
+                    btn.classList.add('bg-gray-700');
+                }
+            });
+        }
+
+        function createSession() {
+            const name = document.getElementById('username-input').value;
+            if(!name || !currentUser.role) {
+                showToast("נא למלא שם ולבחור תפקיד");
+                return;
+            }
+            currentUser.name = name;
+            
+            // Generate random 4 digit code
+            currentSessionCode = Math.floor(1000 + Math.random() * 9000).toString();
+            
+            // Init Data
+            sessionData.tasks = JSON.parse(JSON.stringify(defaultTasks)); // Deep copy
+            sessionData.logs.push(`${name} (${currentUser.role}) פתח את הטיפול`);
+            
+            saveSession();
+            enterDashboard();
+        }
+
+        function joinSession() {
+            const name = document.getElementById('username-input').value;
+            const code = document.getElementById('session-code-input').value;
+            
+            if(!name || !currentUser.role) {
+                showToast("נא למלא שם ולבחור תפקיד");
+                return;
+            }
+            if(!code) {
+                showToast("נא להזין קוד טיפול");
+                return;
+            }
+
+            // Try to load from local storage
+            const storedData = localStorage.getItem(`tefach_${code}`);
+            if(!storedData) {
+                showToast("לא נמצא טיפול עם הקוד הזה");
+                return;
+            }
+
+            currentUser.name = name;
+            currentSessionCode = code;
+            loadSession(); // Load existing data
+            
+            // Add join log
+            sessionData.logs.push(`${name} (${currentUser.role}) הצטרף לטיפול`);
+            saveSession();
+
+            enterDashboard();
+        }
+
+        function enterDashboard() {
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('view-dashboard').classList.remove('hidden');
+            
+            document.getElementById('display-code').innerText = currentSessionCode;
+            document.getElementById('display-user').innerText = `${currentUser.name} (${currentUser.role})`;
+            
+            renderTasks('all');
+            updateProgress();
+            
+            // Copy Code Feature
+            document.getElementById('display-code').addEventListener('click', () => {
+                navigator.clipboard.writeText(currentSessionCode);
+                showToast("הקוד הועתק ללוח!");
+            });
+        }
+
+        function logout() {
+            location.reload();
+        }
+
+        // --- Core Logic ---
+
+        function saveSession() {
+            if(!currentSessionCode) return;
+            localStorage.setItem(`tefach_${currentSessionCode}`, JSON.stringify(sessionData));
+        }
+
+        function loadSession() {
+            if(!currentSessionCode) return;
+            const stored = localStorage.getItem(`tefach_${currentSessionCode}`);
+            if(stored) {
+                sessionData = JSON.parse(stored);
+                document.getElementById('commander-notes').innerText = sessionData.commanderNotes;
+                renderTasks(currentFilter);
+                updateProgress();
+            }
+        }
+
+        // --- Rendering ---
+        
+        let currentFilter = 'all';
+
+        function filterTasks(category) {
+            currentFilter = category;
+            
+            // Update tabs UI
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('tab-active'));
+            if(category === 'all') document.getElementById('tab-all').classList.add('tab-active');
+            else if(category === 'תובה') document.getElementById('tab-hull').classList.add('tab-active');
+            else if(category === 'צריח') document.getElementById('tab-turret').classList.add('tab-active');
+            else if(category === 'מזקום') document.getElementById('tab-tracks').classList.add('tab-active');
+
+            renderTasks(category);
+        }
+
+        function renderTasks(categoryFilter) {
+            const container = document.getElementById('tasks-container');
+            container.innerHTML = '';
+
+            sessionData.tasks.forEach(task => {
+                // Filter logic
+                if(categoryFilter !== 'all' && task.category !== categoryFilter && task.category !== 'כללי') {
+                    if (categoryFilter === 'מזקום' && task.category !== 'מזקום') return;
+                    if (categoryFilter === 'תובה' && task.category !== 'תובה') return;
+                    if (categoryFilter === 'צריח' && task.category !== 'צריח') return;
+                }
+
+                const isDone = task.status === 'done';
+                const isProblem = task.status === 'problem';
+                
+                // Color coding for categories
+                let catColor = 'bg-gray-600';
+                if(task.category === 'מזקום') catColor = 'bg-yellow-700';
+                if(task.category === 'תובה') catColor = 'bg-blue-700';
+                if(task.category === 'צריח') catColor = 'bg-green-700';
+
+                const card = document.createElement('div');
+                card.className = `bg-gray-800 rounded-lg p-3 shadow border-r-4 ${isDone ? 'border-green-500' : (isProblem ? 'border-red-500' : 'border-gray-600')} flex flex-col gap-2 transition-all`;
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center gap-3 flex-1">
+                            <!-- Checkbox Logic -->
+                            <label class="relative cursor-pointer">
+                                <input type="checkbox" class="status-checkbox hidden" ${isDone ? 'checked' : ''} onchange="toggleTaskStatus(${task.id}, this.checked)">
+                                <div class="w-6 h-6 rounded border-2 border-gray-500 flex items-center justify-center transition-colors ${isDone ? 'bg-green-600 border-green-600 text-white' : ''}">
+                                    ${isDone ? '<i class="fas fa-check text-xs"></i>' : ''}
+                                </div>
+                            </label>
+                            
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-white px-1.5 rounded-sm ${catColor}">${task.category}</span>
+                                    <h4 class="font-bold text-gray-200 text-sm ${isDone ? 'line-through text-gray-500' : ''}">${task.title}</h4>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-1">
+                                    ${isDone 
+                                        ? `<span class="text-green-400"><i class="fas fa-user-check"></i> ${task.by}</span>` 
+                                        : (isProblem ? '<span class="text-red-400 font-bold">תקלה דווחה</span>' : 'טרם בוצע')}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                             <button onclick="reportProblem(${task.id})" class="text-gray-500 hover:text-red-400 p-1" title="דווח תקלה">
+                                <i class="fas fa-wrench ${isProblem ? 'text-red-500' : ''}"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Notes Section -->
+                    <div class="bg-gray-900/50 rounded p-2 flex items-center gap-2 mt-1">
+                        <i class="fas fa-comment-alt text-gray-600 text-xs"></i>
+                        <input type="text" 
+                            class="bg-transparent text-xs w-full text-gray-300 focus:outline-none placeholder-gray-600" 
+                            placeholder="הערות..." 
+                            value="${task.notes || ''}" 
+                            onblur="updateTaskNote(${task.id}, this.value)">
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Empty state
+            if(container.children.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center mt-10 opacity-50">
+                        <i class="fas fa-clipboard-check text-4xl mb-2 text-gray-600"></i>
+                        <p>אין משימות בקטגוריה זו</p>
+                    </div>
+                `;
+            }
+        }
+
+        // --- Actions ---
+
+        function toggleTaskStatus(id, isChecked) {
+            const task = sessionData.tasks.find(t => t.id === id);
+            if(task) {
+                if(isChecked) {
+                    task.status = 'done';
+                    task.by = currentUser.name;
+                    playSound('check');
+                } else {
+                    task.status = 'pending';
+                    task.by = '';
+                }
+                saveSession();
+                renderTasks(currentFilter);
+                updateProgress();
+            }
+        }
+
+        function reportProblem(id) {
+            const task = sessionData.tasks.find(t => t.id === id);
+            if(task) {
+                if(task.status === 'problem') {
+                    task.status = 'pending'; // Reset
+                } else {
+                    const note = prompt("מה התקלה?", task.notes);
+                    if(note !== null) {
+                        task.status = 'problem';
+                        task.notes = note;
+                        task.by = currentUser.name;
+                    }
+                }
+                saveSession();
+                renderTasks(currentFilter);
+                updateProgress();
+            }
+        }
+
+        function updateTaskNote(id, noteText) {
+            const task = sessionData.tasks.find(t => t.id === id);
+            if(task && task.notes !== noteText) {
+                task.notes = noteText;
+                saveSession();
+            }
+        }
+
+        function updateCommanderNotes(text) {
+            if(sessionData.commanderNotes !== text) {
+                sessionData.commanderNotes = text;
+                saveSession();
+            }
+        }
+
+        function addNewCustomTask() {
+            const input = document.getElementById('new-task-input');
+            const title = input.value.trim();
+            if(!title) return;
+
+            const newTask = {
+                id: Date.now(),
+                category: currentFilter === 'all' ? 'כללי' : currentFilter,
+                title: title,
+                status: 'pending',
+                by: '',
+                notes: ''
+            };
+            
+            sessionData.tasks.push(newTask);
+            input.value = '';
+            saveSession();
+            renderTasks(currentFilter);
+            updateProgress();
+            showToast("משימה נוספה");
+        }
+
+        function updateProgress() {
+            const total = sessionData.tasks.length;
+            const completed = sessionData.tasks.filter(t => t.status === 'done').length;
+            const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+            
+            document.getElementById('progress-bar').style.width = `${percent}%`;
+            document.getElementById('progress-text').innerText = `${percent}%`;
+
+            // Visual feedback for completion
+            if(percent === 100) {
+                document.getElementById('progress-bar').classList.remove('from-green-600', 'to-green-400');
+                document.getElementById('progress-bar').classList.add('from-yellow-400', 'to-yellow-600'); // Gold
+            }
+        }
+
+        // --- Utilities ---
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('hidden');
+            toast.classList.add('fade-in');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        function playSound(type) {
+            // Very subtle sound effects using Web Audio API could go here
+            // For now, silent
+        }
+
+        // --- Multi-Tab Sync Logic (The Magic) ---
+        // This listens for changes in LocalStorage from OTHER tabs
+        window.addEventListener('storage', (e) => {
+            if(e.key === `tefach_${currentSessionCode}`) {
+                // Another user updated the session!
+                const newData = JSON.parse(e.newValue);
+                sessionData = newData;
+                
+                // Re-render
+                document.getElementById('commander-notes').innerText = sessionData.commanderNotes;
+                renderTasks(currentFilter);
+                updateProgress();
+                
+                // Show notification?
+                // showToast("הנתונים עודכנו ע״י חבר צוות");
+            }
+        });
+
+    </script>
+</body>
+</html>
