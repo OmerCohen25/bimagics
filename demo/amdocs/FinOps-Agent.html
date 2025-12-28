@@ -2,128 +2,108 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Amdocs FinOps AI Agent</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Amdocs FinOps Suite</title>
     
-    <!-- React & ReactDOM -->
+    <!-- React & Tailwind -->
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-    
-    <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Fonts -->
+    <!-- Hebrew Font -->
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Heebo', sans-serif; -webkit-tap-highlight-color: transparent; }
-        
-        /* Custom Animations */
-        @keyframes flow-dots {
-            0% { transform: translateX(0); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateX(-20px); opacity: 0; } 
+        body { 
+            font-family: 'Heebo', sans-serif; 
+            -webkit-tap-highlight-color: transparent;
+            background-color: #f8fafc;
+            overscroll-behavior-y: none;
         }
         
-        .animate-flow {
-            animation: flow-dots 1.5s infinite linear;
-        }
+        /* Smooth Scroll & No Scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        /* Mobile Safe Areas */
+        .pb-safe { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+        .pt-safe { padding-top: max(12px, env(safe-area-inset-top)); }
+        .h-safe-screen { height: 100dvh; }
 
-        /* Safe area for mobile */
-        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-enter { animation: fadeIn 0.4s ease-out forwards; }
+        
+        @keyframes flow { 0% { opacity: 0; transform: translateX(5px); } 50% { opacity: 1; } 100% { opacity: 0; transform: translateX(-5px); } }
+        .animate-flow { animation: flow 1s infinite; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900 h-screen overflow-hidden selection:bg-blue-100">
+<body class="h-safe-screen w-screen overflow-hidden text-slate-900">
 
     <div id="root" class="h-full w-full"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect, useRef, useLayoutEffect } = React;
 
-        // --- ICONS (SVG Components for stability) ---
+        // --- ICONS ---
         const Icons = {
-            Microsoft: () => (
-                <svg viewBox="0 0 23 23" className="w-5 h-5 ml-3">
-                    <path fill="#f35325" d="M1 1h10v10H1z"/><path fill="#81bc06" d="M12 1h10v10H12z"/>
-                    <path fill="#05a6f0" d="M1 12h10v10H1z"/><path fill="#ffba08" d="M12 12h10v10H12z"/>
-                </svg>
-            ),
-            Google: () => (
-                <svg viewBox="0 0 24 24" className="w-5 h-5 ml-3">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                </svg>
-            ),
-            Cloud: ({className}) => (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-                    <path d="M17.5 19c0-1.7-1.3-3-3-3h-11c-2.2 0-4-1.8-4-4s1.8-4 4-4c.4 0 .7.1 1.1.2 1.3-3.6 4.7-6.2 8.9-6.2 5 0 9 4 9 9 0 .4-.1.7-.2 1.1 2.3.8 3.7 3 3.7 5.1 0 2.2-1.8 4-4 4h-4.5"/>
-                </svg>
-            ),
-            Check: ({className}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="20 6 9 17 4 12"/></svg>,
-            Send: ({className}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>,
-            BarChart: ({className}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
-            Database: ({className}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>,
-            Zap: ({className}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="none" className={className}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
-            User: ({className}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
-            Dashboard: ({className}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>,
-            Message: ({className}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
-            ArrowLeft: ({className}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>,
-            Alert: ({className}) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Microsoft: () => <svg viewBox="0 0 23 23" className="w-5 h-5 ml-3"><path fill="#f35325" d="M1 1h10v10H1z"/><path fill="#81bc06" d="M12 1h10v10H12z"/><path fill="#05a6f0" d="M1 12h10v10H1z"/><path fill="#ffba08" d="M12 12h10v10H1z"/></svg>,
+            Google: () => <svg viewBox="0 0 24 24" className="w-5 h-5 ml-3"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" /><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /></svg>,
+            Cloud: ({c}) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><path d="M17.5 19c0-1.7-1.3-3-3-3h-11c-2.2 0-4-1.8-4-4s1.8-4 4-4c.4 0 .7.1 1.1.2 1.3-3.6 4.7-6.2 8.9-6.2 5 0 9 4 9 9 0 .4-.1.7-.2 1.1 2.3.8 3.7 3 3.7 5.1 0 2.2-1.8 4-4 4h-4.5"/></svg>,
+            Send: ({c}) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>,
+            BarChart: ({c}) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+            Database: ({c}) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>,
+            Bot: ({c}) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><rect width="18" height="10" x="3" y="11" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>,
+            User: ({c}) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+            Dashboard: ({c}) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>,
+            Message: ({c}) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+            Check: ({c}) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={c}><polyline points="20 6 9 17 4 12"/></svg>,
+            ArrowLeft: ({c}) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
         };
 
         // --- CHART COMPONENT ---
-        const Chart = ({ data, color = 'bg-blue-500' }) => {
+        const Chart = ({ data }) => {
             const max = Math.max(...data.map(d => d.value));
             return (
-                <div className="w-full h-32 flex items-end justify-between gap-1 mt-4">
-                    {data.map((d, i) => (
-                        <div key={i} className="flex-1 flex flex-col items-center group relative h-full justify-end">
-                            <div className="absolute bottom-full mb-1 opacity-0 group-hover:opacity-100 bg-gray-800 text-white text-[10px] px-1.5 py-0.5 rounded transition-opacity whitespace-nowrap z-10">
-                                ${d.value.toLocaleString()}
+                <div className="mt-3 bg-white/10 p-3 rounded-xl backdrop-blur-md border border-white/20">
+                    <div className="flex justify-between items-end h-20 gap-2">
+                        {data.map((d, i) => (
+                            <div key={i} className="flex-1 flex flex-col items-center group relative h-full justify-end">
+                                <div className={`w-full rounded-t-sm transition-all duration-700 ${d.alert ? 'bg-red-400' : 'bg-blue-300'} opacity-90`} style={{ height: `${(d.value / max) * 100}%` }}></div>
+                                <div className="text-[10px] text-white/70 mt-1 truncate w-full text-center">{d.label}</div>
                             </div>
-                            <div 
-                                className={`w-full max-w-[20px] rounded-t-sm transition-all duration-700 ${d.highlight ? 'bg-red-400' : color} opacity-90 group-hover:opacity-100`}
-                                style={{ height: `${(d.value / max) * 100}%` }}
-                            ></div>
-                            <span className="text-[9px] text-gray-500 mt-1 truncate w-full text-center">{d.label}</span>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
             );
         };
 
         // --- MAIN APP ---
         const App = () => {
-            // View State: 'login', 'selection', 'pipeline', 'app'
-            const [view, setView] = useState('login');
-            // App State
-            const [activeTab, setActiveTab] = useState('chat'); // 'chat' | 'dashboard'
+            const [view, setView] = useState('login'); // login, selection, pipeline, app
+            const [activeTab, setActiveTab] = useState('chat');
             const [selectedReport, setSelectedReport] = useState(null);
             
-            // --- PIPELINE LOGIC ---
+            // --- PIPELINE STATE ---
             const [pipelineStep, setPipelineStep] = useState(0);
+
+            // --- CHAT STATE ---
+            const [messages, setMessages] = useState([]);
+            const [input, setInput] = useState('');
+            const [isTyping, setIsTyping] = useState(false);
+            const [suggestions, setSuggestions] = useState([]);
+            const scrollRef = useRef(null);
+
+            // --- NAVIGATION HANDLERS ---
             
-            const startPipeline = (reportName) => {
-                setSelectedReport(reportName);
+            const startPipeline = (report) => {
+                setSelectedReport(report);
                 setView('pipeline');
-                
-                // Simulate fast backend process
+                // Simulate Pipeline
                 setTimeout(() => setPipelineStep(1), 1000); // Connect
-                setTimeout(() => setPipelineStep(2), 2500); // Extract & Load
-                setTimeout(() => setPipelineStep(3), 4000); // Finish
+                setTimeout(() => setPipelineStep(2), 2500); // Extract
+                setTimeout(() => setPipelineStep(3), 4000); // Load BQ
                 setTimeout(() => {
                     setView('app');
                     initializeChat();
@@ -131,144 +111,154 @@
             };
 
             // --- CHAT LOGIC ---
-            const [messages, setMessages] = useState([]);
-            const [input, setInput] = useState('');
-            const [isTyping, setIsTyping] = useState(false);
-            const chatEndRef = useRef(null);
+
+            const updateSuggestions = (context) => {
+                switch(context) {
+                    case 'intro':
+                        setSuggestions(['📊 יש חריגות היום?', '💰 תחזית חודשית', '🏆 מי הכי יקר?']);
+                        break;
+                    case 'anomaly':
+                        setSuggestions(['🔍 למה זה קרה?', '📉 איך מתקנים?', '✅ התעלם']);
+                        break;
+                    case 'breakdown':
+                        setSuggestions(['📧 שלח דוח במייל', '💡 המלצות ייעול']);
+                        break;
+                    default:
+                        setSuggestions(['📊 סטטוס כללי', '🔍 חיפוש חריגות']);
+                }
+            };
 
             const initializeChat = () => {
-                setMessages([
-                    {
-                        id: 1,
+                setTimeout(() => {
+                    addBotMsg({
+                        text: 'היי, הסנכרון ל-BigQuery הושלם בהצלחה. כל נתוני ה-Power BI שלך זמינים כעת לתשאול.',
+                        context: 'intro'
+                    });
+                }, 600);
+            };
+
+            const addBotMsg = (content) => {
+                setIsTyping(true);
+                setTimeout(() => {
+                    setMessages(prev => [...prev, {
+                        id: Date.now(),
                         sender: 'bot',
-                        text: 'הסנכרון ל-BigQuery הושלם בהצלחה. האייגנט מחובר כעת לנתוני האמת.',
+                        text: content.text,
+                        chart: content.chart,
                         time: new Date().toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'})
-                    },
-                    {
-                        id: 2,
-                        sender: 'bot',
-                        text: 'שים לב: זיהיתי חריגה בהוצאות AWS מאתמול. הנה הנתונים:',
-                        chart: [
-                            {label: 'א', value: 1200}, {label: 'ב', value: 1300}, 
-                            {label: 'ג', value: 1150}, {label: 'ד', value: 4100, highlight: true},
-                            {label: 'ה', value: 1250}
-                        ],
-                        time: new Date().toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'})
-                    }
-                ]);
+                    }]);
+                    setIsTyping(false);
+                    updateSuggestions(content.context);
+                }, 1200);
             };
 
             const handleSend = (txt) => {
                 const textToSend = txt || input;
                 if (!textToSend.trim()) return;
 
-                const newMsg = { id: Date.now(), sender: 'user', text: textToSend, time: new Date().toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'}) };
-                setMessages(prev => [...prev, newMsg]);
+                setMessages(prev => [...prev, {
+                    id: Date.now(),
+                    sender: 'user',
+                    text: textToSend,
+                    time: new Date().toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'})
+                }]);
                 setInput('');
-                setIsTyping(true);
+                setSuggestions([]); // Clear chips while thinking
 
-                // Simulate AI response
-                setTimeout(() => {
-                    let botMsg = { 
-                        id: Date.now()+1, 
-                        sender: 'bot', 
-                        time: new Date().toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'}) 
+                // Mock Logic
+                let response = {};
+                if (textToSend.includes('חריגות') || textToSend.includes('בעיות')) {
+                    response = {
+                        text: 'זיהיתי חריגה משמעותית אתמול (יום ד׳) בפרויקט **Titan-AI**. קפיצה של 300% בעלויות Compute.',
+                        chart: [{label:'א',value:200}, {label:'ב',value:220}, {label:'ג',value:210}, {label:'ד',value:950, alert:true}, {label:'ה',value:230}],
+                        context: 'anomaly'
                     };
-
-                    if (textToSend.includes('בזבזני') || textToSend.includes('יקר')) {
-                        botMsg.text = 'הפרויקט היקר ביותר החודש הוא **Project Olympus** (סביבת Prod).';
-                        botMsg.chart = [
-                            {label: 'Olympus', value: 14500, highlight: true}, {label: 'Titan', value: 8200}, 
-                            {label: 'Apollo', value: 5100}, {label: 'Zeus', value: 2300}
-                        ];
-                    } else if (textToSend.includes('תחזית') || textToSend.includes('חודש')) {
-                        botMsg.text = 'התחזית לסוף החודש עומדת על **$58,200**, שזה חריגה של 5% מהתקציב.';
-                    } else {
-                        botMsg.text = 'אני יכול לנתח הוצאות לפי פרויקט, שירות, או זיהוי חריגות. נסה לשאול "מי הפרויקט הכי יקר?".';
-                    }
-
-                    setMessages(prev => [...prev, botMsg]);
-                    setIsTyping(false);
-                }, 1500);
+                } else if (textToSend.includes('למה') || textToSend.includes('פרק')) {
+                    response = {
+                        text: 'העלייה נובעת ממופעי **GPU p3.2xlarge** שנשארו דלוקים במשך הלילה בסביבת Dev.',
+                        chart: [{label:'EC2',value:800,alert:true}, {label:'RDS',value:100}, {label:'S3',value:50}],
+                        context: 'breakdown'
+                    };
+                } else if (textToSend.includes('יקר')) {
+                    response = { text: 'הפרויקט היקר ביותר החודש הוא **Olympus** ($14,500).', context: 'intro' };
+                } else {
+                    response = { text: 'אני מחובר לנתונים. נסה לשאול על חריגות, תחזיות או פילוח לפי פרויקטים.', context: 'intro' };
+                }
+                
+                addBotMsg(response);
             };
 
-            useEffect(() => {
-                chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            // Auto-scroll logic
+            useLayoutEffect(() => {
+                if (scrollRef.current) {
+                    scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+                }
             }, [messages, isTyping]);
 
 
-            // --- VIEWS RENDER ---
+            // --- VIEWS ---
 
-            // 1. LOGIN VIEW
+            // 1. LOGIN
             if (view === 'login') {
                 return (
-                    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 -mr-16 -mt-16"></div>
-                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 -ml-16 -mb-16"></div>
-
-                        <div className="bg-white/95 backdrop-blur w-full max-w-sm rounded-3xl p-8 shadow-2xl text-center relative z-10 animate-[fadeIn_0.5s_ease-out]">
-                            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-lg shadow-blue-500/40">
-                                <Icons.Cloud className="text-white w-8 h-8" />
+                    <div className="h-full flex flex-col items-center justify-center p-8 bg-slate-900 text-center relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full blur-[80px] opacity-20 -mr-16 -mt-16"></div>
+                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500 rounded-full blur-[80px] opacity-20 -ml-16 -mb-16"></div>
+                        
+                        <div className="relative z-10 w-full max-w-sm animate-enter">
+                            <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-2xl shadow-blue-500/30">
+                                <Icons.Cloud c="text-white w-10 h-10" />
                             </div>
-                            <h1 className="text-2xl font-bold text-slate-800 mb-1">Amdocs FinOps AI</h1>
-                            <p className="text-slate-500 mb-8 text-sm">התחבר כדי לסנכרן נתוני ענן</p>
-
-                            <div className="space-y-3">
-                                <button onClick={() => setView('selection')} className="w-full py-3.5 px-4 border border-slate-200 rounded-xl flex items-center justify-center hover:bg-slate-50 transition-all active:scale-95 text-slate-700 font-medium text-sm shadow-sm">
+                            <h1 className="text-3xl font-bold text-white mb-2">Amdocs FinOps</h1>
+                            <p className="text-slate-400 mb-10 text-sm">התחבר כדי לסנכרן דוחות PBI לאייגנט</p>
+                            
+                            <div className="space-y-4">
+                                <button onClick={() => setView('selection')} className="w-full py-4 px-6 bg-white rounded-2xl flex items-center justify-center text-slate-800 font-bold hover:bg-slate-50 transition-all active:scale-95 shadow-lg">
                                     <Icons.Microsoft />
-                                    <span>התחבר עם Microsoft 365</span>
+                                    <span>המשך עם Microsoft</span>
                                 </button>
-                                <button onClick={() => setView('selection')} className="w-full py-3.5 px-4 border border-slate-200 rounded-xl flex items-center justify-center hover:bg-slate-50 transition-all active:scale-95 text-slate-700 font-medium text-sm shadow-sm">
+                                <button onClick={() => setView('selection')} className="w-full py-4 px-6 bg-slate-800 border border-slate-700 rounded-2xl flex items-center justify-center text-white font-medium hover:bg-slate-700 transition-all active:scale-95">
                                     <Icons.Google />
-                                    <span>התחבר עם Google Workspace</span>
+                                    <span>המשך עם Google</span>
                                 </button>
                             </div>
-                            <p className="mt-6 text-[10px] text-slate-400">Secured by Amdocs Identity Provider</p>
                         </div>
                     </div>
                 );
             }
 
-            // 2. SELECTION VIEW
+            // 2. SELECTION
             if (view === 'selection') {
                 return (
-                    <div className="min-h-screen bg-slate-50 flex flex-col">
-                        <div className="bg-white p-6 shadow-sm z-10 sticky top-0">
-                            <h1 className="text-xl font-bold text-slate-800">בחר מקור נתונים</h1>
-                            <p className="text-slate-500 text-sm mt-1">אנו ניצור Pipeline אוטומטי ל-BigQuery</p>
+                    <div className="h-full flex flex-col bg-slate-50">
+                        <div className="bg-white p-6 shadow-sm sticky top-0 z-10">
+                            <h1 className="text-2xl font-bold text-slate-800">בחר מקור מידע</h1>
+                            <p className="text-slate-500 text-sm">אנו ניצור Pipeline אוטומטי ל-BigQuery</p>
                         </div>
-                        
-                        <div className="p-4 space-y-4 max-w-lg mx-auto w-full flex-1 overflow-y-auto">
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2">דוחות Power BI זמינים</div>
-                            
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
                             {[
                                 {name: 'AWS Cost & Usage Master', rows: '1.2M', date: '15 דק׳', type: 'aws'},
                                 {name: 'Azure Consolidated Billing', rows: '850K', date: 'שעה', type: 'azure'},
                                 {name: 'Multi-Cloud Summary', rows: '45K', date: 'אתמול', type: 'multi'}
                             ].map((report, idx) => (
-                                <div key={idx} onClick={() => startPipeline(report.name)} className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm active:scale-[0.98] transition-all cursor-pointer flex items-center justify-between group">
+                                <div key={idx} onClick={() => startPipeline(report)} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 active:scale-[0.98] transition-all cursor-pointer flex justify-between items-center group">
                                     <div className="flex items-center gap-4">
-                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${report.type === 'aws' ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'}`}>
-                                            <Icons.BarChart className="w-6 h-6" />
+                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${report.type === 'aws' ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'}`}>
+                                            <Icons.BarChart c="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-slate-800 text-sm group-hover:text-blue-600 transition-colors">{report.name}</h3>
-                                            <div className="text-xs text-slate-400 flex gap-2 mt-1">
-                                                <span>עודכן: {report.date}</span>
-                                                <span>•</span>
-                                                <span>{report.rows} רשומות</span>
-                                            </div>
+                                            <h3 className="font-bold text-slate-800">{report.name}</h3>
+                                            <div className="text-xs text-slate-400 mt-1">{report.rows} שורות • עודכן לפני {report.date}</div>
                                         </div>
                                     </div>
-                                    <Icons.ArrowLeft className="w-5 h-5 text-slate-300 group-hover:text-blue-500" />
+                                    <Icons.ArrowLeft c="w-5 h-5 text-slate-300 group-hover:text-blue-500" />
                                 </div>
                             ))}
-
-                            <div className="mt-6 bg-blue-50 border border-blue-100 p-4 rounded-2xl flex gap-3">
-                                <Icons.Zap className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                            <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex gap-3">
+                                <Icons.Database c="w-6 h-6 text-blue-600 mt-1" />
                                 <div className="text-xs text-blue-800 leading-relaxed">
-                                    <span className="font-bold block mb-1">איך זה עובד?</span>
-                                    בלחיצה, המערכת תמשוך את הסכימה מ-Power BI, תיצור טבלה ב-BigQuery, ותגדיר סנכרון שעתי אוטומטי לאייגנט.
+                                    <span className="font-bold block mb-1">תהליך אוטומטי</span>
+                                    בלחיצה, המערכת תמשוך את הסכימה מ-Power BI ותגדיר עדכון שעתי ל-BigQuery עבור האייגנט.
                                 </div>
                             </div>
                         </div>
@@ -276,104 +266,89 @@
                 );
             }
 
-            // 3. PIPELINE ANIMATION VIEW
+            // 3. PIPELINE
             if (view === 'pipeline') {
                 return (
-                    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-8 relative">
-                         {/* Connection Line */}
-                         <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-100 -z-0"></div>
-
-                        <div className="w-full max-w-sm space-y-12 relative z-10">
-                            
-                            {/* Icons Flow */}
-                            <div className="flex items-center justify-between px-2">
-                                <div className="flex flex-col items-center gap-3">
-                                    <div className="w-20 h-20 bg-yellow-50 border-4 border-white shadow-xl rounded-3xl flex items-center justify-center relative">
-                                        <Icons.BarChart className="w-8 h-8 text-yellow-600" />
-                                        <div className="absolute -bottom-2 bg-yellow-100 text-[10px] font-bold px-2 rounded-full text-yellow-800">PBI</div>
+                    <div className="h-full flex flex-col items-center justify-center bg-white relative">
+                        <div className="w-full max-w-sm px-8 space-y-12">
+                            {/* Visual Flow */}
+                            <div className="flex items-center justify-between relative">
+                                <div className="z-10 flex flex-col items-center gap-2">
+                                    <div className="w-20 h-20 bg-yellow-50 rounded-3xl flex items-center justify-center shadow-lg shadow-yellow-100 border-4 border-white">
+                                        <Icons.BarChart c="w-8 h-8 text-yellow-600" />
                                     </div>
+                                    <span className="text-xs font-bold text-slate-400">Power BI</span>
+                                </div>
+                                
+                                {/* Animated Dots */}
+                                <div className="absolute left-0 right-0 top-10 flex justify-center gap-2 px-20">
+                                    {[...Array(6)].map((_,i) => (
+                                        <div key={i} className={`w-2 h-2 rounded-full bg-blue-500 ${pipelineStep < 3 ? 'animate-flow' : 'opacity-0'}`} style={{animationDelay: `${i*0.1}s`}}></div>
+                                    ))}
                                 </div>
 
-                                {/* Flow Dots Animation */}
-                                <div className="flex-1 flex justify-center gap-1.5 overflow-hidden px-4">
-                                     {[...Array(5)].map((_, i) => (
-                                         <div key={i} className={`w-2 h-2 rounded-full bg-blue-500 ${pipelineStep < 3 ? 'animate-flow' : 'opacity-0'}`} style={{animationDelay: `${i * 0.2}s`}}></div>
-                                     ))}
-                                </div>
-
-                                <div className="flex flex-col items-center gap-3">
-                                    <div className={`w-20 h-20 border-4 border-white shadow-xl rounded-3xl flex items-center justify-center transition-all duration-700 relative ${pipelineStep >= 2 ? 'bg-green-50 scale-110 ring-4 ring-green-100' : 'bg-slate-50 grayscale'}`}>
-                                        <Icons.Database className={`w-8 h-8 ${pipelineStep >= 2 ? 'text-green-600' : 'text-slate-300'}`} />
-                                        <div className="absolute -bottom-2 bg-green-100 text-[10px] font-bold px-2 rounded-full text-green-800">BQ</div>
+                                <div className="z-10 flex flex-col items-center gap-2">
+                                    <div className={`w-20 h-20 rounded-3xl flex items-center justify-center border-4 border-white transition-all duration-700 ${pipelineStep >= 2 ? 'bg-green-50 shadow-lg shadow-green-100 scale-110' : 'bg-slate-50 grayscale'}`}>
+                                        <Icons.Database c={`w-8 h-8 ${pipelineStep >= 2 ? 'text-green-600' : 'text-slate-300'}`} />
                                     </div>
+                                    <span className="text-xs font-bold text-slate-400">BigQuery</span>
                                 </div>
                             </div>
 
-                            {/* Status Checklist */}
-                            <div className="bg-slate-50 rounded-2xl p-6 space-y-4 border border-slate-100 shadow-inner">
-                                <StepItem done={pipelineStep >= 1} text="יוצר חיבור מאובטח ל-Dataset" />
-                                <StepItem done={pipelineStep >= 2} text="שולף נתונים (Extract & Load)" />
-                                <StepItem done={pipelineStep >= 3} text="מגדיר סנכרון שעתי ב-BigQuery" />
+                            {/* Checklist */}
+                            <div className="space-y-4 bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                                {[
+                                    {done: pipelineStep >= 1, text: 'יוצר חיבור מאובטח'},
+                                    {done: pipelineStep >= 2, text: 'שולף נתונים (Extract)'},
+                                    {done: pipelineStep >= 3, text: 'מגדיר סנכרון שעתי'}
+                                ].map((step, i) => (
+                                    <div key={i} className="flex items-center gap-3">
+                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${step.done ? 'bg-green-500 text-white' : 'bg-white border'}`}>
+                                            {step.done && <Icons.Check c="w-4 h-4" />}
+                                        </div>
+                                        <span className={`text-sm ${step.done ? 'text-slate-800 font-medium' : 'text-slate-400'}`}>{step.text}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
                 );
             }
 
-            // 4. MAIN APP VIEW
+            // 4. MAIN APP (CHAT & DASHBOARD)
             return (
-                <div className="h-full flex flex-col bg-slate-50">
-                    
+                <div className="h-full flex flex-col bg-slate-100">
                     {/* Header */}
-                    <header className="bg-white px-5 py-4 shadow-sm flex items-center justify-between sticky top-0 z-20">
+                    <header className="flex-none bg-white/90 backdrop-blur border-b px-4 py-3 pt-safe flex justify-between items-center sticky top-0 z-30">
                         <div className="flex items-center gap-3">
-                            <div className="bg-gradient-to-tr from-blue-600 to-indigo-600 p-2 rounded-xl shadow-lg shadow-blue-500/20">
-                                <Icons.Cloud className="text-white w-5 h-5" />
+                            <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+                                <Icons.Bot c="w-5 h-5" />
                             </div>
                             <div>
-                                <h1 className="font-bold text-slate-800 text-sm leading-tight">FinOps Agent</h1>
-                                <div className="text-[10px] text-green-600 flex items-center font-medium mt-0.5">
-                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full ml-1.5 animate-pulse"></span>
-                                    מחובר ל-BigQuery (Live)
+                                <h1 className="font-bold text-slate-800 text-sm">FinOps Agent</h1>
+                                <div className="text-[10px] text-green-600 font-bold flex items-center">
+                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full ml-1 animate-pulse"></span>
+                                    מחובר ל-BigQuery
                                 </div>
                             </div>
-                        </div>
-                        <div className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 border border-slate-200">
-                            <Icons.User className="w-5 h-5" />
                         </div>
                     </header>
 
-                    {/* Content Area */}
+                    {/* Main Content */}
                     <main className="flex-1 overflow-hidden relative">
                         
-                        {/* --- TAB: CHAT --- */}
-                        <div className={`h-full flex flex-col transition-opacity duration-300 ${activeTab === 'chat' ? 'opacity-100 z-10' : 'opacity-0 absolute inset-0 -z-10'}`}>
+                        {/* CHAT TAB */}
+                        <div className={`absolute inset-0 flex flex-col transition-all duration-300 ${activeTab === 'chat' ? 'translate-x-0' : 'translate-x-full'}`}>
                             
-                            <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-24 scrollbar-hide">
+                            <div className="flex-1 overflow-y-auto p-4 space-y-6 scroll-smooth" ref={scrollRef}>
+                                <div className="text-center text-[10px] text-slate-400 my-2">היום, {new Date().toLocaleDateString('he-IL')}</div>
+                                
                                 {messages.map(msg => (
-                                    <div key={msg.id} className={`flex flex-col ${msg.sender === 'user' ? 'items-start' : 'items-end'}`}>
-                                        <div className={`flex max-w-[85%] ${msg.sender === 'user' ? 'flex-row' : 'flex-row-reverse gap-2'}`}>
-                                            
-                                            {msg.sender === 'bot' && (
-                                                <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0 mt-1">
-                                                    <Icons.Zap className="w-4 h-4" />
-                                                </div>
-                                            )}
-
-                                            <div className={`px-5 py-4 rounded-2xl shadow-sm text-sm leading-relaxed relative ${
-                                                msg.sender === 'user' 
-                                                ? 'bg-white text-slate-800 rounded-tr-none ml-2' 
-                                                : 'bg-blue-600 text-white rounded-tl-none mr-2'
-                                            }`}>
-                                                {msg.text}
-                                                
-                                                {msg.chart && (
-                                                    <div className="mt-4 bg-white/10 p-3 rounded-xl backdrop-blur-sm border border-white/10">
-                                                        <div className="text-[10px] opacity-80 mb-1">ניתוח עלויות ($)</div>
-                                                        <Chart data={msg.chart} color={msg.sender === 'bot' ? 'bg-white' : 'bg-blue-400'} />
-                                                    </div>
-                                                )}
-
+                                    <div key={msg.id} className={`flex w-full animate-enter ${msg.sender === 'user' ? 'justify-start' : 'justify-end'}`}>
+                                        <div className={`flex max-w-[85%] flex-col ${msg.sender === 'user' ? 'items-start' : 'items-end'}`}>
+                                            <div className={`px-5 py-3.5 shadow-sm text-[15px] leading-relaxed relative ${msg.sender === 'user' ? 'bg-white text-slate-800 rounded-2xl rounded-tr-none border border-slate-200' : 'bg-blue-600 text-white rounded-2xl rounded-tl-none border border-blue-500'}`}>
+                                                <div className="whitespace-pre-line">{msg.text}</div>
+                                                {msg.chart && <Chart data={msg.chart} />}
                                                 <div className={`text-[9px] mt-2 opacity-60 text-left`}>{msg.time}</div>
                                             </div>
                                         </div>
@@ -381,137 +356,104 @@
                                 ))}
 
                                 {isTyping && (
-                                    <div className="flex items-center mr-12 space-x-1 space-x-reverse">
-                                        <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce"></div>
-                                        <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce delay-75"></div>
-                                        <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce delay-150"></div>
+                                    <div className="flex justify-end w-full animate-enter">
+                                        <div className="bg-blue-600 rounded-2xl rounded-tl-none px-4 py-3 flex gap-1.5 opacity-90">
+                                            <div className="w-1.5 h-1.5 bg-white/80 rounded-full animate-bounce"></div>
+                                            <div className="w-1.5 h-1.5 bg-white/80 rounded-full animate-bounce delay-75"></div>
+                                            <div className="w-1.5 h-1.5 bg-white/80 rounded-full animate-bounce delay-150"></div>
+                                        </div>
                                     </div>
                                 )}
-                                <div ref={chatEndRef}></div>
+                                <div className="h-4"></div>
                             </div>
 
-                            {/* Input Area */}
-                            <div className="absolute bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-100 p-4 pb-safe">
-                                {/* Chips */}
-                                {messages.length < 4 && (
-                                    <div className="flex gap-2 overflow-x-auto mb-3 scrollbar-hide pb-1">
-                                        <Chip onClick={() => handleSend('מי הפרויקט הכי בזבזני?')}>🏆 פרויקט יקר</Chip>
-                                        <Chip onClick={() => handleSend('מה התחזית לסוף החודש?')}>🔮 תחזית חודשית</Chip>
-                                        <Chip onClick={() => handleSend('האם יש חריגות היום?')}>⚠️ בדיקת חריגות</Chip>
+                            {/* Chat Footer */}
+                            <div className="flex-none bg-white/95 backdrop-blur border-t border-slate-100 pb-safe pt-2 z-20">
+                                {suggestions.length > 0 && !isTyping && (
+                                    <div className="flex gap-2 px-4 pb-3 overflow-x-auto no-scrollbar">
+                                        {suggestions.map((sug, i) => (
+                                            <button key={i} onClick={() => handleSend(sug)} className="whitespace-nowrap bg-blue-50 border border-blue-100 text-blue-700 px-4 py-1.5 rounded-full text-xs font-bold active:scale-95 transition-all">
+                                                {sug}
+                                            </button>
+                                        ))}
                                     </div>
                                 )}
-
-                                <div className="flex gap-2 items-center bg-slate-100 rounded-2xl p-1.5 pr-4 border border-slate-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
-                                    <input 
-                                        className="flex-1 bg-transparent border-none outline-none text-sm text-slate-800 placeholder-slate-400 h-10 min-w-0"
-                                        placeholder="שאל משהו על הנתונים..."
-                                        value={input}
-                                        onChange={(e) => setInput(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                                    />
-                                    <button 
-                                        onClick={() => handleSend()}
-                                        disabled={!input.trim()}
-                                        className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:shadow-none transition-all active:scale-95"
-                                    >
-                                        <Icons.Send className="w-4 h-4 ml-0.5" />
+                                <div className="px-3 pb-2 flex items-end gap-2">
+                                    <div className="flex-1 bg-slate-100 rounded-[24px] px-4 py-2 flex items-center focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100 transition-all border border-transparent focus-within:border-blue-500">
+                                        <input 
+                                            value={input} 
+                                            onChange={(e) => setInput(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                                            placeholder="הקלד שאלה..." 
+                                            className="flex-1 bg-transparent border-none outline-none text-[15px] h-8 min-w-0 placeholder-slate-400 text-slate-900" 
+                                        />
+                                    </div>
+                                    <button onClick={() => handleSend()} disabled={!input.trim()} className="w-11 h-11 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:shadow-none active:scale-90 transition-all">
+                                        <Icons.Send c="w-5 h-5 ml-0.5" />
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        {/* --- TAB: DASHBOARD --- */}
-                        <div className={`h-full overflow-y-auto p-4 space-y-4 bg-slate-50 pb-24 transition-opacity duration-300 ${activeTab === 'dashboard' ? 'opacity-100 z-10' : 'opacity-0 absolute inset-0 -z-10'}`}>
-                            
+                        {/* DASHBOARD TAB */}
+                        <div className={`absolute inset-0 overflow-y-auto p-4 space-y-4 bg-slate-50 pb-24 transition-all duration-300 ${activeTab === 'dashboard' ? 'translate-x-0' : '-translate-x-full'}`}>
                             <div className="grid grid-cols-2 gap-3">
-                                <StatCard label="סה״כ החודש" value="$42,500" trend="+12%" bad />
-                                <StatCard label="תחזית סוף חודש" value="$58,400" sub="ממוצע יומי" />
+                                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                    <div className="text-slate-400 text-[11px] mb-1">סה״כ החודש</div>
+                                    <div className="text-2xl font-black text-slate-800">$42,500</div>
+                                    <div className="text-xs text-red-500 font-bold mt-1">+12% מחודש שעבר</div>
+                                </div>
+                                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                    <div className="text-slate-400 text-[11px] mb-1">תחזית (Forecast)</div>
+                                    <div className="text-2xl font-black text-slate-800">$58,400</div>
+                                    <div className="text-xs text-slate-400 mt-1">מבוסס ממוצע יומי</div>
+                                </div>
                             </div>
-
+                            
                             <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                                <div className="flex justify-between items-center mb-2">
+                                <div className="flex justify-between items-center mb-4">
                                     <h3 className="font-bold text-slate-800 text-sm">מגמת הוצאות (30 יום)</h3>
                                     <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded font-bold">AWS + Azure</span>
                                 </div>
-                                <Chart data={[
-                                    {label:'1', value:20}, {label:'5', value:35}, {label:'10', value:25}, 
-                                    {label:'15', value:45}, {label:'20', value:30}, {label:'25', value:55},
-                                    {label:'30', value:60}
-                                ]} />
+                                <div className="h-32 flex items-end gap-1">
+                                    {[20,35,45,30,55,60,40,25,50,45].map((h, i) => (
+                                        <div key={i} className="flex-1 bg-blue-100 rounded-t-sm" style={{height:`${h}%`}}></div>
+                                    ))}
+                                </div>
                             </div>
 
                             <div className="bg-red-50 border border-red-100 rounded-2xl p-4">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <Icons.Alert className="w-5 h-5 text-red-500" />
-                                    <h3 className="font-bold text-red-700 text-sm">התראות פעילות (2)</h3>
-                                </div>
+                                <h3 className="font-bold text-red-700 text-sm mb-3">חריגות פתוחות</h3>
                                 <div className="space-y-2">
-                                    <AlertItem text="EBS Volumes לא בשימוש" cost="-$85" />
-                                    <AlertItem text="שרתים פעילים בסופ״ש (Dev)" cost="-$240" />
+                                    <div className="bg-white p-3 rounded-xl text-xs text-slate-600 shadow-sm flex justify-between">
+                                        <span>EBS Volumes לא בשימוש</span>
+                                        <span className="font-bold text-red-600">-$85</span>
+                                    </div>
+                                    <div className="bg-white p-3 rounded-xl text-xs text-slate-600 shadow-sm flex justify-between">
+                                        <span>שרתי Dev בסופ״ש</span>
+                                        <span className="font-bold text-red-600">-$240</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                     </main>
 
-                    {/* Bottom Navigation */}
-                    <nav className="bg-white border-t border-slate-100 flex justify-around p-2 pb-safe sticky bottom-0 z-30">
-                        <NavButton 
-                            active={activeTab === 'chat'} 
-                            onClick={() => setActiveTab('chat')} 
-                            icon={Icons.Message} 
-                            label="צ׳אט אייגנט" 
-                        />
-                        <NavButton 
-                            active={activeTab === 'dashboard'} 
-                            onClick={() => setActiveTab('dashboard')} 
-                            icon={Icons.Dashboard} 
-                            label="דשבורד" 
-                        />
+                    {/* Bottom Nav */}
+                    <nav className="flex-none bg-white border-t border-slate-100 flex justify-around p-2 pb-safe sticky bottom-0 z-40">
+                        <button onClick={() => setActiveTab('chat')} className={`flex-1 flex flex-col items-center py-1 ${activeTab === 'chat' ? 'text-blue-600' : 'text-slate-400'}`}>
+                            <Icons.Message c="w-6 h-6 mb-1" />
+                            <span className="text-[10px] font-bold">אייגנט</span>
+                        </button>
+                        <button onClick={() => setActiveTab('dashboard')} className={`flex-1 flex flex-col items-center py-1 ${activeTab === 'dashboard' ? 'text-blue-600' : 'text-slate-400'}`}>
+                            <Icons.Dashboard c="w-6 h-6 mb-1" />
+                            <span className="text-[10px] font-bold">דשבורד</span>
+                        </button>
                     </nav>
+
                 </div>
             );
         };
-
-        // --- HELPER COMPONENTS ---
-        
-        const StepItem = ({ done, text }) => (
-            <div className="flex items-center gap-3 transition-all duration-500">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center border transition-colors ${done ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-slate-200'}`}>
-                    {done && <Icons.Check className="w-3.5 h-3.5" />}
-                </div>
-                <span className={`text-sm ${done ? 'text-slate-800 font-medium' : 'text-slate-400'}`}>{text}</span>
-            </div>
-        );
-
-        const Chip = ({ children, onClick }) => (
-            <button onClick={onClick} className="bg-white border border-slate-200 text-slate-600 px-3 py-1.5 rounded-full text-xs whitespace-nowrap shadow-sm hover:border-blue-400 hover:text-blue-600 transition-colors">
-                {children}
-            </button>
-        );
-
-        const StatCard = ({ label, value, trend, sub, bad }) => (
-            <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                <div className="text-slate-400 text-[11px] mb-1">{label}</div>
-                <div className="text-2xl font-black text-slate-800 tracking-tight">{value}</div>
-                {trend && <div className={`text-xs mt-1 font-bold ${bad ? 'text-red-500' : 'text-green-500'}`}>{trend} מחודש שעבר</div>}
-                {sub && <div className="text-xs mt-1 text-slate-400">{sub}</div>}
-            </div>
-        );
-
-        const AlertItem = ({ text, cost }) => (
-            <div className="bg-white p-3 rounded-xl text-xs text-slate-600 shadow-sm flex justify-between items-center border border-red-50">
-                <span>{text}</span>
-                <span className="font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">{cost}</span>
-            </div>
-        );
-
-        const NavButton = ({ active, onClick, icon: Icon, label }) => (
-            <button onClick={onClick} className={`flex-1 flex flex-col items-center justify-center py-2 rounded-xl transition-colors ${active ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}>
-                <Icon className={`w-6 h-6 mb-1 ${active ? 'fill-blue-100' : ''}`} />
-                <span className="text-[10px] font-medium">{label}</span>
-            </button>
-        );
 
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
