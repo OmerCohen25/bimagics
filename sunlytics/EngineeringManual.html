@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engineering Manual | Wizbi Sunlytics Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@200;300;400;500;600;700;800&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Assistant', sans-serif; scroll-behavior: smooth; background-color: #fcfcfd; }
+        code, pre { font-family: 'Fira Code', monospace; }
+        .sidebar-link:hover { background-color: rgba(37, 99, 235, 0.05); border-right: 4px solid #2563eb; }
+        .sidebar-link.active { background-color: rgba(37, 99, 235, 0.1); border-right: 4px solid #2563eb; color: #2563eb; font-weight: 700; }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); }
+        .section-anchor { scroll-margin-top: 100px; }
+        .tech-tag { @apply px-2 py-0.5 bg-slate-100 rounded text-[10px] font-mono text-slate-600 border border-slate-200 uppercase tracking-tighter; }
+        .card-shadow { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02); }
+        .diagram-box { @apply p-4 border rounded-xl bg-white flex flex-col items-center justify-center text-center shadow-sm; }
+    </style>
+</head>
+<body class="text-slate-900 overflow-x-hidden">
+
+    <!-- Header Section -->
+    <header class="fixed top-0 w-full z-50 glass border-b border-slate-200 px-8 py-4 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-4">
+            <div class="bg-blue-600 p-2.5 rounded-xl text-white shadow-lg shadow-blue-500/30">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-black tracking-tighter uppercase leading-none">Sunlytics <span class="text-blue-600">Pro</span></h1>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Lead Developer Handover</p>
+            </div>
+        </div>
+        <div class="hidden lg:flex gap-3">
+            <span class="tech-tag">v3.6.0 Stable</span>
+            <span class="tech-tag border-emerald-200 bg-emerald-50 text-emerald-700 font-bold">IaC Sync: 100%</span>
+        </div>
+    </header>
+
+    <div class="flex">
+        <!-- Persistent Sidebar -->
+        <aside class="hidden lg:block w-80 h-screen sticky top-0 pt-24 border-l border-slate-200 p-8 space-y-10 overflow-y-auto bg-white/50">
+            <div>
+                <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 italic">The Big Picture</h3>
+                <nav class="flex flex-col gap-1 text-sm font-medium text-slate-500">
+                    <a href="#vision" class="sidebar-link px-4 py-2.5 rounded-xl transition-all">חזון ופילוסופיה</a>
+                    <a href="#architecture" class="sidebar-link px-4 py-2.5 rounded-xl transition-all">ארכיטקטורת המערכת</a>
+                </nav>
+            </div>
+            <div>
+                <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 italic">Infrastructure</h3>
+                <nav class="flex flex-col gap-1 text-sm font-medium text-slate-500">
+                    <a href="#gcp-cloud" class="sidebar-link px-4 py-2.5 rounded-xl transition-all">GCP Cloud Components</a>
+                    <a href="#terraform-gitops" class="sidebar-link px-4 py-2.5 rounded-xl transition-all">Terraform & GitOps</a>
+                    <a href="#iam-security" class="sidebar-link px-4 py-2.5 rounded-xl transition-all">אבטחה והרשאות</a>
+                </nav>
+            </div>
+            <div>
+                <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 italic">Core Logic</h3>
+                <nav class="flex flex-col gap-1 text-sm font-medium text-slate-500">
+                    <a href="#ingestion-engine" class="sidebar-link px-4 py-2.5 rounded-xl transition-all">Smart Ingestion Worker</a>
+                    <a href="#bigquery-dwh" class="sidebar-link px-4 py-2.5 rounded-xl transition-all">BigQuery Data Engine</a>
+                    <a href="#ai-brain" class="sidebar-link px-4 py-2.5 rounded-xl transition-all">מנוע ה-AI (Vertex AI)</a>
+                    <a href="#solar-math" class="sidebar-link px-4 py-2.5 rounded-xl transition-all">פיזיקה וחישובים</a>
+                </nav>
+            </div>
+            <div>
+                <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 italic">The Future</h3>
+                <nav class="flex flex-col gap-1 text-sm font-medium text-slate-500">
+                    <a href="#development" class="sidebar-link px-4 py-2.5 rounded-xl transition-all">פיתוח ודיפלוי (CI/CD)</a>
+                    <a href="#roadmap" class="sidebar-link px-4 py-2.5 rounded-xl transition-all">משימות ו-Roadmap</a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 max-w-5xl mx-auto p-8 lg:p-20 pt-32 pb-40">
+
+            <!-- Vision -->
+            <section id="vision" class="section-anchor mb-32">
+                <div class="max-w-3xl">
+                    <h2 class="text-6xl font-black text-slate-900 mb-8 tracking-tighter leading-tight">Handover <br><span class="text-blue-600">Protocol.</span></h2>
+                    <p class="text-xl text-slate-600 leading-relaxed font-light">
+                        מערכת <strong>Sunlytics Pro</strong> נבנתה כפלטפורמת ניטור ואנליטיקה מבוססת AI עבור שוק האנרגיה הסולארית. המערכת תוכננה למקסימום אוטומציה ומינימום תחזוקה ידנית ("Zero-Maintenance Infrastructure").
+                    </p>
+                    <div class="mt-12 flex flex-wrap gap-4">
+                        <div class="p-6 bg-blue-50 border border-blue-100 rounded-3xl flex-1 min-w-[250px] card-shadow">
+                            <h4 class="font-bold text-blue-900 mb-2">FinOps Constitution</h4>
+                            <p class="text-sm text-blue-800/80">יעילות כלכלית קיצונית: <br><strong>< 0.50 ש"ח לאתר לחודש</strong>.</p>
+                        </div>
+                        <div class="p-6 bg-slate-900 border border-slate-800 rounded-3xl flex-1 min-w-[250px] shadow-xl">
+                            <h4 class="font-bold text-white mb-2">Serverless First</h4>
+                            <p class="text-sm text-slate-400">אפס שרתים לניהול. הכל מבוסס על Cloud Run, Cloud Tasks ו-BigQuery.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Architecture Diagram -->
+            <section id="architecture" class="section-anchor mb-32 border-t border-slate-100 pt-20">
+                <h3 class="text-4xl font-black mb-12 tracking-tight">ארכיטקטורת המערכת</h3>
+                <div class="bg-slate-50 p-12 rounded-[40px] border border-slate-200">
+                    <!-- Visual Representation -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                        <div class="diagram-box border-blue-200 bg-blue-50/30">
+                            <span class="font-bold text-blue-600 mb-2">Ingestion</span>
+                            <p class="text-xs text-slate-500">Smart Worker (Node.js)<br>SolarEdge/Sungrow APIs</p>
+                        </div>
+                        <div class="flex justify-center text-slate-300">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                        </div>
+                        <div class="diagram-box border-emerald-200 bg-emerald-50/30">
+                            <span class="font-bold text-emerald-600 mb-2">Data Warehouse</span>
+                            <p class="text-xs text-slate-500">BigQuery (Cold Storage)<br>SQL Business Logic</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-center py-8 text-slate-300">
+                        <svg class="w-8 h-8 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                        <div class="diagram-box border-purple-200 bg-purple-50/30">
+                            <span class="font-bold text-purple-600 mb-2">Intelligence</span>
+                            <p class="text-xs text-slate-500">Vertex AI (Gemini 2.5)<br>Alert Evaluation</p>
+                        </div>
+                        <div class="flex justify-center text-slate-300">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                        </div>
+                        <div class="diagram-box border-orange-200 bg-orange-50/30">
+                            <span class="font-bold text-orange-600 mb-2">Interface</span>
+                            <p class="text-xs text-slate-500">React Dashboard<br>WhatsApp/Telegram Bot</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- GCP Infrastructure Section -->
+            <section id="gcp-cloud" class="section-anchor mb-32 border-t border-slate-100 pt-20">
+                <div class="flex items-center gap-3 mb-8">
+                    <span class="text-blue-600 font-bold tracking-widest text-xs uppercase">Infrastructure</span>
+                    <div class="h-px bg-slate-200 flex-1"></div>
+                </div>
+                <h3 class="text-4xl font-black mb-12">תשתית הענן (GCP)</h3>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="p-8 bg-white rounded-3xl border border-slate-200 card-shadow">
+                        <h4 class="font-bold text-xl mb-4">Cloud Run Microservices</h4>
+                        <p class="text-sm text-slate-500 mb-4 leading-relaxed">
+                            המערכת רצה כ-Service מנוהל ב-<code>europe-west1</code>. קיימת הפרדה לסביבות:
+                        </p>
+                        <ul class="text-xs space-y-2 font-mono">
+                            <li class="p-2 bg-slate-50 rounded border">Production (wizbi-sunlytics-monitor-service)</li>
+                            <li class="p-2 bg-slate-50 rounded border">QA/Dev Environments (qa, itzik, omer)</li>
+                        </ul>
+                    </div>
+
+                    <div class="p-8 bg-white rounded-3xl border border-slate-200 card-shadow">
+                        <h4 class="font-bold text-xl mb-4">Orchestration</h4>
+                        <p class="text-sm text-slate-500 mb-4 leading-relaxed">
+                            ניהול הקצב והתורים מבוצע על ידי שני שירותים מרכזיים:
+                        </p>
+                        <ul class="text-sm space-y-3">
+                            <li class="flex gap-2">🚀 <b>Cloud Tasks:</b> תורים אסינכרוניים (<code>sunlytics-monitor</code>) לניהול Rate Limits של ה-APIs.</li>
+                            <li class="flex gap-2">⏰ <b>Cloud Scheduler:</b> Cron Job (Pulse) שרץ כל 15 דקות ומניע את הסנכרון.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Terraform Section -->
+            <section id="terraform-gitops" class="section-anchor mb-32 border-t border-slate-100 pt-20">
+                <h3 class="text-4xl font-black mb-12 tracking-tight flex items-center gap-4">
+                    Terraform & GitOps
+                    <img src="https://www.vectorlogo.zone/logos/terraformio/terraformio-icon.svg" class="h-8" alt="Terraform">
+                </h3>
+                
+                <div class="bg-slate-900 rounded-3xl p-10 text-white shadow-2xl relative overflow-hidden">
+                    <h4 class="text-2xl font-bold mb-6 italic">"The Repo is the Boss"</h4>
+                    <p class="text-slate-400 mb-8 leading-relaxed">
+                        ביצענו מיגרציה מלאה לניהול תשתית כקוד (IaC). אין לשנות הגדרות ידנית ב-GCP Console. כל שינוי חייב לעבור דרך תיקיית <code>terraform/</code> בריפו.
+                    </p>
+                    
+                    <div class="space-y-6">
+                        <div class="p-6 bg-slate-800/50 rounded-2xl border border-slate-700">
+                            <h5 class="text-sm font-bold text-blue-400 mb-3 uppercase tracking-wider">State Management</h5>
+                            <p class="text-xs text-slate-300">ה-State של Terraform שמור בבאקט <code>gs://wizbi-tf-state</code>. לעולם אין לעבוד מקומית בלי חיבור לבאקט זה.</p>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="p-5 bg-emerald-900/20 rounded-2xl border border-emerald-500/30">
+                                <h5 class="text-xs font-bold text-emerald-400 mb-2">Lifecycle Safeties</h5>
+                                <p class="text-[11px] text-slate-400 leading-relaxed italic">
+                                    הגדרנו <code>ignore_changes</code> על שדות ה-image וה-env ב-Cloud Run. זה מאפשר ל-GitHub Actions לעשות Deploy לקוד מבלי ש-Terraform יחשוב שיש שינוי בתשתית וינסה להחזיר אותם אחורה.
+                                </p>
+                            </div>
+                            <div class="p-5 bg-blue-900/20 rounded-2xl border border-blue-500/30">
+                                <h5 class="text-xs font-bold text-blue-400 mb-2">OIDC Authentication</h5>
+                                <p class="text-[11px] text-slate-400 leading-relaxed">
+                                    כל הג'ובים בסקדולר מוגדרים עם <code>oidc_token</code>. השרת לא יקבל פניות אנונימיות (401 Unauthorized) אלא רק פניות מה-Service Account המורשה <code>scheduler-sa</code>.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BigQuery & Data Section -->
+            <section id="bigquery-dwh" class="section-anchor mb-32 border-t border-slate-100 pt-20">
+                <h3 class="text-4xl font-black mb-12 tracking-tight">Data Engineering: BigQuery</h3>
+                <p class="text-lg text-slate-600 mb-10">
+                    ארכיטקטורת הדאטה שלנו מפרידה בין <strong>Hot State</strong> (Firestore) לבין <strong>Cold/Analytics Layer</strong> (BigQuery). רוב הלוגיקה העסקית (Deduplication, Yield Calculation) נמצאת ב-SQL Views.
+                </p>
+
+                <div class="bg-white border border-slate-200 rounded-[40px] p-10 card-shadow">
+                    <h4 class="font-black text-xl mb-6 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">1</div>
+                        מבנה ה-Datasets
+                    </h4>
+                    <div class="grid md:grid-cols-2 gap-10">
+                        <div class="space-y-4">
+                            <p class="text-sm font-bold text-slate-700 underline underline-offset-4">sunlytics_data (Production)</p>
+                            <ul class="text-xs space-y-2 text-slate-500 font-mono">
+                                <li>- telemetry_raw: נתונים גולמיים בסטרימינג</li>
+                                <li>- inverter_telemetry_deep: דאטה טכני (Voltage, Temp)</li>
+                                <li>- equipment_faults: לוג תקלות היסטורי</li>
+                            </ul>
+                        </div>
+                        <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                            <h5 class="text-xs font-black text-slate-400 uppercase mb-4">Golden Rule #1: Views Only</h5>
+                            <p class="text-[11px] text-slate-600 leading-relaxed">
+                                <strong>לעולם אל תבצע שאילתות ישירות על טבלאות ה-RAW.</strong> ה-API של SolarEdge שולח כפילויות. השתמש ב-Views תחת הקידומת <code>v_*</code> (כמו <code>v_inverter_deep_dedup</code>) שכוללים לוגיקת ניקוי ב-SQL.
+                            </p>
+                        </div>
+                    </div>
+
+                    <h4 class="font-black text-xl mt-12 mb-6 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">2</div>
+                        SQL Logical Engine
+                    </h4>
+                    <pre class="bg-slate-900 p-6 rounded-2xl text-[11px] text-blue-400 leading-relaxed overflow-x-auto shadow-inner">
+-- דוגמה ללוגיקת חישוב בריאות ממיר (v_live_inverter_kpis)
+SELECT 
+  site_id, 
+  serial_number,
+  -- חישוב נצילות רגעית מול צפי מנורמל
+  SAFE_DIVIDE(total_active_power, COALESCE(power_limit, 10) * 1000) as yield_instant,
+  -- זיהוי חוסר איזון פאזות בזרם AC
+  (MAX(l1_current) - MIN(l1_current)) / AVG(l1_current) as phase_imbalance
+FROM `sunlytics_data.v_inverter_deep_dedup`
+WHERE timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 HOUR)
+GROUP BY 1, 2</pre>
+                </div>
+            </section>
+
+            <!-- Smart Worker Logic -->
+            <section id="smart-worker" class="section-anchor mb-32 border-t border-slate-100 pt-20">
+                <h3 class="text-4xl font-black mb-12 tracking-tight leading-none">The Ingestion Worker <br><span class="text-blue-600 text-2xl font-bold">Resilience & API Handling</span></h3>
+                
+                <div class="grid md:grid-cols-2 gap-10">
+                    <div class="space-y-6">
+                        <div class="p-8 bg-white rounded-3xl border border-slate-200 card-shadow transition-transform hover:-translate-y-1">
+                            <h4 class="font-bold text-lg mb-4 flex items-center gap-2 text-blue-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1a1 1 0 112 0v1a1 1 0 11-2 0zM13.657 15.657a1 1 0 001.414-1.414l-.707-.707a1 1 0 10-1.414 1.414l.707.707zM16 10a1 1 0 11-2 0 1 1 0 012 0z" /></svg>
+                                Night Mode & Daylight Check
+                            </h4>
+                            <p class="text-sm text-slate-500 leading-relaxed">
+                                כדי לחסוך 50% מהעלויות, המערכת משתמשת ב-<code>checkDaylight</code>. אם השמש שקעה באתר הספציפי, ה-Worker מעדכן את ה-Firestore ל-"Sleeping" ויוצא מיד ללא קריאות API מיותרות.
+                            </p>
+                        </div>
+                        
+                        <div class="p-8 bg-white rounded-3xl border border-slate-200 card-shadow transition-transform hover:-translate-y-1">
+                            <h4 class="font-bold text-lg mb-4 flex items-center gap-2 text-purple-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" /></svg>
+                                API Key Rotation
+                            </h4>
+                            <p class="text-sm text-slate-500 leading-relaxed">
+                                חוק ה-300: SolarEdge מגבילה קריאות. המערכת מחזיקה מערך מפתחות ב-Firestore. אם נתקלים ב-429 (Rate Limit), המערכת מבצעת <strong>Transaction</strong> ומחליפה למפתח הבא באותו מחזור.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="p-10 bg-slate-900 rounded-[40px] text-white shadow-2xl relative">
+                        <h4 class="text-xl font-bold mb-6">Vacuum Telemetry Mechanism</h4>
+                        <div class="space-y-6 font-light text-slate-300">
+                            <p>אנחנו לא מושכים רק "הספק". המערכת מבצעת <strong>Deep Vacuum</strong> של נתונים טכניים:</p>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="p-3 bg-white/5 rounded-xl border border-white/10 text-[10px]">
+                                    <span class="block font-bold text-blue-400 mb-1">DC Physics</span>
+                                    Voltage, Isolation Resistance (R-ISO), Current per String
+                                </div>
+                                <div class="p-3 bg-white/5 rounded-xl border border-white/10 text-[10px]">
+                                    <span class="block font-bold text-emerald-400 mb-1">AC Quality</span>
+                                    Current per Phase (L1/L2/L3), Voltage Imbalance, Power Factor
+                                </div>
+                                <div class="p-3 bg-white/5 rounded-xl border border-white/10 text-[10px]">
+                                    <span class="block font-bold text-rose-400 mb-1">Thermal Health</span>
+                                    Inverter Internal Temp, Cooling status
+                                </div>
+                                <div class="p-3 bg-white/5 rounded-xl border border-white/10 text-[10px]">
+                                    <span class="block font-bold text-amber-400 mb-1">Comm Status</span>
+                                    Data Freshness, Response Latency, Packet Loss
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI Brain Section -->
+            <section id="ai-brain" class="section-anchor mb-32 border-t border-slate-100 pt-20">
+                <h3 class="text-4xl font-black mb-12 tracking-tight">בינה מלאכותית (Vertex AI)</h3>
+                <div class="grid md:grid-cols-12 gap-8 items-start">
+                    <div class="md:col-span-4 sticky top-32">
+                        <div class="p-8 bg-indigo-600 rounded-3xl text-white shadow-xl">
+                            <h4 class="font-bold text-lg mb-4">Gemini 2.5 Flash</h4>
+                            <p class="text-xs opacity-80 leading-relaxed mb-6">
+                                המערכת משתמשת במודל החדש ביותר של Vertex AI לקבלת החלטות מהירה וחסכונית.
+                            </p>
+                            <div class="space-y-3">
+                                <span class="block p-2 bg-white/10 rounded-lg text-[10px] font-mono">Response Time: ~2s</span>
+                                <span class="block p-2 bg-white/10 rounded-lg text-[10px] font-mono">Cost: $0.0001 / msg</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="md:col-span-8 space-y-10">
+                        <div>
+                            <h5 class="font-black text-slate-800 uppercase tracking-widest text-xs mb-4">The Context Builder Logic</h5>
+                            <p class="text-sm text-slate-600 mb-6">אנחנו לא רק שואלים שאלה. ה-<code>ContextBuilder</code> בונה <strong>מפת הקשר מלאה</strong> (Knowledge Graph) בתוך ה-Prompt:</p>
+                            <ul class="text-sm space-y-3 border-r-2 border-slate-100 pr-6">
+                                <li>🧠 <b>Portfolio Graph:</b> רשימת כל האתרים של המשתמש, גודלם וסטטוס העדכון שלהם.</li>
+                                <li>🚨 <b>Active Incidents:</b> 5 התראות אחרונות מה-<code>system_logs</code> ב-Firestore.</li>
+                                <li>🌦️ <b>Environmental Awareness:</b> מזג אוויר וקרינת שמש נוכחית (Open-Meteo API).</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-indigo-50 rounded-3xl border border-indigo-100 p-8">
+                            <h5 class="font-bold text-indigo-900 mb-4 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57a8.991 8.991 0 01-1.655.133L16 10V8a1 1 0 00-1-1H5a1 1 0 00-1 1v10a1 1 0 001 1h3.586a.991.991 0 01.133-1.655A8.991 8.991 0 018.155 16H5a1 1 0 01-1-1V8a2 2 0 012-2h2z" clip-rule="evenodd" /></svg>
+                                Intelligent Tool Calling
+                            </h4>
+                            <p class="text-xs text-indigo-800 mb-4">האייג'נט מוגדר עם Function Declarations המאפשרות לו "לגעת" בעולם האמיתי:</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="bg-white/70 p-3 rounded-xl border border-indigo-200 text-[10px] font-bold">get_site_status()</div>
+                                <div class="bg-white/70 p-3 rounded-xl border border-indigo-200 text-[10px] font-bold">analyze_site_trend()</div>
+                                <div class="bg-white/70 p-3 rounded-xl border border-indigo-200 text-[10px] font-bold">get_telemetry_raw()</div>
+                                <div class="bg-white/70 p-3 rounded-xl border border-indigo-200 text-[10px] font-bold">refresh_site_data()</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Handover Checklist Section -->
+            <section id="day-one" class="section-anchor mb-20">
+                <div class="bg-blue-600 rounded-[40px] p-12 lg:p-16 text-white shadow-2xl relative overflow-hidden">
+                    <h2 class="text-4xl font-black mb-10 tracking-tight leading-none">Engineering <br>Handover Checklist</h2>
+                    
+                    <div class="grid md:grid-cols-2 gap-16 relative z-10">
+                        <div>
+                            <h5 class="text-xs font-black uppercase tracking-[0.3em] mb-6 opacity-60">System Setup</h5>
+                            <ul class="space-y-6 text-sm font-bold">
+                                <li class="flex items-start gap-4">
+                                    <div class="w-6 h-6 rounded bg-white/20 flex items-center justify-center shrink-0 mt-0.5">1</div>
+                                    <p>התחברי ל-GCP Console וקבלי הרשאת Editor/Owner.</p>
+                                </li>
+                                <li class="flex items-start gap-4">
+                                    <div class="w-6 h-6 rounded bg-white/20 flex items-center justify-center shrink-0 mt-0.5">2</div>
+                                    <p>הגדירי WIF (Workload Identity Federation) מקומי ל-Shell.</p>
+                                </li>
+                                <li class="flex items-start gap-4">
+                                    <div class="w-6 h-6 rounded bg-white/20 flex items-center justify-center shrink-0 mt-0.5">3</div>
+                                    <p>בצעי <code>git clone</code> והגדירי PAT (Personal Access Token) ב-Cloud Shell.</p>
+                                </li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h5 class="text-xs font-black uppercase tracking-[0.3em] mb-6 opacity-60">GitOps Protocol</h5>
+                            <ul class="space-y-6 text-sm font-bold">
+                                <li class="flex items-start gap-4 text-emerald-300">
+                                    <svg class="h-6 w-6 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                                    <p>בדיקת <code>terraform plan</code> בבראנץ' Dev לפני כל Merge.</p>
+                                </li>
+                                <li class="flex items-start gap-4 text-emerald-300">
+                                    <svg class="h-6 w-6 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                                    <p>עדכון גרסאות דרך Git Tags בלבד.</p>
+                                </li>
+                                <li class="flex items-start gap-4 text-emerald-300">
+                                    <svg class="h-6 w-6 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                                    <p>ניטור שוטף של ה-Log Explorer ב-GCP לאיתור 5xx.</p>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="absolute -left-20 -top-20 opacity-10 pointer-events-none">
+                        <svg width="400" height="400" viewBox="0 0 24 24" fill="currentColor"><path d="M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z" /></svg>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Interactive Bottom Bar -->
+    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 glass border border-slate-200 rounded-full px-6 py-3 shadow-2xl z-50 flex items-center gap-6">
+        <div class="flex items-center gap-2 text-xs font-black text-slate-400 border-l border-slate-200 pl-6">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            SYSTEM STATUS: ONLINE
+        </div>
+        <div class="flex gap-4">
+            <a href="https://github.com/bimagics/wizbi-sunlytics-monitor" target="_blank" class="text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors">GitHub Repository</a>
+            <a href="https://console.cloud.google.com/home/dashboard?project=wizbi-sunlytics-monitor" target="_blank" class="text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors">GCP Console</a>
+        </div>
+    </div>
+
+    <footer class="bg-white border-t border-slate-200 py-24 px-8 text-center">
+        <div class="max-w-xl mx-auto space-y-6">
+            <h4 class="text-2xl font-black tracking-tighter uppercase">Wizbi <span class="text-blue-600 font-bold italic">Engineering</span></h4>
+            <p class="text-sm text-slate-400 leading-relaxed font-medium">
+                מסמך זה הינו רכוש טכני וסודי של Wizbi. הוא נועד לאפשר המשכיות הנדסית וביצועים גבוהים. בניתם פה משהו מדהים – עכשיו תורכם לקחת אותו קדימה.
+            </p>
+            <p class="text-[10px] text-slate-300 font-black uppercase tracking-[0.4em]">Dec 2025 | Created with ❤️ and AI</p>
+        </div>
+    </footer>
+
+    <script>
+        // Highlighting active section in sidebar based on scroll
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('.section-anchor');
+            const navLinks = document.querySelectorAll('.sidebar-link');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 150) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
