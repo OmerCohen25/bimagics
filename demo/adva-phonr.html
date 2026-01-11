@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>מערכת אדוה - קטלוג מלא 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Rubik', 'sans-serif'] },
+                    colors: {
+                        morning: '#26c281', // הצבע של מורנינג
+                        brand: {
+                            50: '#eff6ff', 500: '#3b82f6', 600: '#2563eb', 900: '#1e3a8a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base Styles & Utilities */
+        body { background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Animations */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        .slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        /* Hide Number Input Arrows */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+        /* Safe Area for Mobile */
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+        
+        /* Loader */
+        .loader { width: 24px; height: 24px; border: 3px solid #e2e8f0; border-bottom-color: #3b82f6; border-radius: 50%; display: inline-block; box-sizing: border-box; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* View Management */
+        .view-section { display: none; }
+        .view-section.active { display: flex; animation: fadeIn 0.2s; }
+    </style>
+</head>
+<body class="h-screen flex flex-col md:flex-row overflow-hidden text-slate-800">
+
+    <!-- === TOAST NOTIFICATIONS === -->
+    <div id="toast-container" class="fixed top-5 right-1/2 translate-x-1/2 md:translate-x-0 md:right-5 z-[100] flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- === SIDEBAR (Desktop) === -->
+    <aside class="hidden md:flex w-72 bg-slate-900 text-white flex-col shadow-2xl z-20">
+        <div class="p-6 border-b border-slate-800 bg-slate-950 flex flex-col gap-1">
+            <h1 class="text-2xl font-bold text-blue-400 tracking-wider flex items-center gap-3">
+                <i class="fas fa-layer-group"></i> AdvaOS
+            </h1>
+            <div class="flex items-center gap-2 text-xs text-slate-400">
+                <span class="w-2 h-2 rounded-full bg-morning"></span>
+                <span>Morning Catalog Active</span>
+            </div>
+        </div>
+        
+        <nav class="flex-1 mt-6 px-4 space-y-2">
+            <button onclick="App.router.navigate('pos')" id="nav-d-pos" class="nav-btn w-full text-right py-3.5 px-4 rounded-xl transition flex items-center gap-3 hover:bg-slate-800/50 text-slate-400">
+                <i class="fas fa-cash-register w-6 text-center"></i> <span class="font-medium">קופה</span>
+            </button>
+            <button onclick="App.router.navigate('inventory')" id="nav-d-inventory" class="nav-btn w-full text-right py-3.5 px-4 rounded-xl transition flex items-center gap-3 hover:bg-slate-800/50 text-slate-400">
+                <i class="fas fa-boxes w-6 text-center"></i> <span class="font-medium">ניהול מלאי</span>
+            </button>
+            <button onclick="App.router.navigate('documents')" id="nav-d-documents" class="nav-btn w-full text-right py-3.5 px-4 rounded-xl transition flex items-center gap-3 hover:bg-slate-800/50 text-slate-400">
+                <i class="fas fa-file-invoice w-6 text-center"></i> <span class="font-medium">מסמכים</span>
+            </button>
+            <button onclick="App.router.navigate('settings')" id="nav-d-settings" class="nav-btn w-full text-right py-3.5 px-4 rounded-xl transition flex items-center gap-3 hover:bg-slate-800/50 text-slate-400">
+                <i class="fas fa-cog w-6 text-center"></i> <span class="font-medium">הגדרות</span>
+            </button>
+        </nav>
+
+        <div class="p-4 bg-slate-950 border-t border-slate-800">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold text-sm shadow-lg">AD</div>
+                <div>
+                    <div class="text-sm font-bold text-white">מנהל מערכת</div>
+                    <div class="text-[10px] text-slate-400">v5.3.0 Catalog Update</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- === MAIN CONTENT === -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50/50 relative w-full">
+        
+        <!-- Header (Mobile) -->
+        <header class="md:hidden bg-white shadow-sm p-4 flex justify-between items-center z-10 h-16 shrink-0 border-b border-slate-100">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-blue-400 shadow">
+                    <i class="fas fa-layer-group text-sm"></i>
+                </div>
+                <h2 id="mobile-page-title" class="font-bold text-slate-800">קופה</h2>
+            </div>
+            <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+        </header>
+
+        <!-- VIEW: POS (Sales) -->
+        <div id="view-pos" class="view-section active flex-col flex-1 overflow-hidden pb-20 md:pb-0">
+            <!-- Search & Filter -->
+            <div class="p-4 bg-white border-b border-slate-200 flex flex-col md:flex-row gap-3 shadow-sm z-10">
+                <div class="relative flex-1">
+                    <i class="fas fa-search absolute right-3.5 top-3.5 text-slate-400"></i>
+                    <input type="text" id="posSearch" placeholder="חיפוש מוצר (אייפון 17, גלקסי S25, נוקיה)..." 
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pr-10 pl-4 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition"
+                           onkeyup="App.controllers.pos.render()">
+                </div>
+                <div class="flex gap-2 overflow-x-auto pb-1 md:pb-0 hide-scrollbar">
+                    <button onclick="App.controllers.pos.filter('all')" class="filter-btn active px-4 py-2 rounded-lg bg-slate-800 text-white text-xs font-bold whitespace-nowrap" data-type="all">הכל</button>
+                    <button onclick="App.controllers.pos.filter('official')" class="filter-btn px-4 py-2 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold whitespace-nowrap hover:bg-slate-200" data-type="official">יבואן רשמי</button>
+                    <button onclick="App.controllers.pos.filter('parallel')" class="filter-btn px-4 py-2 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold whitespace-nowrap hover:bg-slate-200" data-type="parallel">יבואן מקביל</button>
+                </div>
+            </div>
+
+            <!-- Grid -->
+            <div class="flex-1 overflow-y-auto p-4 bg-slate-50" id="pos-grid-container">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 pb-24" id="pos-grid">
+                    <!-- JS Injection -->
+                </div>
+                <div id="pos-empty" class="hidden flex flex-col items-center justify-center text-slate-400 mt-20">
+                    <i class="fas fa-search text-4xl mb-3 opacity-30"></i>
+                    <p>לא נמצאו מוצרים תואמים</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: Inventory -->
+        <div id="view-inventory" class="view-section flex-col flex-1 overflow-hidden pb-20 md:pb-0">
+            <div class="p-4 bg-white border-b border-slate-200 flex justify-between items-center shadow-sm">
+                <div>
+                    <h3 class="font-bold text-slate-800 text-lg">ניהול מלאי ועלויות</h3>
+                    <p class="text-xs text-slate-500">ניהול קטלוג, מחירי עלות וסינכרון</p>
+                </div>
+                <button onclick="App.controllers.inventory.openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-blue-200 flex items-center gap-2 text-sm font-bold transition transform active:scale-95">
+                    <i class="fas fa-plus"></i> הוסף מוצר
+                </button>
+            </div>
+            
+            <div class="flex-1 overflow-auto p-4 bg-slate-50">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right min-w-[900px] whitespace-nowrap">
+                            <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b border-slate-100">
+                                <tr>
+                                    <th class="p-4 w-16">#</th>
+                                    <th class="p-4">שם המוצר</th>
+                                    <th class="p-4">יבואן</th>
+                                    <th class="p-4">מלאי</th>
+                                    <th class="p-4 bg-amber-50 text-amber-700 border-x border-amber-100">עלות (₪)</th>
+                                    <th class="p-4">מכירה (₪)</th>
+                                    <th class="p-4">רווח</th>
+                                    <th class="p-4 text-center">פעולות</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-table-body" class="divide-y divide-slate-100 text-sm text-slate-700 font-medium"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: Documents (History) -->
+        <div id="view-documents" class="view-section flex-col flex-1 overflow-hidden pb-20 md:pb-0">
+            <div class="p-4 bg-white border-b border-slate-200 shadow-sm">
+                <h3 class="font-bold text-slate-800 text-lg">היסטוריית מסמכים</h3>
+                <p class="text-xs text-slate-500">מסמכים שהופקו באמצעות Morning API</p>
+            </div>
+            <div class="flex-1 overflow-auto p-4 bg-slate-50">
+                <div class="grid gap-3" id="documents-list">
+                    <!-- Documents Injected Here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: Settings -->
+        <div id="view-settings" class="view-section flex-col flex-1 overflow-y-auto p-4 md:p-8 pb-20 md:pb-0">
+            <div class="max-w-3xl mx-auto w-full space-y-6">
+                
+                <!-- Morning Config -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-morning"></div>
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fas fa-leaf text-morning"></i> הגדרות Morning
+                            </h3>
+                            <p class="text-sm text-slate-500 mt-1">חיבור למערכת חשבונית ירוקה</p>
+                        </div>
+                        <div class="bg-morning/10 text-morning px-3 py-1 rounded-full text-xs font-bold">API Integration</div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">API Key ID</label>
+                            <input type="text" id="setting-morning-id" class="w-full border border-slate-300 rounded-xl p-3 font-mono text-sm focus:ring-2 focus:ring-morning outline-none" placeholder="הדבק כאן...">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">API Secret</label>
+                            <input type="password" id="setting-morning-secret" class="w-full border border-slate-300 rounded-xl p-3 font-mono text-sm focus:ring-2 focus:ring-morning outline-none" placeholder="••••••••••••••••">
+                        </div>
+                        <div class="flex items-center gap-2 mt-2">
+                            <input type="checkbox" id="setting-morning-sandbox" class="w-4 h-4 text-morning rounded border-slate-300 focus:ring-morning">
+                            <label for="setting-morning-sandbox" class="text-sm text-slate-600">מצב Sandbox (סביבת טסטים)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Business Data -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">פרטי העסק</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">שם העסק</label>
+                            <input type="text" id="setting-biz-name" class="w-full border border-slate-200 rounded-xl p-3 bg-slate-50">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">ח.פ / עוסק</label>
+                            <input type="text" id="setting-biz-id" class="w-full border border-slate-200 rounded-xl p-3 bg-slate-50">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-4">
+                    <button onclick="App.controllers.settings.save()" class="bg-slate-900 hover:bg-slate-800 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition transform active:scale-95">
+                        שמור הגדרות
+                    </button>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="mt-12 pt-8 border-t border-slate-200">
+                    <button onclick="App.storage.reset()" class="text-red-500 text-sm font-bold hover:underline flex items-center gap-2">
+                        <i class="fas fa-trash"></i> איפוס מערכת מלא (מחיקת נתונים)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- === MOBILE NAV === -->
+    <nav class="md:hidden fixed bottom-0 w-full bg-white border-t border-slate-200 flex justify-around items-center h-16 z-40 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        <button onclick="App.router.navigate('pos')" id="nav-m-pos" class="mobile-nav-item flex flex-col items-center justify-center w-full h-full text-blue-600">
+            <i class="fas fa-cash-register text-lg mb-1"></i>
+            <span class="text-[10px] font-bold">קופה</span>
+        </button>
+        <button onclick="App.router.navigate('inventory')" id="nav-m-inventory" class="mobile-nav-item flex flex-col items-center justify-center w-full h-full text-slate-400">
+            <i class="fas fa-boxes text-lg mb-1"></i>
+            <span class="text-[10px] font-bold">מלאי</span>
+        </button>
+        <button onclick="App.router.navigate('documents')" id="nav-m-documents" class="mobile-nav-item flex flex-col items-center justify-center w-full h-full text-slate-400">
+            <i class="fas fa-file-invoice text-lg mb-1"></i>
+            <span class="text-[10px] font-bold">מסמכים</span>
+        </button>
+        <button onclick="App.router.navigate('settings')" id="nav-m-settings" class="mobile-nav-item flex flex-col items-center justify-center w-full h-full text-slate-400">
+            <i class="fas fa-cog text-lg mb-1"></i>
+            <span class="text-[10px] font-bold">הגדרות</span>
+        </button>
+    </nav>
+
+    <!-- === MODALS === -->
+
+    <!-- 1. Product Detail / Add To Cart Modal -->
+    <div id="modal-product" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="App.controllers.pos.closePanel()"></div>
+        <div class="absolute bottom-0 md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full md:w-[600px] bg-white md:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden slide-up flex flex-col max-h-[90vh]">
+            
+            <!-- Header -->
+            <div class="relative bg-slate-50 p-6 flex gap-6 border-b border-slate-100">
+                <div class="w-24 h-24 bg-white rounded-xl border border-slate-200 p-2 shadow-sm shrink-0">
+                    <img id="panel-img" src="" class="w-full h-full object-contain">
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-start">
+                        <span id="panel-type-badge" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide"></span>
+                        <button onclick="App.controllers.pos.closePanel()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-lg"></i></button>
+                    </div>
+                    <h3 id="panel-name" class="text-xl font-bold text-slate-800 leading-tight mt-1 line-clamp-2"></h3>
+                    <div class="text-sm font-mono text-slate-500 mt-1" id="panel-sku"></div>
+                    <div class="text-2xl font-bold text-blue-600 mt-2" id="panel-price"></div>
+                </div>
+            </div>
+
+            <!-- Body - Form -->
+            <div class="p-6 space-y-4 overflow-y-auto">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">שם הלקוח</label>
+                        <input type="text" id="input-client-name" class="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">טלפון / אימייל</label>
+                        <input type="text" id="input-client-contact" class="w-full border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm" placeholder="לשליחת המסמך">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">סוג מסמך להפקה (Morning)</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="docType" value="invoiceReceipt" class="peer sr-only" checked>
+                            <div class="p-3 border rounded-xl text-center peer-checked:bg-morning/10 peer-checked:border-morning peer-checked:text-morning transition hover:bg-slate-50">
+                                <i class="fas fa-file-invoice-dollar block mb-1 text-lg"></i>
+                                <span class="text-xs font-bold">חשבונית מס/קבלה</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="docType" value="deliveryNote" class="peer sr-only">
+                            <div class="p-3 border rounded-xl text-center peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-600 transition hover:bg-slate-50">
+                                <i class="fas fa-truck block mb-1 text-lg"></i>
+                                <span class="text-xs font-bold">תעודת משלוח</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="docType" value="quote" class="peer sr-only">
+                            <div class="p-3 border rounded-xl text-center peer-checked:bg-purple-50 peer-checked:border-purple-500 peer-checked:text-purple-600 transition hover:bg-slate-50">
+                                <i class="fas fa-file-contract block mb-1 text-lg"></i>
+                                <span class="text-xs font-bold">הצעת מחיר</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer - Payment & Action -->
+            <div class="p-4 border-t border-slate-100 bg-slate-50 pb-safe">
+                <button onclick="App.controllers.checkout.init()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg flex justify-between px-6 items-center hover:bg-slate-800 transition transform active:scale-[0.98]">
+                    <span>מעבר לתשלום והפקה</span>
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Payment Modal -->
+    <div id="modal-payment" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-md"></div>
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl relative z-10 overflow-hidden slide-up">
+            <div class="bg-slate-900 text-white p-4 flex justify-between items-center">
+                <h3 class="font-bold">פרטי תשלום</h3>
+                <button onclick="App.ui.toggleModal('modal-payment', false)" class="hover:text-red-400"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="p-6">
+                <div class="text-center mb-6">
+                    <p class="text-sm text-slate-500">סכום לתשלום</p>
+                    <h2 class="text-4xl font-bold text-slate-800 mt-1" id="payment-amount">₪0</h2>
+                </div>
+
+                <div class="space-y-3 mb-6">
+                    <label class="block text-xs font-bold text-slate-500 uppercase">אמצעי תשלום</label>
+                    <select id="payment-method" class="w-full border border-slate-300 rounded-xl p-3 bg-white focus:ring-2 focus:ring-blue-500 outline-none font-medium">
+                        <option value="credit">💳 כרטיס אשראי</option>
+                        <option value="cash">💵 מזומן</option>
+                        <option value="bit">📱 Bit / PayBox</option>
+                        <option value="transfer">🏦 העברה בנקאית</option>
+                    </select>
+                </div>
+                
+                <div class="space-y-3">
+                    <label class="block text-xs font-bold text-slate-500 uppercase">מספר תשלומים</label>
+                    <select id="payment-installments" class="w-full border border-slate-300 rounded-xl p-3 bg-white outline-none">
+                        <option value="1">תשלום אחד</option>
+                        <option value="2">2 תשלומים</option>
+                        <option value="3">3 תשלומים</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t flex gap-3">
+                <button onclick="App.controllers.checkout.process()" id="btn-finish-payment" class="flex-1 bg-morning hover:bg-emerald-600 text-white font-bold py-3 rounded-xl shadow transition flex justify-center items-center gap-2">
+                    <i class="fas fa-check"></i> אשר והפק מסמך
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Edit/Add Inventory Modal -->
+    <div id="modal-edit-product" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="App.controllers.inventory.closeModal()"></div>
+        <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl relative z-10 flex flex-col max-h-[90vh]">
+            <div class="p-4 border-b flex justify-between items-center">
+                <h3 class="font-bold text-lg text-slate-800" id="edit-modal-title">עריכת מוצר</h3>
+                <button onclick="App.controllers.inventory.closeModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto space-y-4">
+                <input type="hidden" id="edit-id">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">שם מוצר</label>
+                        <input type="text" id="edit-name" class="w-full border rounded-xl p-2.5 bg-slate-50">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">מק"ט (SKU)</label>
+                        <input type="text" id="edit-sku" class="w-full border rounded-xl p-2.5 bg-slate-50 font-mono">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">מחיר עלות (₪)</label>
+                        <input type="number" id="edit-cost" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white focus:ring-2 focus:ring-amber-400 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">מחיר מכירה (₪)</label>
+                        <input type="number" id="edit-price" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white focus:ring-2 focus:ring-blue-400 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">מלאי זמין</label>
+                        <input type="number" id="edit-stock" class="w-full border border-slate-300 rounded-xl p-2.5 bg-white">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">סוג יבואן</label>
+                        <select id="edit-type" class="w-full border rounded-xl p-2.5 bg-slate-50">
+                            <option value="official">יבואן רשמי (Official)</option>
+                            <option value="parallel">יבואן מקביל (Parallel)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">כתובת תמונה (URL)</label>
+                        <input type="text" id="edit-image" class="w-full border rounded-xl p-2.5 bg-slate-50 ltr text-left">
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 border-t bg-slate-50 flex justify-end gap-3">
+                <button onclick="App.controllers.inventory.closeModal()" class="px-6 py-2 rounded-xl border border-slate-300 font-bold text-slate-500 hover:bg-slate-100">ביטול</button>
+                <button onclick="App.controllers.inventory.save()" class="px-6 py-2 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg">שמור מוצר</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * AdvaOS Core Application Logic
+         * Architecture: State -> Services -> Controllers -> UI
+         */
+
+        const CONSTANTS = {
+            DB_KEY: 'advaos_db_v6_full',
+            DOCS_KEY: 'advaos_docs_v6',
+            SETTINGS_KEY: 'advaos_settings_v6',
+            // populated from the uploaded PDF data
+            INITIAL_INVENTORY: [
+                // --- יבואן רשמי (Official) ---
+                { id: 1001, sku: 'OFF-IP17P-256', name: 'iPhone 17 Pro 256GB', type: 'official', price: 5000, cost: 4400, stock: 10, image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400' },
+                { id: 1002, sku: 'OFF-IP17PM-256', name: 'iPhone 17 Pro Max 256GB', type: 'official', price: 5300, cost: 4700, stock: 8, image: 'https://images.unsplash.com/photo-1696446701796-da61225697cc?w=400' },
+                { id: 1003, sku: 'OFF-IP17-256', name: 'iPhone 17 256GB', type: 'official', price: 3600, cost: 3100, stock: 15, image: 'https://images.unsplash.com/photo-1696446702303-332e18596634?w=400' },
+                { id: 1004, sku: 'OFF-APP3', name: 'AirPods Pro 3', type: 'official', price: 1000, cost: 800, stock: 25, image: 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=400' },
+                { id: 1005, sku: 'OFF-AP4', name: 'AirPods 4', type: 'official', price: 440, cost: 350, stock: 30, image: 'https://images.unsplash.com/photo-1572569028738-411a0977d4fc?w=400' },
+                { id: 1006, sku: 'OFF-S25U-256', name: 'Galaxy S25 Ultra 256GB', type: 'official', price: 3950, cost: 3450, stock: 12, image: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400' },
+                { id: 1007, sku: 'OFF-S25-256', name: 'Galaxy S25 256GB', type: 'official', price: 2650, cost: 2300, stock: 10, image: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400' },
+                { id: 1008, sku: 'OFF-A56-256', name: 'Galaxy A56 256GB', type: 'official', price: 1300, cost: 1050, stock: 20, image: 'https://images.unsplash.com/photo-1605236453806-6ff36851218e?w=400' },
+                { id: 1009, sku: 'OFF-A36-256', name: 'Galaxy A36 256GB', type: 'official', price: 1150, cost: 950, stock: 18, image: 'https://images.unsplash.com/photo-1556656793-02715d8dd660?w=400' },
+                { id: 1010, sku: 'OFF-A17-128', name: 'Galaxy A17 128GB', type: 'official', price: 570, cost: 480, stock: 22, image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400' },
+                { id: 1011, sku: 'OFF-A07-64', name: 'Galaxy A07 64GB', type: 'official', price: 320, cost: 250, stock: 15, image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400' },
+                { id: 1012, sku: 'OFF-MI-15C', name: 'Xiaomi Redmi 15C 256GB', type: 'official', price: 520, cost: 420, stock: 14, image: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400' },
+                { id: 1013, sku: 'OFF-MI-N14', name: 'Xiaomi Redmi Note 14 256GB', type: 'official', price: 750, cost: 600, stock: 16, image: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400' },
+                { id: 1014, sku: 'OFF-NK-3210', name: 'Nokia 3210 4G', type: 'official', price: 250, cost: 180, stock: 10, image: 'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=400' },
+                
+                // --- יבואן מקביל (Parallel) ---
+                { id: 2001, sku: 'PAR-IP17P-256', name: 'iPhone 17 Pro 256GB', type: 'parallel', price: 4800, cost: 4200, stock: 8, image: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400' },
+                { id: 2002, sku: 'PAR-IP17PM-256', name: 'iPhone 17 Pro Max 256GB', type: 'parallel', price: 4400, cost: 3900, stock: 5, image: 'https://images.unsplash.com/photo-1696446701796-da61225697cc?w=400' },
+                { id: 2003, sku: 'PAR-IP17-256', name: 'iPhone 17 256GB', type: 'parallel', price: 3200, cost: 2800, stock: 10, image: 'https://images.unsplash.com/photo-1696446702303-332e18596634?w=400' },
+                { id: 2004, sku: 'PAR-APP3', name: 'AirPods Pro 3', type: 'parallel', price: 1050, cost: 850, stock: 15, image: 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=400' },
+                { id: 2006, sku: 'PAR-S25U-256', name: 'Galaxy S25 Ultra 256GB', type: 'parallel', price: 3400, cost: 2900, stock: 6, image: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400' },
+                { id: 2007, sku: 'PAR-S25-256', name: 'Galaxy S25 256GB', type: 'parallel', price: 2400, cost: 2000, stock: 8, image: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=400' },
+                { id: 2008, sku: 'PAR-A56-256', name: 'Galaxy A56 256GB', type: 'parallel', price: 1200, cost: 950, stock: 12, image: 'https://images.unsplash.com/photo-1605236453806-6ff36851218e?w=400' },
+                { id: 2009, sku: 'PAR-A36-128', name: 'Galaxy A36 128GB', type: 'parallel', price: 850, cost: 700, stock: 15, image: 'https://images.unsplash.com/photo-1556656793-02715d8dd660?w=400' },
+                { id: 2010, sku: 'PAR-A17-128', name: 'Galaxy A17 128GB', type: 'parallel', price: 510, cost: 420, stock: 20, image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400' },
+                { id: 2011, sku: 'PAR-A07-128', name: 'Galaxy A07 128GB', type: 'parallel', price: 440, cost: 350, stock: 25, image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400' }
+            ]
+        };
+
+        const App = {
+            state: {
+                inventory: [],
+                documents: [],
+                settings: {
+                    morningId: '',
+                    morningSecret: '',
+                    sandbox: true,
+                    bizName: 'אדוה תקשורת',
+                    bizId: ''
+                },
+                cart: { product: null, quantity: 1 }
+            },
+
+            // === SERVICE LAYER ===
+            services: {
+                morning: {
+                    // Simulates API call to Morning
+                    createDocument: async (docType, clientName, clientContact, items, payment) => {
+                        return new Promise((resolve, reject) => {
+                            // Validate Config
+                            if(!App.state.settings.morningId) {
+                                reject("חסר מפתח API של Morning בהגדרות");
+                                return;
+                            }
+                            
+                            console.log(`[Morning API Mock] Connecting to ${App.state.settings.sandbox ? 'Sandbox' : 'Production'}...`);
+                            console.log(`[Morning API Mock] Generating ${docType} for ${clientName}`);
+
+                            // Simulate network delay
+                            setTimeout(() => {
+                                const docNumber = Math.floor(Math.random() * 900000) + 100000;
+                                const total = items.reduce((acc, item) => acc + item.price, 0);
+                                
+                                const newDoc = {
+                                    id: crypto.randomUUID(),
+                                    docNumber: docNumber,
+                                    type: docType,
+                                    clientName,
+                                    clientContact,
+                                    date: new Date().toISOString(),
+                                    total,
+                                    status: 'sent',
+                                    paymentMethod: payment.method,
+                                    items: items
+                                };
+                                
+                                resolve(newDoc);
+                            }, 1500);
+                        });
+                    }
+                }
+            },
+
+            // === STORAGE LAYER ===
+            storage: {
+                init: () => {
+                    const inv = localStorage.getItem(CONSTANTS.DB_KEY);
+                    const docs = localStorage.getItem(CONSTANTS.DOCS_KEY);
+                    const sets = localStorage.getItem(CONSTANTS.SETTINGS_KEY);
+
+                    App.state.inventory = inv ? JSON.parse(inv) : [...CONSTANTS.INITIAL_INVENTORY];
+                    App.state.documents = docs ? JSON.parse(docs) : [];
+                    if(sets) App.state.settings = { ...App.state.settings, ...JSON.parse(sets) };
+                    
+                    if(!inv) App.storage.saveInventory();
+                },
+                saveInventory: () => localStorage.setItem(CONSTANTS.DB_KEY, JSON.stringify(App.state.inventory)),
+                saveDocuments: () => localStorage.setItem(CONSTANTS.DOCS_KEY, JSON.stringify(App.state.documents)),
+                saveSettings: () => localStorage.setItem(CONSTANTS.SETTINGS_KEY, JSON.stringify(App.state.settings)),
+                reset: () => {
+                    if(confirm("פעולה זו תמחק את כל הנתונים! להמשיך?")) {
+                        localStorage.clear();
+                        window.location.reload();
+                    }
+                }
+            },
+
+            // === ROUTER ===
+            router: {
+                navigate: (viewName) => {
+                    document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+                    document.getElementById(`view-${viewName}`).classList.add('active');
+                    
+                    // Update Nav UI
+                    document.querySelectorAll('.nav-btn, .mobile-nav-item').forEach(el => {
+                        // Reset styles based on desktop/mobile
+                        if(el.classList.contains('nav-btn')) {
+                            el.className = 'nav-btn w-full text-right py-3.5 px-4 rounded-xl transition flex items-center gap-3 hover:bg-slate-800/50 text-slate-400';
+                        } else {
+                            el.className = 'mobile-nav-item flex flex-col items-center justify-center w-full h-full text-slate-400';
+                        }
+                    });
+
+                    // Active styles
+                    const dBtn = document.getElementById(`nav-d-${viewName}`);
+                    const mBtn = document.getElementById(`nav-m-${viewName}`);
+                    
+                    if(dBtn) dBtn.className = 'nav-btn w-full text-right py-3.5 px-4 rounded-xl transition flex items-center gap-3 bg-blue-600 text-white shadow-lg shadow-blue-900/50';
+                    if(mBtn) mBtn.className = 'mobile-nav-item flex flex-col items-center justify-center w-full h-full text-blue-600';
+
+                    // Mobile Header
+                    const titles = { 'pos': 'קופה', 'inventory': 'ניהול מלאי', 'documents': 'מסמכים', 'settings': 'הגדרות' };
+                    document.getElementById('mobile-page-title').innerText = titles[viewName];
+
+                    // Trigger render if needed
+                    if(viewName === 'inventory') App.controllers.inventory.render();
+                    if(viewName === 'documents') App.controllers.documents.render();
+                }
+            },
+
+            // === CONTROLLERS ===
+            controllers: {
+                pos: {
+                    currentFilter: 'all',
+                    render: () => {
+                        const container = document.getElementById('pos-grid');
+                        const term = document.getElementById('posSearch').value.toLowerCase();
+                        const type = App.controllers.pos.currentFilter;
+                        
+                        const filtered = App.state.inventory.filter(p => 
+                            (p.name.toLowerCase().includes(term) || p.sku.toLowerCase().includes(term)) && 
+                            (type === 'all' || p.type === type)
+                        );
+
+                        container.innerHTML = '';
+                        if(filtered.length === 0) {
+                            document.getElementById('pos-empty').classList.remove('hidden');
+                            return;
+                        }
+                        document.getElementById('pos-empty').classList.add('hidden');
+
+                        filtered.forEach(p => {
+                            const isLowStock = p.stock < 3;
+                            const isOfficial = p.type === 'official';
+                            
+                            const el = document.createElement('div');
+                            el.className = "bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden group flex flex-col h-full";
+                            el.onclick = () => App.controllers.pos.openPanel(p.id);
+                            el.innerHTML = `
+                                <div class="relative h-40 bg-slate-50 p-4 flex items-center justify-center overflow-hidden">
+                                    <img src="${p.image}" class="max-h-full max-w-full object-contain group-hover:scale-110 transition duration-300" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
+                                    <div class="absolute top-2 right-2">
+                                        <span class="px-2 py-1 text-[10px] font-bold rounded-full uppercase tracking-wide ${isOfficial ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}">
+                                            ${isOfficial ? 'רשמי' : 'מקביל'}
+                                        </span>
+                                    </div>
+                                    ${isLowStock ? '<div class="absolute bottom-0 w-full bg-red-500/90 text-white text-[10px] font-bold text-center py-0.5">מלאי נמוך</div>' : ''}
+                                </div>
+                                <div class="p-4 flex flex-col flex-1">
+                                    <h4 class="font-bold text-slate-800 line-clamp-2 text-sm h-10 mb-1 leading-tight">${p.name}</h4>
+                                    <div class="mt-auto flex justify-between items-end">
+                                        <span class="text-lg font-bold text-blue-600">₪${p.price.toLocaleString()}</span>
+                                        <span class="text-xs text-slate-400 font-mono">Stock: ${p.stock}</span>
+                                    </div>
+                                </div>
+                            `;
+                            container.appendChild(el);
+                        });
+                    },
+                    filter: (type) => {
+                        App.controllers.pos.currentFilter = type;
+                        document.querySelectorAll('.filter-btn').forEach(btn => {
+                            if(btn.dataset.type === type) {
+                                btn.className = 'filter-btn active px-4 py-2 rounded-lg bg-slate-800 text-white text-xs font-bold whitespace-nowrap shadow';
+                            } else {
+                                btn.className = 'filter-btn px-4 py-2 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold whitespace-nowrap hover:bg-slate-200';
+                            }
+                        });
+                        App.controllers.pos.render();
+                    },
+                    openPanel: (id) => {
+                        const p = App.state.inventory.find(x => x.id === id);
+                        if(!p) return;
+                        if(p.stock <= 0) return App.ui.toast('אין מלאי למוצר זה', 'error');
+
+                        App.state.cart.product = p;
+                        
+                        document.getElementById('panel-img').src = p.image;
+                        document.getElementById('panel-name').innerText = p.name;
+                        document.getElementById('panel-sku').innerText = p.sku;
+                        document.getElementById('panel-price').innerText = '₪' + p.price.toLocaleString();
+                        
+                        const badge = document.getElementById('panel-type-badge');
+                        badge.className = `px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${p.type==='official'?'bg-blue-100 text-blue-700':'bg-amber-100 text-amber-700'}`;
+                        badge.innerText = p.type === 'official' ? 'יבואן רשמי' : 'יבואן מקביל';
+
+                        // Reset inputs
+                        document.getElementById('input-client-name').value = '';
+                        document.getElementById('input-client-contact').value = '';
+
+                        App.ui.toggleModal('modal-product', true);
+                    },
+                    closePanel: () => App.ui.toggleModal('modal-product', false)
+                },
+                
+                inventory: {
+                    render: () => {
+                        const tbody = document.getElementById('inventory-table-body');
+                        tbody.innerHTML = '';
+                        
+                        App.state.inventory.forEach(p => {
+                            const profit = p.price - p.cost;
+                            const profitPercent = p.price > 0 ? ((profit / p.price) * 100).toFixed(1) : 0;
+                            
+                            const tr = document.createElement('tr');
+                            tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+                            tr.innerHTML = `
+                                <td class="p-4 font-mono text-xs text-slate-400">#${p.id}</td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-3">
+                                        <img src="${p.image}" class="w-8 h-8 rounded bg-white border object-contain">
+                                        <div class="flex flex-col">
+                                            <span class="font-bold text-slate-800 text-sm line-clamp-1 w-40" title="${p.name}">${p.name}</span>
+                                            <span class="text-[10px] text-slate-400 font-mono">${p.sku}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-4">
+                                    <span class="px-2 py-1 rounded text-[10px] font-bold ${p.type==='official'?'bg-blue-50 text-blue-600':'bg-amber-50 text-amber-600'}">
+                                        ${p.type==='official'?'רשמי':'מקביל'}
+                                    </span>
+                                </td>
+                                <td class="p-4">
+                                    <span class="${p.stock < 3 ? 'text-red-500 font-bold' : 'text-slate-600'}">${p.stock}</span>
+                                </td>
+                                <td class="p-4 bg-amber-50/50 border-x border-amber-50 text-slate-600 font-mono">₪${p.cost.toLocaleString()}</td>
+                                <td class="p-4 font-bold text-slate-800 font-mono">₪${p.price.toLocaleString()}</td>
+                                <td class="p-4">
+                                    <div class="flex flex-col items-start">
+                                        <span class="text-xs font-bold text-emerald-600">₪${profit.toLocaleString()}</span>
+                                        <span class="text-[10px] text-emerald-500">${profitPercent}%</span>
+                                    </div>
+                                </td>
+                                <td class="p-4 text-center">
+                                    <button onclick="App.controllers.inventory.edit(${p.id})" class="text-blue-500 hover:bg-blue-50 w-8 h-8 rounded-full transition"><i class="fas fa-pen"></i></button>
+                                    <button onclick="App.controllers.inventory.delete(${p.id})" class="text-red-400 hover:bg-red-50 w-8 h-8 rounded-full transition"><i class="fas fa-trash"></i></button>
+                                </td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    },
+                    openModal: () => {
+                        document.getElementById('edit-id').value = '';
+                        document.getElementById('edit-name').value = '';
+                        document.getElementById('edit-sku').value = '';
+                        document.getElementById('edit-price').value = '';
+                        document.getElementById('edit-cost').value = '';
+                        document.getElementById('edit-stock').value = '';
+                        document.getElementById('edit-image').value = '';
+                        document.getElementById('edit-modal-title').innerText = 'מוצר חדש';
+                        App.ui.toggleModal('modal-edit-product', true);
+                    },
+                    closeModal: () => App.ui.toggleModal('modal-edit-product', false),
+                    save: () => {
+                        const id = document.getElementById('edit-id').value;
+                        const product = {
+                            id: id ? parseInt(id) : Date.now(),
+                            name: document.getElementById('edit-name').value,
+                            sku: document.getElementById('edit-sku').value,
+                            price: parseInt(document.getElementById('edit-price').value) || 0,
+                            cost: parseInt(document.getElementById('edit-cost').value) || 0,
+                            stock: parseInt(document.getElementById('edit-stock').value) || 0,
+                            type: document.getElementById('edit-type').value,
+                            image: document.getElementById('edit-image').value || 'https://via.placeholder.com/400'
+                        };
+
+                        if(!product.name || !product.price) return App.ui.toast('נא למלא שדות חובה', 'error');
+
+                        if(id) {
+                            const idx = App.state.inventory.findIndex(x => x.id == id);
+                            if(idx > -1) App.state.inventory[idx] = product;
+                        } else {
+                            App.state.inventory.push(product);
+                        }
+                        
+                        App.storage.saveInventory();
+                        App.controllers.inventory.render();
+                        App.controllers.inventory.closeModal();
+                        App.ui.toast('המוצר נשמר בהצלחה', 'success');
+                    },
+                    edit: (id) => {
+                        const p = App.state.inventory.find(x => x.id === id);
+                        if(p) {
+                            document.getElementById('edit-id').value = p.id;
+                            document.getElementById('edit-name').value = p.name;
+                            document.getElementById('edit-sku').value = p.sku;
+                            document.getElementById('edit-price').value = p.price;
+                            document.getElementById('edit-cost').value = p.cost;
+                            document.getElementById('edit-stock').value = p.stock;
+                            document.getElementById('edit-type').value = p.type;
+                            document.getElementById('edit-image').value = p.image;
+                            document.getElementById('edit-modal-title').innerText = 'עריכת מוצר';
+                            App.ui.toggleModal('modal-edit-product', true);
+                        }
+                    },
+                    delete: (id) => {
+                        if(confirm('למחוק מוצר זה לצמיתות?')) {
+                            App.state.inventory = App.state.inventory.filter(x => x.id !== id);
+                            App.storage.saveInventory();
+                            App.controllers.inventory.render();
+                        }
+                    }
+                },
+
+                checkout: {
+                    init: () => {
+                        const name = document.getElementById('input-client-name').value;
+                        if(!name) return App.ui.toast('יש להזין שם לקוח', 'error');
+                        
+                        const p = App.state.cart.product;
+                        document.getElementById('payment-amount').innerText = '₪' + p.price.toLocaleString();
+                        
+                        App.ui.toggleModal('modal-product', false);
+                        App.ui.toggleModal('modal-payment', true);
+                    },
+                    process: async () => {
+                        const btn = document.getElementById('btn-finish-payment');
+                        const originalText = btn.innerHTML;
+                        btn.innerHTML = '<div class="loader border-white border-b-transparent w-5 h-5"></div>';
+                        btn.disabled = true;
+
+                        try {
+                            const p = App.state.cart.product;
+                            const clientName = document.getElementById('input-client-name').value;
+                            const clientContact = document.getElementById('input-client-contact').value;
+                            const docType = document.querySelector('input[name="docType"]:checked').value;
+                            
+                            const payment = {
+                                method: document.getElementById('payment-method').value,
+                                installments: document.getElementById('payment-installments').value
+                            };
+
+                            // Call Morning Service
+                            const doc = await App.services.morning.createDocument(docType, clientName, clientContact, [p], payment);
+                            
+                            // Success logic
+                            App.state.documents.unshift(doc);
+                            App.storage.saveDocuments();
+                            
+                            // Update Stock
+                            const prodIdx = App.state.inventory.findIndex(x => x.id === p.id);
+                            if(prodIdx > -1) {
+                                App.state.inventory[prodIdx].stock--;
+                                App.storage.saveInventory();
+                            }
+
+                            // Clean up
+                            App.ui.toggleModal('modal-payment', false);
+                            App.controllers.pos.render(); // Update stock in UI
+                            
+                            // Show success message with WhatsApp Link
+                            const msg = `היי ${clientName}, מצורף קישור למסמך ${doc.docNumber} עבור רכישת ${p.name}. תודה, אדוה תקשורת.`;
+                            const waLink = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+                            
+                            App.ui.toast(`מסמך #${doc.docNumber} הופק בהצלחה!`, 'success');
+                            
+                            setTimeout(() => {
+                                if(confirm('המסמך הופק בהצלחה! האם לשלוח בוואטסאפ?')) {
+                                    window.open(waLink, '_blank');
+                                }
+                            }, 500);
+
+                        } catch (err) {
+                            alert('שגיאה בהפקה: ' + err);
+                        } finally {
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                        }
+                    }
+                },
+
+                documents: {
+                    render: () => {
+                        const container = document.getElementById('documents-list');
+                        container.innerHTML = '';
+                        
+                        if(App.state.documents.length === 0) {
+                            container.innerHTML = '<div class="text-center text-slate-400 py-10">אין מסמכים עדיין</div>';
+                            return;
+                        }
+
+                        const typeLabels = { 'invoiceReceipt': 'חשבונית מס/קבלה', 'deliveryNote': 'תעודת משלוח', 'quote': 'הצעת מחיר' };
+                        const typeColors = { 'invoiceReceipt': 'text-morning', 'deliveryNote': 'text-blue-500', 'quote': 'text-purple-500' };
+                        const typeIcons = { 'invoiceReceipt': 'fa-check-circle', 'deliveryNote': 'fa-truck', 'quote': 'fa-file' };
+
+                        App.state.documents.forEach(doc => {
+                            const date = new Date(doc.date).toLocaleDateString('he-IL') + ' ' + new Date(doc.date).toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'});
+                            
+                            const div = document.createElement('div');
+                            div.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center";
+                            div.innerHTML = `
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center ${typeColors[doc.type]}">
+                                        <i class="fas ${typeIcons[doc.type]} text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-bold text-slate-800">#${doc.docNumber}</span>
+                                            <span class="text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">${typeLabels[doc.type]}</span>
+                                        </div>
+                                        <div class="text-sm text-slate-500">${doc.clientName} • ₪${doc.total.toLocaleString()}</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs text-slate-400 font-mono mb-1">${date}</div>
+                                    <a href="#" class="text-blue-500 text-xs font-bold hover:underline">צפה ב PDF</a>
+                                </div>
+                            `;
+                            container.appendChild(div);
+                        });
+                    }
+                },
+
+                settings: {
+                    init: () => {
+                        const s = App.state.settings;
+                        document.getElementById('setting-morning-id').value = s.morningId;
+                        document.getElementById('setting-morning-secret').value = s.morningSecret;
+                        document.getElementById('setting-morning-sandbox').checked = s.sandbox;
+                        document.getElementById('setting-biz-name').value = s.bizName;
+                        document.getElementById('setting-biz-id').value = s.bizId;
+                    },
+                    save: () => {
+                        App.state.settings = {
+                            morningId: document.getElementById('setting-morning-id').value,
+                            morningSecret: document.getElementById('setting-morning-secret').value,
+                            sandbox: document.getElementById('setting-morning-sandbox').checked,
+                            bizName: document.getElementById('setting-biz-name').value,
+                            bizId: document.getElementById('setting-biz-id').value
+                        };
+                        App.storage.saveSettings();
+                        App.ui.toast('ההגדרות נשמרו בהצלחה', 'success');
+                    }
+                }
+            },
+
+            // === UI HELPERS ===
+            ui: {
+                toggleModal: (id, show) => {
+                    const el = document.getElementById(id);
+                    if(show) {
+                        el.classList.remove('hidden');
+                        el.classList.add('flex');
+                    } else {
+                        el.classList.add('hidden');
+                        el.classList.remove('flex');
+                    }
+                },
+                toast: (msg, type = 'info') => {
+                    const container = document.getElementById('toast-container');
+                    const el = document.createElement('div');
+                    const colors = { error: 'bg-red-500', success: 'bg-morning', info: 'bg-slate-800' };
+                    
+                    el.className = `${colors[type]} text-white px-6 py-3 rounded-full shadow-lg text-sm font-bold flex items-center gap-2 fade-in`;
+                    el.innerHTML = `<i class="fas ${type==='success'?'fa-check':'fa-info-circle'}"></i> ${msg}`;
+                    
+                    container.appendChild(el);
+                    setTimeout(() => {
+                        el.style.opacity = '0';
+                        setTimeout(() => el.remove(), 300);
+                    }, 3000);
+                }
+            },
+
+            init: () => {
+                App.storage.init();
+                App.controllers.settings.init();
+                App.controllers.pos.render();
+                
+                // Event Listeners for Nav
+                window.addEventListener('hashchange', () => {
+                    // Simple routing if needed later
+                });
+            }
+        };
+
+        // Bootstrap
+        document.addEventListener('DOMContentLoaded', App.init);
+
+    </script>
+</body>
+</html>
