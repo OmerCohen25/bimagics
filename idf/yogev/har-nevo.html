@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>הר נבו | מערכת שליטה ובקרה לאחזקה</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --idf-green: #4b5d36;
+            --idf-dark: #2a3322;
+            --idf-light: #869e6b;
+            --alert-red: #c53030;
+            --bg-base: #1a202c;
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background-color: var(--bg-base);
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        /* Military Aesthetics */
+        .bg-idf { background-color: var(--idf-green); }
+        .text-idf { color: var(--idf-light); }
+        .border-idf { border-color: var(--idf-green); }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #2d3748; }
+        ::-webkit-scrollbar-thumb { background: var(--idf-green); border-radius: 3px; }
+
+        /* Animations */
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Utility Classes */
+        .glass-panel {
+            background: rgba(45, 55, 72, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-action {
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-action:active { transform: scale(0.97); }
+
+        .tab-active {
+            border-bottom: 3px solid var(--idf-light);
+            color: var(--idf-light);
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col">
+
+    <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-gray-800 border-r-4 border-green-500 text-white px-6 py-4 rounded shadow-2xl z-50 hidden transition-all flex items-center gap-3 min-w-[300px]">
+        <i class="fas fa-check-circle text-green-400 text-xl"></i>
+        <div>
+            <h4 class="font-bold text-sm">הודעת מערכת</h4>
+            <span id="toast-msg" class="text-xs text-gray-300"></span>
+        </div>
+    </div>
+
+    <div id="view-login" class="flex-1 flex flex-col items-center justify-center p-6 fade-in relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10 pointer-events-none flex items-center justify-center">
+            <i class="fas fa-shield-alt text-[400px]"></i>
+        </div>
+
+        <div class="z-10 text-center mb-10">
+            <div class="w-20 h-20 bg-idf rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg ring-4 ring-gray-700">
+                <i class="fas fa-mountain text-3xl text-white"></i>
+            </div>
+            <h1 class="text-5xl font-black text-white tracking-wider mb-2">הר נבו</h1>
+            <p class="text-idf font-bold tracking-widest text-sm uppercase">מערכת שליטה ובקרה לאחזקה</p>
+        </div>
+
+        <div class="glass-panel p-8 rounded-xl shadow-2xl w-full max-w-sm z-10">
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs text-gray-400 font-bold ml-1">שם משתמש</label>
+                    <input type="text" id="login-user" class="w-full bg-gray-900 border border-gray-600 rounded p-3 text-white focus:border-idf focus:outline-none" placeholder="למשל: עמר">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 font-bold ml-1">סיסמה</label>
+                    <input type="password" id="login-pass" class="w-full bg-gray-900 border border-gray-600 rounded p-3 text-white focus:border-idf focus:outline-none" placeholder="******">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <button onclick="setRole('נהג')" class="role-sel p-2 text-xs bg-gray-700 rounded hover:bg-gray-600 focus:ring-2 ring-idf transition" data-role="נהג">נהג</button>
+                    <button onclick="setRole('מט״ק')" class="role-sel p-2 text-xs bg-gray-700 rounded hover:bg-gray-600 focus:ring-2 ring-idf transition" data-role="מט״ק">מט״ק</button>
+                </div>
+
+                <button onclick="login()" class="w-full bg-idf hover:bg-[#3a4a2a] text-white font-bold py-4 rounded mt-4 shadow-lg transition transform hover:-translate-y-1">
+                    כניסה למערכת <i class="fas fa-arrow-left mr-2"></i>
+                </button>
+            </div>
+            <p class="text-center text-xs text-gray-500 mt-4">גרסה 2.0 | בלמ״ס בלבד</p>
+        </div>
+    </div>
+
+    <div id="view-home" class="hidden h-full flex flex-col fade-in">
+        <header class="bg-gray-800 p-4 border-b border-gray-700 flex justify-between items-center shadow-lg">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center border border-gray-600">
+                    <i class="fas fa-user-astronaut text-idf"></i>
+                </div>
+                <div>
+                    <h2 id="welcome-msg" class="font-bold text-lg leading-tight text-white"></h2>
+                    <p class="text-xs text-gray-400">מחובר למערכת השליטה</p>
+                </div>
+            </div>
+            <button onclick="logout()" class="text-gray-400 hover:text-white transition">
+                <i class="fas fa-power-off text-lg"></i>
+            </button>
+        </header>
+
+        <div class="flex-1 p-6 flex flex-col justify-center max-w-md mx-auto w-full gap-4">
+            
+            <div class="grid grid-cols-2 gap-3 mb-2">
+                <div class="bg-gray-800 p-3 rounded border border-gray-700 text-center">
+                    <span class="block text-2xl font-bold text-white" id="stat-open">0</span>
+                    <span class="text-xs text-gray-400">טיפולים פתוחים</span>
+                </div>
+                <div class="bg-gray-800 p-3 rounded border border-gray-700 text-center">
+                    <span class="block text-2xl font-bold text-green-400" id="stat-score">94</span>
+                    <span class="text-xs text-gray-400">ציון כשירות</span>
+                </div>
+            </div>
+
+            <button onclick="showNewTreatmentModal()" class="btn-action bg-gray-800 hover:bg-gray-700 border-r-4 border-idf p-6 rounded shadow-md text-right group">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-idf transition">טיפול חדש</h3>
+                        <p class="text-xs text-gray-400 mt-1">פתיחת שגרת טיפולים (שבועי/לפני תנועה)</p>
+                    </div>
+                    <i class="fas fa-plus-circle text-3xl text-gray-600 group-hover:text-white transition"></i>
+                </div>
+            </button>
+
+            <button onclick="showOpenTreatments()" class="btn-action bg-gray-800 hover:bg-gray-700 border-r-4 border-blue-600 p-6 rounded shadow-md text-right group">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-blue-400 transition">טיפולים פתוחים</h3>
+                        <p class="text-xs text-gray-400 mt-1">המשך עבודה על טיפולים פעילים</p>
+                    </div>
+                    <i class="fas fa-folder-open text-3xl text-gray-600 group-hover:text-white transition"></i>
+                </div>
+            </button>
+
+            <button onclick="showHistory()" class="btn-action bg-gray-800 hover:bg-gray-700 border-r-4 border-purple-600 p-6 rounded shadow-md text-right group">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-purple-400 transition">טיפולים שקרו</h3>
+                        <p class="text-xs text-gray-400 mt-1">היסטוריית טיפולים ותיק רפואי</p>
+                    </div>
+                    <i class="fas fa-history text-3xl text-gray-600 group-hover:text-white transition"></i>
+                </div>
+            </button>
+
+            <button onclick="openFaultReport()" class="mt-4 btn-action bg-red-900/40 hover:bg-red-900/60 border border-red-800 p-5 rounded shadow-lg text-center group">
+                <div class="flex flex-col items-center gap-2">
+                    <i class="fas fa-exclamation-triangle text-3xl text-red-500 animate-pulse"></i>
+                    <h3 class="text-lg font-bold text-red-100">דיווח תקלה משביתה</h3>
+                </div>
+            </button>
+        </div>
+        
+        <div class="p-4 text-center">
+             <p class="text-[10px] text-gray-600">כל הנתונים מסונכרנים בזמן אמת לכלל הצוות</p>
+        </div>
+    </div>
+
+    <div id="view-treatment" class="hidden h-full flex flex-col fade-in bg-gray-900">
+        <div class="bg-gray-800 p-3 shadow-md flex justify-between items-center z-20">
+            <button onclick="goHome()" class="text-gray-400 hover:text-white"><i class="fas fa-chevron-right"></i> חזרה</button>
+            <div class="text-center">
+                <h2 class="font-bold text-white text-sm" id="treatment-title">טיפול שבועי</h2>
+                <span class="text-xs text-idf" id="treatment-id">ID: 4821</span>
+            </div>
+            <div class="w-6"></div> </div>
+
+        <div class="bg-gray-800 px-4 pb-2 border-b border-gray-700">
+            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                <span>סטטוס ביצוע</span>
+                <span id="progress-text">0%</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-2">
+                <div id="progress-bar" class="bg-idf h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <nav class="flex bg-gray-800 text-sm shadow sticky top-0 z-10">
+            <button onclick="filterTasks('תובה')" class="flex-1 py-3 text-gray-400 tab-active transition" id="tab-hull">תובה</button>
+            <button onclick="filterTasks('צריח')" class="flex-1 py-3 text-gray-400 transition" id="tab-turret">צריח</button>
+            <button onclick="filterTasks('מזקום')" class="flex-1 py-3 text-gray-400 transition" id="tab-tracks">מזקו״ם</button>
+        </nav>
+
+        <div id="tasks-container" class="flex-1 overflow-y-auto p-4 space-y-3 pb-20">
+            </div>
+
+        <div class="absolute bottom-6 left-6">
+            <button onclick="promptAddTask()" class="w-14 h-14 bg-idf rounded-full shadow-xl text-white flex items-center justify-center text-2xl hover:bg-[#3a4a2a] transition">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="view-list" class="hidden h-full flex flex-col fade-in">
+        <div class="bg-gray-800 p-4 border-b border-gray-700 flex items-center gap-4">
+            <button onclick="goHome()" class="text-gray-400 hover:text-white"><i class="fas fa-arrow-right"></i></button>
+            <h2 id="list-title" class="font-bold text-white text-lg">רשימה</h2>
+        </div>
+        <div id="list-container" class="flex-1 overflow-y-auto p-4 space-y-3">
+            </div>
+    </div>
+
+    <div id="modal-new" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-gray-800 rounded-xl w-full max-w-sm p-6 border border-gray-600 shadow-2xl">
+            <h3 class="text-xl font-bold text-white mb-4">פתיחת טיפול חדש</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">מספר כלי (צ׳)</label>
+                    <input type="text" id="new-tank-id" class="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white" placeholder="820...">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">סוג טיפול</label>
+                    <select id="new-type" class="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white">
+                        <option>טיפול שבועי</option>
+                        <option>לפני תנועה</option>
+                        <option>אחרי תנועה</option>
+                        <option>טיפול 10 שעות</option>
+                    </select>
+                </div>
+                <button onclick="createNewSession()" class="w-full bg-idf text-white font-bold py-3 rounded mt-2">
+                    פתח יומן טיפולים
+                </button>
+                <button onclick="document.getElementById('modal-new').classList.add('hidden')" class="w-full text-gray-400 text-sm py-2">ביטול</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-fault" class="fixed inset-0 bg-red-900/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-gray-900 rounded-xl w-full max-w-sm p-6 border-2 border-red-600 shadow-2xl relative">
+            <div class="absolute -top-6 right-1/2 transform translate-x-1/2 bg-red-600 rounded-full w-12 h-12 flex items-center justify-center border-4 border-gray-900">
+                <i class="fas fa-wrench text-white"></i>
+            </div>
+            
+            <h3 class="text-xl font-bold text-white mb-4 text-center mt-4">דיווח תקלה לחוליה</h3>
+            
+            <div class="space-y-4">
+                <textarea id="fault-desc" rows="4" class="w-full bg-black/30 border border-red-800 rounded p-3 text-white placeholder-red-300/50 focus:outline-none focus:border-red-500" placeholder="תאר את התקלה... (למשל: נזילת שמן מההינע סופי צד ימין)"></textarea>
+                
+                <div class="flex gap-2">
+                    <button onclick="submitFault()" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded">
+                        דווח עכשיו
+                    </button>
+                    <button onclick="document.getElementById('modal-fault').classList.add('hidden')" class="px-4 bg-gray-800 text-gray-300 rounded border border-gray-700">
+                        ביטול
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration & State ---
+        const currentUser = { name: '', role: '', isLoggedIn: false };
+        let activeSessionId = null;
+        let activeFilter = 'תובה';
+
+        const taskTemplates = [
+            { id: 1, category: 'תובה', title: 'בדיקת מפלס שמן מנוע' },
+            { id: 2, category: 'תובה', title: 'בדיקת מפלס נוזל קירור' },
+            { id: 3, category: 'תובה', title: 'ניקוז מים ממפריד דלק' },
+            { id: 4, category: 'צריח', title: 'בדיקת צידוד ידני/חשמלי' },
+            { id: 5, category: 'צריח', title: 'ניקיון בית הבליעה' },
+            { id: 6, category: 'צריח', title: 'בדיקת קשר פנים (אינטרקום)' },
+            { id: 7, category: 'מזקום', title: 'בדיקת מתח זחל' },
+            { id: 8, category: 'מזקום', title: 'בדיקת ברגים בבוקים (חיזוק)' },
+            { id: 9, category: 'מזקום', title: 'בדיקת נזילות במזקו״ם' },
+        ];
+
+        // --- Auth Logic ---
+        let tempRole = '';
+        function setRole(role) {
+            tempRole = role;
+            document.querySelectorAll('.role-sel').forEach(btn => {
+                if(btn.dataset.role === role) {
+                    btn.classList.add('bg-idf', 'text-white');
+                    btn.classList.remove('bg-gray-700');
+                } else {
+                    btn.classList.remove('bg-idf', 'text-white');
+                    btn.classList.add('bg-gray-700');
+                }
+            });
+        }
+
+        function login() {
+            const name = document.getElementById('login-user').value;
+            const pass = document.getElementById('login-pass').value;
+
+            if(!name || !pass) {
+                showToast("נא להזין שם וסיסמה");
+                return;
+            }
+            // Mock Login (accepts anything)
+            currentUser.name = name;
+            currentUser.role = tempRole || 'לוחם';
+            currentUser.isLoggedIn = true;
+
+            document.getElementById('welcome-msg').innerText = `היי ${currentUser.name} ה${currentUser.role} האלוף, כיף שחזרת!`;
+            
+            showView('view-home');
+            updateHomeStats();
+        }
+
+        function logout() {
+            location.reload();
+        }
+
+        // --- Navigation ---
+        function showView(viewId) {
+            document.querySelectorAll('body > div[id^="view-"]').forEach(div => div.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+        }
+
+        function goHome() {
+            showView('view-home');
+            updateHomeStats();
+        }
+
+        // --- Session Logic (The "Medical File") ---
+        function getAllSessions() {
+            const sessions = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('harnevo_session_')) {
+                    sessions.push(JSON.parse(localStorage.getItem(key)));
+                }
+            }
+            return sessions.sort((a,b) => b.timestamp - a.timestamp); // Newest first
+        }
+
+        function updateHomeStats() {
+            const sessions = getAllSessions();
+            const open = sessions.filter(s => s.status === 'open').length;
+            document.getElementById('stat-open').innerText = open;
+            
+            // Random score calculation logic simulation
+            const score = 100 - (sessions.filter(s => s.hasFaults).length * 5);
+            document.getElementById('stat-score').innerText = score > 0 ? score : 0;
+        }
+
+        function showNewTreatmentModal() {
+            document.getElementById('modal-new').classList.remove('hidden');
+        }
+
+        function createNewSession() {
+            const tankId = document.getElementById('new-tank-id').value || 'כללי';
+            const type = document.getElementById('new-type').value;
+            
+            const newSession = {
+                id: Date.now().toString(),
+                tankId: tankId,
+                type: type,
+                status: 'open',
+                timestamp: Date.now(),
+                createdBy: currentUser.name,
+                hasFaults: false,
+                tasks: taskTemplates.map(t => ({...t, status: 'pending', by: '', notes: ''}))
+            };
+
+            saveSession(newSession);
+            document.getElementById('modal-new').classList.add('hidden');
+            loadSession(newSession.id);
+        }
+
+        function showHistory() {
+            const sessions = getAllSessions().filter(s => s.status === 'closed');
+            renderList(sessions, 'היסטוריית טיפולים', false);
+        }
+
+        function showOpenTreatments() {
+            const sessions = getAllSessions().filter(s => s.status === 'open');
+            renderList(sessions, 'טיפולים פתוחים', true);
+        }
+
+        function renderList(sessions, title, clickable) {
+            document.getElementById('list-title').innerText = title;
+            const container = document.getElementById('list-container');
+            container.innerHTML = '';
+
+            if(sessions.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-500 mt-10">אין נתונים להצגה</div>`;
+            }
+
+            sessions.forEach(s => {
+                const date = new Date(s.timestamp).toLocaleDateString('he-IL') + ' ' + new Date(s.timestamp).toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'});
+                const div = document.createElement('div');
+                div.className = `bg-gray-800 p-4 rounded border-r-4 ${s.hasFaults ? 'border-red-500' : 'border-gray-600'} shadow flex justify-between items-center hover:bg-gray-750 transition cursor-pointer`;
+                
+                div.innerHTML = `
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-white text-lg">${s.type}</span>
+                            <span class="text-xs bg-gray-700 px-2 rounded text-gray-300">צ׳ ${s.tankId}</span>
+                        </div>
+                        <div class="text-xs text-gray-400 mt-1">
+                            <i class="far fa-clock"></i> ${date} | נפתח ע״י: ${s.createdBy}
+                        </div>
+                    </div>
+                    <div>
+                        ${clickable ? '<i class="fas fa-chevron-left text-gray-500"></i>' : (s.hasFaults ? '<i class="fas fa-wrench text-red-500"></i>' : '<i class="fas fa-check text-green-500"></i>')}
+                    </div>
+                `;
+                
+                if(clickable) {
+                    div.onclick = () => loadSession(s.id);
+                }
+                container.appendChild(div);
+            });
+
+            showView('view-list');
+        }
+
+        // --- Active Treatment Logic ---
+        
+        function loadSession(sessionId) {
+            activeSessionId = sessionId;
+            const session = JSON.parse(localStorage.getItem(`harnevo_session_${sessionId}`));
+            
+            document.getElementById('treatment-title').innerText = session.type;
+            document.getElementById('treatment-id').innerText = `צ׳ ${session.tankId}`;
+            
+            showView('view-treatment');
+            filterTasks('תובה'); // Default view
+        }
+
+        function saveSession(session) {
+            localStorage.setItem(`harnevo_session_${session.id}`, JSON.stringify(session));
+            // Trigger storage event for other tabs
+            window.dispatchEvent(new Event('storage')); 
+        }
+
+        function filterTasks(cat) {
+            activeFilter = cat;
+            document.querySelectorAll('#view-treatment nav button').forEach(b => {
+                b.classList.remove('tab-active', 'text-white');
+                b.classList.add('text-gray-400');
+            });
+            
+            if(cat === 'תובה') document.getElementById('tab-hull').classList.add('tab-active', 'text-white');
+            if(cat === 'צריח') document.getElementById('tab-turret').classList.add('tab-active', 'text-white');
+            if(cat === 'מזקום') document.getElementById('tab-tracks').classList.add('tab-active', 'text-white');
+
+            renderTasks();
+        }
+
+        function renderTasks() {
+            const session = JSON.parse(localStorage.getItem(`harnevo_session_${activeSessionId}`));
+            const container = document.getElementById('tasks-container');
+            container.innerHTML = '';
+
+            const tasksToShow = session.tasks.filter(t => t.category === activeFilter);
+            
+            tasksToShow.forEach(task => {
+                const isDone = task.status === 'done';
+                const div = document.createElement('div');
+                div.className = `bg-gray-800 p-3 rounded border border-gray-700 flex items-start gap-3 transition-all ${isDone ? 'opacity-70' : ''}`;
+                div.innerHTML = `
+                    <div onclick="toggleTask(${task.id})" class="cursor-pointer pt-1">
+                        <div class="w-6 h-6 rounded border-2 border-gray-500 flex items-center justify-center ${isDone ? 'bg-green-600 border-green-600' : ''}">
+                            ${isDone ? '<i class="fas fa-check text-white text-xs"></i>' : ''}
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-bold ${isDone ? 'line-through text-gray-500' : 'text-gray-200'}">${task.title}</h4>
+                        <div class="text-xs text-gray-500 mt-1 flex justify-between">
+                            <span>${isDone ? 'בוצע ע״י ' + task.by : 'ממתין לביצוע'}</span>
+                        </div>
+                        <input type="text" 
+                            class="mt-2 w-full bg-black/20 text-xs text-gray-300 border-b border-gray-700 focus:outline-none focus:border-idf p-1 placeholder-gray-600" 
+                            placeholder="הערה..." 
+                            value="${task.notes}"
+                            onblur="updateNote(${task.id}, this.value)">
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            // Update Progress Bar
+            const total = session.tasks.length;
+            const done = session.tasks.filter(t => t.status === 'done').length;
+            const pct = Math.round((done/total)*100);
+            document.getElementById('progress-bar').style.width = pct + '%';
+            document.getElementById('progress-text').innerText = pct + '%';
+        }
+
+        function toggleTask(taskId) {
+            const session = JSON.parse(localStorage.getItem(`harnevo_session_${activeSessionId}`));
+            const task = session.tasks.find(t => t.id === taskId);
+            
+            if(task.status === 'done') {
+                task.status = 'pending';
+                task.by = '';
+            } else {
+                task.status = 'done';
+                task.by = currentUser.name;
+            }
+            saveSession(session);
+            renderTasks();
+        }
+
+        function updateNote(taskId, note) {
+            const session = JSON.parse(localStorage.getItem(`harnevo_session_${activeSessionId}`));
+            const task = session.tasks.find(t => t.id === taskId);
+            if(task.notes !== note) {
+                task.notes = note;
+                saveSession(session);
+            }
+        }
+
+        function promptAddTask() {
+            const title = prompt("שם המשימה החדשה:");
+            if(title) {
+                const session = JSON.parse(localStorage.getItem(`harnevo_session_${activeSessionId}`));
+                session.tasks.push({
+                    id: Date.now(),
+                    category: activeFilter,
+                    title: title,
+                    status: 'pending',
+                    by: '',
+                    notes: ''
+                });
+                saveSession(session);
+                renderTasks();
+                showToast("משימה נוספה בהצלחה");
+            }
+        }
+
+        // --- Fault Reporting ---
+
+        function openFaultReport() {
+            document.getElementById('modal-fault').classList.remove('hidden');
+        }
+
+        function submitFault() {
+            const desc = document.getElementById('fault-desc').value;
+            if(!desc) return;
+
+            // Log fault logic would go here
+            // If inside a session, mark session has faults
+            if(activeSessionId) {
+                const session = JSON.parse(localStorage.getItem(`harnevo_session_${activeSessionId}`));
+                session.hasFaults = true;
+                // Add a "Fault Task"
+                session.tasks.push({
+                    id: Date.now(),
+                    category: activeFilter,
+                    title: `🔴 תקלה: ${desc}`,
+                    status: 'problem',
+                    by: currentUser.name,
+                    notes: desc
+                });
+                saveSession(session);
+                renderTasks();
+            } else {
+                // Global fault report (just a toast for demo)
+            }
+
+            document.getElementById('modal-fault').classList.add('hidden');
+            document.getElementById('fault-desc').value = '';
+            showToast("תקלה דווחה לחוליה ונשלחה התראה!");
+        }
+
+
+        // --- Utilities ---
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            t.classList.remove('hidden');
+            setTimeout(() => t.classList.add('hidden'), 3000);
+        }
+
+        // --- Sync Listener ---
+        window.addEventListener('storage', (e) => {
+            if(e.key && e.key.startsWith('harnevo_session_')) {
+                if(activeSessionId && e.key === `harnevo_session_${activeSessionId}`) {
+                    renderTasks(); // Live update current view
+                }
+                updateHomeStats(); // Live update home stats
+            }
+        });
+
+    </script>
+</body>
+</html>
