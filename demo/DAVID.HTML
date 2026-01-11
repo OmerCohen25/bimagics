@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מערכת אדוה תקשורת - Enterprise Fixed</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap');
+        body { font-family: 'Rubik', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        
+        /* עיצוב כרטיסים ייחודי */
+        .card-official { border-top: 4px solid #3b82f6; }
+        .card-parallel { border-top: 4px solid #f59e0b; }
+        
+        /* אנימציות */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Utility */
+        .view-section { display: none; } /* Default hidden, managed by JS */
+        .view-section.active { display: flex; }
+    </style>
+</head>
+<body class="h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- סרגל צד -->
+    <aside class="w-full md:w-64 bg-slate-900 text-white flex-shrink-0 flex flex-col shadow-2xl z-20">
+        <div class="p-6 border-b border-slate-700 bg-slate-950">
+            <h1 class="text-2xl font-bold text-emerald-400 tracking-wider flex items-center gap-2">
+                <i class="fas fa-signal"></i> אדוה סלולר
+            </h1>
+            <p class="text-xs text-slate-400 mt-1 mr-8">GCP Cloud POS v2.2</p>
+        </div>
+        
+        <nav class="flex-1 mt-6 px-4 space-y-2">
+            <button onclick="switchView('pos')" id="nav-pos" class="nav-btn w-full text-right py-3 px-4 rounded-lg transition bg-slate-800 text-white shadow-lg border-r-4 border-emerald-500 font-medium">
+                <i class="fas fa-cash-register ml-3 w-6 text-center"></i> קופה ומכירות
+            </button>
+            <button onclick="switchView('inventory')" id="nav-inventory" class="nav-btn w-full text-right py-3 px-4 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition border-r-4 border-transparent font-medium">
+                <i class="fas fa-boxes ml-3 w-6 text-center"></i> ניהול מלאי
+            </button>
+            <button onclick="switchView('customers')" id="nav-customers" class="nav-btn w-full text-right py-3 px-4 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition border-r-4 border-transparent font-medium">
+                <i class="fas fa-users ml-3 w-6 text-center"></i> לקוחות (CRM)
+            </button>
+            <button onclick="switchView('settings')" id="nav-settings" class="nav-btn w-full text-right py-3 px-4 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition border-r-4 border-transparent font-medium">
+                <i class="fas fa-cog ml-3 w-6 text-center"></i> הגדרות מערכת
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-slate-700 bg-slate-950">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-xs font-bold">AD</div>
+                    <div>
+                        <div class="text-sm font-bold">מנהל ראשי</div>
+                        <div class="text-xs text-emerald-400 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> מחובר</div>
+                    </div>
+                </div>
+                <button onclick="alert('התנתקות מהמערכת...')" class="text-slate-500 hover:text-white transition"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- אזור תוכן מרכזי -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-50">
+        
+        <!-- Header -->
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center z-10 border-b border-slate-200">
+            <h2 id="page-title" class="text-xl font-bold text-slate-800">קופה ראשית</h2>
+            
+            <div class="flex items-center space-x-4 space-x-reverse">
+                <div class="flex items-center bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-bold border border-emerald-200 shadow-sm">
+                    <div class="w-2 h-2 rounded-full bg-emerald-500 ml-2 animate-pulse"></div>
+                    Morning API: מחובר
+                </div>
+                <div class="flex items-center bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full text-xs font-bold border border-blue-200 shadow-sm">
+                    <div class="w-2 h-2 rounded-full bg-blue-500 ml-2"></div>
+                    DB: מסונכרן
+                </div>
+            </div>
+        </header>
+
+        <!-- VIEW: POS (Sales) -->
+        <div id="view-pos" class="flex-1 flex-col overflow-hidden view-section active fade-in">
+            <!-- חיבור וסינון -->
+            <div class="p-4 bg-white border-b flex space-x-4 space-x-reverse shadow-sm z-10">
+                <div class="relative flex-1 max-w-lg">
+                    <i class="fas fa-search absolute right-3 top-3.5 text-gray-400"></i>
+                    <input type="text" id="posSearch" placeholder="חיפוש מהיר של מוצר (דגם, מק״ט)..." class="w-full bg-gray-50 border border-gray-200 rounded-lg py-2.5 pr-10 pl-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" onkeyup="renderPOS()">
+                </div>
+                <select id="posFilterImporter" class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" onchange="renderPOS()">
+                    <option value="all">📦 כל היבואנים</option>
+                    <option value="official">🔹 יבואן רשמי</option>
+                    <option value="parallel">🔸 יבואן מקביל</option>
+                </select>
+            </div>
+
+            <!-- גריד מוצרים -->
+            <div class="flex-1 overflow-y-auto p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 content-start" id="pos-grid">
+                <!-- מוצרים יוזרקו כאן -->
+            </div>
+        </div>
+
+        <!-- VIEW: Inventory Management -->
+        <div id="view-inventory" class="flex-1 flex-col overflow-hidden view-section fade-in">
+            <div class="p-6 flex justify-between items-center bg-white border-b">
+                <h3 class="text-lg font-bold text-slate-800">מצבת מלאי נוכחית</h3>
+                <button onclick="openProductModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg shadow-md hover:shadow-lg flex items-center transition font-medium">
+                    <i class="fas fa-plus ml-2"></i> הוסף מוצר חדש
+                </button>
+            </div>
+            
+            <div class="flex-1 overflow-auto p-6">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <table class="w-full text-right">
+                        <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b">
+                            <tr>
+                                <th class="p-4 w-20">תמונה</th>
+                                <th class="p-4">שם מוצר</th>
+                                <th class="p-4">מק"ט</th>
+                                <th class="p-4">יבואן</th>
+                                <th class="p-4">מחיר</th>
+                                <th class="p-4">מלאי</th>
+                                <th class="p-4 text-center">פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body" class="divide-y divide-slate-100 text-sm text-slate-700">
+                            <!-- שורות טבלה -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: Customers (CRM) - הוספנו את החלק שהיה חסר -->
+        <div id="view-customers" class="flex-1 flex-col overflow-hidden view-section fade-in">
+            <div class="p-6 bg-white border-b flex justify-between items-center">
+                <h3 class="text-lg font-bold text-slate-800">ניהול לקוחות (CRM)</h3>
+                <div class="text-sm text-slate-500">רשימת הלקוחות האחרונים שביצעו רכישה</div>
+            </div>
+            <div class="flex-1 overflow-auto p-6">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <table class="w-full text-right">
+                        <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold border-b">
+                            <tr>
+                                <th class="p-4">שם הלקוח</th>
+                                <th class="p-4">טלפון</th>
+                                <th class="p-4">תאריך רכישה אחרונה</th>
+                                <th class="p-4">סוג מסמך אחרון</th>
+                                <th class="p-4 text-center">פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-4 font-bold">ישראל ישראלי</td>
+                                <td class="p-4">050-1234567</td>
+                                <td class="p-4">11/01/2026</td>
+                                <td class="p-4"><span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-bold">חשבונית מס קבלה</span></td>
+                                <td class="p-4 text-center">
+                                    <button class="text-emerald-600 hover:bg-emerald-50 p-2 rounded-full" title="שלח הודעה"><i class="fab fa-whatsapp"></i></button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-4 font-bold">לקוח מזדמן</td>
+                                <td class="p-4">-</td>
+                                <td class="p-4">10/01/2026</td>
+                                <td class="p-4"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">תעודת משלוח</span></td>
+                                <td class="p-4 text-center">
+                                    <button class="text-gray-400 p-2 rounded-full cursor-not-allowed"><i class="fab fa-whatsapp"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="p-8 text-center text-slate-400 text-sm">
+                        <i class="fas fa-database mb-2 text-xl"></i>
+                        <br>
+                        הנתונים נשאבים בזמן אמת ממורנינג API
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: Settings -->
+        <div id="view-settings" class="flex-1 overflow-y-auto p-8 view-section fade-in">
+            <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+                <h3 class="text-xl font-bold mb-6 border-b pb-4 flex items-center gap-2">
+                    <i class="fas fa-plug text-slate-400"></i> חיבור למערכות חיצוניות
+                </h3>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Morning API Key</label>
+                    <div class="relative">
+                        <input type="password" value="************************" class="w-full border border-slate-300 rounded-lg p-3 bg-slate-50 text-slate-500 font-mono" disabled>
+                        <i class="fas fa-lock absolute left-3 top-3.5 text-slate-400"></i>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2 flex items-center gap-1">
+                        <i class="fas fa-shield-alt text-green-500"></i>
+                        מפתח ההצפנה שמור בצורה מאובטחת ב-GCP Secret Manager
+                    </p>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">מספר WhatsApp Business</label>
+                    <div class="relative">
+                        <input type="text" value="+972500000000" class="w-full border border-slate-300 rounded-lg p-3 pl-4 focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                        <i class="fab fa-whatsapp absolute left-3 top-3.5 text-emerald-500 text-lg"></i>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between mt-8 pt-6 border-t border-slate-100">
+                    <span class="text-xs text-slate-400 font-mono">Build: 2026.01.11_v2.2</span>
+                    <button class="bg-emerald-600 text-white px-6 py-2.5 rounded-lg shadow hover:bg-emerald-700 transition font-medium flex items-center gap-2">
+                        <i class="fas fa-save"></i> שמור שינויים
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- פאנל תחתון (סל קניות/מכירה מהירה) -->
+        <div id="pos-panel" class="bg-white border-t border-slate-200 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] p-6 absolute bottom-0 w-full transform translate-y-full transition-transform duration-300 z-30 ease-out">
+            <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
+                
+                <!-- פרטי מוצר -->
+                <div class="flex-1 flex gap-5 border-l border-slate-200 pl-6">
+                    <div id="panel-img" class="w-24 h-24 bg-gray-100 rounded-xl bg-cover bg-center shadow-inner border border-slate-200"></div>
+                    <div class="flex flex-col justify-center">
+                        <h4 id="panel-name" class="font-bold text-xl text-slate-800 leading-tight"></h4>
+                        <div class="mt-2 flex items-center gap-2">
+                            <span id="panel-sku" class="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded border border-slate-200"></span>
+                            <span id="panel-type" class="text-xs font-bold px-2 py-1 rounded"></span>
+                        </div>
+                        <div class="mt-2 font-mono text-2xl text-blue-600 font-bold" id="panel-price"></div>
+                    </div>
+                </div>
+
+                <!-- טופס הזמנה -->
+                <div class="flex-[2] grid grid-cols-1 md:grid-cols-3 gap-5 items-end">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">שם הלקוח</label>
+                        <input type="text" id="clientName" placeholder="למשל: ישראל ישראלי" class="w-full border border-slate-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">טלפון (לוואטסאפ)</label>
+                        <input type="tel" id="clientPhone" placeholder="050-XXXXXXX" class="w-full border border-slate-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">סוג מסמך</label>
+                        <select id="docType" class="w-full border border-slate-300 rounded-lg p-3 text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="600">📦 תעודת משלוח (הורדת מלאי)</option>
+                            <option value="320">🧾 חשבונית מס קבלה</option>
+                            <option value="305">📄 הצעת מחיר</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- פעולות -->
+                <div class="flex-none flex flex-col justify-end items-end gap-3 min-w-[200px]">
+                    <button onclick="processOrder()" id="btn-process" class="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg hover:shadow-xl transform active:scale-95 transition flex justify-center items-center gap-2">
+                        <span>סיום מכירה</span> <i class="fas fa-check"></i>
+                    </button>
+                    <button onclick="closePanel()" class="text-slate-400 hover:text-red-500 text-sm font-medium transition flex items-center gap-1">
+                        <i class="fas fa-times"></i> ביטול
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal: Add/Edit Product -->
+    <div id="product-modal" class="fixed inset-0 bg-slate-900/60 hidden z-50 flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh]">
+            <div class="bg-slate-50 p-5 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="font-bold text-lg text-slate-800" id="modal-title">הוספת מוצר חדש</h3>
+                <button onclick="closeProductModal()" class="text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center transition"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 space-y-5 overflow-y-auto">
+                <input type="hidden" id="edit-id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">שם מוצר</label>
+                        <input type="text" id="edit-name" class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">מק"ט (SKU)</label>
+                        <input type="text" id="edit-sku" class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none font-mono">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">מחיר (₪)</label>
+                        <input type="number" id="edit-price" class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">מלאי התחלתי</label>
+                        <input type="number" id="edit-stock" class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">יבואן</label>
+                    <select id="edit-type" class="w-full border border-slate-300 rounded-lg p-2.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="official">יבואן רשמי (כחול)</option>
+                        <option value="parallel">יבואן מקביל (כתום)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">קישור לתמונה (URL)</label>
+                    <div class="flex gap-3">
+                        <input type="text" id="edit-image" placeholder="https://..." class="w-full border border-slate-300 rounded-lg p-2.5 text-left ltr focus:ring-2 focus:ring-blue-500 outline-none" onchange="previewImage()">
+                        <div id="img-preview" class="flex-shrink-0 h-11 w-11 bg-slate-100 rounded-lg bg-cover bg-center border border-slate-200"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="p-5 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+                <button onclick="closeProductModal()" class="px-5 py-2.5 text-slate-600 hover:bg-slate-200 rounded-lg font-medium transition">ביטול</button>
+                <button onclick="saveProduct()" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow transition">שמור מוצר</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Success & WhatsApp -->
+    <div id="success-modal" class="fixed inset-0 bg-slate-900/70 hidden z-50 flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl relative transform transition-all">
+            <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg border-4 border-white">
+                <i class="fas fa-check text-2xl text-white"></i>
+            </div>
+            
+            <h2 class="text-2xl font-bold text-slate-800 mt-8">המכירה הושלמה!</h2>
+            <p class="text-slate-500 mt-2 text-sm">המסמך הופק במורנינג והמלאי עודכן.</p>
+            
+            <div class="my-6 bg-slate-50 rounded-xl p-4 border border-slate-100 text-sm shadow-sm">
+                <div class="flex justify-between mb-2">
+                    <span class="text-slate-500">מספר מסמך:</span>
+                    <span class="font-mono font-bold text-slate-800 tracking-wider" id="success-doc-num">#-----</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">לקוח:</span>
+                    <span class="font-bold text-slate-800" id="success-client">-----</span>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <button id="wa-btn" onclick="sendWhatsApp()" class="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white py-3 px-4 rounded-xl font-bold shadow transition flex justify-center items-center gap-2">
+                    <i class="fab fa-whatsapp text-xl"></i> שלח מסמך בוואטסאפ
+                </button>
+                <button onclick="closeSuccessModal()" class="w-full bg-white border border-slate-300 text-slate-700 py-2.5 rounded-xl hover:bg-slate-50 font-medium transition">
+                    סגור וחזור לקופה
+                </button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // --- Data Storage (LocalStorage Wrapper) ---
+    const DB_KEY = 'adva_cellular_db_v2_fixed';
+    
+    // נתונים התחלתיים
+    const INITIAL_DATA = [
+        { id: 1, sku: 'OFF-IP17P', name: 'iPhone 17 Pro 256GB', type: 'official', price: 5000, stock: 15, image: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?auto=format&fit=crop&w=400&q=80' },
+        { id: 2, sku: 'OFF-IP17PM', name: 'iPhone 17 Pro Max 256GB', type: 'official', price: 5300, stock: 8, image: 'https://images.unsplash.com/photo-1591337676887-a217a6970a8a?auto=format&fit=crop&w=400&q=80' },
+        { id: 3, sku: 'PAR-IP17P', name: 'iPhone 17 Pro 256GB', type: 'parallel', price: 4800, stock: 20, image: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?auto=format&fit=crop&w=400&q=80' },
+        { id: 4, sku: 'OFF-S25U', name: 'Galaxy S25 Ultra 256GB', type: 'official', price: 3950, stock: 10, image: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?auto=format&fit=crop&w=400&q=80' },
+        { id: 5, sku: 'PAR-S25U', name: 'Galaxy S25 Ultra 256GB', type: 'parallel', price: 3400, stock: 25, image: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?auto=format&fit=crop&w=400&q=80' },
+        { id: 6, sku: 'OFF-AIR3', name: 'AirPods Pro 3', type: 'official', price: 1000, stock: 30, image: 'https://images.unsplash.com/photo-1572569028738-411a0977d4fc?auto=format&fit=crop&w=400&q=80' },
+    ];
+
+    let inventory = [];
+    let currentProduct = null;
+    let lastOrderDetails = {};
+
+    // --- אתחול המערכת ---
+    window.onload = () => {
+        loadData();
+        // הצג ברירת מחדל
+        switchView('pos');
+        renderPOS();
+        renderInventoryTable();
+    };
+
+    function loadData() {
+        const saved = localStorage.getItem(DB_KEY);
+        if (saved) {
+            try {
+                inventory = JSON.parse(saved);
+            } catch (e) {
+                console.error("Corrupt DB, resetting", e);
+                inventory = JSON.parse(JSON.stringify(INITIAL_DATA));
+            }
+        } else {
+            inventory = JSON.parse(JSON.stringify(INITIAL_DATA));
+            saveData();
+        }
+    }
+
+    function saveData() {
+        localStorage.setItem(DB_KEY, JSON.stringify(inventory));
+        renderPOS();
+        renderInventoryTable();
+    }
+
+    // --- מנגנון ניווט מתוקן ---
+    function switchView(viewName) {
+        // 1. הסתרת כל התצוגות הפעילות
+        document.querySelectorAll('.view-section').forEach(el => {
+            el.classList.remove('active');
+            el.style.display = 'none'; // הגנה כפולה
+        });
+
+        // 2. בדיקה שהמסך המבוקש קיים ב-HTML
+        const targetView = document.getElementById(`view-${viewName}`);
+        if (!targetView) {
+            console.error(`Error: View 'view-${viewName}' not found in HTML!`);
+            alert("שגיאת מערכת: המסך המבוקש לא נמצא.");
+            return;
+        }
+
+        // 3. הצגת המסך
+        targetView.style.display = 'flex'; // או block בהתאם לצורך, אבל flex מתאים לעיצוב שלנו
+        setTimeout(() => targetView.classList.add('active'), 10); // טריק קטן לאנימציה
+
+        // 4. עדכון כותרת
+        const titles = {
+            'pos': 'קופה ראשית',
+            'inventory': 'ניהול מלאי',
+            'customers': 'מועדון לקוחות',
+            'settings': 'הגדרות'
+        };
+        document.getElementById('page-title').innerText = titles[viewName] || 'אדוה תקשורת';
+
+        // 5. עדכון כפתורי הסרגל (Visual State)
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            // איפוס סגנון
+            btn.classList.remove('bg-slate-800', 'text-white', 'shadow-lg', 'border-emerald-500');
+            btn.classList.add('text-slate-400', 'border-transparent');
+        });
+
+        const activeBtn = document.getElementById(`nav-${viewName}`);
+        if (activeBtn) {
+            activeBtn.classList.remove('text-slate-400', 'border-transparent');
+            activeBtn.classList.add('bg-slate-800', 'text-white', 'shadow-lg', 'border-emerald-500');
+        }
+    }
+
+    // --- לוגיקת קופה (POS) ---
+    function renderPOS() {
+        const container = document.getElementById('pos-grid');
+        if(!container) return; // הגנה
+
+        const searchTerm = document.getElementById('posSearch').value.toLowerCase();
+        const filterType = document.getElementById('posFilterImporter').value;
+        
+        container.innerHTML = '';
+        
+        const filtered = inventory.filter(p => {
+            const matchSearch = p.name.toLowerCase().includes(searchTerm) || p.sku.toLowerCase().includes(searchTerm);
+            const matchType = filterType === 'all' || p.type === filterType;
+            return matchSearch && matchType;
+        });
+
+        if(filtered.length === 0) {
+            container.innerHTML = `
+            <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-400 opacity-60">
+                <i class="fas fa-search text-5xl mb-4"></i>
+                <p class="text-lg font-medium">לא נמצאו מוצרים תואמים</p>
+            </div>`;
+            return;
+        }
+
+        filtered.forEach(p => {
+            const isOfficial = p.type === 'official';
+            const badgeClass = isOfficial ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700';
+            const badgeText = isOfficial ? 'רשמי' : 'מקביל';
+            const cardBorder = isOfficial ? 'card-official' : 'card-parallel';
+
+            const html = `
+                <div class="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden group ${cardBorder} flex flex-col h-full border border-slate-100" onclick="openPanel(${p.id})">
+                    <div class="h-44 bg-slate-50 bg-cover bg-center relative group-hover:scale-105 transition-transform duration-500" style="background-image: url('${p.image}')">
+                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors"></div>
+                        <span class="absolute top-3 right-3 text-xs font-bold px-2.5 py-1 rounded-full shadow-sm ${badgeClass}">${badgeText}</span>
+                    </div>
+                    <div class="p-4 flex-1 flex flex-col relative bg-white">
+                        <h4 class="font-bold text-slate-800 group-hover:text-blue-600 transition mb-1 leading-snug">${p.name}</h4>
+                        <div class="text-xs font-mono text-slate-400 mb-3">${p.sku}</div>
+                        <div class="mt-auto flex justify-between items-end border-t border-slate-50 pt-3">
+                            <span class="text-xl font-bold text-slate-800">₪${p.price.toLocaleString()}</span>
+                            <div class="text-xs font-bold px-2 py-1 rounded ${p.stock < 5 ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-600'}">
+                                מלאי: ${p.stock}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += html;
+        });
+    }
+
+    function openPanel(id) {
+        currentProduct = inventory.find(p => p.id === id);
+        if(!currentProduct) return;
+
+        // Populate Panel
+        document.getElementById('panel-name').innerText = currentProduct.name;
+        document.getElementById('panel-sku').innerText = currentProduct.sku;
+        document.getElementById('panel-price').innerText = '₪' + currentProduct.price.toLocaleString();
+        document.getElementById('panel-img').style.backgroundImage = `url('${currentProduct.image}')`;
+        
+        const typeSpan = document.getElementById('panel-type');
+        if (currentProduct.type === 'official') {
+            typeSpan.className = "text-xs font-bold px-2 py-1 rounded bg-blue-100 text-blue-700";
+            typeSpan.innerText = "יבואן רשמי";
+        } else {
+            typeSpan.className = "text-xs font-bold px-2 py-1 rounded bg-amber-100 text-amber-700";
+            typeSpan.innerText = "יבואן מקביל";
+        }
+
+        // Reset Inputs
+        document.getElementById('clientName').value = '';
+        document.getElementById('clientPhone').value = '';
+        
+        // Slide Up
+        document.getElementById('pos-panel').classList.remove('translate-y-full');
+    }
+
+    function closePanel() {
+        document.getElementById('pos-panel').classList.add('translate-y-full');
+        currentProduct = null;
+    }
+
+    async function processOrder() {
+        if (!currentProduct) return;
+        const clientName = document.getElementById('clientName').value || 'לקוח כללי';
+        const clientPhone = document.getElementById('clientPhone').value;
+        const docType = document.getElementById('docType').value;
+
+        if (currentProduct.stock <= 0) {
+            alert('שגיאה: המוצר אזל מהמלאי!');
+            return;
+        }
+
+        const btn = document.getElementById('btn-process');
+        const originalContent = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<div class="loader ml-2 border-white border-t-transparent"></div> מעבד...`;
+
+        // 1. הורדת מלאי
+        currentProduct.stock--;
+        saveData();
+
+        // 2. סימולציה של קריאת API למורנינג
+        await new Promise(r => setTimeout(r, 1200));
+
+        // 3. הצלחה
+        const docNum = Math.floor(Math.random() * 89999) + 10000;
+        lastOrderDetails = {
+            docNum: docNum,
+            clientName: clientName,
+            phone: clientPhone,
+            product: currentProduct.name,
+            price: currentProduct.price,
+            docTypeStr: docType === '600' ? 'תעודת משלוח' : (docType === '320' ? 'חשבונית מס קבלה' : 'הצעת מחיר')
+        };
+
+        // עדכון מודל הצלחה
+        document.getElementById('success-doc-num').innerText = `#${docNum}`;
+        document.getElementById('success-client').innerText = clientName;
+        
+        // הצגת כפתור וואטסאפ רק אם הוזן טלפון
+        const waBtn = document.getElementById('wa-btn');
+        if (clientPhone && clientPhone.length > 5) {
+            waBtn.classList.remove('hidden');
+            waBtn.classList.add('flex');
+        } else {
+            waBtn.classList.add('hidden');
+            waBtn.classList.remove('flex');
+        }
+
+        closePanel();
+        document.getElementById('success-modal').classList.remove('hidden');
+
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+    }
+
+    // --- אינטגרציית WhatsApp ---
+    function sendWhatsApp() {
+        if (!lastOrderDetails.phone) return;
+        
+        // ניקוי המספר
+        let phone = lastOrderDetails.phone.replace(/\D/g, '');
+        if (phone.startsWith('0')) phone = '972' + phone.substring(1);
+
+        const text = `היי ${lastOrderDetails.clientName},
+תודה שקנית ב*אדוה תקשורת*! 📱
+הופק עבורך מסמך: ${lastOrderDetails.docTypeStr} מס' ${lastOrderDetails.docNum}.
+רכשת: ${lastOrderDetails.product}
+סה"כ לתשלום: ₪${lastOrderDetails.price.toLocaleString()}
+
+לשירותך תמיד,
+צוות אדוה תקשורת`;
+
+        const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+        window.open(url, '_blank');
+    }
+
+    function closeSuccessModal() {
+        document.getElementById('success-modal').classList.add('hidden');
+        renderPOS(); // רענון מלאי בויז'ואל
+    }
+
+    // --- ניהול מלאי (Admin CRUD) ---
+    function renderInventoryTable() {
+        const tbody = document.getElementById('inventory-table-body');
+        if(!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        inventory.forEach(p => {
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-slate-50 transition border-b border-slate-50 last:border-none";
+            tr.innerHTML = `
+                <td class="p-4"><div class="w-10 h-10 rounded-lg bg-slate-100 bg-cover bg-center border border-slate-200" style="background-image: url('${p.image}')"></div></td>
+                <td class="p-4 font-bold text-slate-700">${p.name}</td>
+                <td class="p-4 font-mono text-slate-500 text-xs">${p.sku}</td>
+                <td class="p-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${p.type === 'official' ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600'}">${p.type === 'official' ? 'רשמי' : 'מקביל'}</span></td>
+                <td class="p-4 font-medium">₪${p.price.toLocaleString()}</td>
+                <td class="p-4"><span class="${p.stock < 5 ? 'text-red-500 font-bold' : 'text-emerald-600 font-bold'}">${p.stock}</span></td>
+                <td class="p-4 text-center">
+                    <button onclick="editProduct(${p.id})" class="text-blue-500 hover:bg-blue-50 p-2 rounded-full transition mx-1"><i class="fas fa-edit"></i></button>
+                    <button onclick="deleteProduct(${p.id})" class="text-red-400 hover:bg-red-50 p-2 rounded-full transition mx-1"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function openProductModal(isEdit = false) {
+        document.getElementById('modal-title').innerText = isEdit ? 'עריכת מוצר' : 'הוספת מוצר חדש';
+        document.getElementById('product-modal').classList.remove('hidden');
+        if (!isEdit) {
+            // ניקוי טופס להוספה
+            document.getElementById('edit-id').value = '';
+            document.getElementById('edit-name').value = '';
+            document.getElementById('edit-sku').value = '';
+            document.getElementById('edit-price').value = '';
+            document.getElementById('edit-stock').value = '';
+            document.getElementById('edit-image').value = '';
+            document.getElementById('img-preview').style.backgroundImage = '';
+        }
+    }
+
+    function closeProductModal() {
+        document.getElementById('product-modal').classList.add('hidden');
+    }
+
+    function editProduct(id) {
+        const p = inventory.find(i => i.id === id);
+        if (!p) return;
+        
+        document.getElementById('edit-id').value = p.id;
+        document.getElementById('edit-name').value = p.name;
+        document.getElementById('edit-sku').value = p.sku;
+        document.getElementById('edit-price').value = p.price;
+        document.getElementById('edit-stock').value = p.stock;
+        document.getElementById('edit-type').value = p.type;
+        document.getElementById('edit-image').value = p.image;
+        
+        previewImage();
+        openProductModal(true);
+    }
+
+    function deleteProduct(id) {
+        if(confirm('האם אתה בטוח שברצונך למחוק מוצר זה?')) {
+            inventory = inventory.filter(i => i.id !== id);
+            saveData();
+        }
+    }
+
+    function saveProduct() {
+        const id = document.getElementById('edit-id').value;
+        const name = document.getElementById('edit-name').value;
+        const sku = document.getElementById('edit-sku').value;
+        const price = parseFloat(document.getElementById('edit-price').value);
+        const stock = parseInt(document.getElementById('edit-stock').value);
+        const type = document.getElementById('edit-type').value;
+        const image = document.getElementById('edit-image').value || 'https://via.placeholder.com/400';
+
+        if (!name || !price) {
+            alert('אנא מלא שדות חובה');
+            return;
+        }
+
+        if (id) {
+            // עדכון קיים
+            const idx = inventory.findIndex(i => i.id == id);
+            if (idx > -1) {
+                inventory[idx] = { ...inventory[idx], id: parseInt(id), name, sku, price, stock, type, image };
+            }
+        } else {
+            // הוספה חדשה
+            const newId = inventory.length > 0 ? Math.max(...inventory.map(i => i.id)) + 1 : 1;
+            inventory.push({ id: newId, name, sku, price, stock, type, image });
+        }
+
+        saveData();
+        closeProductModal();
+    }
+
+    function previewImage() {
+        const url = document.getElementById('edit-image').value;
+        const div = document.getElementById('img-preview');
+        if (url) {
+            div.style.backgroundImage = `url('${url}')`;
+        }
+    }
+
+</script>
+</body>
+</html>
