@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WIZBI.AI | הדור הבא של הבינה העסקית</title>
+  <meta name="description" content="פלטפורמת Data + AI המחברת מערכות, מייצרת תובנות ומפעילה סוכנים אוטונומיים לניהול העסק." />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Rubik for modern Hebrew typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Rubik', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              dark: '#0B0F19',
+              card: '#111625',
+              accent: '#3B82F6',
+              purple: '#8B5CF6'
+            }
+          },
+          animation: {
+            'blob': 'blob 7s infinite',
+            'float': 'float 6s ease-in-out infinite',
+            'fade-up': 'fadeUp 0.8s ease-out forwards',
+          },
+          keyframes: {
+            blob: {
+              '0%': { transform: 'translate(0px, 0px) scale(1)' },
+              '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+              '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+              '100%': { transform: 'translate(0px, 0px) scale(1)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-20px)' },
+            },
+            fadeUp: {
+              '0%': { opacity: '0', transform: 'translateY(20px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #0B0F19; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    /* Utilities */
+    .glass {
+      background: rgba(17, 22, 37, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    
+    .glass-light {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .text-gradient {
+      background: linear-gradient(135deg, #60A5FA 0%, #A78BFA 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .glow-effect {
+      box-shadow: 0 0 40px -10px rgba(59, 130, 246, 0.15);
+    }
+
+    /* Hide scrollbar for badge list but allow scroll */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-brand-dark text-slate-100 font-sans antialiased overflow-x-hidden selection:bg-brand-accent selection:text-white">
+
+  <!-- Background Ambient Blobs -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/20 rounded-full mix-blend-screen filter blur-[120px] opacity-30 animate-blob"></div>
+    <div class="absolute top-0 left-0 w-[500px] h-[500px] bg-purple-600/20 rounded-full mix-blend-screen filter blur-[120px] opacity-30 animate-blob animation-delay-2000"></div>
+    <div class="absolute -bottom-32 left-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full mix-blend-screen filter blur-[120px] opacity-30 animate-blob animation-delay-4000"></div>
+  </div>
+
+  <!-- Navbar -->
+  <header class="fixed top-0 w-full z-50 transition-all duration-300 glass border-b-0 border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo -->
+        <div class="flex items-center gap-2 cursor-pointer" onclick="window.scrollTo(0,0)">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-500 to-purple-600 grid place-items-center shadow-lg shadow-blue-500/20">
+            <span class="text-white font-bold text-xs">W</span>
+          </div>
+          <span class="text-lg font-bold tracking-tight">WIZBI<span class="text-blue-400">.AI</span></span>
+        </div>
+
+        <!-- Desktop Nav -->
+        <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+          <a href="#value" class="hover:text-white transition-colors">ערך</a>
+          <a href="#packs" class="hover:text-white transition-colors">חבילות</a>
+          <a href="#stack" class="hover:text-white transition-colors">טכנולוגיה</a>
+          <a href="#pricing" class="hover:text-white transition-colors">מחירים</a>
+        </nav>
+
+        <!-- CTA & Mobile Toggle -->
+        <div class="flex items-center gap-3">
+          <button onclick="scrollToContact()" class="hidden md:block px-5 py-2 rounded-full bg-white text-brand-dark text-sm font-bold hover:bg-slate-200 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-white/5">
+            קבעו דמו
+          </button>
+          <button id="btnMenu" class="md:hidden p-2 rounded-lg text-slate-300 hover:bg-white/10 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="hidden md:hidden glass border-t border-white/5">
+      <div class="px-4 pt-2 pb-6 space-y-1">
+        <a href="#value" class="block px-3 py-3 rounded-md text-base font-medium text-slate-300 hover:bg-white/5 hover:text-white">ערך</a>
+        <a href="#packs" class="block px-3 py-3 rounded-md text-base font-medium text-slate-300 hover:bg-white/5 hover:text-white">חבילות</a>
+        <a href="#stack" class="block px-3 py-3 rounded-md text-base font-medium text-slate-300 hover:bg-white/5 hover:text-white">טכנולוגיה</a>
+        <a href="#pricing" class="block px-3 py-3 rounded-md text-base font-medium text-slate-300 hover:bg-white/5 hover:text-white">מחירים</a>
+        <button onclick="scrollToContact()" class="w-full mt-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-3 rounded-lg font-bold shadow-lg">
+          קבעו דמו
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="relative pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div class="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+        
+        <!-- Text Content -->
+        <div class="text-center lg:text-right z-10 animate-fade-up">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-300 text-xs font-medium mb-6 backdrop-blur-sm">
+            <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+            בינה עסקית מלאכותית 2.0
+          </div>
+          
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.15] mb-6">
+            זה מרגיש כמו קסם.<br/>
+            הנתונים <span class="text-gradient">מתעוררים לחיים</span>.
+          </h1>
+          
+          <p class="text-lg text-slate-400 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+            WIZBI היא פלטפורמה אחת שמתחברת לכל המערכות שלך (Morning, Monday, SolarEdge), 
+            מאפשרת לך <b>לשוחח עם הנתונים</b>, ומפעילה <b>סוכנים חכמים (Agents)</b> שמזהים חריגות ומנהלים את העסק עבורך.
+          </p>
+
+          <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+            <button onclick="scrollToContact()" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-base shadow-lg shadow-blue-600/25 hover:shadow-blue-600/40 hover:-translate-y-1 transition-all">
+              התחל עכשיו ←
+            </button>
+            <a href="#packs" class="w-full sm:w-auto px-8 py-4 rounded-xl glass-light hover:bg-white/10 border border-white/10 text-white font-medium transition-all text-center">
+              איך זה עובד?
+            </a>
+          </div>
+
+          <div class="mt-10 grid grid-cols-3 gap-4 border-t border-white/10 pt-8">
+            <div>
+              <div class="text-2xl font-bold text-white">5 דק׳</div>
+              <div class="text-xs text-slate-500">חיבור ראשוני</div>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-white">24/7</div>
+              <div class="text-xs text-slate-500">ניטור אוטומטי</div>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-white">AI</div>
+              <div class="text-xs text-slate-500">אנליסט אישי</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Demo (Floating) -->
+        <div class="relative lg:h-[600px] flex items-center justify-center animate-fade-up" style="animation-delay: 200ms;">
+          <!-- Background Glow behind phone -->
+          <div class="absolute inset-0 bg-gradient-to-tr from-blue-500/20 to-purple-500/20 rounded-full blur-3xl -z-10"></div>
+          
+          <div class="relative w-full max-w-md bg-brand-card border border-white/10 rounded-3xl shadow-2xl shadow-black/50 overflow-hidden flex flex-col h-[500px] animate-float">
+            <!-- App Header -->
+            <div class="px-5 py-4 border-b border-white/5 bg-white/5 flex items-center justify-between backdrop-blur-md sticky top-0 z-10">
+              <div class="flex items-center gap-3">
+                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <div>
+                  <div class="text-sm font-bold text-white">Wizbi Assistant</div>
+                  <div class="text-[10px] text-slate-400">Online • Data Connected</div>
+                </div>
+              </div>
+              <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+            </div>
+
+            <!-- Chat Area -->
+            <div id="chatArea" class="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth bg-gradient-to-b from-brand-card to-brand-dark/50">
+              <div class="flex justify-end animate-fade-up">
+                <div class="max-w-[85%] bg-blue-600/20 border border-blue-500/30 text-blue-50 rounded-2xl rounded-tr-sm px-4 py-3 text-sm">
+                  כמה מכרנו השבוע? ומה החריגה הכי גדולה במלאי?
+                </div>
+              </div>
+              <div class="flex justify-start animate-fade-up" style="animation-delay: 100ms;">
+                <div class="flex gap-2 max-w-[90%]">
+                  <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex-shrink-0 grid place-items-center text-[10px] font-bold">AI</div>
+                  <div class="bg-white/5 border border-white/10 text-slate-200 rounded-2xl rounded-tl-sm px-4 py-3 text-sm space-y-2">
+                    <p>השבוע נמכרו <span class="font-bold text-green-400">₪ 184,320</span> (↑ 12% משבוע שעבר).</p>
+                    <div class="h-px bg-white/10 my-2"></div>
+                    <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">חריגת מלאי זוהתה</p>
+                    <div class="flex items-start gap-2 bg-red-500/10 p-2 rounded border border-red-500/20">
+                      <svg class="w-4 h-4 text-red-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                      <div>
+                        <span class="block font-bold text-red-200">מוצר X-200</span>
+                        <span class="text-xs opacity-80">ירד מתחת לסף מינימום (נותרו 5).</span>
+                      </div>
+                    </div>
+                    <p class="mt-2 text-blue-300 cursor-pointer hover:underline text-xs">→ לפתוח הזמנת רכש?</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="p-3 bg-brand-card border-t border-white/5">
+              <!-- Quick Chips -->
+              <div class="flex gap-2 mb-3 overflow-x-auto no-scrollbar pb-1">
+                <button class="quickQ whitespace-nowrap px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-slate-400 hover:bg-white/10 hover:text-white transition-colors" data-q="תן לי דוח מכירות יומי">
+                  📊 דוח יומי
+                </button>
+                <button class="quickQ whitespace-nowrap px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-slate-400 hover:bg-white/10 hover:text-white transition-colors" data-q="מה המצב בסולארי?">
+                  ☀️ סטטוס סולארי
+                </button>
+                <button class="quickQ whitespace-nowrap px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-slate-400 hover:bg-white/10 hover:text-white transition-colors" data-q="צור תמונות למוצרים">
+                  🎨 תמונות AI
+                </button>
+              </div>
+              <div class="relative">
+                <input id="chatInput" type="text" placeholder="שאל כל דבר על הנתונים..." class="w-full bg-brand-dark/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all text-white placeholder-slate-500">
+                <button id="chatSend" class="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors">
+                  <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Clients / Integrations Strip -->
+  <div class="border-y border-white/5 bg-white/[0.02]">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+      <p class="text-center text-sm text-slate-500 mb-6 font-medium">מתממשק עם המערכות שאתם כבר מכירים</p>
+      <div class="flex flex-wrap justify-center gap-8 md:gap-16 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+        <!-- Text Placeholders for logos -->
+        <span class="text-xl font-bold font-sans text-white">monday<span class="font-light">.com</span></span>
+        <span class="text-xl font-bold font-sans text-green-400">morning</span>
+        <span class="text-xl font-bold font-sans text-red-500">solaredge</span>
+        <span class="text-xl font-bold font-sans text-blue-400">priority</span>
+        <span class="text-xl font-bold font-sans text-green-500">WhatsApp</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Value Props (Bento Grid) -->
+  <section id="value" class="py-24 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">יותר מ-BI רגיל. הרבה יותר.</h2>
+        <p class="text-slate-400 text-lg">WIZBI לא רק מציגה גרפים. היא מבינה את הביזנס, מתריעה בזמן אמת, ועובדת בשבילך.</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6">
+        <!-- Card 1: Chat -->
+        <div class="md:col-span-2 group relative overflow-hidden rounded-3xl bg-brand-card border border-white/5 p-8 hover:border-blue-500/30 transition-all duration-300">
+          <div class="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+            <svg class="w-32 h-32 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+          </div>
+          <div class="relative z-10">
+            <div class="w-12 h-12 rounded-xl bg-blue-500/20 text-blue-400 grid place-items-center mb-6">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path></svg>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-3">שיח טבעי עם הנתונים</h3>
+            <p class="text-slate-400 leading-relaxed max-w-md">
+              שכח מ-SQL או אקסלים מסובכים. פשוט תשאל: "למה הרווח ירד החודש?" או "מי הלקוחות בסיכון?". 
+              המערכת מנתחת מיליוני רשומות ומחזירה תשובה מדויקת, בעברית, עם גרפים תומכים.
+            </p>
+          </div>
+        </div>
+
+        <!-- Card 2: Agents -->
+        <div class="md:col-span-1 group relative overflow-hidden rounded-3xl bg-brand-card border border-white/5 p-8 hover:border-purple-500/30 transition-all duration-300">
+           <div class="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+            <svg class="w-32 h-32 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+          </div>
+          <div class="relative z-10">
+            <div class="w-12 h-12 rounded-xl bg-purple-500/20 text-purple-400 grid place-items-center mb-6">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-3">AI Agents</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">
+              סוכנים אוטונומיים שעובדים ברקע 24/7. מזהים חריגות מלאי, שולחים התראות תזרים, ואפילו מציעים פעולות לביצוע.
+            </p>
+          </div>
+        </div>
+
+        <!-- Card 3: Automation -->
+        <div class="md:col-span-1 group relative overflow-hidden rounded-3xl bg-brand-card border border-white/5 p-8 hover:border-green-500/30 transition-all duration-300">
+           <div class="relative z-10">
+            <div class="w-12 h-12 rounded-xl bg-green-500/20 text-green-400 grid place-items-center mb-6">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-3">סנכרון מלא</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">
+              Connectors חכמים ששואבים מידע (Pull) וגם יודעים לדחוף עדכונים (Push) כמו יצירת חשבוניות או עדכון סטטוס.
+            </p>
+          </div>
+        </div>
+
+        <!-- Card 4: Speed -->
+        <div class="md:col-span-2 group relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-card to-white/5 border border-white/5 p-8 hover:border-white/20 transition-all duration-300">
+          <div class="flex flex-col md:flex-row items-center gap-8">
+            <div class="flex-1">
+              <div class="w-12 h-12 rounded-xl bg-white/10 text-white grid place-items-center mb-6">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              </div>
+              <h3 class="text-2xl font-bold text-white mb-3">Onboarding בדקות</h3>
+              <p class="text-slate-400 leading-relaxed">
+                בניגוד לפרויקטי BI שלוקחים חודשים, ב-Wizbi אנחנו מדברים על דקות. 
+                בוחרים "Pack" (למשל: Commerce), מחברים את המערכות, והדשבורדים מוכנים מיד.
+              </p>
+            </div>
+            <div class="w-full md:w-1/3 bg-black/30 rounded-xl p-4 border border-white/5 font-mono text-xs text-green-400">
+              <div class="mb-2 opacity-50"># System Log</div>
+              <div>> Connecting to API... <span class="text-white">OK</span></div>
+              <div>> Fetching Schema... <span class="text-white">OK</span></div>
+              <div>> Building Models... <span class="text-white">Done (4.2s)</span></div>
+              <div class="mt-2 text-white animate-pulse">Ready to start.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Packs Section -->
+  <section id="packs" class="py-24 bg-brand-dark relative overflow-hidden">
+    <!-- Decorative background elements -->
+    <div class="absolute top-1/2 left-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px]"></div>
+    <div class="absolute bottom-0 right-0 w-96 h-96 bg-purple-600/10 rounded-full blur-[100px]"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="flex flex-col md:flex-row items-end justify-between gap-6 mb-16">
+        <div>
+          <h2 class="text-3xl md:text-4xl font-bold mb-4">Vertical Packs</h2>
+          <p class="text-slate-400 max-w-xl">
+            אנחנו לא ממציאים את הגלגל מחדש. בנינו חבילות מוכנות מראש לכל סוג עסק, 
+            כך שאתם מקבלים ערך מיידי ומדויק לתעשייה שלכם.
+          </p>
+        </div>
+        <a href="#contact" class="text-blue-400 hover:text-blue-300 font-medium flex items-center gap-2">
+          ראו את כל החבילות <span aria-hidden="true">←</span>
+        </a>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Commerce Pack -->
+        <div class="bg-brand-card rounded-3xl p-1 border border-white/10 hover:border-blue-500/50 transition-colors group h-full">
+          <div class="bg-brand-dark/50 rounded-[22px] h-full p-6 flex flex-col">
+            <div class="w-12 h-12 rounded-full bg-blue-500/20 text-blue-400 grid place-items-center mb-6 group-hover:scale-110 transition-transform">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-white">Commerce Pack</h3>
+            <p class="text-sm text-slate-500 mt-1 mb-4 font-mono">Inventory + Storefront</p>
+            <p class="text-slate-300 text-sm leading-relaxed mb-6 flex-1">
+              ניהול מלאי מתקדם, קטלוג מוצרים עם תמונות AI, אתר הזמנות B2B וסנכרון חשבוניות.
+            </p>
+            <ul class="space-y-3 text-sm text-slate-400 border-t border-white/5 pt-6">
+              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> חיזוי ביקושים</li>
+              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> התראות מלאי נמוך</li>
+              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> יצירת הזמנות אוטומטית</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Solar Pack -->
+        <div class="bg-brand-card rounded-3xl p-1 border border-white/10 hover:border-yellow-500/50 transition-colors group h-full">
+          <div class="bg-brand-dark/50 rounded-[22px] h-full p-6 flex flex-col">
+            <div class="w-12 h-12 rounded-full bg-yellow-500/20 text-yellow-400 grid place-items-center mb-6 group-hover:scale-110 transition-transform">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-white">Solar Pack</h3>
+            <p class="text-sm text-slate-500 mt-1 mb-4 font-mono">Monitoring + O&M</p>
+            <p class="text-slate-300 text-sm leading-relaxed mb-6 flex-1">
+              פתרון מלא לחברות סולאריות. זיהוי תקלות ממירים, הפרדה בין בעיות תקשורת לייצור, ודוחות תשואה.
+            </p>
+            <ul class="space-y-3 text-sm text-slate-400 border-t border-white/5 pt-6">
+              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> אינטגרציה ל-SolarEdge</li>
+              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> זיהוי אנומליות בזמן אמת</li>
+              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> ניהול קריאות שירות</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- SMB BI -->
+        <div class="bg-brand-card rounded-3xl p-1 border border-white/10 hover:border-purple-500/50 transition-colors group h-full">
+          <div class="bg-brand-dark/50 rounded-[22px] h-full p-6 flex flex-col">
+            <div class="w-12 h-12 rounded-full bg-purple-500/20 text-purple-400 grid place-items-center mb-6 group-hover:scale-110 transition-transform">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-white">SMB BI Pack</h3>
+            <p class="text-sm text-slate-500 mt-1 mb-4 font-mono">Finance + Operations</p>
+            <p class="text-slate-300 text-sm leading-relaxed mb-6 flex-1">
+              שליטה פיננסית ותפעולית לעסקים קטנים. חיבור למערכות הנה"ח וניהול משימות במקום אחד.
+            </p>
+            <ul class="space-y-3 text-sm text-slate-400 border-t border-white/5 pt-6">
+              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> תזרים מזומנים חזוי</li>
+              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> דוחות רווח והפסד</li>
+              <li class="flex items-center gap-2"><svg class="w-4 h-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> חיבור ל-Monday.com</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stack Section (Technical) -->
+  <section id="stack" class="py-20 border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <h2 class="text-3xl font-bold mb-6">בנוי על גוגל קלאוד (GCP) <br/> לביצועים ואבטחה מקסימליים</h2>
+          <p class="text-slate-400 mb-8 leading-relaxed">
+            אנחנו משתמשים בטכנולוגיות Serverless מתקדמות כדי להבטיח שהדאטה שלך תמיד זמין, תמיד מאובטח, ותמיד מהיר.
+            הארכיטקטורה שלנו מאפשרת סקייל אינסופי ללא צורך בניהול שרתים.
+          </p>
+          
+          <div class="space-y-4">
+            <div class="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5">
+              <div class="w-10 h-10 rounded-lg bg-blue-500/20 grid place-items-center text-blue-400 font-bold text-xs">BQ</div>
+              <div>
+                <div class="font-bold text-white">BigQuery</div>
+                <div class="text-xs text-slate-500">מחסן נתונים אנליטי (Analytics)</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5">
+              <div class="w-10 h-10 rounded-lg bg-orange-500/20 grid place-items-center text-orange-400 font-bold text-xs">RUN</div>
+              <div>
+                <div class="font-bold text-white">Cloud Run</div>
+                <div class="text-xs text-slate-500">שרתי API ו-Microservices</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5">
+              <div class="w-10 h-10 rounded-lg bg-blue-400/20 grid place-items-center text-blue-300 font-bold text-xs">AI</div>
+              <div>
+                <div class="font-bold text-white">Vertex AI (Gemini)</div>
+                <div class="text-xs text-slate-500">מנוע הבינה המלאכותית והסוכנים</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Code snippet / Visual -->
+        <div class="relative">
+          <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 blur-3xl opacity-20"></div>
+          <div class="relative bg-[#0F141F] rounded-2xl border border-white/10 p-6 shadow-2xl font-mono text-xs md:text-sm overflow-hidden">
+             <div class="flex gap-1.5 mb-4">
+               <div class="w-3 h-3 rounded-full bg-red-500"></div>
+               <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+               <div class="w-3 h-3 rounded-full bg-green-500"></div>
+             </div>
+             <div class="text-slate-300 space-y-1">
+               <span class="text-purple-400">const</span> <span class="text-blue-400">analyzeData</span> = <span class="text-purple-400">async</span> (userId) => {<br/>
+               &nbsp;&nbsp;<span class="text-slate-500">// 1. Fetch live data</span><br/>
+               &nbsp;&nbsp;<span class="text-purple-400">const</span> rawData = <span class="text-purple-400">await</span> bigQuery.query(<span class="text-green-400">`SELECT * FROM sales WHERE uid = ...`</span>);<br/>
+               <br/>
+               &nbsp;&nbsp;<span class="text-slate-500">// 2. Detect anomalies with AI</span><br/>
+               &nbsp;&nbsp;<span class="text-purple-400">const</span> insights = <span class="text-purple-400">await</span> vertexAI.predict({<br/>
+               &nbsp;&nbsp;&nbsp;&nbsp;model: <span class="text-green-400">'gemini-pro'</span>,<br/>
+               &nbsp;&nbsp;&nbsp;&nbsp;data: rawData<br/>
+               &nbsp;&nbsp;});<br/>
+               <br/>
+               &nbsp;&nbsp;<span class="text-slate-500">// 3. Trigger Agent Action if needed</span><br/>
+               &nbsp;&nbsp;<span class="text-purple-400">if</span> (insights.riskLevel > <span class="text-orange-400">0.8</span>) {<br/>
+               &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-purple-400">await</span> agent.sendAlert(<span class="text-green-400">'WhatsApp'</span>, insights.summary);<br/>
+               &nbsp;&nbsp;}<br/>
+               }
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing" class="py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">מחירים פשוטים ושקופים</h2>
+        <p class="text-slate-400">בלי הפתעות. אפשר להתחיל בקטן ולגדול כשהעסק גדל.</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto items-center">
+        <!-- Starter -->
+        <div class="bg-brand-card/50 rounded-3xl p-8 border border-white/5 hover:border-white/10 transition-colors">
+          <h3 class="font-bold text-xl text-white">Starter</h3>
+          <div class="my-4"><span class="text-4xl font-bold text-white">₪299</span><span class="text-slate-500">/חודש</span></div>
+          <p class="text-slate-400 text-sm mb-6">מעולה לעסקים בתחילת הדרך שרוצים סדר בנתונים.</p>
+          <button onclick="scrollToContact()" class="w-full py-3 rounded-xl border border-white/20 text-white font-medium hover:bg-white/5 transition-colors">מתחילים</button>
+          <ul class="mt-8 space-y-3 text-sm text-slate-300">
+            <li class="flex gap-2 text-slate-400">✓ חיבור מקור מידע 1</li>
+            <li class="flex gap-2 text-slate-400">✓ דשבורד בסיסי</li>
+            <li class="flex gap-2 text-slate-400">✓ דוח שבועי למייל</li>
+          </ul>
+        </div>
+
+        <!-- Pro (Highlighted) -->
+        <div class="bg-brand-card rounded-3xl p-8 border border-blue-500/30 relative transform md:-translate-y-4 shadow-2xl shadow-blue-900/20">
+          <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">הכי פופולרי</div>
+          <h3 class="font-bold text-xl text-white">Pro</h3>
+          <div class="my-4"><span class="text-5xl font-bold text-white">₪549</span><span class="text-slate-500">/חודש</span></div>
+          <p class="text-slate-400 text-sm mb-6">לעסקים צומחים שצריכים Agents ואוטומציות.</p>
+          <button onclick="scrollToContact()" class="w-full py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/25">קבעו דמו חינם</button>
+          <ul class="mt-8 space-y-3 text-sm text-white">
+            <li class="flex gap-2"><span class="text-blue-400">✓</span> עד 3 מקורות מידע</li>
+            <li class="flex gap-2"><span class="text-blue-400">✓</span> גישה ל-AI Chat</li>
+            <li class="flex gap-2"><span class="text-blue-400">✓</span> התראות WhatsApp</li>
+            <li class="flex gap-2"><span class="text-blue-400">✓</span> Pack מלא אחד</li>
+          </ul>
+        </div>
+
+        <!-- Enterprise -->
+        <div class="bg-brand-card/50 rounded-3xl p-8 border border-white/5 hover:border-white/10 transition-colors">
+          <h3 class="font-bold text-xl text-white">Enterprise</h3>
+          <div class="my-4"><span class="text-3xl font-bold text-white">מותאם</span></div>
+          <p class="text-slate-400 text-sm mb-6">לארגונים עם צרכי אבטחה ואינטגרציה מורכבים.</p>
+          <button onclick="scrollToContact()" class="w-full py-3 rounded-xl border border-white/20 text-white font-medium hover:bg-white/5 transition-colors">צרו קשר</button>
+          <ul class="mt-8 space-y-3 text-sm text-slate-300">
+            <li class="flex gap-2 text-slate-400">✓ חיבורים ללא הגבלה</li>
+            <li class="flex gap-2 text-slate-400">✓ Private Cloud / SLA</li>
+            <li class="flex gap-2 text-slate-400">✓ פיתוח Packs בהתאמה</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Accordion -->
+  <section class="py-20 border-t border-white/5 bg-brand-dark/50">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-2xl font-bold mb-8 text-center">שאלות נפוצות</h2>
+      <div class="space-y-4">
+        <!-- Q1 -->
+        <div class="faq-item bg-brand-card rounded-2xl border border-white/5 overflow-hidden transition-all duration-300">
+          <button class="w-full px-6 py-4 flex items-center justify-between text-right font-medium hover:bg-white/5 transition-colors">
+            <span>כמה זמן לוקח להתחיל?</span>
+            <span class="text-2xl text-slate-500 leading-none ml-2">+</span>
+          </button>
+          <div class="faq-content hidden px-6 pb-4 text-slate-400 text-sm leading-relaxed border-t border-white/5 pt-3">
+            לרוב התהליך לוקח בין 5 ל-15 דקות לחיבור המקור הראשון. המערכת סורקת את הנתונים, בונה את המודל אוטומטית, ותוך יום עסקים אחד כבר אפשר לראות דשבורדים ותובנות מוכנים.
+          </div>
+        </div>
+        <!-- Q2 -->
+        <div class="faq-item bg-brand-card rounded-2xl border border-white/5 overflow-hidden transition-all duration-300">
+          <button class="w-full px-6 py-4 flex items-center justify-between text-right font-medium hover:bg-white/5 transition-colors">
+            <span>האם המידע שלי מאובטח?</span>
+            <span class="text-2xl text-slate-500 leading-none ml-2">+</span>
+          </button>
+          <div class="faq-content hidden px-6 pb-4 text-slate-400 text-sm leading-relaxed border-t border-white/5 pt-3">
+            לחלוטין. אנחנו פועלים בתקני אבטחה מחמירים. כל לקוח (Tenant) מקבל הפרדה מלאה בנתונים, הסיסמאות והמפתחות מוצפנים ב-Google Secret Manager, ואין ערבוב מידע בין לקוחות.
+          </div>
+        </div>
+        <!-- Q3 -->
+        <div class="faq-item bg-brand-card rounded-2xl border border-white/5 overflow-hidden transition-all duration-300">
+          <button class="w-full px-6 py-4 flex items-center justify-between text-right font-medium hover:bg-white/5 transition-colors">
+            <span>האם זה מתאים לעסק קטן?</span>
+            <span class="text-2xl text-slate-500 leading-none ml-2">+</span>
+          </button>
+          <div class="faq-content hidden px-6 pb-4 text-slate-400 text-sm leading-relaxed border-t border-white/5 pt-3">
+            כן! בנינו את ה-SMB Pack במיוחד בשביל זה. אם אתם משתמשים ב-Monday או חשבונית ירוקה (Morning), המערכת שלנו תיתן לכם ערך עצום במחיר נגיש מאוד.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Form -->
+  <section id="contact" class="py-24 relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-transparent to-blue-900/10 -z-10"></div>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="glass rounded-3xl p-8 md:p-12 border border-white/10 shadow-2xl">
+        <div class="text-center mb-10">
+          <h2 class="text-3xl font-bold mb-3">בואו נראה איך זה עובד על הדאטה שלכם</h2>
+          <p class="text-slate-400">השאירו פרטים ונחזור אליכם לתיאום דמו קצר וממוקד (15 דקות).</p>
+        </div>
+
+        <form id="leadForm" class="space-y-6">
+          <div class="grid md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="text-sm font-medium text-slate-300">שם מלא</label>
+              <input id="leadName" type="text" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder-white/20" placeholder="ישראל ישראלי">
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium text-slate-300">שם החברה</label>
+              <input id="leadCompany" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder-white/20" placeholder="Wizbi בע״מ">
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium text-slate-300">אימייל עסקי</label>
+              <input id="leadEmail" type="email" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder-white/20" placeholder="hello@wizbi.ai">
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium text-slate-300">טלפון</label>
+              <input id="leadPhone" type="tel" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder-white/20" placeholder="050-0000000">
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-300">תחום עניין עיקרי</label>
+            <select id="leadInterest" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all [&>option]:text-black">
+              <option value="Commerce Pack">מסחר אלקטרוני וניהול מלאי (Commerce)</option>
+              <option value="Solar Pack">אנרגיה סולארית (Solar)</option>
+              <option value="SMB BI Pack">ניהול עסק קטן ופיננסים (SMB)</option>
+              <option value="Custom">פתרון מותאם אישית (Enterprise)</option>
+            </select>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-slate-300">הערות נוספות (אופציונלי)</label>
+            <textarea id="leadMsg" rows="3" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder-white/20"></textarea>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-4 pt-4">
+            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-600/25 transition-all transform hover:-translate-y-1">
+              שליחת פרטים
+            </button>
+            <button type="button" id="copyLead" class="px-8 py-4 rounded-xl border border-white/10 hover:bg-white/5 font-medium transition-colors">
+              העתקת טקסט
+            </button>
+          </div>
+          <div id="leadStatus" class="text-center text-sm text-slate-400 min-h-[20px]"></div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/5 bg-[#080B13] py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-500 to-purple-600 grid place-items-center opacity-80">
+          <span class="text-white font-bold text-xs">W</span>
+        </div>
+        <div class="text-slate-300 font-bold">WIZBI<span class="text-blue-500">.AI</span></div>
+      </div>
+      <div class="text-slate-500 text-sm">
+        © <span id="year"></span> כל הזכויות שמורות ל-Wizbi AI Ltd.
+      </div>
+      <div class="flex gap-6 text-slate-400 text-sm">
+        <a href="#" class="hover:text-white transition-colors">מדיניות פרטיות</a>
+        <a href="#" class="hover:text-white transition-colors">תנאי שימוש</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script>
+    // --- Navigation & UI ---
+    const btnMenu = document.getElementById('btnMenu');
+    const mobileMenu = document.getElementById('mobileMenu');
+    
+    btnMenu.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+
+    function scrollToContact() {
+      document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
+      mobileMenu.classList.add('hidden');
+    }
+
+    // --- FAQ Logic ---
+    document.querySelectorAll('.faq-item button').forEach(button => {
+      button.addEventListener('click', () => {
+        const content = button.nextElementSibling;
+        const icon = button.querySelector('span:last-child');
+        
+        content.classList.toggle('hidden');
+        icon.textContent = content.classList.contains('hidden') ? '+' : '−';
+      });
+    });
+
+    // --- Chat Demo Logic ---
+    const chatArea = document.getElementById('chatArea');
+    const chatInput = document.getElementById('chatInput');
+    const chatSend = document.getElementById('chatSend');
+    let isTyping = false;
+
+    const cannedResponses = [
+      { k: /מלאי|חסר|הזמנה/i, a: "זיהיתי 3 מוצרים מתחת לסף המינימום. סך שווי חוסר: ₪4,200. האם להכין טיוטת הזמנה לספק?" },
+      { k: /סולאר|ממיר|תקלה/i, a: "בדיקה בממיר #4 באתר צפון מראה נתק תקשורת החל מ-08:00. הייצור ממשיך תקין. כנראה בעיית רשת." },
+      { k: /דוח|יומי|מכירות/i, a: "הפקתי דוח מכירות להיום. סה״כ: ₪12,500 (34 עסקאות). שולח לך PDF לווטסאפ עכשיו." },
+      { k: /תמונה|ai/i, a: "אין בעיה. אני מייצר 4 וריאציות למוצר 'כיסא משרדי ארגונומי' על רקע סטודיו נקי... זה יקח כ-10 שניות." }
+    ];
+
+    function addMessage(text, isUser = false) {
+      const wrapper = document.createElement('div');
+      wrapper.className = `flex justify-${isUser ? 'end' : 'start'} animate-fade-up`;
+      
+      const content = isUser 
+        ? `<div class="max-w-[85%] bg-blue-600/20 border border-blue-500/30 text-blue-50 rounded-2xl rounded-tr-sm px-4 py-3 text-sm">${text}</div>`
+        : `<div class="flex gap-2 max-w-[90%]">
+             <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex-shrink-0 grid place-items-center text-[10px] font-bold">AI</div>
+             <div class="bg-white/5 border border-white/10 text-slate-200 rounded-2xl rounded-tl-sm px-4 py-3 text-sm">${text}</div>
+           </div>`;
+
+      wrapper.innerHTML = content;
+      chatArea.appendChild(wrapper);
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    function handleChat() {
+      const text = chatInput.value.trim();
+      if (!text || isTyping) return;
+
+      addMessage(text, true);
+      chatInput.value = '';
+      isTyping = true;
+
+      // Simulate thinking
+      const thinkingId = setTimeout(() => {
+        const hit = cannedResponses.find(r => r.k.test(text));
+        const response = hit ? hit.a : "הבנתי. אני מתחבר ל-BigQuery כדי לשלוף את הנתונים העדכניים... (בדמו זה רק סימולציה)";
+        addMessage(response, false);
+        isTyping = false;
+      }, 1000);
+    }
+
+    chatSend.addEventListener('click', handleChat);
+    chatInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleChat());
+
+    document.querySelectorAll('.quickQ').forEach(btn => {
+      btn.addEventListener('click', () => {
+        chatInput.value = btn.dataset.q;
+        handleChat();
+      });
+    });
+
+    // --- Lead Form Logic ---
+    const form = document.getElementById('leadForm');
+    const statusEl = document.getElementById('leadStatus');
+    
+    function getFormData() {
+      return [
+        `שם: ${document.getElementById('leadName').value}`,
+        `חברה: ${document.getElementById('leadCompany').value}`,
+        `מייל: ${document.getElementById('leadEmail').value}`,
+        `טלפון: ${document.getElementById('leadPhone').value}`,
+        `עניין: ${document.getElementById('leadInterest').value}`,
+        `הודעה: ${document.getElementById('leadMsg').value}`,
+      ].join('\n');
+    }
+
+    document.getElementById('copyLead').addEventListener('click', () => {
+      navigator.clipboard.writeText(getFormData())
+        .then(() => statusEl.textContent = '✅ הטקסט הועתק! ניתן להדביק במייל או בוואטסאפ.')
+        .catch(() => statusEl.textContent = '❌ שגיאה בהעתקה.');
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const subject = encodeURIComponent('פנייה חדשה מאתר Wizbi');
+      const body = encodeURIComponent(getFormData());
+      window.location.href = `mailto:hello@wizbi.ai?subject=${subject}&body=${body}`;
+      statusEl.textContent = 'פותח את תוכנת המייל שלך...';
+    });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
