@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sunlytics Pro - ניהול פורטפוליו סולארי אוטונומי</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Heebo', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#0f172a',
+                            primary: '#eab308', // Yellow-500
+                            secondary: '#3b82f6', // Blue-500
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Scrollbar */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .typing-dot {
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans overflow-x-hidden selection:bg-yellow-200">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- ICONS ---
+        const Icons = {
+            Sun: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>,
+            Zap: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+            CheckCircle: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+            Bot: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>,
+            Smartphone: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>,
+            ArrowLeft: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>,
+            BarChart: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>,
+            ShieldCheck: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>,
+            ChevronDown: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>,
+            Send: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>,
+            Lock: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        };
+
+        // --- COMPONENTS ---
+
+        // 1. Chat Simulator
+        const ChatSimulator = () => {
+            const [messages, setMessages] = useState([
+                { role: 'ai', text: 'שלום! אני Sunlytics AI, האנליסט האישי שלך. אני מחובר לכל האתרים שלך בזמן אמת. ☀️\n\nאיך אני יכול לעזור היום?' }
+            ]);
+            const [isTyping, setIsTyping] = useState(false);
+            const scrollRef = useRef(null);
+
+            useEffect(() => {
+                if(scrollRef.current) {
+                    scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+                }
+            }, [messages, isTyping]);
+
+            const handleUserQuery = async (query) => {
+                setMessages(prev => [...prev, { role: 'user', text: query }]);
+                setIsTyping(true);
+
+                // Simulate processing
+                setTimeout(() => {
+                    let response = "";
+                    if (query.includes("צפון")) {
+                        response = `מבצע בדיקה רוחבית על אתרי הצפון... 🔍\nהרצתי את כלי \`compare_sites\`.\n\n📊 **ממצאים:**\n• **אתר 'גליל עליון':** ירידה של 15% בייצור לעומת אתמול. זוהתה הצללה אפשרית בסטרינג 2.\n• **אתר 'חרמון':** תפוקה תקינה (98% נצילות).\n\nהאם תרצה שאפיק דוח מפורט?`;
+                    } else if (query.includes("תקלות")) {
+                        response = `בדיקת סטטוס מערכת... 🛠️\n\nכרגע יש **2 התראות פעילות**:\n1. 🔴 **קיבוץ דרום:** ממיר מס' 4 מנותק קשר (מעל 3 שעות).\n2. 🟡 **גג מסחרי א':** טמפרטורת ממיר גבוהה (72°C).\n\nשלחתי כבר התראות לצוותי התחזוקה הרלוונטיים בוואטסאפ.`;
+                    } else {
+                        response = "אני מנתח את הנתונים... הכל נראה תקין כרגע. התפוקה היומית הכוללת עומדת על 4.2MWh, שזה 102% מהצפי היומי! 🚀";
+                    }
+
+                    setIsTyping(false);
+                    setMessages(prev => [...prev, { role: 'ai', text: response }]);
+                }, 2000);
+            };
+
+            return (
+                <div className="bg-white rounded-2xl shadow-2xl shadow-slate-200 border border-slate-200 overflow-hidden h-[550px] flex flex-col w-full max-w-md mx-auto relative animate-float">
+                    {/* Header */}
+                    <div className="bg-slate-900 text-white p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-tr from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-white shadow-lg">
+                                <Icons.Bot className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold">Sunlytics AI Agent</h3>
+                                <p className="text-[10px] text-yellow-400 flex items-center gap-1 opacity-90">
+                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                                    מחובר LIVE
+                                </p>
+                            </div>
+                        </div>
+                        <div className="text-[10px] font-mono bg-slate-800 px-2 py-1 rounded text-slate-300 border border-slate-700">Gemini 2.5 Flash</div>
+                    </div>
+
+                    {/* Messages Area */}
+                    <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 scrollbar-hide">
+                        {messages.map((m, i) => (
+                            <div key={i} className={`flex ${m.role === 'user' ? 'justify-start' : 'justify-end'} animate-fade-in`}>
+                                <div className={`max-w-[85%] p-3.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap shadow-sm ${
+                                    m.role === 'user' 
+                                    ? 'bg-white border border-slate-200 text-slate-800 rounded-tr-none' 
+                                    : 'bg-gradient-to-br from-slate-800 to-slate-900 text-white rounded-tl-none'
+                                }`}>
+                                    {m.text}
+                                </div>
+                            </div>
+                        ))}
+                        {isTyping && (
+                            <div className="flex justify-end animate-fade-in">
+                                <div className="bg-slate-800 text-white px-4 py-3 rounded-2xl rounded-tl-none flex gap-1.5 shadow-md">
+                                    <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full typing-dot"></span>
+                                    <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full typing-dot"></span>
+                                    <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full typing-dot"></span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Input Area (Mock) */}
+                    <div className="p-4 bg-white border-t border-slate-100">
+                        <div className="flex gap-2 mb-3 overflow-x-auto pb-2 scrollbar-hide">
+                            <button 
+                                onClick={() => handleUserQuery("האם יש ירידה בייצור באתרי הצפון?")}
+                                className="text-xs bg-slate-100 text-slate-700 px-3 py-2 rounded-full hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200 border border-transparent transition whitespace-nowrap"
+                            >
+                                "האם יש ירידה בייצור בצפון?"
+                            </button>
+                            <button 
+                                onClick={() => handleUserQuery("האם יש תקלות פתוחות כרגע?")}
+                                className="text-xs bg-slate-100 text-slate-700 px-3 py-2 rounded-full hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-200 border border-transparent transition whitespace-nowrap"
+                            >
+                                "האם יש תקלות פתוחות?"
+                            </button>
+                        </div>
+                        <div className="relative">
+                            <input disabled type="text" placeholder="הקלד הודעה ל-AI..." className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 pr-12 text-sm focus:ring-2 focus:ring-yellow-500/50 outline-none transition" />
+                            <button className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center text-white shadow-md hover:bg-yellow-600 transition"><Icons.Send className="w-4 h-4" /></button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // 2. Notification Simulator (Phone)
+        const NotificationSimulator = () => {
+            const [notifications, setNotifications] = useState([
+                { type: 'summary', time: '08:00', text: '📅 סיכום בוקר: כל 45 האתרים התעוררו. צפי ייצור להיום: 12.5MWh ☀️' }
+            ]);
+
+            const triggerAlert = () => {
+                const newAlert = { 
+                    type: 'alert', 
+                    time: new Date().toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'}), 
+                    text: '🚨 התראה דחופה: אתר "מפעל פלסטיק" איבד קשר עם 3 ממירים. צפי אובדן תפוקה משמעותי. לחץ לפרטים.' 
+                };
+                setNotifications(prev => [...prev, newAlert]);
+            };
+
+            return (
+                <div className="flex flex-col items-center gap-8 w-full max-w-md mx-auto">
+                    <div className="relative w-[310px] h-[620px] bg-slate-900 rounded-[3.5rem] border-[10px] border-slate-800 shadow-2xl overflow-hidden ring-4 ring-slate-900/50">
+                        {/* Notch */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-7 bg-black rounded-b-2xl z-20"></div>
+                        
+                        {/* Screen */}
+                        <div className="w-full h-full bg-[#0b141a] pt-14 px-2 overflow-y-auto scrollbar-hide relative font-sans">
+                            {/* Background Pattern */}
+                            <div className="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+
+                            {/* WhatsApp Header */}
+                            <div className="flex items-center gap-3 pb-3 border-b border-slate-800/50 px-2 sticky top-0 bg-[#0b141a]/95 backdrop-blur z-10">
+                                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg border border-white/10 text-lg">S</div>
+                                <div className="text-white">
+                                    <div className="font-semibold text-sm">Sunlytics Alerts ☀️</div>
+                                    <div className="text-[10px] text-slate-400">Business Account • מחובר</div>
+                                </div>
+                            </div>
+
+                            {/* Messages */}
+                            <div className="space-y-3 mt-4 px-1 pb-4">
+                                {notifications.map((n, i) => (
+                                    <div key={i} className={`p-3 rounded-xl rounded-tl-none max-w-[95%] text-white text-xs shadow-md animate-fade-in relative overflow-hidden ${
+                                        n.type === 'alert' ? 'bg-[#3e1919] border-l-4 border-red-500' : 'bg-[#1f2c34]'
+                                    }`}>
+                                        <div className="flex justify-between items-start mb-1.5 relative z-10">
+                                            <span className={`font-bold ${n.type === 'alert' ? 'text-red-400' : 'text-green-400'}`}>
+                                                {n.type === 'alert' ? 'התראה קריטית' : 'עדכון מערכת'}
+                                            </span>
+                                            <span className="text-[10px] text-slate-500 font-mono">{n.time}</span>
+                                        </div>
+                                        <p className="leading-relaxed opacity-90 relative z-10 text-[13px]">{n.text}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Fake Input */}
+                        <div className="absolute bottom-5 left-4 right-4 h-11 bg-[#1f2c34] rounded-full flex items-center px-4 text-slate-500 text-sm shadow-lg border border-slate-700/50">
+                            הקלד תגובה...
+                        </div>
+                    </div>
+
+                    <button 
+                        onClick={triggerAlert}
+                        className="group bg-slate-900 text-white px-8 py-3 rounded-full shadow-xl shadow-slate-900/20 flex items-center gap-3 transition transform active:scale-95 hover:bg-slate-800 border border-slate-700"
+                    >
+                        <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center group-hover:scale-110 transition">
+                            <Icons.Zap className="w-4 h-4 fill-current" />
+                        </div>
+                        <span className="font-medium">שלח התראת דמו לנייד</span>
+                    </button>
+                </div>
+            );
+        };
+
+        // 3. Onboarding Wizard
+        const OnboardingWizard = () => {
+            const [step, setStep] = useState(1);
+            const [isLoading, setIsLoading] = useState(false);
+            const [isSuccess, setIsSuccess] = useState(false);
+            const [provider, setProvider] = useState('solaredge');
+
+            const handleConnect = () => {
+                setIsLoading(true);
+                setTimeout(() => {
+                    setIsLoading(false);
+                    setIsSuccess(true);
+                }, 2500);
+            };
+
+            const logos = {
+                solaredge: (
+                    <img src="https://www.solaredge.com/sites/master/files/SolarEdge_logo_header_new_0.svg" alt="SolarEdge" className="h-7 object-contain" />
+                ),
+                sungrow: (
+                    <div className="flex items-center gap-2">
+                         <span className="font-black text-xl tracking-tighter text-[#ff5b00]">SUNGROW</span>
+                    </div>
+                )
+            };
+
+            if (isSuccess) {
+                return (
+                    <div className="bg-white p-10 rounded-3xl shadow-2xl text-center max-w-md mx-auto border border-green-100 animate-fade-in relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-2 bg-green-500"></div>
+                        <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center text-green-500 mx-auto mb-6 animate-[bounce_1s_infinite]">
+                            <Icons.CheckCircle className="w-12 h-12" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-slate-900 mb-2">האתר חובר בהצלחה!</h3>
+                        <p className="text-slate-500 mb-8">Sunlytics שואב כעת היסטוריה ומנתח ביצועים. הדשבורד יתעדכן תוך דקה.</p>
+                        <div className="bg-slate-900 p-5 rounded-xl text-left text-xs font-mono text-green-400 shadow-inner">
+                            > Initializing Smart Worker... OK<br/>
+                            > Detecting Inverters... Found 12<br/>
+                            > Syncing History... OK<br/>
+                            > AI Status Check... ACTIVE
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="bg-white p-8 rounded-3xl shadow-2xl shadow-slate-200/50 max-w-md mx-auto border border-slate-100 relative overflow-hidden h-[450px] flex flex-col">
+                    <div className="absolute top-0 left-0 w-full h-1.5 bg-slate-100">
+                        <div className="h-full bg-yellow-500 transition-all duration-700 ease-out" style={{ width: step === 1 ? '50%' : '100%' }}></div>
+                    </div>
+
+                    <div className="mb-8 mt-2">
+                        <div className="flex justify-between items-end mb-2">
+                            <h3 className="text-2xl font-extrabold text-slate-900">
+                                {step === 1 ? 'בחר ספק מערכת' : 'חיבור מאובטח'}
+                            </h3>
+                            <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded">שלב {step} / 2</span>
+                        </div>
+                        <p className="text-sm text-slate-500">
+                            {step === 1 ? 'המערכת תזהה את סוג הציוד באופן אוטומטי' : 'חיבור ישיר לשרתי היצרן לקריאת נתונים בלבד'}
+                        </p>
+                    </div>
+
+                    <div className="flex-1">
+                        {step === 1 ? (
+                            <div className="space-y-4">
+                                <div 
+                                    onClick={() => setProvider('solaredge')}
+                                    className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between group ${provider === 'solaredge' ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900/10' : 'border-slate-100 hover:border-slate-300'}`}
+                                >
+                                    {logos.solaredge}
+                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${provider === 'solaredge' ? 'border-slate-900 bg-slate-900' : 'border-slate-300'}`}>
+                                        {provider === 'solaredge' && <div className="w-2.5 h-2.5 bg-white rounded-full"></div>}
+                                    </div>
+                                </div>
+                                <div 
+                                    onClick={() => setProvider('sungrow')}
+                                    className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between group ${provider === 'sungrow' ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900/10' : 'border-slate-100 hover:border-slate-300'}`}
+                                >
+                                    {logos.sungrow}
+                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${provider === 'sungrow' ? 'border-slate-900 bg-slate-900' : 'border-slate-300'}`}>
+                                        {provider === 'sungrow' && <div className="w-2.5 h-2.5 bg-white rounded-full"></div>}
+                                    </div>
+                                </div>
+                                <div className="mt-auto pt-4">
+                                    <button onClick={() => setStep(2)} className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-slate-800 transition shadow-lg transform active:scale-[0.98]">
+                                        המשך לשלב הבא
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="h-full flex flex-col">
+                                {provider === 'solaredge' ? (
+                                    <div className="space-y-5 animate-fade-in">
+                                        <div>
+                                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Site ID</label>
+                                            <input type="text" className="w-full border border-slate-200 rounded-xl p-3.5 focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500 outline-none transition bg-slate-50" placeholder="לדוגמה: 123456" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">API Key</label>
+                                            <div className="relative">
+                                                <input type="password" value="XK92-...." readOnly className="w-full border border-slate-200 rounded-xl p-3.5 bg-slate-100 text-slate-400 font-mono tracking-widest" />
+                                                <Icons.Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                                            </div>
+                                            <p className="text-xs text-slate-400 mt-2 flex items-center gap-1">
+                                                <Icons.Lock className="w-3 h-3" /> הנתונים שלך מוצפנים ומאובטחים
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center h-48 space-y-4 animate-fade-in text-center">
+                                        <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center text-[#ff5b00] border border-orange-100 mb-2">
+                                            <Icons.Zap className="w-8 h-8 fill-current" />
+                                        </div>
+                                        <h4 className="font-bold text-lg">חיבור מהיר באמצעות OAuth2</h4>
+                                        <p className="text-sm text-slate-500 max-w-xs">
+                                            תועבר באופן מאובטח לאתר Sungrow לאישור הגישה. אין צורך בהעתקת מפתחות.
+                                        </p>
+                                    </div>
+                                )}
+
+                                <div className="flex gap-3 mt-auto">
+                                    <button onClick={() => setStep(1)} className="px-6 py-4 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition">חזרה</button>
+                                    <button 
+                                        onClick={handleConnect} 
+                                        disabled={isLoading}
+                                        className={`flex-1 text-white py-4 rounded-xl font-bold transition shadow-lg flex items-center justify-center gap-2 transform active:scale-[0.98] ${
+                                            provider === 'sungrow' ? 'bg-[#ff5b00] hover:bg-[#e04f00]' : 'bg-slate-900 hover:bg-slate-800'
+                                        }`}
+                                    >
+                                        {isLoading ? (
+                                            <>
+                                                <span className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></span>
+                                                מתחבר...
+                                            </>
+                                        ) : (
+                                            <>
+                                                {provider === 'sungrow' ? 'התחבר עם Sungrow' : 'התחל ניטור'}
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // --- MAIN APP ---
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('chat'); // 'chat' | 'alert' | 'connect'
+
+            return (
+                <div className="min-h-screen flex flex-col font-sans">
+                    
+                    {/* Hero Section */}
+                    <header className="bg-white relative overflow-hidden">
+                        {/* Background Gradients */}
+                        <div className="absolute top-0 right-0 -mt-20 -mr-20 w-[600px] h-[600px] bg-yellow-100 rounded-full blur-[100px] opacity-40 animate-pulse-slow"></div>
+                        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-[500px] h-[500px] bg-indigo-50 rounded-full blur-[100px] opacity-60"></div>
+
+                        {/* Navigation Mockup */}
+                        <div className="relative z-20 px-6 py-6 flex justify-between items-center max-w-7xl mx-auto">
+                            <div className="text-2xl font-black tracking-tight flex items-center gap-2">
+                                <span className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center text-white"><Icons.Sun className="w-5 h-5 fill-current" /></span>
+                                Sunlytics
+                            </div>
+                            <a href="https://sunlytics.co.il" className="text-sm font-bold text-slate-600 hover:text-slate-900 transition">כניסה ללקוחות</a>
+                        </div>
+
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-24 relative z-10">
+                            <div className="text-center max-w-4xl mx-auto">
+                                <div className="inline-flex items-center px-4 py-2 rounded-full bg-white shadow-sm border border-slate-100 text-slate-600 text-sm font-medium mb-8 hover:shadow-md transition cursor-default">
+                                    <span className="w-2 h-2 bg-green-500 rounded-full ml-2 animate-pulse"></span>
+                                    תמיכה מלאה ב-Sungrow ו-SolarEdge
+                                </div>
+                                <h1 className="text-5xl md:text-7xl font-black tracking-tight text-slate-900 mb-8 leading-[1.1]">
+                                    ניהול פורטפוליו סולארי<br/>
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-amber-600 relative">
+                                        ללא מגע יד אדם
+                                        <svg className="absolute w-full h-3 -bottom-1 left-0 text-yellow-200/50 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="8" fill="none" /></svg>
+                                    </span>
+                                </h1>
+                                <p className="text-xl md:text-2xl text-slate-500 mb-10 leading-relaxed max-w-2xl mx-auto">
+                                    המערכת היחידה שמשלבת ניטור רציף 24/7, אנליסט AI שמבין עברית, והתראות חכמות ישירות לווצאפ.
+                                </p>
+                                <div className="flex flex-col sm:flex-row justify-center gap-5">
+                                    <button 
+                                        onClick={() => document.getElementById('demo').scrollIntoView({ behavior: 'smooth' })}
+                                        className="px-10 py-4 bg-slate-900 text-white rounded-2xl font-bold text-lg hover:bg-slate-800 transition shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center justify-center gap-3"
+                                    >
+                                        הדגמה חיה
+                                        <Icons.ChevronDown className="w-5 h-5" />
+                                    </button>
+                                    <button className="px-10 py-4 bg-white text-slate-900 border border-slate-200 rounded-2xl font-bold text-lg hover:border-slate-300 hover:bg-slate-50 transition shadow-sm hover:shadow-md">
+                                        צור קשר
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Features Grid */}
+                    <section className="py-24 bg-white border-t border-slate-100">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                                {[
+                                    { icon: Icons.Bot, color: 'text-indigo-600', bg: 'bg-indigo-50', title: 'AI Analyst', desc: 'צ\'אט בוט חכם שמכיר כל פאנל ופאנל בפורטפוליו שלך ומספק תובנות בזמן אמת.' },
+                                    { icon: Icons.Smartphone, color: 'text-green-600', bg: 'bg-green-50', title: 'WhatsApp Alerts', desc: 'התראות מסוננות ומדויקות ישירות לנייד. המערכת מסננת רעשי רקע ושולחת רק מה שחשוב.' },
+                                    { icon: Icons.Zap, color: 'text-yellow-600', bg: 'bg-yellow-50', title: 'Zero Maintenance', desc: 'חיבור אוטומטי ללא חומרה וללא טכנאים. התממשקות ישירה דרך API.' }
+                                ].map((feature, i) => (
+                                    <div key={i} className="group p-8 rounded-[2rem] border border-slate-100 hover:border-transparent hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] transition-all duration-300 bg-white">
+                                        <div className={`w-14 h-14 ${feature.bg} ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                                            <feature.icon className="w-7 h-7" />
+                                        </div>
+                                        <h3 className="text-2xl font-bold text-slate-900 mb-3">{feature.title}</h3>
+                                        <p className="text-slate-500 leading-relaxed">{feature.desc}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Interactive Demo Section */}
+                    <section id="demo" className="py-24 bg-slate-900 text-white relative overflow-hidden">
+                        {/* Background Elements */}
+                        <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(#ffffff33_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                        
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                            <div className="text-center mb-16">
+                                <h2 className="text-3xl md:text-5xl font-black mb-6">החוויה המלאה. <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500">ללא התחייבות.</span></h2>
+                                <p className="text-slate-400 text-xl max-w-2xl mx-auto">בחר רכיב מהתפריט וראה כיצד המערכת עובדת בזמן אמת</p>
+                            </div>
+
+                            {/* Demo Tabs */}
+                            <div className="flex justify-center gap-4 mb-16 flex-wrap">
+                                {[
+                                    { id: 'chat', label: 'AI Chat Analyst', icon: Icons.Bot },
+                                    { id: 'alert', label: 'Smart Alerts', icon: Icons.Smartphone },
+                                    { id: 'connect', label: 'Easy Connect', icon: Icons.Zap }
+                                ].map(tab => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`px-8 py-4 rounded-2xl font-bold text-lg flex items-center gap-3 transition-all transform duration-200 ${
+                                            activeTab === tab.id 
+                                            ? 'bg-white text-slate-900 shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] scale-105 ring-4 ring-white/20' 
+                                            : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:text-white border border-slate-700'
+                                        }`}
+                                    >
+                                        <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'text-yellow-600' : ''}`} />
+                                        {tab.label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Demo Content Area */}
+                            <div className="min-h-[650px] flex items-center justify-center">
+                                <div className="transition-all duration-500 transform w-full">
+                                    {activeTab === 'chat' && (
+                                        <div className="animate-fade-in w-full">
+                                            <ChatSimulator />
+                                            <p className="text-center text-slate-500 mt-8 text-sm font-medium tracking-wide">POWERED BY GOOGLE GEMINI 2.5 FLASH</p>
+                                        </div>
+                                    )}
+                                    {activeTab === 'alert' && (
+                                        <div className="animate-fade-in">
+                                            <NotificationSimulator />
+                                        </div>
+                                    )}
+                                    {activeTab === 'connect' && (
+                                        <div className="animate-fade-in">
+                                            <OnboardingWizard />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Stats / Trust */}
+                    <section className="py-24 bg-gradient-to-br from-yellow-500 to-amber-600 relative overflow-hidden">
+                        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+                        <div className="max-w-7xl mx-auto px-4 text-center relative z-10">
+                            <h2 className="text-3xl font-bold text-white/90 mb-16">מערכת ה-Pro שחוסכת זמן וכסף</h2>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
+                                {[
+                                    { val: '99.9%', label: 'Uptime מובטח' },
+                                    { val: '< 60s', label: 'זמן זיהוי חריגות' },
+                                    { val: '∞', label: 'סקייל אינסופי' },
+                                    { val: '100%', label: 'אוטומטי לחלוטין' }
+                                ].map((stat, i) => (
+                                    <div key={i} className="text-white">
+                                        <div className="text-5xl md:text-6xl font-black mb-3 tracking-tight">{stat.val}</div>
+                                        <div className="font-medium text-white/80 text-lg">{stat.label}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Footer */}
+                    <footer className="bg-slate-950 py-16 text-center text-slate-500 text-sm">
+                        <div className="mb-8 flex justify-center gap-6 opacity-50">
+                            {/* Placeholder for tech logos if needed, currently just icons */}
+                            <Icons.Sun className="w-8 h-8" />
+                        </div>
+                        <p className="font-medium">&copy; 2026 Sunlytics. Built for Solar Professionals.</p>
+                        <p className="mt-2 opacity-60">SolarEdge & Sungrow are trademarks of their respective owners.</p>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
