@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LawFirm CRM - WhatsApp Integration</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Heebo', sans-serif;
+            background-color: #d1d7db;
+            overflow: hidden; /* Prevent body scroll, handle internally */
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Chat Background Pattern */
+        .chat-bg {
+            background-image: url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png");
+            background-repeat: repeat;
+            background-size: 400px;
+            background-color: #efeae2;
+        }
+
+        /* Message Bubbles Tails */
+        .bubble-tail-in::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: -8px;
+            width: 0;
+            height: 0;
+            border: 8px solid transparent;
+            border-top-color: #ffffff;
+            border-right: 0;
+            margin-top: -0px; 
+            margin-right: -2px;
+        }
+
+        .bubble-tail-out::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -8px;
+            width: 0;
+            height: 0;
+            border: 8px solid transparent;
+            border-top-color: #d9fdd3;
+            border-left: 0;
+            margin-top: -0px;
+            margin-left: -2px;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .msg-anim {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 768px) {
+            .desktop-only { display: none !important; }
+            .mobile-full { width: 100% !important; height: 100% !important; }
+            .sidebar-mobile-hidden.active-chat { display: none; }
+            .chat-mobile-hidden:not(.active-chat) { display: none; }
+            .chat-mobile-visible.active-chat { display: flex !important; }
+            body { background-color: #fff; } /* White bg on mobile */
+            .app-container { height: 100vh; width: 100vw; box-shadow: none; max-width: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main App Container -->
+    <div class="h-screen w-full flex justify-center items-center">
+        <div class="app-container bg-white w-full max-w-[1600px] h-[100vh] md:h-[95vh] flex overflow-hidden shadow-xl relative">
+            
+            <!-- LEFT SIDEBAR (Chat List) -->
+            <div id="sidebar" class="w-full md:w-[30%] lg:w-[400px] flex flex-col border-l border-gray-200 h-full bg-white z-20">
+                
+                <!-- Header -->
+                <div class="bg-[#f0f2f5] px-4 py-3 flex justify-between items-center h-[60px] shrink-0 border-r border-gray-300">
+                    <div class="flex items-center gap-3">
+                         <div class="w-10 h-10 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center cursor-pointer relative group">
+                            <i data-lucide="briefcase" class="text-slate-600"></i>
+                            <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#f0f2f5]"></div>
+                         </div>
+                         <div class="leading-tight">
+                             <span class="font-bold text-gray-800 text-sm block">משרד עורכי דין</span>
+                             <span class="text-[10px] text-green-600 font-bold">מחובר ל-WhatsApp API</span>
+                         </div>
+                    </div>
+                    <div class="flex gap-5 text-[#54656f]">
+                        <button title="סטטוס" class="hover:bg-black/10 p-1.5 rounded-full transition"><i data-lucide="circle-dashed" class="w-5 h-5"></i></button>
+                        <button title="צ'אט חדש" class="hover:bg-black/10 p-1.5 rounded-full transition"><i data-lucide="message-square-plus" class="w-5 h-5"></i></button>
+                        <button title="תפריט" class="hover:bg-black/10 p-1.5 rounded-full transition"><i data-lucide="more-vertical" class="w-5 h-5"></i></button>
+                    </div>
+                </div>
+
+                <!-- Search & Filters -->
+                <div class="px-3 py-2 border-b border-gray-100 bg-white">
+                    <div class="bg-[#f0f2f5] rounded-lg flex items-center px-3 h-[35px]">
+                        <i data-lucide="search" class="w-4 h-4 text-[#54656f] ml-3 cursor-pointer"></i>
+                        <input type="text" id="searchInput" placeholder="חיפוש או התחלת צ'אט חדש" class="bg-transparent border-none outline-none text-sm w-full text-[#3b4a54] placeholder:text-[#54656f]">
+                    </div>
+                    <div class="flex gap-2 mt-2 overflow-x-auto no-scrollbar pb-1">
+                        <button class="bg-[#e7fce3] text-[#008069] text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap border border-transparent hover:border-[#008069] transition">הכל</button>
+                        <button class="bg-[#f0f2f5] text-[#54656f] text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap hover:bg-[#e9edef] transition">לא נקראו</button>
+                        <button class="bg-[#f0f2f5] text-[#54656f] text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap hover:bg-[#e9edef] transition">חוזים</button>
+                        <button class="bg-[#f0f2f5] text-[#54656f] text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap hover:bg-[#e9edef] transition">נזיקין</button>
+                    </div>
+                </div>
+
+                <!-- Chat List Container -->
+                <div id="chatList" class="flex-1 overflow-y-auto bg-white">
+                    <!-- Chat items will be injected here via JS -->
+                </div>
+            </div>
+
+            <!-- RIGHT MAIN (Chat Window) -->
+            <div id="chatWindow" class="hidden md:flex flex-col flex-1 bg-[#efeae2] relative h-full">
+                
+                <!-- EMPTY STATE (No chat selected) -->
+                <div id="emptyState" class="absolute inset-0 z-10 bg-[#f0f2f5] flex flex-col items-center justify-center text-center border-b-[6px] border-[#25d366] hidden">
+                    <div class="max-w-[500px] px-10">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/479px-WhatsApp.svg.png" alt="WhatsApp" class="w-24 h-24 mx-auto mb-8 opacity-40 grayscale">
+                        <h2 class="text-[#41525d] text-3xl font-light mb-4">WhatsApp CRM למשרדי עורכי דין</h2>
+                        <p class="text-[#667781] text-sm leading-6">
+                            שלח וקבל הודעות מבלי לשמור את הטלפון מחובר.<br>
+                            כל השיחות מתועדות ב-CRM באופן אוטומטי ומאובטח.<br>
+                            השתמש ב-WhatsApp במכשירים מרובים בו זמנית.
+                        </p>
+                        <div class="mt-8 flex items-center justify-center gap-2 text-[#8696a0] text-xs">
+                            <i data-lucide="lock" class="w-3 h-3"></i>
+                            מוגן בהצפנה מקצה לקצה
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Chat Header -->
+                <div id="activeChatHeader" class="bg-[#f0f2f5] px-4 py-2.5 flex justify-between items-center h-[60px] shadow-sm z-20 shrink-0 hidden">
+                    <div class="flex items-center gap-3 cursor-pointer">
+                        <!-- Back Button (Mobile) -->
+                        <button id="backBtn" class="md:hidden text-[#54656f] p-1">
+                            <i data-lucide="arrow-right" class="w-6 h-6"></i>
+                        </button>
+                        
+                        <div id="headerAvatar" class="w-10 h-10 rounded-full bg-teal-500 text-white flex items-center justify-center font-bold text-lg">?</div>
+                        <div class="flex flex-col">
+                            <span id="headerName" class="font-bold text-[#111b21] text-base leading-tight">שם הלקוח</span>
+                            <span id="headerInfo" class="text-xs text-[#54656f] truncate max-w-[200px]">פרטי תיק</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 text-[#54656f]">
+                        <!-- Developer Controls (Simulation) -->
+                        <div class="hidden lg:flex items-center gap-2 mr-4 bg-white px-2 py-1 rounded border shadow-sm">
+                            <span class="text-[10px] font-bold text-red-500 uppercase">מצב מפתח:</span>
+                            <select id="agentSelect" class="text-xs border-none outline-none bg-transparent font-bold">
+                                <option value="דניאל">עו"ד דניאל</option>
+                                <option value="רונית">עו"ד רונית</option>
+                                <option value="מזכירות">מזכירות</option>
+                            </select>
+                            <div class="h-3 w-[1px] bg-gray-300 mx-1"></div>
+                            <button onclick="simulateTimeJump()" class="hover:text-red-600 transition" title="הקפץ 24 שעות"><i data-lucide="clock" class="w-4 h-4"></i></button>
+                            <button onclick="simulateIncoming()" class="hover:text-green-600 transition" title="הודעה נכנסת"><i data-lucide="user-plus" class="w-4 h-4"></i></button>
+                        </div>
+                        
+                        <i data-lucide="search" class="w-5 h-5 cursor-pointer hidden md:block"></i>
+                        <i data-lucide="paperclip" class="w-5 h-5 cursor-pointer transform -rotate-45" onclick="triggerFileUpload()"></i>
+                        <i data-lucide="more-vertical" class="w-5 h-5 cursor-pointer"></i>
+                    </div>
+                </div>
+
+                <!-- Chat Messages Area -->
+                <div id="messagesArea" class="flex-1 overflow-y-auto p-4 md:px-[5%] lg:px-[8%] chat-bg relative hidden">
+                    <!-- Encryption Notice -->
+                    <div class="flex justify-center mb-6 mt-2 select-none">
+                        <div class="bg-[#ffeecd] text-[#54656f] text-[11.5px] px-3 py-1.5 rounded-lg shadow-sm text-center max-w-[90%] md:max-w-[60%] leading-relaxed">
+                            <span class="flex items-center justify-center gap-1.5 mb-1 font-bold text-[#f59f00]">
+                                <i data-lucide="lock" class="w-3 h-3"></i> ההודעות בשיחה זו מאובטחות
+                            </span>
+                            כל ההודעות והקבצים מתועדים באופן אוטומטי במערכת ה-CRM של המשרד לצרכי תיעוד ובקרה.
+                        </div>
+                    </div>
+                    
+                    <!-- Dynamic Messages will be here -->
+                </div>
+
+                <!-- Input / Footer Area -->
+                <div id="inputArea" class="bg-[#f0f2f5] px-4 py-2 shrink-0 z-20 hidden">
+                    
+                    <!-- 24H Warning Banner (Hidden by default) -->
+                    <div id="expiredBanner" class="hidden mb-2 bg-[#fff5f5] border border-red-100 p-3 rounded-lg flex flex-col items-center justify-center text-center animate-pulse">
+                        <div class="flex items-center gap-2 text-red-600 text-sm font-bold mb-1">
+                            <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                            חלון השיחה (24 שעות) נסגר
+                        </div>
+                        <p class="text-xs text-gray-600 mb-2">לא ניתן לשלוח הודעות חופשיות. יש לשלוח תבנית מאושרת.</p>
+                        <button onclick="openTemplates()" class="bg-[#008069] hover:bg-[#006e5a] text-white text-sm px-4 py-1.5 rounded-full shadow transition flex items-center gap-2">
+                            <i data-lucide="file-text" class="w-4 h-4"></i> בחר תבנית לפתיחת שיחה
+                        </button>
+                    </div>
+
+                    <!-- Normal Input -->
+                    <div id="normalInput" class="flex items-end gap-3 pb-1">
+                        <i data-lucide="smile" class="w-6 h-6 text-[#54656f] mb-2 cursor-pointer hover:text-gray-600 hidden md:block"></i>
+                        <i data-lucide="plus" class="w-6 h-6 text-[#54656f] mb-2 cursor-pointer hover:text-gray-600 md:hidden"></i>
+                        
+                        <div class="flex-1 bg-white rounded-lg min-h-[42px] flex items-center px-4 py-2 shadow-sm border border-transparent focus-within:border-white">
+                            <input type="text" id="msgInput" class="w-full bg-transparent border-none outline-none text-[#111b21] text-[15px] placeholder:text-[#54656f]" placeholder="הקלד/י הודעה" dir="auto" autocomplete="off">
+                        </div>
+                        
+                        <button onclick="sendMessage()" id="sendBtn" class="mb-1 text-[#54656f] transition transform active:scale-90">
+                            <i data-lucide="mic" id="micIcon" class="w-6 h-6"></i>
+                            <i data-lucide="send" id="sendIcon" class="w-6 h-6 text-[#008069] hidden"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Templates Modal (Overlay) -->
+                <div id="templatesModal" class="absolute bottom-0 left-0 right-0 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.1)] rounded-t-xl transform translate-y-full transition-transform duration-300 z-30 flex flex-col max-h-[60%]">
+                    <div class="flex justify-between items-center p-3 border-b bg-gray-50 rounded-t-xl">
+                        <span class="font-bold text-gray-700 flex items-center gap-2"><i data-lucide="file-check" class="w-4 h-4"></i> תבניות מאושרות (HSM)</span>
+                        <button onclick="closeTemplates()" class="p-1 hover:bg-gray-200 rounded-full"><i data-lucide="x" class="w-5 h-5 text-gray-500"></i></button>
+                    </div>
+                    <div class="overflow-y-auto p-2" id="templatesList">
+                        <!-- Templates injected via JS -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden File Input -->
+    <input type="file" id="fileInput" class="hidden" onchange="handleFileUpload(this)">
+
+    <script>
+        // --- DATA & STATE ---
+        const currentUser = { name: 'עו"ד דניאל' }; // Default
+        
+        const templates = [
+            { id: 1, title: 'עדכון סטטוס תיק', body: 'שלום {{name}}, ישנו עדכון חדש בתיק מספר {{case}}. נשמח אם תגיב להודעה זו כדי שנוכל לשלוח פרטים.' },
+            { id: 2, title: 'בקשת מסמכים', body: 'היי {{name}}, כדי להתקדם בטיפול אנו זקוקים למסמכים נוספים. אנא אשר קבלת הודעה זו.' },
+            { id: 3, title: 'תיאום פגישה', body: 'שלום {{name}}, עורך הדין מעוניין לתאם שיחה קצרה. מתי נוח לך?' },
+            { id: 4, title: 'שליחת חשבונית', body: 'מצורפת חשבונית מס קבלה עבור שכר הטרחה. בברכה, משרד עו"ד.' }
+        ];
+
+        let chats = [
+            {
+                id: 1,
+                name: "ישראל ישראלי",
+                avatarColor: "bg-teal-600",
+                caseInfo: "נזיקין 404/23",
+                lastMsgTime: new Date().getTime() - 1000 * 60 * 5, // 5 mins ago
+                unread: 2,
+                messages: [
+                    { id: 1, type: 'in', text: "היי, מתי הדיון הבא?", time: Date.now() - 3600000 },
+                    { id: 2, type: 'in', text: "האם צריך להביא משהו?", time: Date.now() - 300000 }
+                ]
+            },
+            {
+                id: 2,
+                name: "חברת בניה בע\"מ",
+                avatarColor: "bg-indigo-500",
+                caseInfo: "חוזה מסחרי 99",
+                lastMsgTime: new Date().getTime() - 1000 * 60 * 60 * 25, // 25 hours ago (Expired)
+                unread: 0,
+                messages: [
+                    { id: 1, type: 'in', text: "העברנו את הטיוטה הסופית במייל.", time: Date.now() - 90000000 },
+                    { id: 2, type: 'out', text: "תודה, קיבלנו. נעבור על זה עד מחר.", time: Date.now() - 88000000, status: 'read', agent: 'עו"ד רונית' }
+                ]
+            },
+            {
+                id: 3,
+                name: "דנה אינטרנשיונל",
+                avatarColor: "bg-pink-500",
+                caseInfo: "זכויות יוצרים",
+                lastMsgTime: new Date().getTime() - 1000 * 60 * 60 * 2, 
+                unread: 0,
+                messages: [
+                    { id: 1, type: 'out', text: "האם יש חדש עם השיר?", time: Date.now() - 7200000, status: 'delivered', agent: 'מזכירות' }
+                ]
+            },
+            {
+                id: 4,
+                name: "רון כהן (נדל\"ן)",
+                avatarColor: "bg-blue-500",
+                caseInfo: "רכישת דירה",
+                lastMsgTime: new Date().getTime() - 1000 * 60 * 60 * 48,
+                unread: 0,
+                messages: [
+                    { id: 1, type: 'in', text: "תודה רבה!", time: Date.now() - 172800000 }
+                ]
+            }
+        ];
+
+        let activeChatId = null;
+        let timeOffset = 0; // To simulate time passing
+
+        // --- DOM ELEMENTS ---
+        const chatListEl = document.getElementById('chatList');
+        const emptyStateEl = document.getElementById('emptyState');
+        const activeChatHeaderEl = document.getElementById('activeChatHeader');
+        const messagesAreaEl = document.getElementById('messagesArea');
+        const inputAreaEl = document.getElementById('inputArea');
+        const msgInput = document.getElementById('msgInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const micIcon = document.getElementById('micIcon');
+        const sendIcon = document.getElementById('sendIcon');
+        const expiredBanner = document.getElementById('expiredBanner');
+        const normalInput = document.getElementById('normalInput');
+        const sidebarEl = document.getElementById('sidebar');
+        const chatWindowEl = document.getElementById('chatWindow');
+        const searchInput = document.getElementById('searchInput');
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderChatList();
+            
+            // Check screen size
+            if(window.innerWidth >= 768) {
+                emptyStateEl.classList.remove('hidden');
+            }
+
+            // Input Listeners
+            msgInput.addEventListener('input', toggleSendIcon);
+            msgInput.addEventListener('keydown', (e) => {
+                if(e.key === 'Enter') sendMessage();
+            });
+
+            // Search Listener
+            searchInput.addEventListener('input', (e) => {
+                renderChatList(e.target.value);
+            });
+
+            // Back Button (Mobile)
+            document.getElementById('backBtn').addEventListener('click', () => {
+                activeChatId = null;
+                updateViewMode();
+            });
+            
+            // Agent Select Listener
+            document.getElementById('agentSelect').addEventListener('change', (e) => {
+                currentUser.name = "עו\"ד " + e.target.value;
+                if(e.target.value === 'מזכירות') currentUser.name = 'מזכירות';
+            });
+        });
+
+        // --- CORE LOGIC ---
+
+        function renderChatList(filter = '') {
+            chatListEl.innerHTML = '';
+            
+            const filteredChats = chats
+                .filter(c => c.name.includes(filter) || c.caseInfo.includes(filter))
+                .sort((a, b) => b.lastMsgTime - a.lastMsgTime);
+
+            filteredChats.forEach(chat => {
+                const isActive = chat.id === activeChatId;
+                const lastMsg = chat.messages[chat.messages.length - 1];
+                const timeStr = formatTimeShort(chat.lastMsgTime);
+                
+                const div = document.createElement('div');
+                div.className = `flex items-center p-3 cursor-pointer hover:bg-[#f5f6f6] border-b border-gray-100 relative group transition ${isActive ? 'bg-[#f0f2f5]' : 'bg-white'}`;
+                div.onclick = () => selectChat(chat.id);
+                
+                div.innerHTML = `
+                    <div class="w-12 h-12 rounded-full ${chat.avatarColor} text-white flex items-center justify-center text-lg font-medium shrink-0 ml-3">
+                        ${chat.name.charAt(0)}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-baseline mb-1">
+                            <h3 class="text-[#111b21] text-[16px] font-normal truncate">${chat.name}</h3>
+                            <span class="text-xs ${chat.unread > 0 ? 'text-[#25d366] font-bold' : 'text-[#667781]'}">${timeStr}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <p class="text-sm text-[#667781] truncate flex items-center gap-1 w-[85%]">
+                                ${lastMsg.type === 'out' ? getStatusIcon(lastMsg.status) : ''}
+                                ${lastMsg.text}
+                            </p>
+                            ${chat.unread > 0 ? `<span class="bg-[#25d366] text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full shadow-sm">${chat.unread}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+                chatListEl.appendChild(div);
+            });
+        }
+
+        function selectChat(id) {
+            activeChatId = id;
+            timeOffset = 0; // Reset simulation time on switch
+            
+            // Mark as read
+            const chat = chats.find(c => c.id === id);
+            if(chat) chat.unread = 0;
+
+            renderChatList(searchInput.value);
+            renderChatWindow();
+            updateViewMode();
+        }
+
+        function updateViewMode() {
+            const isMobile = window.innerWidth < 768;
+            
+            if (isMobile) {
+                if (activeChatId) {
+                    sidebarEl.classList.add('hidden');
+                    chatWindowEl.classList.remove('hidden');
+                    chatWindowEl.classList.add('flex');
+                } else {
+                    sidebarEl.classList.remove('hidden');
+                    chatWindowEl.classList.add('hidden');
+                    chatWindowEl.classList.remove('flex');
+                }
+            } else {
+                sidebarEl.classList.remove('hidden');
+                chatWindowEl.classList.remove('hidden'); // Always show on desktop
+            }
+        }
+
+        function renderChatWindow() {
+            const chat = chats.find(c => c.id === activeChatId);
+            if (!chat) return;
+
+            // UI Toggles
+            emptyStateEl.classList.add('hidden');
+            activeChatHeaderEl.classList.remove('hidden');
+            activeChatHeaderEl.classList.add('flex');
+            messagesAreaEl.classList.remove('hidden');
+            inputAreaEl.classList.remove('hidden');
+
+            // Header Info
+            document.getElementById('headerAvatar').className = `w-10 h-10 rounded-full ${chat.avatarColor} text-white flex items-center justify-center font-bold text-lg`;
+            document.getElementById('headerAvatar').innerText = chat.name.charAt(0);
+            document.getElementById('headerName').innerText = chat.name;
+            document.getElementById('headerInfo').innerText = chat.caseInfo;
+
+            // Render Messages
+            messagesAreaEl.innerHTML = ''; 
+            
+            // Encryption Notice (Re-insert)
+            const encDiv = document.createElement('div');
+            encDiv.className = "flex justify-center mb-6 mt-2 select-none";
+            encDiv.innerHTML = `<div class="bg-[#ffeecd] text-[#54656f] text-[11.5px] px-3 py-1.5 rounded-lg shadow-sm text-center max-w-[90%] md:max-w-[60%] leading-relaxed"><span class="flex items-center justify-center gap-1.5 mb-1 font-bold text-[#f59f00]"><i data-lucide="lock" class="w-3 h-3"></i> ההודעות בשיחה זו מאובטחות</span>כל ההודעות והקבצים מתועדים באופן אוטומטי במערכת ה-CRM.</div>`;
+            messagesAreaEl.appendChild(encDiv);
+
+            chat.messages.forEach(msg => {
+                appendMessageToDOM(msg);
+            });
+
+            check24HourWindow();
+            scrollToBottom();
+            lucide.createIcons();
+        }
+
+        function appendMessageToDOM(msg) {
+            const isOut = msg.type === 'out';
+            const div = document.createElement('div');
+            div.className = `flex mb-2 msg-anim ${isOut ? 'justify-start' : 'justify-end'}`;
+            
+            const time = new Date(msg.time).toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'});
+            
+            let content = msg.text;
+            if(msg.isFile) {
+                content = `
+                    <div class="flex items-center gap-3 bg-black/5 p-2 rounded mb-1">
+                        <div class="bg-red-500 text-white p-2 rounded"><i data-lucide="file-text" class="w-6 h-6"></i></div>
+                        <span class="text-sm truncate font-medium">${msg.fileName || 'מסמך.pdf'}</span>
+                    </div>
+                    <span class="text-xs text-gray-500">${msg.text}</span>
+                `;
+            }
+
+            div.innerHTML = `
+                <div class="relative max-w-[85%] md:max-w-[65%] rounded-lg px-2 py-1.5 shadow-sm text-sm ${isOut ? 'bg-white rounded-tr-none bubble-tail-in' : 'bg-[#d9fdd3] rounded-tl-none bubble-tail-out'}">
+                    ${isOut && msg.agent ? `<span class="text-[11px] font-bold text-[#e542a3] block mb-0.5">${msg.agent}</span>` : ''}
+                    ${msg.isTemplate ? `<span class="text-[10px] text-gray-400 font-bold uppercase block mb-1 tracking-widest">הודעת תבנית</span>` : ''}
+                    
+                    <div class="text-[#111b21] text-[14.2px] leading-[19px] whitespace-pre-wrap pb-2 pl-6">${content}</div>
+                    
+                    <div class="absolute bottom-1 left-2 flex items-center gap-1">
+                         <span class="text-[11px] text-[#667781]">${time}</span>
+                         ${!isOut ? `<span class="text-[#53bdeb]"><i data-lucide="check-check" class="w-3.5 h-3.5"></i></span>` : ''}
+                    </div>
+                </div>
+            `;
+            messagesAreaEl.appendChild(div);
+            lucide.createIcons();
+        }
+
+        // --- 24H WINDOW LOGIC ---
+        function check24HourWindow() {
+            const chat = chats.find(c => c.id === activeChatId);
+            if(!chat) return;
+
+            // Find last INCOMING message
+            const lastIn = [...chat.messages].reverse().find(m => m.type === 'in');
+            
+            let isExpired = false;
+            if (lastIn) {
+                const now = Date.now() + timeOffset;
+                const hoursDiff = (now - lastIn.time) / (1000 * 60 * 60);
+                if (hoursDiff >= 24) isExpired = true;
+            } else {
+                // If we never received a message, it's technically always expired unless we just started
+                isExpired = true; 
+            }
+
+            if (isExpired) {
+                normalInput.classList.add('hidden');
+                expiredBanner.classList.remove('hidden');
+            } else {
+                normalInput.classList.remove('hidden');
+                expiredBanner.classList.add('hidden');
+            }
+        }
+
+        function simulateTimeJump() {
+            timeOffset += 1000 * 60 * 60 * 25; // Add 25 hours
+            check24HourWindow();
+            alert("סומלצה קפיצה של 25 שעות. בדוק את שורת הקלט.");
+        }
+
+        function simulateIncoming() {
+            if(!activeChatId) return;
+            const chat = chats.find(c => c.id === activeChatId);
+            const msgs = ["תודה רבה!", "קיבלתי, אעבור על זה.", "מתי אפשר להתקשר?", "שלחתי את המסמכים במייל."];
+            const randomMsg = msgs[Math.floor(Math.random() * msgs.length)];
+            
+            const newMsg = {
+                id: Date.now(),
+                type: 'in',
+                text: randomMsg,
+                time: Date.now() + timeOffset
+            };
+
+            chat.messages.push(newMsg);
+            chat.lastMsgTime = newMsg.time;
+            timeOffset = 0; // Reset offset on interaction
+            
+            appendMessageToDOM(newMsg);
+            scrollToBottom();
+            check24HourWindow(); // Re-open window
+            renderChatList(); // Update list preview
+        }
+
+        // --- ACTIONS ---
+
+        function toggleSendIcon() {
+            if(msgInput.value.trim().length > 0) {
+                micIcon.classList.add('hidden');
+                sendIcon.classList.remove('hidden');
+            } else {
+                micIcon.classList.remove('hidden');
+                sendIcon.classList.add('hidden');
+            }
+        }
+
+        function sendMessage() {
+            const text = msgInput.value.trim();
+            if(!text) return;
+
+            const newMsg = {
+                id: Date.now(),
+                type: 'out',
+                text: text,
+                time: Date.now() + timeOffset,
+                status: 'sent',
+                agent: document.getElementById('agentSelect').value // Get current selected agent
+            };
+
+            addMessageToChat(newMsg);
+            msgInput.value = '';
+            toggleSendIcon();
+        }
+
+        function addMessageToChat(msg) {
+            const chat = chats.find(c => c.id === activeChatId);
+            chat.messages.push(msg);
+            chat.lastMsgTime = msg.time;
+            
+            appendMessageToDOM(msg);
+            scrollToBottom();
+            renderChatList();
+        }
+
+        function scrollToBottom() {
+            messagesAreaEl.scrollTop = messagesAreaEl.scrollHeight;
+        }
+
+        // --- TEMPLATES ---
+        function openTemplates() {
+            const list = document.getElementById('templatesList');
+            list.innerHTML = '';
+            const chat = chats.find(c => c.id === activeChatId);
+
+            templates.forEach(t => {
+                const compiledBody = t.body.replace('{{name}}', chat.name).replace('{{case}}', chat.caseInfo);
+                const el = document.createElement('div');
+                el.className = "p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer active:bg-blue-50 transition";
+                el.onclick = () => sendTemplate(compiledBody);
+                el.innerHTML = `
+                    <div class="font-bold text-sm text-[#111b21] mb-1">${t.title}</div>
+                    <div class="text-xs text-gray-500">${compiledBody}</div>
+                `;
+                list.appendChild(el);
+            });
+
+            document.getElementById('templatesModal').classList.remove('translate-y-full');
+        }
+
+        function closeTemplates() {
+            document.getElementById('templatesModal').classList.add('translate-y-full');
+        }
+
+        function sendTemplate(text) {
+            closeTemplates();
+            const newMsg = {
+                id: Date.now(),
+                type: 'out',
+                text: text,
+                time: Date.now() + timeOffset,
+                status: 'sent',
+                agent: document.getElementById('agentSelect').value,
+                isTemplate: true
+            };
+            addMessageToChat(newMsg);
+            // Sending a template does NOT open the window immediately, customer must reply.
+            // So we don't call check24HourWindow() here to change state.
+        }
+
+        // --- FILE UPLOAD SIMULATION ---
+        function triggerFileUpload() {
+            document.getElementById('fileInput').click();
+        }
+
+        function handleFileUpload(input) {
+            if(input.files && input.files[0]) {
+                const file = input.files[0];
+                const newMsg = {
+                    id: Date.now(),
+                    type: 'out',
+                    text: 'המסמך נשמר בתיק הלקוח ב-CRM',
+                    isFile: true,
+                    fileName: file.name,
+                    time: Date.now() + timeOffset,
+                    status: 'sent',
+                    agent: document.getElementById('agentSelect').value
+                };
+                addMessageToChat(newMsg);
+            }
+        }
+
+        // --- HELPERS ---
+        function formatTimeShort(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'});
+        }
+
+        function getStatusIcon(status) {
+            // Simple SVG strings for status
+            if(status === 'read') return `<span class="text-[#53bdeb] mx-1"><i data-lucide="check-check" class="w-3.5 h-3.5 inline"></i></span>`;
+            return `<span class="text-gray-400 mx-1"><i data-lucide="check" class="w-3.5 h-3.5 inline"></i></span>`;
+        }
+
+        // Resize Listener
+        window.addEventListener('resize', updateViewMode);
+
+    </script>
+</body>
+</html>
