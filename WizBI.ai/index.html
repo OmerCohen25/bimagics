@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WIZBI.AI | העובד הדיגיטלי המושלם לעסק</title>
+    <meta name="description" content="AI Agent OS לעסקים. עובד דיגיטלי 24/7 שמנהל את העסק, בונה אתרים, עונה ללקוחות ומחבר בין כל המערכות.">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Heebo', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        wizbi: {
+                            black: '#050505',
+                            dark: '#0f1115',
+                            card: '#181b21',
+                            primary: '#3b82f6', // Blue
+                            secondary: '#8b5cf6', // Purple
+                            whatsapp: '#00a884', // WhatsApp Green
+                            terminal: '#0c0c0c',
+                        }
+                    },
+                    animation: {
+                        'scroll': 'scroll 40s linear infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-glow': 'pulse-glow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+                    },
+                    keyframes: {
+                        scroll: {
+                            '0%': { transform: 'translateX(0)' },
+                            '100%': { transform: 'translateX(calc(-250px * 10))' }, 
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        'pulse-glow': {
+                            '0%, 100%': { opacity: 1, boxShadow: '0 0 20px rgba(59, 130, 246, 0.2)' },
+                            '50%': { opacity: .8, boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: 0, transform: 'translateY(20px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #050505;
+            color: #e5e7eb;
+            overflow-x: hidden;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f1115; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-glow {
+            position: absolute;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, rgba(0,0,0,0) 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* WhatsApp Simulation Styles */
+        .wa-bg {
+            background-image: url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d936a207d7.png");
+            background-repeat: repeat;
+            background-color: #0b141a;
+            opacity: 0.95;
+        }
+
+        .wa-bubble {
+            position: relative;
+            max-width: 85%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.4;
+            box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+            margin-bottom: 8px;
+            animation: popIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .msg-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .msg-row {
+            display: flex;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .msg-mine { justify-content: flex-start; } /* Hebrew RTL */
+        .msg-theirs { justify-content: flex-end; } /* Hebrew RTL */
+
+        .bubble-mine {
+            background-color: #005c4b;
+            color: white;
+            border-radius: 8px 0 8px 8px;
+        }
+
+        .bubble-theirs {
+            background-color: #202c33;
+            color: white;
+            border-radius: 0 8px 8px 8px;
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.9) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Ticker Animation */
+        .logo-ticker-track {
+            display: flex;
+            gap: 5rem;
+            width: max-content;
+            animation: scroll 50s linear infinite;
+        }
+        
+        .logo-ticker-track:hover { animation-play-state: paused; }
+
+        /* Terminal Styling */
+        .scan-line {
+            width: 100%;
+            height: 100px;
+            z-index: 10;
+            background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(59, 130, 246, 0.1) 50%, rgba(0,0,0,0) 100%);
+            opacity: 0.1;
+            background-size: 100% 4px;
+            position: absolute;
+            bottom: 100%;
+            animation: scanline 10s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes scanline {
+            0% { bottom: 100%; }
+            100% { bottom: -100px; }
+        }
+
+        .glass-panel {
+            background: rgba(24, 27, 33, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .feature-tag {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+            display: inline-block;
+        }
+
+        /* Responsive utilities */
+        @media (max-width: 768px) {
+            .hero-glow { width: 100%; height: 400px; }
+        }
+    </style>
+</head>
+<body class="font-sans antialiased">
+
+    <!-- Header -->
+    <header class="fixed top-0 w-full z-50 glass-panel">
+        <div class="container mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="relative w-8 h-8 flex items-center justify-center">
+                    <div class="absolute inset-0 bg-blue-500 rounded blur opacity-50 animate-pulse"></div>
+                    <div class="relative w-full h-full bg-gradient-to-tr from-blue-600 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold font-mono">W</div>
+                </div>
+                <span class="font-bold text-lg tracking-wide">WIZBI<span class="text-blue-500">.AI</span></span>
+            </div>
+
+            <nav class="hidden md:flex gap-8 text-sm font-medium text-gray-400">
+                <a href="#demo" class="hover:text-white transition-colors">איך זה עובד?</a>
+                <a href="#features" class="hover:text-white transition-colors">מה אני עושה?</a>
+                <a href="#integrations" class="hover:text-white transition-colors">אינטגרציות</a>
+                <a href="#deploy" class="hover:text-white transition-colors">התקנה</a>
+            </nav>
+
+            <div class="flex items-center gap-4">
+                <a href="#" class="hidden md:block text-gray-400 hover:text-white text-sm">התחבר</a>
+                <button onclick="scrollToDeploy()" class="bg-white text-black px-5 py-2 rounded-full text-sm font-bold hover:bg-gray-200 transition shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                    נסה עכשיו
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative pt-28 pb-16 md:pt-40 md:pb-24 overflow-hidden min-h-screen flex flex-col justify-center">
+        <div class="hero-glow"></div>
+        
+        <div class="container mx-auto px-6 relative z-10 grid lg:grid-cols-12 gap-12 items-center">
+            
+            <!-- Left Column: Copy (In RTL layout this is Right) -->
+            <div class="lg:col-span-5 text-center lg:text-right order-1 lg:order-1 animate-fade-in-up">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 text-xs font-mono mb-6">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    זמין לעבודה מיידית
+                </div>
+                
+                <h1 class="text-4xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 tracking-tight">
+                    העובד המושלם
+                    <br>
+                    <span class="gradient-text">לעסק שלך.</span>
+                </h1>
+                
+                <p class="text-lg md:text-xl text-gray-400 mb-8 leading-relaxed">
+                    מזכירה, מפתח ומנהל תפעול במוצר אחד.<br>
+                    הוא זוכר כל פרט בעסק, עובד 24/7, מתחבר למייל וליומן, ופועל אוטונומית כדי לקדם את המטרות שלך.
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
+                    <button onclick="scrollToDeploy()" class="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-xl font-bold flex items-center justify-center gap-3 transition-all transform hover:scale-105 shadow-lg shadow-blue-900/50">
+                        <i class="fab fa-whatsapp"></i>
+                        דבר איתו בווצאפ
+                    </button>
+                    <button onclick="scrollToDeploy()" class="px-8 py-4 bg-[#1a1d24] border border-white/10 hover:border-white/30 text-gray-300 rounded-xl font-medium text-sm flex items-center justify-center gap-3 transition-all">
+                        ראה יכולות מלאות
+                        <i class="fas fa-arrow-down"></i>
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 md:gap-6 text-sm text-gray-500 font-medium">
+                    <span class="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-lg"><i class="fas fa-brain text-purple-500"></i> זוכר הכל</span>
+                    <span class="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-lg"><i class="fas fa-plug text-green-500"></i> מתחבר להכל</span>
+                    <span class="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-lg"><i class="fas fa-shield-alt text-blue-500"></i> מידע פרטי</span>
+                </div>
+            </div>
+
+            <!-- Right Column: Demo (In RTL layout this is Left) -->
+            <!-- Changed justification to start (Right in RTL) to push phone near text, and absolute terminal will be on left -->
+            <div id="demo" class="lg:col-span-7 relative order-2 lg:order-2 flex justify-center lg:justify-start items-end h-[600px] md:h-[700px]">
+                
+                <!-- Decorative backdrop -->
+                <div class="absolute inset-0 bg-gradient-to-tr from-blue-600/20 to-purple-600/20 rounded-full blur-[100px] pointer-events-none"></div>
+
+                <!-- Increased max-width to allow separation -->
+                <div class="relative w-full max-w-[800px] flex items-end justify-center lg:justify-start">
+                    
+                    <!-- Terminal / System View (Logs) - Positioned LEFT -->
+                    <!-- Changed from absolute left-0 to relative/absolute handling to avoid overlap -->
+                    <div class="hidden lg:block absolute left-0 bottom-20 w-[360px] bg-wizbi-terminal border border-gray-800 rounded-xl shadow-2xl overflow-hidden z-10 animate-float" style="animation-delay: 1s;">
+                        <div class="bg-[#1e1e1e] px-4 py-2 flex items-center gap-2 border-b border-gray-800">
+                            <div class="flex gap-1.5">
+                                <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                            </div>
+                            <span class="ml-auto text-[10px] font-mono text-gray-500 tracking-wider">BUSINESS_OS // LOGS</span>
+                        </div>
+                        <div class="p-4 font-mono text-[11px] h-[220px] overflow-y-auto relative" id="terminal-screen">
+                            <div class="scan-line"></div>
+                            <div class="text-gray-500 mb-2"># System Initialized...</div>
+                            <div class="text-green-500/80 mb-1">✔ CRM Connection: Active</div>
+                            <div class="text-green-500/80 mb-1">✔ Bank Interface: Secure</div>
+                            <div class="text-blue-400 mb-3">-> Waiting for tasks...</div>
+                            <!-- Dynamic logs go here -->
+                        </div>
+                    </div>
+
+                    <!-- Phone Mockup (WhatsApp) -->
+                    <!-- Removed translate-x-12 to align better with justify-start (Right in RTL) -->
+                    <div class="relative z-20 w-[320px] md:w-[350px] bg-gray-900 rounded-[3rem] border-8 border-gray-800 shadow-2xl overflow-hidden h-[600px] md:h-[650px] flex flex-col transform lg:-translate-x-12">
+                        <!-- Dynamic Island -->
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-black rounded-b-xl z-30"></div>
+                        
+                        <!-- Header -->
+                        <div class="bg-[#202c33] p-4 pt-10 flex items-center justify-between text-white z-20 shadow-md">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-lg font-bold shadow-lg">W</div>
+                                <div>
+                                    <h3 class="font-semibold text-sm">העובד שלי (Wizbi)</h3>
+                                    <p class="text-[10px] text-green-400">זמין 24/7 • מחובר למערכות</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4 text-gray-400">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </div>
+                        </div>
+
+                        <!-- Chat Area -->
+                        <div id="wa-screen" class="flex-1 wa-bg p-4 overflow-y-auto flex flex-col space-y-2 relative scroll-smooth">
+                            <!-- Messages will be injected here via JS -->
+                        </div>
+
+                        <!-- Input Area -->
+                        <div class="bg-[#202c33] p-3 flex items-center gap-2 z-20 border-t border-white/5">
+                            <i class="fas fa-plus text-gray-400 text-lg"></i>
+                            <div class="flex-1 bg-[#2a3942] rounded-lg px-3 py-2 text-sm text-gray-300 text-right">בקש משימה...</div>
+                            <div class="w-10 h-10 bg-[#00a884] rounded-full flex items-center justify-center text-white shadow-lg">
+                                <i class="fas fa-microphone"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Infinite Logo Marquee -->
+    <div id="integrations" class="border-y border-white/5 bg-wizbi-card py-10 overflow-hidden relative">
+        <div class="absolute inset-y-0 left-0 w-20 md:w-40 bg-gradient-to-r from-wizbi-card to-transparent z-10"></div>
+        <div class="absolute inset-y-0 right-0 w-20 md:w-40 bg-gradient-to-l from-wizbi-card to-transparent z-10"></div>
+        
+        <div class="container mx-auto px-6 mb-6 text-center">
+            <p class="text-sm text-gray-500 uppercase tracking-widest font-medium">מתממשק לכל המערכות שלך</p>
+        </div>
+
+        <div class="logo-ticker-track flex items-center">
+            <div class="flex gap-12 md:gap-20 items-center text-gray-500 text-3xl md:text-4xl">
+                <!-- Business Tools -->
+                <i class="fab fa-google hover:text-white transition transform hover:scale-110 duration-300" title="Google Workspace"></i>
+                <i class="fab fa-slack hover:text-white transition transform hover:scale-110 duration-300" title="Slack"></i>
+                <i class="fas fa-envelope hover:text-white transition transform hover:scale-110 duration-300" title="Email / Outlook"></i>
+                <i class="fab fa-salesforce hover:text-white transition transform hover:scale-110 duration-300" title="Salesforce"></i>
+                <i class="fas fa-calendar-check hover:text-white transition transform hover:scale-110 duration-300" title="Calendar"></i>
+                <i class="fab fa-hubspot hover:text-white transition transform hover:scale-110 duration-300" title="HubSpot"></i>
+                <i class="fas fa-file-invoice-dollar hover:text-white transition transform hover:scale-110 duration-300" title="Finance / Invoices"></i>
+                <i class="fab fa-shopify hover:text-white transition transform hover:scale-110 duration-300" title="E-commerce"></i>
+                <!-- Dev/Infra Tools -->
+                <i class="fab fa-aws hover:text-white transition transform hover:scale-110 duration-300" title="Cloud Infra"></i>
+                <i class="fas fa-database hover:text-white transition transform hover:scale-110 duration-300" title="Databases"></i>
+                <i class="fab fa-github hover:text-white transition transform hover:scale-110 duration-300" title="Code Repos"></i>
+                <i class="fab fa-python hover:text-white transition transform hover:scale-110 duration-300" title="Python Scripts"></i>
+                <!-- Repeat for smooth loop -->
+                <i class="fab fa-google hover:text-white transition"></i>
+                <i class="fab fa-slack hover:text-white transition"></i>
+                <i class="fas fa-envelope hover:text-white transition"></i>
+                <i class="fab fa-salesforce hover:text-white transition"></i>
+                <i class="fas fa-calendar-check hover:text-white transition"></i>
+                <i class="fab fa-hubspot hover:text-white transition"></i>
+                <i class="fas fa-file-invoice-dollar hover:text-white transition"></i>
+                <i class="fab fa-aws hover:text-white transition"></i>
+                <i class="fas fa-database hover:text-white transition"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Capabilities Section -->
+    <section id="features" class="py-24 bg-wizbi-dark border-b border-white/5">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold mb-6">עובד אחד. <span class="text-blue-500">אינסוף יכולות.</span></h2>
+                <p class="text-gray-400 max-w-2xl mx-auto text-lg">
+                    הוא לא מתעייף, לא שוכח לחזור ללקוח, ויודע לכתוב קוד ולנתח דוחות כספיים בו זמנית.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="bg-wizbi-card border border-white/5 rounded-2xl p-8 hover:border-blue-500/30 transition duration-300 group h-full">
+                    <div class="feature-tag bg-blue-500/10 text-blue-400">OFFICE & ADMIN</div>
+                    <div class="w-14 h-14 bg-blue-900/20 rounded-full flex items-center justify-center text-blue-400 mb-6 text-2xl group-hover:scale-110 transition">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">מנהל המשרד האולטימטיבי</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        מתאם פגישות מול יומנים, עונה למיילים, מוציא סיכומי פגישות, ומזכיר לך על דברים חשובים לפני שהם נופלים בין הכיסאות.
+                    </p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-wizbi-card border border-white/5 rounded-2xl p-8 hover:border-green-500/30 transition duration-300 group h-full">
+                    <div class="feature-tag bg-green-500/10 text-green-400">SALES & GROWTH</div>
+                    <div class="w-14 h-14 bg-green-900/20 rounded-full flex items-center justify-center text-green-400 mb-6 text-2xl group-hover:scale-110 transition">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">צייד הזדמנויות ומכירות</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        סורק את האינטרנט אחר לידים חדשים, פונה ללקוחות רדומים בווצאפ, ומייצר הצעות מחיר מותאמות אישית ברגע.
+                    </p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-wizbi-card border border-white/5 rounded-2xl p-8 hover:border-purple-500/30 transition duration-300 group h-full">
+                    <div class="feature-tag bg-purple-500/10 text-purple-400">TECH & BUILD</div>
+                    <div class="w-14 h-14 bg-purple-900/20 rounded-full flex items-center justify-center text-purple-400 mb-6 text-2xl group-hover:scale-110 transition">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">מפתח ותשתית אוטונומית</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        צריך דף נחיתה? מסד נתונים חדש? אוטומציה מורכבת? האייג'נט בונה, פורס ומנהל את התשתית הטכנולוגית עבורך.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <div class="border-y border-white/5 bg-gradient-to-r from-wizbi-card to-wizbi-dark py-16">
+        <div class="container mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div class="space-y-2">
+                <div class="text-3xl md:text-5xl font-bold text-white font-mono" id="stat-1">0</div>
+                <div class="text-xs text-gray-500 uppercase tracking-widest font-medium">משימות בוצעו</div>
+            </div>
+            <div class="space-y-2">
+                <div class="text-3xl md:text-5xl font-bold text-blue-500 font-mono" id="stat-2">0</div>
+                <div class="text-xs text-gray-500 uppercase tracking-widest font-medium">שעות נחסכו</div>
+            </div>
+            <div class="space-y-2">
+                <div class="text-3xl md:text-5xl font-bold text-green-500 font-mono" id="stat-3">0</div>
+                <div class="text-xs text-gray-500 uppercase tracking-widest font-medium">דוחות נוצרו</div>
+            </div>
+            <div class="space-y-2">
+                <div class="text-3xl md:text-5xl font-bold text-purple-500 font-mono">24/7</div>
+                <div class="text-xs text-gray-500 uppercase tracking-widest font-medium">זמינות מלאה</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deployment / Install Section -->
+    <section id="deploy" class="py-24 relative overflow-hidden bg-[#0a0a0a]">
+        <!-- Glow effect -->
+        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-[500px] bg-gradient-to-t from-blue-900/10 to-transparent blur-3xl pointer-events-none"></div>
+        
+        <div class="container mx-auto px-6 max-w-6xl relative z-10">
+            <div class="text-center mb-20">
+                <h2 class="text-3xl md:text-5xl font-bold mb-6">מוצר אחד. <span class="text-purple-500">בחירה שלך.</span></h2>
+                <p class="text-gray-400 max-w-2xl mx-auto text-lg">
+                    אנחנו מאמינים בשליטה מלאה של הלקוח. תבחרו איך להעסיק את האייג'נט שלכם.
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8 items-stretch">
+                <!-- Option 1: Managed -->
+                <div class="bg-gradient-to-b from-[#111] to-[#0d0d0d] p-10 rounded-3xl border border-gray-800 hover:border-blue-500/40 transition duration-300 flex flex-col relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                        <i class="fas fa-cloud text-9xl"></i>
+                    </div>
+                    
+                    <div class="w-14 h-14 rounded-2xl bg-blue-900/20 flex items-center justify-center text-blue-500 text-2xl mb-6">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    
+                    <h3 class="text-2xl font-bold mb-2">WIZBI Managed</h3>
+                    <p class="text-gray-400 mb-8 h-12">הפתרון המושלם לעסקים שרוצים להתחיל מיד בלי להתעסק בטכנולוגיה.</p>
+                    
+                    <ul class="space-y-4 mb-10 text-sm text-gray-300 flex-1">
+                        <li class="flex items-center gap-3"><i class="fas fa-check-circle text-blue-500 text-lg"></i> <span>הכל מנוהל בענן שלנו</span></li>
+                        <li class="flex items-center gap-3"><i class="fas fa-check-circle text-blue-500 text-lg"></i> <span>חיבור מיידי לווצאפ ומערכות</span></li>
+                        <li class="flex items-center gap-3"><i class="fas fa-check-circle text-blue-500 text-lg"></i> <span>עדכונים אוטומטיים ויכולות חדשות</span></li>
+                    </ul>
+                    
+                    <button class="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition shadow-lg shadow-blue-900/30 flex items-center justify-center gap-2">
+                        התחל בחינם <i class="fas fa-arrow-left"></i>
+                    </button>
+                </div>
+
+                <!-- Option 2: Private Cloud -->
+                <div class="bg-gradient-to-b from-[#111] to-[#0d0d0d] p-10 rounded-3xl border border-gray-800 hover:border-purple-500/40 transition duration-300 flex flex-col relative overflow-hidden group">
+                    <div class="absolute top-4 left-4 bg-purple-900/30 text-purple-300 text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider border border-purple-500/20">
+                        Enterprise Grade
+                    </div>
+                    
+                    <div class="w-14 h-14 rounded-2xl bg-purple-900/20 flex items-center justify-center text-purple-500 text-2xl mb-6">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    
+                    <h3 class="text-2xl font-bold mb-2">Private Cloud</h3>
+                    <p class="text-gray-400 mb-8 h-12">שליטה מלאה ופרטיות מקסימלית. האייג'נט רץ על התשתיות שלכם.</p>
+                    
+                    <!-- Command Box -->
+                    <div class="bg-black/50 rounded-xl p-5 font-mono text-xs text-gray-300 border border-gray-700/50 mb-8 relative group-hover:border-purple-500/30 transition">
+                        <div class="flex justify-between items-center mb-3 opacity-60 text-[10px] uppercase tracking-wider">
+                            <span>Terminal Installation</span>
+                            <div class="flex gap-1.5">
+                                <div class="w-2 h-2 rounded-full bg-gray-600"></div>
+                                <div class="w-2 h-2 rounded-full bg-gray-600"></div>
+                            </div>
+                        </div>
+                        <code class="text-green-400 block break-all leading-loose">
+                            <span class="text-purple-400">$</span> npx wizbi-os deploy --private
+                        </code>
+                        <button class="absolute bottom-4 left-4 text-gray-500 hover:text-white transition" onclick="copyCmd()">
+                            <i class="far fa-copy"></i>
+                        </button>
+                    </div>
+
+                    <button class="w-full py-4 rounded-xl border border-white/10 hover:bg-white/5 text-white font-medium transition flex items-center justify-center gap-2">
+                        למידע טכני ודוקומנטציה
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black py-12 border-t border-white/10">
+        <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">W</div>
+                <div>
+                    <span class="font-bold text-gray-200 text-lg">WIZBI.AI</span>
+                    <p class="text-xs text-gray-600 mt-0.5">© 2026 The Agent Operating System</p>
+                </div>
+            </div>
+            
+            <div class="flex gap-8">
+                <a href="#" class="text-gray-500 hover:text-white transition"><i class="fab fa-twitter text-xl"></i></a>
+                <a href="#" class="text-gray-500 hover:text-white transition"><i class="fab fa-github text-xl"></i></a>
+                <a href="#" class="text-gray-500 hover:text-white transition"><i class="fab fa-linkedin text-xl"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Logic Script -->
+    <script>
+        // --- WhatsApp Simulator Logic ---
+        const waScreen = document.getElementById('wa-screen');
+        const termScreen = document.getElementById('terminal-screen');
+        
+        const scrollBottom = (el) => el.scrollTop = el.scrollHeight;
+
+        function addMessage(text, type, time = 'Now') {
+            const msgRow = document.createElement('div');
+            msgRow.className = `msg-row ${type === 'mine' ? 'msg-mine' : 'msg-theirs'}`;
+            
+            const bubble = document.createElement('div');
+            bubble.className = `wa-bubble ${type === 'mine' ? 'bubble-mine' : 'bubble-theirs'}`;
+            
+            bubble.innerHTML = `
+                ${text}
+                <div class="text-[10px] text-right mt-1 opacity-70 flex justify-end gap-1 items-center">
+                    ${time} ${type === 'mine' ? '<i class="fas fa-check-double text-blue-300"></i>' : ''}
+                </div>
+            `;
+            
+            msgRow.appendChild(bubble);
+            waScreen.appendChild(msgRow);
+            scrollBottom(waScreen);
+        }
+
+        function addLog(text, color = 'text-gray-400') {
+            const div = document.createElement('div');
+            div.className = `mb-1.5 font-mono border-l-2 border-transparent pl-2 ${color}`;
+            // Styling logic for log appearance
+            if(color.includes('green')) div.style.borderLeftColor = '#10b981';
+            if(color.includes('blue')) div.style.borderLeftColor = '#3b82f6';
+            
+            div.innerHTML = `<span class="opacity-40 text-[9px] ml-2 inline-block w-12">${new Date().toLocaleTimeString().split(' ')[0]}</span>${text}`;
+            termScreen.appendChild(div);
+            scrollBottom(termScreen);
+        }
+
+        // --- The "Perfect Employee" Scenario ---
+        const scenarioSteps = [
+            { t: 1000, type: 'mine', text: "בוקר טוב! מה מצב המשימות והתזרים להיום?" },
+            { t: 2000, type: 'log', text: "Processing Request: DAILY_BRIEFING", color: 'text-purple-400' },
+            { t: 2500, type: 'log', text: "Accessing: Calendar, Bank API, CRM", color: 'text-blue-400' },
+            { t: 3500, type: 'log', text: "Analysis: 3 Urgent Tasks, Cashflow +12%", color: 'text-green-400' },
+            { t: 4500, type: 'theirs', text: "בוקר אור! ☀️<br>1. יש לך 3 פגישות היום (הראשונה ב-10:00).<br>2. נכנסו הבוקר ₪12,500 מלקוחות.<br>3. יש ליד חם מאתמול שצריך לחזור אליו. לטפל בזה?" },
+            { t: 7000, type: 'mine', text: "כן, תשלח לליד הצעה, ותכין לי דף נחיתה למבצע החדש." },
+            { t: 8500, type: 'log', text: "Action: GENERATE_QUOTE -> EMAIL", color: 'text-yellow-400' },
+            { t: 9500, type: 'log', text: "Action: BUILD_WEB_PAGE [template=promo]", color: 'text-purple-400' },
+            { t: 10500, type: 'log', text: "Deploying Cloud Service...", color: 'text-gray-500' },
+            { t: 12000, type: 'theirs', text: "👍 ההצעה נשלחה למייל שלו.<br>האתר החדש באוויר בכתובת:<br><u>wizbi.site/summer-sale</u><br>עוד משהו?" },
+            { t: 15000, type: 'reset' }
+        ];
+
+        let stepIndex = 0;
+
+        function runScenario() {
+            if (stepIndex >= scenarioSteps.length) stepIndex = 0;
+            const step = scenarioSteps[stepIndex];
+            
+            if (step.type === 'reset') {
+                setTimeout(() => {
+                    waScreen.innerHTML = ''; 
+                    termScreen.innerHTML = '<div class="scan-line"></div>'; 
+                    addLog("System Ready...", "text-gray-500");
+                    stepIndex++;
+                    runScenario();
+                }, 4000);
+                return;
+            }
+
+            setTimeout(() => {
+                if (step.type === 'log') {
+                    addLog(step.text, step.color);
+                } else {
+                    addMessage(step.text, step.type, new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+                }
+                stepIndex++;
+                runScenario();
+            }, step.t - (stepIndex > 0 ? scenarioSteps[stepIndex-1].t : 0));
+        }
+
+        runScenario();
+
+        // --- Number Counters ---
+        function animateValue(id, start, end, duration) {
+            const obj = document.getElementById(id);
+            if (!obj) return;
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString();
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // Trigger stats with Intersection Observer
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateValue("stat-1", 0, 8420, 2000);
+                    animateValue("stat-2", 0, 1500, 2500); // Hours
+                    animateValue("stat-3", 0, 12400, 3000);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        const statsSection = document.getElementById('stat-1');
+        if(statsSection) observer.observe(statsSection.parentElement);
+
+
+        // --- Interactions ---
+        function copyCmd() {
+            navigator.clipboard.writeText('npx wizbi-os deploy --private');
+            const btns = document.querySelectorAll('button[onclick="copyCmd()"]');
+            btns.forEach(btn => {
+                const originalContent = btn.innerHTML;
+                btn.innerHTML = `<span class="text-green-500">הועתק!</span>`;
+                setTimeout(() => {
+                    btn.innerHTML = originalContent;
+                }, 2000);
+            });
+        }
+
+        function scrollToDeploy() {
+            document.getElementById('deploy').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
