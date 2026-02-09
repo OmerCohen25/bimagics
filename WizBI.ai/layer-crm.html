@@ -18,24 +18,27 @@
         body {
             font-family: 'Heebo', sans-serif;
             background-color: #d1d7db;
-            overflow: hidden; /* Prevent body scroll, handle internally */
+            overflow: hidden;
+            height: 100vh;
         }
 
         /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 6px;
+        .custom-scroll::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
         }
-        ::-webkit-scrollbar-track {
+        .custom-scroll::-webkit-scrollbar-track {
             background: transparent;
         }
-        ::-webkit-scrollbar-thumb {
+        .custom-scroll::-webkit-scrollbar-thumb {
             background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
         }
-        ::-webkit-scrollbar-thumb:hover {
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
             background: rgba(0, 0, 0, 0.3);
         }
 
-        /* Chat Background Pattern */
+        /* Chat Background */
         .chat-bg {
             background-image: url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png");
             background-repeat: repeat;
@@ -43,7 +46,7 @@
             background-color: #efeae2;
         }
 
-        /* Message Bubbles Tails */
+        /* Message Bubbles */
         .bubble-tail-in::before {
             content: "";
             position: absolute;
@@ -54,8 +57,6 @@
             border: 8px solid transparent;
             border-top-color: #ffffff;
             border-right: 0;
-            margin-top: -0px; 
-            margin-right: -2px;
         }
 
         .bubble-tail-out::before {
@@ -68,125 +69,129 @@
             border: 8px solid transparent;
             border-top-color: #d9fdd3;
             border-left: 0;
-            margin-top: -0px;
-            margin-left: -2px;
+        }
+
+        /* CRM Table Styling */
+        .crm-table th {
+            font-weight: 500;
+            color: #54656f;
+            padding: 12px;
+            border-bottom: 1px solid #e9edef;
+            text-align: right;
+            font-size: 13px;
+        }
+        .crm-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f2f5;
+            color: #111b21;
+            font-size: 14px;
+        }
+        .crm-table tr:hover {
+            background-color: #f5f6f6;
+            cursor: pointer;
         }
 
         /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
-        .msg-anim {
-            animation: fadeIn 0.3s ease-out forwards;
-        }
+        .anim-slide-up { animation: slideUp 0.3s ease-out forwards; }
 
-        /* Mobile specific adjustments */
         @media (max-width: 768px) {
-            .desktop-only { display: none !important; }
-            .mobile-full { width: 100% !important; height: 100% !important; }
-            .sidebar-mobile-hidden.active-chat { display: none; }
-            .chat-mobile-hidden:not(.active-chat) { display: none; }
-            .chat-mobile-visible.active-chat { display: flex !important; }
-            body { background-color: #fff; } /* White bg on mobile */
-            .app-container { height: 100vh; width: 100vw; box-shadow: none; max-width: none; }
+            .app-wrapper { width: 100% !important; height: 100% !important; max-width: none !important; border-radius: 0 !important; }
+            .mobile-hidden { display: none !important; }
+            .mobile-flex { display: flex !important; }
+            
+            /* Mobile View Transitions */
+            .view-transition { transition: transform 0.3s ease-in-out; }
+            .sidebar-view { transform: translateX(0); width: 100%; position: absolute; inset: 0; z-index: 20; background: white; }
+            .chat-view { transform: translateX(-100%); width: 100%; position: absolute; inset: 0; z-index: 30; background: #efeae2; }
+            
+            /* When chat is active */
+            .show-chat .sidebar-view { transform: translateX(100%); } /* Push sidebar away */
+            .show-chat .chat-view { transform: translateX(0); } /* Bring chat in */
         }
     </style>
 </head>
-<body>
+<body class="flex justify-center items-center h-screen bg-[#d1d7db]">
 
-    <!-- Main App Container -->
-    <div class="h-screen w-full flex justify-center items-center">
-        <div class="app-container bg-white w-full max-w-[1600px] h-[100vh] md:h-[95vh] flex overflow-hidden shadow-xl relative">
+    <!-- Main Application Wrapper -->
+    <div class="app-wrapper bg-white w-full max-w-[1600px] h-[95vh] flex shadow-2xl relative overflow-hidden md:rounded-xl">
+        
+        <!-- SIDE NAVIGATION (Desktop Only) -->
+        <div class="hidden md:flex flex-col w-[60px] bg-[#f0f2f5] border-l border-gray-300 items-center py-4 gap-6 shrink-0 z-50">
+            <div title="צ'אטים" onclick="switchMainView('whatsapp')" class="nav-item cursor-pointer text-[#54656f] hover:bg-gray-200 p-2 rounded-lg transition active-nav" id="nav-chat">
+                <i data-lucide="message-circle" class="w-6 h-6"></i>
+            </div>
+            <div title="מערכת CRM" onclick="switchMainView('crm')" class="nav-item cursor-pointer text-[#54656f] hover:bg-gray-200 p-2 rounded-lg transition" id="nav-crm">
+                <i data-lucide="layout-dashboard" class="w-6 h-6"></i>
+            </div>
+            <div title="קבצים" onclick="switchMainView('crm', 'files')" class="nav-item cursor-pointer text-[#54656f] hover:bg-gray-200 p-2 rounded-lg transition">
+                <i data-lucide="folder-open" class="w-6 h-6"></i>
+            </div>
+            <div class="mt-auto mb-2 cursor-pointer text-[#54656f] hover:bg-gray-200 p-2 rounded-lg">
+                <i data-lucide="settings" class="w-6 h-6"></i>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center text-white font-bold text-xs cursor-pointer">
+                ד
+            </div>
+        </div>
+
+        <!-- WHATSAPP VIEW CONTAINER -->
+        <div id="whatsappView" class="flex flex-1 w-full h-full relative transition-transform duration-300">
             
-            <!-- LEFT SIDEBAR (Chat List) -->
-            <div id="sidebar" class="w-full md:w-[30%] lg:w-[400px] flex flex-col border-l border-gray-200 h-full bg-white z-20">
-                
+            <!-- LIST SIDEBAR -->
+            <div id="chatListPanel" class="sidebar-view w-full md:w-[350px] lg:w-[400px] flex flex-col border-l border-gray-200 h-full bg-white z-20">
                 <!-- Header -->
                 <div class="bg-[#f0f2f5] px-4 py-3 flex justify-between items-center h-[60px] shrink-0 border-r border-gray-300">
                     <div class="flex items-center gap-3">
-                         <div class="w-10 h-10 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center cursor-pointer relative group">
-                            <i data-lucide="briefcase" class="text-slate-600"></i>
-                            <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#f0f2f5]"></div>
-                         </div>
-                         <div class="leading-tight">
-                             <span class="font-bold text-gray-800 text-sm block">משרד עורכי דין</span>
-                             <span class="text-[10px] text-green-600 font-bold">מחובר ל-WhatsApp API</span>
-                         </div>
+                         <h1 class="font-bold text-[#41525d] text-lg">צ'אטים</h1>
                     </div>
-                    <div class="flex gap-5 text-[#54656f]">
-                        <button title="סטטוס" class="hover:bg-black/10 p-1.5 rounded-full transition"><i data-lucide="circle-dashed" class="w-5 h-5"></i></button>
-                        <button title="צ'אט חדש" class="hover:bg-black/10 p-1.5 rounded-full transition"><i data-lucide="message-square-plus" class="w-5 h-5"></i></button>
-                        <button title="תפריט" class="hover:bg-black/10 p-1.5 rounded-full transition"><i data-lucide="more-vertical" class="w-5 h-5"></i></button>
+                    <div class="flex gap-4 text-[#54656f]">
+                        <button class="md:hidden" onclick="switchMainView('crm')"><i data-lucide="layout-dashboard" class="w-5 h-5"></i></button>
+                        <button><i data-lucide="message-square-plus" class="w-5 h-5"></i></button>
+                        <button><i data-lucide="more-vertical" class="w-5 h-5"></i></button>
                     </div>
                 </div>
 
-                <!-- Search & Filters -->
+                <!-- Search -->
                 <div class="px-3 py-2 border-b border-gray-100 bg-white">
                     <div class="bg-[#f0f2f5] rounded-lg flex items-center px-3 h-[35px]">
-                        <i data-lucide="search" class="w-4 h-4 text-[#54656f] ml-3 cursor-pointer"></i>
+                        <i data-lucide="search" class="w-4 h-4 text-[#54656f] ml-2"></i>
                         <input type="text" id="searchInput" placeholder="חיפוש או התחלת צ'אט חדש" class="bg-transparent border-none outline-none text-sm w-full text-[#3b4a54] placeholder:text-[#54656f]">
                     </div>
-                    <div class="flex gap-2 mt-2 overflow-x-auto no-scrollbar pb-1">
-                        <button class="bg-[#e7fce3] text-[#008069] text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap border border-transparent hover:border-[#008069] transition">הכל</button>
-                        <button class="bg-[#f0f2f5] text-[#54656f] text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap hover:bg-[#e9edef] transition">לא נקראו</button>
-                        <button class="bg-[#f0f2f5] text-[#54656f] text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap hover:bg-[#e9edef] transition">חוזים</button>
-                        <button class="bg-[#f0f2f5] text-[#54656f] text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap hover:bg-[#e9edef] transition">נזיקין</button>
+                    <div class="flex gap-2 mt-2 overflow-x-auto custom-scroll pb-1">
+                        <button onclick="filterChats('all')" class="bg-[#e7fce3] text-[#008069] text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap border border-transparent hover:border-[#008069]">הכל</button>
+                        <button onclick="filterChats('unread')" class="bg-[#f0f2f5] text-[#54656f] text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap hover:bg-[#e9edef]">לא נקראו</button>
+                        <button onclick="filterChats('archived')" class="bg-[#f0f2f5] text-[#54656f] text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap hover:bg-[#e9edef]">ארכיון</button>
                     </div>
                 </div>
 
-                <!-- Chat List Container -->
-                <div id="chatList" class="flex-1 overflow-y-auto bg-white">
-                    <!-- Chat items will be injected here via JS -->
+                <!-- List -->
+                <div id="chatList" class="flex-1 overflow-y-auto custom-scroll bg-white">
+                    <!-- Dynamic Items -->
                 </div>
             </div>
 
-            <!-- RIGHT MAIN (Chat Window) -->
-            <div id="chatWindow" class="hidden md:flex flex-col flex-1 bg-[#efeae2] relative h-full">
+            <!-- CHAT WINDOW -->
+            <div id="chatWindowPanel" class="chat-view hidden md:flex flex-col flex-1 bg-[#efeae2] relative h-full transition-transform duration-300">
                 
-                <!-- EMPTY STATE (No chat selected) -->
-                <div id="emptyState" class="absolute inset-0 z-10 bg-[#f0f2f5] flex flex-col items-center justify-center text-center border-b-[6px] border-[#25d366] hidden">
-                    <div class="max-w-[500px] px-10">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/479px-WhatsApp.svg.png" alt="WhatsApp" class="w-24 h-24 mx-auto mb-8 opacity-40 grayscale">
-                        <h2 class="text-[#41525d] text-3xl font-light mb-4">WhatsApp CRM למשרדי עורכי דין</h2>
-                        <p class="text-[#667781] text-sm leading-6">
-                            שלח וקבל הודעות מבלי לשמור את הטלפון מחובר.<br>
-                            כל השיחות מתועדות ב-CRM באופן אוטומטי ומאובטח.<br>
-                            השתמש ב-WhatsApp במכשירים מרובים בו זמנית.
-                        </p>
-                        <div class="mt-8 flex items-center justify-center gap-2 text-[#8696a0] text-xs">
-                            <i data-lucide="lock" class="w-3 h-3"></i>
-                            מוגן בהצפנה מקצה לקצה
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Active Chat Header -->
-                <div id="activeChatHeader" class="bg-[#f0f2f5] px-4 py-2.5 flex justify-between items-center h-[60px] shadow-sm z-20 shrink-0 hidden">
+                <div id="chatHeader" class="bg-[#f0f2f5] px-4 py-2 flex justify-between items-center h-[60px] shadow-sm z-20 shrink-0">
                     <div class="flex items-center gap-3 cursor-pointer">
-                        <!-- Back Button (Mobile) -->
-                        <button id="backBtn" class="md:hidden text-[#54656f] p-1">
-                            <i data-lucide="arrow-right" class="w-6 h-6"></i>
-                        </button>
-                        
+                        <button onclick="closeChatMobile()" class="md:hidden text-[#54656f] p-1 -mr-2"><i data-lucide="arrow-right" class="w-6 h-6"></i></button>
                         <div id="headerAvatar" class="w-10 h-10 rounded-full bg-teal-500 text-white flex items-center justify-center font-bold text-lg">?</div>
-                        <div class="flex flex-col">
+                        <div class="flex flex-col justify-center" onclick="showContactInfo()">
                             <span id="headerName" class="font-bold text-[#111b21] text-base leading-tight">שם הלקוח</span>
                             <span id="headerInfo" class="text-xs text-[#54656f] truncate max-w-[200px]">פרטי תיק</span>
                         </div>
                     </div>
-                    <div class="flex items-center gap-4 text-[#54656f]">
-                        <!-- Developer Controls (Simulation) -->
-                        <div class="hidden lg:flex items-center gap-2 mr-4 bg-white px-2 py-1 rounded border shadow-sm">
-                            <span class="text-[10px] font-bold text-red-500 uppercase">מצב מפתח:</span>
-                            <select id="agentSelect" class="text-xs border-none outline-none bg-transparent font-bold">
-                                <option value="דניאל">עו"ד דניאל</option>
-                                <option value="רונית">עו"ד רונית</option>
-                                <option value="מזכירות">מזכירות</option>
-                            </select>
-                            <div class="h-3 w-[1px] bg-gray-300 mx-1"></div>
-                            <button onclick="simulateTimeJump()" class="hover:text-red-600 transition" title="הקפץ 24 שעות"><i data-lucide="clock" class="w-4 h-4"></i></button>
-                            <button onclick="simulateIncoming()" class="hover:text-green-600 transition" title="הודעה נכנסת"><i data-lucide="user-plus" class="w-4 h-4"></i></button>
+                    <div class="flex items-center gap-5 text-[#54656f]">
+                        <!-- CRM Info Badge -->
+                        <div class="hidden lg:flex items-center gap-2 bg-white px-3 py-1 rounded-full border border-gray-200 text-xs shadow-sm cursor-pointer hover:bg-gray-50" onclick="switchMainView('crm')">
+                            <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                            <span class="font-medium text-gray-700">סונכרן ל-CRM</span>
                         </div>
                         
                         <i data-lucide="search" class="w-5 h-5 cursor-pointer hidden md:block"></i>
@@ -195,204 +200,263 @@
                     </div>
                 </div>
 
-                <!-- Chat Messages Area -->
-                <div id="messagesArea" class="flex-1 overflow-y-auto p-4 md:px-[5%] lg:px-[8%] chat-bg relative hidden">
+                <!-- Messages Area -->
+                <div id="messagesArea" class="flex-1 overflow-y-auto p-4 md:px-[8%] chat-bg relative custom-scroll flex flex-col">
                     <!-- Encryption Notice -->
-                    <div class="flex justify-center mb-6 mt-2 select-none">
+                    <div class="flex justify-center mb-6 mt-2 select-none shrink-0">
                         <div class="bg-[#ffeecd] text-[#54656f] text-[11.5px] px-3 py-1.5 rounded-lg shadow-sm text-center max-w-[90%] md:max-w-[60%] leading-relaxed">
                             <span class="flex items-center justify-center gap-1.5 mb-1 font-bold text-[#f59f00]">
-                                <i data-lucide="lock" class="w-3 h-3"></i> ההודעות בשיחה זו מאובטחות
+                                <i data-lucide="lock" class="w-3 h-3"></i> מערכת מאובטחת
                             </span>
-                            כל ההודעות והקבצים מתועדים באופן אוטומטי במערכת ה-CRM של המשרד לצרכי תיעוד ובקרה.
+                            השיחה מנוטרת ומתועדת במערכת ה-CRM של המשרד.
                         </div>
                     </div>
-                    
-                    <!-- Dynamic Messages will be here -->
+                    <!-- Messages Container -->
+                    <div id="msgsContainer" class="flex flex-col justify-end min-h-0"></div>
                 </div>
 
-                <!-- Input / Footer Area -->
-                <div id="inputArea" class="bg-[#f0f2f5] px-4 py-2 shrink-0 z-20 hidden">
-                    
-                    <!-- 24H Warning Banner (Hidden by default) -->
+                <!-- Input Area -->
+                <div id="inputArea" class="bg-[#f0f2f5] px-4 py-2 shrink-0 z-20">
+                    <!-- 24H Banner -->
                     <div id="expiredBanner" class="hidden mb-2 bg-[#fff5f5] border border-red-100 p-3 rounded-lg flex flex-col items-center justify-center text-center animate-pulse">
-                        <div class="flex items-center gap-2 text-red-600 text-sm font-bold mb-1">
-                            <i data-lucide="alert-circle" class="w-4 h-4"></i>
-                            חלון השיחה (24 שעות) נסגר
-                        </div>
-                        <p class="text-xs text-gray-600 mb-2">לא ניתן לשלוח הודעות חופשיות. יש לשלוח תבנית מאושרת.</p>
-                        <button onclick="openTemplates()" class="bg-[#008069] hover:bg-[#006e5a] text-white text-sm px-4 py-1.5 rounded-full shadow transition flex items-center gap-2">
-                            <i data-lucide="file-text" class="w-4 h-4"></i> בחר תבנית לפתיחת שיחה
+                        <div class="flex items-center gap-2 text-red-600 text-sm font-bold mb-1"><i data-lucide="alert-circle" class="w-4 h-4"></i> חלון השיחה נסגר</div>
+                        <button onclick="openTemplates()" class="bg-[#008069] hover:bg-[#006e5a] text-white text-xs px-4 py-1.5 rounded-full shadow transition flex items-center gap-2 mt-1">
+                            בחר תבנית (HSM) לפתיחה
                         </button>
                     </div>
 
-                    <!-- Normal Input -->
                     <div id="normalInput" class="flex items-end gap-3 pb-1">
-                        <i data-lucide="smile" class="w-6 h-6 text-[#54656f] mb-2 cursor-pointer hover:text-gray-600 hidden md:block"></i>
-                        <i data-lucide="plus" class="w-6 h-6 text-[#54656f] mb-2 cursor-pointer hover:text-gray-600 md:hidden"></i>
-                        
+                        <i data-lucide="smile" class="w-6 h-6 text-[#54656f] mb-2 cursor-pointer hidden md:block"></i>
+                        <i data-lucide="plus" class="w-6 h-6 text-[#54656f] mb-2 cursor-pointer md:hidden"></i>
                         <div class="flex-1 bg-white rounded-lg min-h-[42px] flex items-center px-4 py-2 shadow-sm border border-transparent focus-within:border-white">
                             <input type="text" id="msgInput" class="w-full bg-transparent border-none outline-none text-[#111b21] text-[15px] placeholder:text-[#54656f]" placeholder="הקלד/י הודעה" dir="auto" autocomplete="off">
                         </div>
-                        
-                        <button onclick="sendMessage()" id="sendBtn" class="mb-1 text-[#54656f] transition transform active:scale-90">
-                            <i data-lucide="mic" id="micIcon" class="w-6 h-6"></i>
-                            <i data-lucide="send" id="sendIcon" class="w-6 h-6 text-[#008069] hidden"></i>
-                        </button>
+                        <button onclick="sendMessage()" class="mb-1 text-[#54656f]"><i data-lucide="mic" id="micIcon" class="w-6 h-6"></i><i data-lucide="send" id="sendIcon" class="w-6 h-6 text-[#008069] hidden"></i></button>
                     </div>
                 </div>
-
-                <!-- Templates Modal (Overlay) -->
-                <div id="templatesModal" class="absolute bottom-0 left-0 right-0 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.1)] rounded-t-xl transform translate-y-full transition-transform duration-300 z-30 flex flex-col max-h-[60%]">
-                    <div class="flex justify-between items-center p-3 border-b bg-gray-50 rounded-t-xl">
-                        <span class="font-bold text-gray-700 flex items-center gap-2"><i data-lucide="file-check" class="w-4 h-4"></i> תבניות מאושרות (HSM)</span>
-                        <button onclick="closeTemplates()" class="p-1 hover:bg-gray-200 rounded-full"><i data-lucide="x" class="w-5 h-5 text-gray-500"></i></button>
-                    </div>
-                    <div class="overflow-y-auto p-2" id="templatesList">
-                        <!-- Templates injected via JS -->
+                
+                <!-- Empty State (Desktop Default) -->
+                <div id="emptyState" class="absolute inset-0 z-50 bg-[#f0f2f5] flex flex-col items-center justify-center text-center border-b-[6px] border-[#25d366]">
+                    <div class="max-w-[400px]">
+                        <div class="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-6 flex items-center justify-center"><i data-lucide="message-square" class="w-10 h-10 text-gray-400"></i></div>
+                        <h2 class="text-[#41525d] text-2xl font-light mb-4">LawFirm Connect</h2>
+                        <p class="text-[#667781] text-sm">בחר צ'אט מהרשימה כדי להתחיל לעבוד.<br>כל המידע מסונכרן בזמן אמת ל-CRM.</p>
                     </div>
                 </div>
-
             </div>
         </div>
+
+        <!-- CRM DASHBOARD VIEW (Hidden by default) -->
+        <div id="crmDashboard" class="hidden flex-1 w-full h-full bg-[#f8f9fa] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <!-- CRM Header -->
+            <div class="bg-white px-6 py-4 border-b border-gray-200 flex justify-between items-center shadow-sm shrink-0">
+                <div>
+                    <h1 class="text-2xl font-bold text-[#111b21]">ניהול תיקים ולקוחות</h1>
+                    <p class="text-sm text-gray-500">סקירה כללית • מחובר כעו"ד דניאל</p>
+                </div>
+                <div class="flex gap-3">
+                    <button class="md:hidden flex items-center gap-2 text-gray-600 bg-gray-100 px-3 py-2 rounded-lg" onclick="switchMainView('whatsapp')">
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i> חזרה לצ'אט
+                    </button>
+                    <button class="bg-[#008069] text-white px-4 py-2 rounded-lg shadow-sm text-sm font-medium hover:bg-[#006e5a] flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i> פתיחת תיק חדש
+                    </button>
+                </div>
+            </div>
+
+            <!-- CRM Content -->
+            <div class="p-6 overflow-y-auto custom-scroll flex-1">
+                
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center"><i data-lucide="folder-kanban" class="w-6 h-6"></i></div>
+                        <div><div class="text-2xl font-bold">124</div><div class="text-xs text-gray-500">תיקים פעילים</div></div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center"><i data-lucide="message-circle" class="w-6 h-6"></i></div>
+                        <div><div class="text-2xl font-bold" id="totalUnreadCrm">3</div><div class="text-xs text-gray-500">הודעות שלא נקראו</div></div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center"><i data-lucide="file-text" class="w-6 h-6"></i></div>
+                        <div><div class="text-2xl font-bold">1,082</div><div class="text-xs text-gray-500">מסמכים בארכיון</div></div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center"><i data-lucide="clock" class="w-6 h-6"></i></div>
+                        <div><div class="text-2xl font-bold">12m</div><div class="text-xs text-gray-500">זמן תגובה ממוצע</div></div>
+                    </div>
+                </div>
+
+                <!-- Main Table -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="font-bold text-gray-800">פעילות אחרונה</h3>
+                        <div class="flex gap-2">
+                             <input type="text" placeholder="סינון מהיר..." class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1 text-sm outline-none">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right crm-table">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th>לקוח</th>
+                                    <th>תיק משפטי</th>
+                                    <th>סטטוס</th>
+                                    <th>עו"ד מטפל</th>
+                                    <th>עדכון אחרון</th>
+                                    <th>פעולות</th>
+                                </tr>
+                            </thead>
+                            <tbody id="crmTableBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Recent Files Section (Hidden Logic in Demo) -->
+                <div id="filesSection" class="mt-8 hidden">
+                     <h3 class="font-bold text-gray-800 mb-4">קבצים אחרונים</h3>
+                     <div class="grid grid-cols-2 md:grid-cols-6 gap-4" id="filesGrid"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Templates Modal -->
+        <div id="templatesModal" class="absolute bottom-0 left-0 right-0 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.1)] rounded-t-xl transform translate-y-full transition-transform duration-300 z-50 flex flex-col max-h-[60%]">
+            <div class="flex justify-between items-center p-4 border-b bg-gray-50 rounded-t-xl">
+                <span class="font-bold text-gray-700 flex items-center gap-2"><i data-lucide="file-check" class="w-5 h-5 text-green-600"></i> תבניות מאושרות (HSM)</span>
+                <button onclick="closeTemplates()" class="p-1 hover:bg-gray-200 rounded-full"><i data-lucide="x" class="w-5 h-5 text-gray-500"></i></button>
+            </div>
+            <div class="overflow-y-auto p-2" id="templatesList"></div>
+        </div>
+
     </div>
 
-    <!-- Hidden File Input -->
+    <!-- Hidden Inputs -->
     <input type="file" id="fileInput" class="hidden" onchange="handleFileUpload(this)">
 
     <script>
-        // --- DATA & STATE ---
-        const currentUser = { name: 'עו"ד דניאל' }; // Default
+        // --- DATA ---
+        const lawyers = ['עו"ד דניאל', 'עו"ד רונית', 'מזכירות'];
         
-        const templates = [
-            { id: 1, title: 'עדכון סטטוס תיק', body: 'שלום {{name}}, ישנו עדכון חדש בתיק מספר {{case}}. נשמח אם תגיב להודעה זו כדי שנוכל לשלוח פרטים.' },
-            { id: 2, title: 'בקשת מסמכים', body: 'היי {{name}}, כדי להתקדם בטיפול אנו זקוקים למסמכים נוספים. אנא אשר קבלת הודעה זו.' },
-            { id: 3, title: 'תיאום פגישה', body: 'שלום {{name}}, עורך הדין מעוניין לתאם שיחה קצרה. מתי נוח לך?' },
-            { id: 4, title: 'שליחת חשבונית', body: 'מצורפת חשבונית מס קבלה עבור שכר הטרחה. בברכה, משרד עו"ד.' }
-        ];
-
         let chats = [
-            {
-                id: 1,
-                name: "ישראל ישראלי",
-                avatarColor: "bg-teal-600",
-                caseInfo: "נזיקין 404/23",
-                lastMsgTime: new Date().getTime() - 1000 * 60 * 5, // 5 mins ago
-                unread: 2,
-                messages: [
-                    { id: 1, type: 'in', text: "היי, מתי הדיון הבא?", time: Date.now() - 3600000 },
-                    { id: 2, type: 'in', text: "האם צריך להביא משהו?", time: Date.now() - 300000 }
-                ]
+            { id: 101, name: "ישראל ישראלי", avatarColor: "bg-teal-600", caseId: "404/23", status: "פעיל", lawyer: "עו\"ד דניאל", lastMsgTime: Date.now() - 300000, unread: 2, 
+              messages: [
+                { id: 1, type: 'in', text: "היי, מתי הדיון הבא בבית המשפט?", time: Date.now() - 3600000 },
+                { id: 2, type: 'in', text: "האם צריך להביא תעודת זהות?", time: Date.now() - 300000 }
+              ] 
             },
-            {
-                id: 2,
-                name: "חברת בניה בע\"מ",
-                avatarColor: "bg-indigo-500",
-                caseInfo: "חוזה מסחרי 99",
-                lastMsgTime: new Date().getTime() - 1000 * 60 * 60 * 25, // 25 hours ago (Expired)
-                unread: 0,
-                messages: [
-                    { id: 1, type: 'in', text: "העברנו את הטיוטה הסופית במייל.", time: Date.now() - 90000000 },
-                    { id: 2, type: 'out', text: "תודה, קיבלנו. נעבור על זה עד מחר.", time: Date.now() - 88000000, status: 'read', agent: 'עו"ד רונית' }
-                ]
+            { id: 102, name: "חברת בניה בע\"מ", avatarColor: "bg-indigo-500", caseId: "חוזה 99", status: "המתנה", lawyer: "עו\"ד רונית", lastMsgTime: Date.now() - 90000000, unread: 0,
+              messages: [
+                { id: 1, type: 'in', text: "העברנו את הטיוטה הסופית במייל.", time: Date.now() - 90000000 },
+                { id: 2, type: 'out', text: "תודה, קיבלנו. נעבור על זה עד מחר.", time: Date.now() - 89000000, status: 'read', agent: 'עו"ד רונית' }
+              ]
             },
-            {
-                id: 3,
-                name: "דנה אינטרנשיונל",
-                avatarColor: "bg-pink-500",
-                caseInfo: "זכויות יוצרים",
-                lastMsgTime: new Date().getTime() - 1000 * 60 * 60 * 2, 
-                unread: 0,
-                messages: [
-                    { id: 1, type: 'out', text: "האם יש חדש עם השיר?", time: Date.now() - 7200000, status: 'delivered', agent: 'מזכירות' }
-                ]
+            { id: 103, name: "דנה כהן (ירושה)", avatarColor: "bg-pink-500", caseId: "צוואה 11", status: "סגור", lawyer: "עו\"ד דניאל", lastMsgTime: Date.now() - 172800000, unread: 0,
+              messages: [ { id: 1, type: 'out', text: "הצו קיום צוואה נשלח אלייך בדואר.", time: Date.now() - 172800000, status: 'read', agent: 'עו"ד דניאל' } ]
             },
-            {
-                id: 4,
-                name: "רון כהן (נדל\"ן)",
-                avatarColor: "bg-blue-500",
-                caseInfo: "רכישת דירה",
-                lastMsgTime: new Date().getTime() - 1000 * 60 * 60 * 48,
-                unread: 0,
-                messages: [
-                    { id: 1, type: 'in', text: "תודה רבה!", time: Date.now() - 172800000 }
-                ]
+            { id: 104, name: "משה אופקים", avatarColor: "bg-blue-500", caseId: "תעבורה 55", status: "חדש", lawyer: "מזכירות", lastMsgTime: Date.now() - 10000, unread: 1,
+              messages: [ { id: 1, type: 'in', text: "קיבלתי דוח, מה עושים?", time: Date.now() - 10000 } ]
             }
         ];
 
         let activeChatId = null;
-        let timeOffset = 0; // To simulate time passing
-
-        // --- DOM ELEMENTS ---
-        const chatListEl = document.getElementById('chatList');
-        const emptyStateEl = document.getElementById('emptyState');
-        const activeChatHeaderEl = document.getElementById('activeChatHeader');
-        const messagesAreaEl = document.getElementById('messagesArea');
-        const inputAreaEl = document.getElementById('inputArea');
-        const msgInput = document.getElementById('msgInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const micIcon = document.getElementById('micIcon');
-        const sendIcon = document.getElementById('sendIcon');
-        const expiredBanner = document.getElementById('expiredBanner');
-        const normalInput = document.getElementById('normalInput');
-        const sidebarEl = document.getElementById('sidebar');
-        const chatWindowEl = document.getElementById('chatWindow');
-        const searchInput = document.getElementById('searchInput');
-
-        // --- INITIALIZATION ---
+        let isCrmView = false;
+        
+        // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             renderChatList();
-            
-            // Check screen size
+            renderCRMTable();
+            updateTotalUnread();
+
+            // Mobile/Desktop Initial State
             if(window.innerWidth >= 768) {
-                emptyStateEl.classList.remove('hidden');
+                document.getElementById('emptyState').classList.remove('hidden');
             }
 
             // Input Listeners
-            msgInput.addEventListener('input', toggleSendIcon);
-            msgInput.addEventListener('keydown', (e) => {
-                if(e.key === 'Enter') sendMessage();
+            const msgInput = document.getElementById('msgInput');
+            msgInput.addEventListener('input', () => {
+                const hasText = msgInput.value.trim().length > 0;
+                document.getElementById('micIcon').classList.toggle('hidden', hasText);
+                document.getElementById('sendIcon').classList.toggle('hidden', !hasText);
             });
-
-            // Search Listener
-            searchInput.addEventListener('input', (e) => {
-                renderChatList(e.target.value);
-            });
-
-            // Back Button (Mobile)
-            document.getElementById('backBtn').addEventListener('click', () => {
-                activeChatId = null;
-                updateViewMode();
-            });
+            msgInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') sendMessage(); });
             
-            // Agent Select Listener
-            document.getElementById('agentSelect').addEventListener('change', (e) => {
-                currentUser.name = "עו\"ד " + e.target.value;
-                if(e.target.value === 'מזכירות') currentUser.name = 'מזכירות';
-            });
+            // Search
+            document.getElementById('searchInput').addEventListener('input', (e) => renderChatList(e.target.value));
         });
 
-        // --- CORE LOGIC ---
+        // --- NAVIGATION & VIEW LOGIC ---
+
+        function switchMainView(view, subView = null) {
+            const whatsappView = document.getElementById('whatsappView');
+            const crmDashboard = document.getElementById('crmDashboard');
+            const navChat = document.getElementById('nav-chat');
+            const navCrm = document.getElementById('nav-crm');
+
+            if (view === 'crm') {
+                isCrmView = true;
+                whatsappView.classList.add('hidden');
+                crmDashboard.classList.remove('hidden');
+                
+                // Active State Nav
+                navChat?.classList.remove('active-nav', 'bg-gray-200');
+                navCrm?.classList.add('active-nav', 'bg-gray-200');
+                
+                renderCRMTable(); // Refresh Data
+                
+                if(subView === 'files') {
+                    document.getElementById('filesSection').classList.remove('hidden');
+                }
+            } else {
+                isCrmView = false;
+                whatsappView.classList.remove('hidden');
+                crmDashboard.classList.add('hidden');
+                
+                navCrm?.classList.remove('active-nav', 'bg-gray-200');
+                navChat?.classList.add('active-nav', 'bg-gray-200');
+            }
+        }
+
+        function openChatMobile(id) {
+            selectChat(id);
+            // CSS classes to handle slide animation
+            document.querySelector('.app-wrapper').classList.add('show-chat');
+        }
+
+        function closeChatMobile() {
+            activeChatId = null;
+            document.querySelector('.app-wrapper').classList.remove('show-chat');
+            if(window.innerWidth >= 768) {
+                document.getElementById('emptyState').classList.remove('hidden');
+            }
+        }
+
+        // --- CHAT LOGIC ---
 
         function renderChatList(filter = '') {
-            chatListEl.innerHTML = '';
+            const list = document.getElementById('chatList');
+            list.innerHTML = '';
             
-            const filteredChats = chats
-                .filter(c => c.name.includes(filter) || c.caseInfo.includes(filter))
-                .sort((a, b) => b.lastMsgTime - a.lastMsgTime);
+            const sorted = chats.filter(c => c.name.includes(filter) || c.caseId.includes(filter))
+                                .sort((a,b) => b.lastMsgTime - a.lastMsgTime);
 
-            filteredChats.forEach(chat => {
+            sorted.forEach(chat => {
                 const isActive = chat.id === activeChatId;
                 const lastMsg = chat.messages[chat.messages.length - 1];
-                const timeStr = formatTimeShort(chat.lastMsgTime);
+                const timeStr = new Date(chat.lastMsgTime).toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'});
                 
-                const div = document.createElement('div');
-                div.className = `flex items-center p-3 cursor-pointer hover:bg-[#f5f6f6] border-b border-gray-100 relative group transition ${isActive ? 'bg-[#f0f2f5]' : 'bg-white'}`;
-                div.onclick = () => selectChat(chat.id);
+                const el = document.createElement('div');
+                el.className = `flex items-center p-3 cursor-pointer hover:bg-[#f5f6f6] border-b border-gray-100 relative group transition ${isActive ? 'bg-[#f0f2f5]' : 'bg-white'}`;
+                el.onclick = () => window.innerWidth < 768 ? openChatMobile(chat.id) : selectChat(chat.id);
                 
-                div.innerHTML = `
-                    <div class="w-12 h-12 rounded-full ${chat.avatarColor} text-white flex items-center justify-center text-lg font-medium shrink-0 ml-3">
+                el.innerHTML = `
+                    <div class="w-12 h-12 rounded-full ${chat.avatarColor} text-white flex items-center justify-center text-lg font-medium shrink-0 ml-3 relative">
                         ${chat.name.charAt(0)}
+                        ${chat.unread > 0 ? '<div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>' : ''}
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="flex justify-between items-baseline mb-1">
@@ -408,290 +472,237 @@
                         </div>
                     </div>
                 `;
-                chatListEl.appendChild(div);
+                list.appendChild(el);
             });
         }
 
         function selectChat(id) {
             activeChatId = id;
-            timeOffset = 0; // Reset simulation time on switch
-            
-            // Mark as read
             const chat = chats.find(c => c.id === id);
-            if(chat) chat.unread = 0;
-
-            renderChatList(searchInput.value);
-            renderChatWindow();
-            updateViewMode();
-        }
-
-        function updateViewMode() {
-            const isMobile = window.innerWidth < 768;
+            chat.unread = 0; // Mark as read
+            updateTotalUnread();
+            renderChatList();
             
-            if (isMobile) {
-                if (activeChatId) {
-                    sidebarEl.classList.add('hidden');
-                    chatWindowEl.classList.remove('hidden');
-                    chatWindowEl.classList.add('flex');
-                } else {
-                    sidebarEl.classList.remove('hidden');
-                    chatWindowEl.classList.add('hidden');
-                    chatWindowEl.classList.remove('flex');
-                }
-            } else {
-                sidebarEl.classList.remove('hidden');
-                chatWindowEl.classList.remove('hidden'); // Always show on desktop
-            }
-        }
-
-        function renderChatWindow() {
-            const chat = chats.find(c => c.id === activeChatId);
-            if (!chat) return;
-
-            // UI Toggles
-            emptyStateEl.classList.add('hidden');
-            activeChatHeaderEl.classList.remove('hidden');
-            activeChatHeaderEl.classList.add('flex');
-            messagesAreaEl.classList.remove('hidden');
-            inputAreaEl.classList.remove('hidden');
-
-            // Header Info
+            // Update UI
+            document.getElementById('emptyState').classList.add('hidden');
             document.getElementById('headerAvatar').className = `w-10 h-10 rounded-full ${chat.avatarColor} text-white flex items-center justify-center font-bold text-lg`;
             document.getElementById('headerAvatar').innerText = chat.name.charAt(0);
             document.getElementById('headerName').innerText = chat.name;
-            document.getElementById('headerInfo').innerText = chat.caseInfo;
-
-            // Render Messages
-            messagesAreaEl.innerHTML = ''; 
+            document.getElementById('headerInfo').innerText = `תיק: ${chat.caseId} | מטפל: ${chat.lawyer}`;
             
-            // Encryption Notice (Re-insert)
-            const encDiv = document.createElement('div');
-            encDiv.className = "flex justify-center mb-6 mt-2 select-none";
-            encDiv.innerHTML = `<div class="bg-[#ffeecd] text-[#54656f] text-[11.5px] px-3 py-1.5 rounded-lg shadow-sm text-center max-w-[90%] md:max-w-[60%] leading-relaxed"><span class="flex items-center justify-center gap-1.5 mb-1 font-bold text-[#f59f00]"><i data-lucide="lock" class="w-3 h-3"></i> ההודעות בשיחה זו מאובטחות</span>כל ההודעות והקבצים מתועדים באופן אוטומטי במערכת ה-CRM.</div>`;
-            messagesAreaEl.appendChild(encDiv);
-
+            // Messages
+            const container = document.getElementById('msgsContainer');
+            container.innerHTML = '';
             chat.messages.forEach(msg => {
-                appendMessageToDOM(msg);
+                container.appendChild(createMessageBubble(msg));
             });
-
-            check24HourWindow();
+            
             scrollToBottom();
-            lucide.createIcons();
+            check24Hour(chat);
         }
 
-        function appendMessageToDOM(msg) {
+        function createMessageBubble(msg) {
             const isOut = msg.type === 'out';
-            const div = document.createElement('div');
-            div.className = `flex mb-2 msg-anim ${isOut ? 'justify-start' : 'justify-end'}`;
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex mb-1 anim-slide-up ${isOut ? 'justify-start' : 'justify-end'}`;
             
-            const time = new Date(msg.time).toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'});
+            const time = new Date(msg.time).toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'});
             
-            let content = msg.text;
+            // Smart Content layout ensuring no overlap
+            let contentHtml = `<span class="text-[#111b21] text-[14.2px] whitespace-pre-wrap leading-[19px]">${msg.text}</span>`;
+            
             if(msg.isFile) {
-                content = `
-                    <div class="flex items-center gap-3 bg-black/5 p-2 rounded mb-1">
+                contentHtml = `
+                    <div class="flex items-center gap-3 bg-black/5 p-2 rounded mb-1 cursor-pointer hover:bg-black/10 transition">
                         <div class="bg-red-500 text-white p-2 rounded"><i data-lucide="file-text" class="w-6 h-6"></i></div>
-                        <span class="text-sm truncate font-medium">${msg.fileName || 'מסמך.pdf'}</span>
+                        <div class="overflow-hidden">
+                            <span class="text-sm truncate font-medium block">${msg.fileName}</span>
+                            <span class="text-xs text-gray-500 uppercase">PDF • 1.2 MB</span>
+                        </div>
                     </div>
-                    <span class="text-xs text-gray-500">${msg.text}</span>
                 `;
             }
 
-            div.innerHTML = `
-                <div class="relative max-w-[85%] md:max-w-[65%] rounded-lg px-2 py-1.5 shadow-sm text-sm ${isOut ? 'bg-white rounded-tr-none bubble-tail-in' : 'bg-[#d9fdd3] rounded-tl-none bubble-tail-out'}">
-                    ${isOut && msg.agent ? `<span class="text-[11px] font-bold text-[#e542a3] block mb-0.5">${msg.agent}</span>` : ''}
-                    ${msg.isTemplate ? `<span class="text-[10px] text-gray-400 font-bold uppercase block mb-1 tracking-widest">הודעת תבנית</span>` : ''}
+            wrapper.innerHTML = `
+                <div class="relative max-w-[85%] md:max-w-[65%] rounded-lg px-2 pt-1.5 pb-1 shadow-sm text-sm 
+                    ${isOut ? 'bg-white rounded-tr-none bubble-tail-in' : 'bg-[#d9fdd3] rounded-tl-none bubble-tail-out'}">
                     
-                    <div class="text-[#111b21] text-[14.2px] leading-[19px] whitespace-pre-wrap pb-2 pl-6">${content}</div>
+                    ${isOut && msg.agent ? `<div class="text-[12px] font-bold text-[#e542a3] mb-0.5">${msg.agent}</div>` : ''}
                     
-                    <div class="absolute bottom-1 left-2 flex items-center gap-1">
-                         <span class="text-[11px] text-[#667781]">${time}</span>
-                         ${!isOut ? `<span class="text-[#53bdeb]"><i data-lucide="check-check" class="w-3.5 h-3.5"></i></span>` : ''}
+                    <div class="flex flex-wrap gap-x-2 items-end">
+                        <div class="pb-1">${contentHtml}</div>
+                        <div class="text-[11px] text-[#667781] ml-auto flex items-center gap-1 shrink-0 h-4 self-end mb-0.5" dir="ltr">
+                            ${!isOut ? `<span class="text-[#53bdeb]"><i data-lucide="check-check" class="w-3.5 h-3.5"></i></span>` : ''}
+                            ${time}
+                        </div>
                     </div>
                 </div>
             `;
-            messagesAreaEl.appendChild(div);
-            lucide.createIcons();
-        }
-
-        // --- 24H WINDOW LOGIC ---
-        function check24HourWindow() {
-            const chat = chats.find(c => c.id === activeChatId);
-            if(!chat) return;
-
-            // Find last INCOMING message
-            const lastIn = [...chat.messages].reverse().find(m => m.type === 'in');
-            
-            let isExpired = false;
-            if (lastIn) {
-                const now = Date.now() + timeOffset;
-                const hoursDiff = (now - lastIn.time) / (1000 * 60 * 60);
-                if (hoursDiff >= 24) isExpired = true;
-            } else {
-                // If we never received a message, it's technically always expired unless we just started
-                isExpired = true; 
-            }
-
-            if (isExpired) {
-                normalInput.classList.add('hidden');
-                expiredBanner.classList.remove('hidden');
-            } else {
-                normalInput.classList.remove('hidden');
-                expiredBanner.classList.add('hidden');
-            }
-        }
-
-        function simulateTimeJump() {
-            timeOffset += 1000 * 60 * 60 * 25; // Add 25 hours
-            check24HourWindow();
-            alert("סומלצה קפיצה של 25 שעות. בדוק את שורת הקלט.");
-        }
-
-        function simulateIncoming() {
-            if(!activeChatId) return;
-            const chat = chats.find(c => c.id === activeChatId);
-            const msgs = ["תודה רבה!", "קיבלתי, אעבור על זה.", "מתי אפשר להתקשר?", "שלחתי את המסמכים במייל."];
-            const randomMsg = msgs[Math.floor(Math.random() * msgs.length)];
-            
-            const newMsg = {
-                id: Date.now(),
-                type: 'in',
-                text: randomMsg,
-                time: Date.now() + timeOffset
-            };
-
-            chat.messages.push(newMsg);
-            chat.lastMsgTime = newMsg.time;
-            timeOffset = 0; // Reset offset on interaction
-            
-            appendMessageToDOM(newMsg);
-            scrollToBottom();
-            check24HourWindow(); // Re-open window
-            renderChatList(); // Update list preview
-        }
-
-        // --- ACTIONS ---
-
-        function toggleSendIcon() {
-            if(msgInput.value.trim().length > 0) {
-                micIcon.classList.add('hidden');
-                sendIcon.classList.remove('hidden');
-            } else {
-                micIcon.classList.remove('hidden');
-                sendIcon.classList.add('hidden');
-            }
+            // Note: The flex-wrap + ml-auto + self-end ensures time sits at the end of the last line, or wraps if needed, without overlap.
+            return wrapper;
         }
 
         function sendMessage() {
-            const text = msgInput.value.trim();
+            const input = document.getElementById('msgInput');
+            const text = input.value.trim();
             if(!text) return;
-
+            
+            const chat = chats.find(c => c.id === activeChatId);
             const newMsg = {
                 id: Date.now(),
                 type: 'out',
                 text: text,
-                time: Date.now() + timeOffset,
+                time: Date.now(),
                 status: 'sent',
-                agent: document.getElementById('agentSelect').value // Get current selected agent
+                agent: 'עו"ד דניאל' // Hardcoded for demo
             };
-
-            addMessageToChat(newMsg);
-            msgInput.value = '';
-            toggleSendIcon();
-        }
-
-        function addMessageToChat(msg) {
-            const chat = chats.find(c => c.id === activeChatId);
-            chat.messages.push(msg);
-            chat.lastMsgTime = msg.time;
             
-            appendMessageToDOM(msg);
+            chat.messages.push(newMsg);
+            chat.lastMsgTime = newMsg.time;
+            
+            document.getElementById('msgsContainer').appendChild(createMessageBubble(newMsg));
+            input.value = '';
+            document.getElementById('sendIcon').classList.add('hidden');
+            document.getElementById('micIcon').classList.remove('hidden');
+            
             scrollToBottom();
-            renderChatList();
+            renderChatList(); // Update Sidebar list order/preview
+            
+            // Simulate Reply
+            setTimeout(() => {
+                // Only reply if still active chat
+                if(activeChatId === chat.id) {
+                     // small visual loading or just direct
+                }
+            }, 1000);
         }
 
+        function check24Hour(chat) {
+            // Find last incoming
+            const lastIn = [...chat.messages].reverse().find(m => m.type === 'in');
+            const isExpired = lastIn && (Date.now() - lastIn.time > 1000 * 60 * 60 * 24);
+            
+            const banner = document.getElementById('expiredBanner');
+            const normalInput = document.getElementById('normalInput');
+            
+            if(isExpired) {
+                banner.classList.remove('hidden');
+                normalInput.classList.add('hidden');
+            } else {
+                banner.classList.add('hidden');
+                normalInput.classList.remove('hidden');
+            }
+        }
+
+        // --- CRM LOGIC ---
+
+        function renderCRMTable() {
+            const tbody = document.getElementById('crmTableBody');
+            tbody.innerHTML = '';
+            
+            chats.forEach(chat => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full ${chat.avatarColor} text-white flex items-center justify-center text-xs font-bold">${chat.name.charAt(0)}</div>
+                        <span class="font-medium">${chat.name}</span>
+                    </td>
+                    <td><span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs">${chat.caseId}</span></td>
+                    <td><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(chat.status)}">
+                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>${chat.status}</span>
+                    </td>
+                    <td>${chat.lawyer}</td>
+                    <td class="text-gray-500 text-xs">${new Date(chat.lastMsgTime).toLocaleDateString('he-IL')}</td>
+                    <td>
+                        <button onclick="goToChatFromCRM(${chat.id})" class="text-blue-600 hover:bg-blue-50 p-1.5 rounded transition"><i data-lucide="message-square" class="w-4 h-4"></i></button>
+                        <button class="text-gray-400 hover:bg-gray-100 p-1.5 rounded transition"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        function goToChatFromCRM(id) {
+            switchMainView('whatsapp');
+            if(window.innerWidth < 768) {
+                openChatMobile(id);
+            } else {
+                selectChat(id);
+            }
+        }
+
+        function updateTotalUnread() {
+            const total = chats.reduce((acc, curr) => acc + curr.unread, 0);
+            document.getElementById('totalUnreadCrm').innerText = total;
+        }
+
+        function getStatusColor(status) {
+            const map = {
+                'פעיל': 'bg-green-100 text-green-700',
+                'המתנה': 'bg-yellow-100 text-yellow-700',
+                'סגור': 'bg-gray-100 text-gray-700',
+                'חדש': 'bg-blue-100 text-blue-700'
+            };
+            return map[status] || 'bg-gray-100 text-gray-700';
+        }
+
+        // --- UTILS ---
+        
         function scrollToBottom() {
-            messagesAreaEl.scrollTop = messagesAreaEl.scrollHeight;
+            const el = document.getElementById('messagesArea');
+            el.scrollTop = el.scrollHeight;
         }
-
-        // --- TEMPLATES ---
+        
+        function getStatusIcon(status) {
+            if(status === 'read') return `<span class="text-[#53bdeb] mx-1"><i data-lucide="check-check" class="w-3.5 h-3.5 inline"></i></span>`;
+            return `<span class="text-gray-400 mx-1"><i data-lucide="check" class="w-3.5 h-3.5 inline"></i></span>`;
+        }
+        
+        // Templates Logic (Simplified)
         function openTemplates() {
+            const modal = document.getElementById('templatesModal');
             const list = document.getElementById('templatesList');
             list.innerHTML = '';
-            const chat = chats.find(c => c.id === activeChatId);
-
-            templates.forEach(t => {
-                const compiledBody = t.body.replace('{{name}}', chat.name).replace('{{case}}', chat.caseInfo);
-                const el = document.createElement('div');
-                el.className = "p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer active:bg-blue-50 transition";
-                el.onclick = () => sendTemplate(compiledBody);
-                el.innerHTML = `
-                    <div class="font-bold text-sm text-[#111b21] mb-1">${t.title}</div>
-                    <div class="text-xs text-gray-500">${compiledBody}</div>
-                `;
-                list.appendChild(el);
+            
+            const tpls = [
+                { title: "עדכון בתיק", text: "שלום, יש עדכון חדש בתיק שלך. נשמח לשוחח." },
+                { title: "בקשת מסמכים", text: "היי, חסרים לנו מסמכים להמשך טיפול. אנא צור קשר." }
+            ];
+            
+            tpls.forEach(t => {
+                const div = document.createElement('div');
+                div.className = "p-3 border-b hover:bg-gray-50 cursor-pointer";
+                div.innerHTML = `<div class="font-bold text-sm mb-1">${t.title}</div><div class="text-xs text-gray-500">${t.text}</div>`;
+                div.onclick = () => {
+                    document.getElementById('msgInput').value = t.text;
+                    closeTemplates();
+                    sendMessage();
+                };
+                list.appendChild(div);
             });
-
-            document.getElementById('templatesModal').classList.remove('translate-y-full');
+            
+            modal.classList.remove('translate-y-full');
         }
-
+        
         function closeTemplates() {
             document.getElementById('templatesModal').classList.add('translate-y-full');
         }
 
-        function sendTemplate(text) {
-            closeTemplates();
-            const newMsg = {
-                id: Date.now(),
-                type: 'out',
-                text: text,
-                time: Date.now() + timeOffset,
-                status: 'sent',
-                agent: document.getElementById('agentSelect').value,
-                isTemplate: true
-            };
-            addMessageToChat(newMsg);
-            // Sending a template does NOT open the window immediately, customer must reply.
-            // So we don't call check24HourWindow() here to change state.
-        }
-
-        // --- FILE UPLOAD SIMULATION ---
-        function triggerFileUpload() {
-            document.getElementById('fileInput').click();
-        }
-
+        function triggerFileUpload() { document.getElementById('fileInput').click(); }
+        
         function handleFileUpload(input) {
-            if(input.files && input.files[0]) {
-                const file = input.files[0];
-                const newMsg = {
-                    id: Date.now(),
-                    type: 'out',
-                    text: 'המסמך נשמר בתיק הלקוח ב-CRM',
-                    isFile: true,
-                    fileName: file.name,
-                    time: Date.now() + timeOffset,
-                    status: 'sent',
-                    agent: document.getElementById('agentSelect').value
+            if(input.files[0]) {
+                const chat = chats.find(c => c.id === activeChatId);
+                const msg = {
+                    id: Date.now(), type: 'out', text: 'קובץ מצורף', time: Date.now(), status: 'sent', agent: 'עו"ד דניאל',
+                    isFile: true, fileName: input.files[0].name
                 };
-                addMessageToChat(newMsg);
+                chat.messages.push(msg);
+                document.getElementById('msgsContainer').appendChild(createMessageBubble(msg));
+                scrollToBottom();
             }
         }
-
-        // --- HELPERS ---
-        function formatTimeShort(timestamp) {
-            const date = new Date(timestamp);
-            return date.toLocaleTimeString('he-IL', {hour:'2-digit', minute:'2-digit'});
-        }
-
-        function getStatusIcon(status) {
-            // Simple SVG strings for status
-            if(status === 'read') return `<span class="text-[#53bdeb] mx-1"><i data-lucide="check-check" class="w-3.5 h-3.5 inline"></i></span>`;
-            return `<span class="text-gray-400 mx-1"><i data-lucide="check" class="w-3.5 h-3.5 inline"></i></span>`;
-        }
-
-        // Resize Listener
-        window.addEventListener('resize', updateViewMode);
-
     </script>
 </body>
 </html>
