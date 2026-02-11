@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Sunlytics AI - Interactive Demo</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --blue-600: #2563eb;
+            --blue-100: #dbeafe;
+            --emerald-500: #10b981;
+            --emerald-600: #059669;
+            --emerald-50: #ecfdf5;
+            --amber-500: #f59e0b;
+            --amber-50: #fffbeb;
+            --red-500: #ef4444;
+            --red-50: #fef2f2;
+            --red-600: #dc2626;
+            --purple-500: #8b5cf6;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1;
+            --slate-400: #94a3b8;
+            --slate-600: #475569;
+            --slate-700: #334155;
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
+            --solaredge-red: #D52B1E;
+            --whatsapp-green: #075E54;
+            --whatsapp-light: #25D366;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Heebo', 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- iPhone Frame --- */
+        .iphone-frame {
+            width: 375px;
+            height: 812px;
+            max-height: calc(100vh - 32px);
+            background: #000;
+            border-radius: 50px;
+            box-shadow:
+                0 0 0 2px #1a1a2e,
+                0 0 0 4px #16213e,
+                0 25px 80px -12px rgba(0, 0, 0, 0.7),
+                0 0 60px rgba(37, 99, 235, 0.08);
+            padding: 12px;
+            position: relative;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            border-radius: 38px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 126px;
+            height: 28px;
+            background: #000;
+            border-bottom-left-radius: 18px;
+            border-bottom-right-radius: 18px;
+            z-index: 50;
+        }
+
+        .status-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 44px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 24px 0;
+            z-index: 40;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .status-bar.light {
+            color: #1e293b;
+        }
+
+        .status-bar.dark {
+            color: #fff;
+        }
+
+        .status-bar .time {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .status-bar .icons {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .status-bar .icons svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* --- Screens --- */
+        .app-screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+        }
+
+        .app-screen.active {
+            display: flex;
+        }
+
+        /* --- Animations --- */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-120%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 0 8px rgba(37, 99, 235, 0);
+            }
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.8);
+                opacity: 0.5;
+            }
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0;
+            }
+
+            100% {
+                top: 100%;
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes typing {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes countUp {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .animate-slideUp {
+            animation: slideUp 0.5s ease-out forwards;
+        }
+
+        .animate-slideDown {
+            animation: slideDown 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .animate-pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+
+        /* --- LOGIN SCREEN --- */
+        #login-screen {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            justify-content: center;
+            align-items: center;
+            padding: 16px 24px;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .logo-container {
+            width: 64px;
+            height: 64px;
+            background: white;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(34, 139, 34, 0.2);
+            margin: 0 auto 12px;
+            overflow: hidden;
+        }
+
+        /* Sungrow active */
+        .provider-card.sungrow-active {
+            border-color: #F58220;
+            box-shadow: 0 4px 20px rgba(245, 130, 32, 0.12);
+        }
+
+        .login-btn.sungrow {
+            background: #F58220;
+            color: white;
+            box-shadow: 0 4px 16px rgba(245, 130, 32, 0.3);
+        }
+
+        .login-btn.sungrow:hover {
+            background: #d9711b;
+            transform: translateY(-1px);
+        }
+
+        /* OAuth overlay */
+        .oauth-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 38px;
+        }
+
+        .oauth-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--slate-200);
+            border-top-color: #F58220;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes oauth-check {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .oauth-check {
+            animation: oauth-check 0.4s ease-out forwards;
+        }
+
+        .provider-card {
+            width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        .provider-card.active {
+            border-color: var(--solaredge-red);
+            box-shadow: 0 4px 20px rgba(213, 43, 30, 0.12);
+        }
+
+        .provider-card.disabled {
+            opacity: 0.5;
+            background: var(--slate-50);
+            cursor: not-allowed;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            font-family: 'Heebo', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .login-btn.primary {
+            background: var(--solaredge-red);
+            color: white;
+            box-shadow: 0 4px 16px rgba(213, 43, 30, 0.3);
+        }
+
+        .login-btn.primary:hover {
+            background: #b82318;
+            transform: translateY(-1px);
+        }
+
+        /* --- DASHBOARD SCREEN --- */
+        #dashboard-screen {
+            background: var(--bg-primary);
+        }
+
+        .dashboard-header {
+            padding: 52px 20px 16px;
+            background: white;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        }
+
+        .stat-card .label {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .stat-card .value {
+            font-size: 20px;
+            font-weight: 800;
+            font-family: 'Inter', monospace;
+            color: var(--text-primary);
+            margin-top: 2px;
+        }
+
+        .stat-card .sub {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .stat-card.live {
+            border-color: rgba(16, 185, 129, 0.3);
+            background: linear-gradient(135deg, rgba(236, 253, 245, 0.5), white);
+        }
+
+        .inverter-row {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.4s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        }
+
+        .inverter-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 12px;
+            transition: all 0.4s ease;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            border: 1px solid;
+        }
+
+        .status-badge.active {
+            color: var(--emerald-600);
+            border-color: rgba(16, 185, 129, 0.3);
+            background: var(--emerald-50);
+        }
+
+        .status-badge.error {
+            color: var(--red-600);
+            border-color: rgba(239, 68, 68, 0.3);
+            background: var(--red-50);
+        }
+
+        .status-badge.warning {
+            color: #d97706;
+            border-color: rgba(245, 158, 11, 0.3);
+            background: var(--amber-50);
+        }
+
+        /* Scanner */
+        .scanner-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 15;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .scanner-line {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: linear-gradient(180deg, transparent, rgba(37, 99, 235, 0.12), transparent);
+            animation: scan 2s ease-in-out;
+        }
+
+        .scanner-label {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* Push Notification */
+        .push-notification {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(16px);
+            border-radius: 16px;
+            padding: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            z-index: 60;
+            transform: translateY(-140%);
+            cursor: pointer;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        /* --- CHAT SCREEN --- */
+        .chat-header {
+            background: var(--whatsapp-green);
+            padding: 48px 16px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+
+        .chat-bg {
+            background-color: #e5ddd5;
+            background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 12h8v8h-8V12zm32 0h8v8h-8V12zm-16 16h8v8h-8V28zm32 0h8v8h-8V28zM12 44h8v8h-8V44zm32 0h8v8h-8V44zm-16 16h8v8h-8V60z' fill='%23d1d5db' fill-opacity='0.3'/%3E%3C/svg%3E");
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .chat-bg::-webkit-scrollbar {
+            display: none;
+        }
+
+        .chat-date {
+            align-self: center;
+            background: #e1f3fb;
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 8px;
+            border: 1px solid #cbebf8;
+            margin-bottom: 8px;
+        }
+
+        .msg-bubble {
+            max-width: 82%;
+            padding: 8px 10px;
+            border-radius: 10px;
+            font-size: 13.5px;
+            line-height: 1.5;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .msg-in {
+            background: white;
+            align-self: flex-start;
+            border-top-right-radius: 2px;
+        }
+
+        .msg-out {
+            background: #dcf8c6;
+            align-self: flex-end;
+            border-top-left-radius: 2px;
+        }
+
+        .msg-time {
+            font-size: 9px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            justify-content: flex-end;
+            margin-top: 3px;
+        }
+
+        .msg-out .msg-time {
+            color: #6b8e60;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 3px;
+            padding: 10px 14px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #b0b0b0;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        .chat-input-bar {
+            background: white;
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-top: 1px solid var(--border);
+        }
+
+        .chat-input-bar input {
+            flex: 1;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-family: 'Heebo', sans-serif;
+            outline: none;
+            background: white;
+            direction: rtl;
+        }
+
+        .send-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--slate-200);
+            color: var(--slate-400);
+        }
+
+        .send-btn.ready {
+            background: var(--whatsapp-light);
+            color: white;
+            animation: pulse-glow 2s infinite;
+        }
+
+        /* scrollbar hide */
+        .no-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scroll {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* helper */
+        .hidden {
+            display: none !important;
+        }
+
+        .home-indicator {
+            width: 134px;
+            height: 5px;
+            background: #1e293b;
+            border-radius: 100px;
+            margin: 6px auto 8px;
+            opacity: 0.2;
+        }
+
+        /* ===== MOBILE RESPONSIVE: full-screen on real devices ===== */
+        @media screen and (max-width: 430px) {
+
+            html,
+            body {
+                height: 100%;
+                overflow: hidden;
+            }
+
+            body {
+                background: var(--bg-primary);
+                align-items: stretch;
+                justify-content: stretch;
+            }
+
+            .iphone-frame {
+                width: 100%;
+                height: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                padding: 0;
+                background: var(--bg-primary);
+            }
+
+            .screen {
+                border-radius: 0;
+                height: 100vh;
+                height: 100dvh;
+                /* dynamic viewport height - accounts for browser chrome */
+            }
+
+            .notch {
+                display: none;
+            }
+
+            .home-indicator {
+                display: none;
+            }
+
+            /* Use safe-area-insets for real notch/status bar */
+            .status-bar {
+                padding-top: max(8px, env(safe-area-inset-top));
+                height: max(44px, calc(env(safe-area-inset-top) + 20px));
+            }
+
+            .dashboard-header {
+                padding-top: max(52px, calc(env(safe-area-inset-top) + 28px));
+            }
+
+            .chat-header {
+                padding-top: max(48px, calc(env(safe-area-inset-top) + 24px));
+            }
+
+            #login-screen {
+                padding-top: max(32px, calc(env(safe-area-inset-top) + 16px));
+            }
+
+            /* Safe area bottom for gesture-nav phones */
+            .chat-input-bar {
+                padding-bottom: max(8px, env(safe-area-inset-bottom));
+            }
+
+            #chat-screen>div:last-child {
+                height: max(8px, env(safe-area-inset-bottom));
+            }
+
+            /* OAuth overlay fills the real screen */
+            .oauth-overlay {
+                border-radius: 0;
+            }
+        }
+
+        /* Medium screens (tablets) - slightly bigger frame */
+        @media screen and (min-width: 431px) and (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+
+            .iphone-frame {
+                width: 100%;
+                max-width: 400px;
+                height: calc(100vh - 32px);
+                border-radius: 40px;
+                padding: 8px;
+            }
+
+            .screen {
+                border-radius: 32px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="iphone-frame">
+        <div class="notch"></div>
+
+        <div class="screen">
+
+            <!-- Status Bar (shared) -->
+            <div id="statusbar" class="status-bar light">
+                <span class="time">10:20</span>
+                <span class="icons">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path
+                            d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01" />
+                    </svg>
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="1" y="6" width="3" height="12" rx="1" />
+                        <rect x="6" y="4" width="3" height="14" rx="1" />
+                        <rect x="11" y="2" width="3" height="16" rx="1" />
+                        <rect x="16" y="5" width="3" height="13" rx="1" />
+                    </svg>
+                    <svg viewBox="0 0 28 14" fill="none">
+                        <rect x="0.5" y="0.5" width="22" height="13" rx="2" stroke="currentColor" />
+                        <rect x="2" y="2" width="16" height="10" rx="1" fill="currentColor" />
+                        <rect x="24" y="4" width="3" height="6" rx="1" fill="currentColor" opacity="0.4" />
+                    </svg>
+                </span>
+            </div>
+
+            <!-- ==================== LOGIN SCREEN ==================== -->
+            <div id="login-screen" class="app-screen active">
+                <div
+                    style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:16px 24px;">
+
+                    <!-- Logo & Title -->
+                    <div style="text-align:center; margin-bottom:28px;">
+                        <div class="logo-container">
+                            <!-- Sunlytics Logo: Sun + Solar Panels -->
+                            <svg viewBox="0 0 100 100" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+                                <!-- Sun rays -->
+                                <g stroke="#F5B731" stroke-width="4" stroke-linecap="round">
+                                    <line x1="50" y1="8" x2="50" y2="16" />
+                                    <line x1="50" y1="8" x2="50" y2="16" transform="rotate(45 50 32)" />
+                                    <line x1="50" y1="8" x2="50" y2="16" transform="rotate(90 50 32)" />
+                                    <line x1="50" y1="8" x2="50" y2="16" transform="rotate(135 50 32)" />
+                                    <line x1="50" y1="8" x2="50" y2="16" transform="rotate(180 50 32)" />
+                                    <line x1="50" y1="8" x2="50" y2="16" transform="rotate(225 50 32)" />
+                                    <line x1="50" y1="8" x2="50" y2="16" transform="rotate(270 50 32)" />
+                                    <line x1="50" y1="8" x2="50" y2="16" transform="rotate(315 50 32)" />
+                                </g>
+                                <!-- Sun circle -->
+                                <circle cx="50" cy="32" r="12" fill="#F5B731" />
+                                <!-- Solar panels grid -->
+                                <g fill="#2D7A3A">
+                                    <rect x="32" y="52" width="11" height="9" rx="1.5" transform="rotate(-15 37 56)" />
+                                    <rect x="46" y="52" width="11" height="9" rx="1.5" transform="rotate(-15 51 56)" />
+                                    <rect x="60" y="52" width="11" height="9" rx="1.5" transform="rotate(-15 65 56)" />
+                                    <rect x="28" y="64" width="11" height="9" rx="1.5" transform="rotate(-15 33 68)" />
+                                    <rect x="42" y="64" width="11" height="9" rx="1.5" transform="rotate(-15 47 68)" />
+                                    <rect x="56" y="64" width="11" height="9" rx="1.5" transform="rotate(-15 61 68)" />
+                                    <rect x="24" y="76" width="11" height="9" rx="1.5" transform="rotate(-15 29 80)" />
+                                    <rect x="38" y="76" width="11" height="9" rx="1.5" transform="rotate(-15 43 80)" />
+                                    <rect x="52" y="76" width="11" height="9" rx="1.5" transform="rotate(-15 57 80)" />
+                                </g>
+                            </svg>
+                        </div>
+                        <h1 style="font-size:24px; font-weight:800; color:var(--text-primary); margin-bottom:2px;">
+                            Sunlytics</h1>
+                        <p style="font-size:12px; color:var(--text-secondary); font-weight:400;">ניטור חכם למערכות
+                            סולאריות</p>
+                    </div>
+
+                    <!-- SolarEdge Provider -->
+                    <div class="provider-card active" style="margin-bottom:10px;">
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div
+                                    style="width:28px; height:28px; background:var(--solaredge-red); border-radius:6px; display:flex; align-items:center; justify-content:center;">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="white">
+                                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                                    </svg>
+                                </div>
+                                <span
+                                    style="font-weight:700; font-size:15px; color:var(--text-primary);">SolarEdge</span>
+                            </div>
+                            <div class="status-badge active" style="font-size:9px;">
+                                <i data-lucide="check" style="width:10px; height:10px;"></i>
+                                מזוהה
+                            </div>
+                        </div>
+                        <div style="margin-bottom:16px;">
+                            <div style="font-size:10px; color:var(--text-muted); margin-bottom:2px;">Site ID</div>
+                            <div
+                                style="font-family:'Inter',monospace; font-size:20px; font-weight:800; color:var(--text-primary); letter-spacing:2px;">
+                                294812</div>
+                        </div>
+                        <button class="login-btn primary" onclick="goToDashboard()">
+                            התחבר למערכת
+                            <i data-lucide="arrow-left" style="width:16px; height:16px;"></i>
+                        </button>
+                    </div>
+
+                    <!-- Sungrow Provider (Active - OAuth2) -->
+                    <div class="provider-card sungrow-active" id="sungrow-card">
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div
+                                    style="width:28px; height:28px; background:#F58220; border-radius:6px; display:flex; align-items:center; justify-content:center;">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="white">
+                                        <circle cx="12" cy="12" r="5" />
+                                        <path stroke="white" stroke-width="2"
+                                            d="M12 1v2m0 18v2m11-11h-2M3 12H1m16.36-7.36l-1.42 1.42M7.05 16.95l-1.42 1.42m12.73 0l-1.42-1.42M7.05 7.05L5.63 5.63" />
+                                    </svg>
+                                </div>
+                                <span style="font-weight:700; font-size:15px; color:var(--text-primary);">Sungrow</span>
+                            </div>
+                            <div id="sungrow-status" class="status-badge active" style="font-size:9px;">
+                                <i data-lucide="link" style="width:10px; height:10px;"></i>
+                                OAuth2
+                            </div>
+                        </div>
+                        <div style="margin-bottom:16px;">
+                            <div style="font-size:10px; color:var(--text-muted); margin-bottom:2px;">Plant ID
+                                (iSolarCloud)</div>
+                            <div
+                                style="font-family:'Inter',monospace; font-size:20px; font-weight:800; color:var(--text-primary); letter-spacing:2px;">
+                                P8834721</div>
+                        </div>
+                        <button class="login-btn sungrow" id="sungrow-btn" onclick="connectSungrow()">
+                            <i data-lucide="external-link" style="width:16px; height:16px;"></i>
+                            התחבר עם iSolarCloud
+                        </button>
+                    </div>
+                </div>
+
+                <div style="text-align:center; padding-bottom:16px;">
+                    <span style="font-size:10px; color:var(--text-muted);">גרסה 2.4.1 Beta</span>
+                </div>
+                <div class="home-indicator"></div>
+            </div>
+
+            <!-- ==================== DASHBOARD SCREEN ==================== -->
+            <div id="dashboard-screen" class="app-screen">
+
+                <!-- Header -->
+                <div class="dashboard-header">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <p style="font-size:11px; color:var(--text-muted); margin-bottom:2px;">שלום, ישראל ישראלי
+                            </p>
+                            <h2 style="font-size:18px; font-weight:800; color:var(--text-primary);">אתר קיבוץ יזרעאל
+                            </h2>
+                        </div>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <div id="refresh-btn"
+                                style="width:32px; height:32px; border-radius:8px; background:var(--slate-100); display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                                <i data-lucide="refresh-cw"
+                                    style="width:16px; height:16px; color:var(--text-muted);"></i>
+                            </div>
+                            <div
+                                style="width:32px; height:32px; border-radius:50%; background:var(--slate-100); display:flex; align-items:center; justify-content:center;">
+                                <i data-lucide="user" style="width:16px; height:16px; color:var(--text-muted);"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Strip -->
+                    <div id="status-strip"
+                        style="display:flex; gap:12px; margin-top:12px; align-items:center; opacity:0; transition:opacity 0.5s ease;">
+                        <div style="display:flex; align-items:center; gap:4px;">
+                            <span
+                                style="width:6px; height:6px; border-radius:50%; background:var(--emerald-500); display:inline-block;"></span>
+                            <span style="font-size:11px; color:var(--emerald-600); font-weight:600;">3 תקינים</span>
+                        </div>
+                        <span style="opacity:0.2; color:var(--text-muted);">•</span>
+                        <div style="display:flex; align-items:center; gap:4px;">
+                            <i data-lucide="activity" style="width:12px; height:12px; color:var(--emerald-500);"></i>
+                            <span style="font-size:11px; color:var(--text-muted);">זמן אמת</span>
+                            <span id="live-dot"
+                                style="width:5px; height:5px; border-radius:50%; background:var(--emerald-500); animation:pulse-dot 2s infinite;"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scanner Overlay -->
+                <div id="scanner" class="scanner-overlay hidden">
+                    <div class="scanner-line"></div>
+                    <div class="scanner-label">
+                        <i data-lucide="scan"
+                            style="width:12px; height:12px; display:inline; vertical-align:-2px; margin-left:4px;"></i>
+                        מבצע סריקת בריאות...
+                    </div>
+                </div>
+
+                <!-- Dashboard Content -->
+                <div style="flex:1; overflow-y:auto; padding:16px 16px 24px;" class="no-scroll">
+
+                    <!-- Stat Cards Grid -->
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+                        <!-- Power Now -->
+                        <div class="stat-card live">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <span class="label">ייצור כעת</span>
+                                <i data-lucide="zap" style="width:14px; height:14px; color:var(--emerald-500);"></i>
+                            </div>
+                            <div class="value" id="power-now" dir="ltr" style="color:var(--emerald-600);">0 kW</div>
+                            <div class="sub">הספק AC רגעי</div>
+                        </div>
+                        <!-- Daily Energy -->
+                        <div class="stat-card">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <span class="label">אנרגיה יומית</span>
+                                <i data-lucide="sun" style="width:14px; height:14px; color:var(--amber-500);"></i>
+                            </div>
+                            <div class="value" id="daily-energy" dir="ltr">0 kWh</div>
+                            <div class="sub" id="daily-revenue" style="color:var(--emerald-600); font-weight:600;">₪0
+                            </div>
+                        </div>
+                        <!-- Efficiency -->
+                        <div class="stat-card">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <span class="label">יעילות רגעית</span>
+                                <i data-lucide="gauge" style="width:14px; height:14px; color:var(--blue-600);"></i>
+                            </div>
+                            <div class="value" id="efficiency" dir="ltr">-%</div>
+                            <div class="sub">ניצול פוטנציאל</div>
+                        </div>
+                        <!-- DC Capacity -->
+                        <div class="stat-card">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <span class="label">הספק DC מותקן</span>
+                                <i data-lucide="server" style="width:14px; height:14px; color:var(--purple-500);"></i>
+                            </div>
+                            <div class="value" dir="ltr">300 kWp</div>
+                            <div class="sub">3 ממירים</div>
+                        </div>
+                    </div>
+
+                    <!-- Inverters Section -->
+                    <div style="margin-bottom:12px;">
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <h3
+                                style="font-size:13px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
+                                <i data-lucide="activity" style="width:14px; height:14px; color:var(--purple-500);"></i>
+                                מצב ממירים (3)
+                            </h3>
+                            <span
+                                style="font-size:10px; color:var(--text-muted); display:flex; align-items:center; gap:4px;">
+                                <i data-lucide="database" style="width:10px; height:10px;"></i>
+                                Live
+                            </span>
+                        </div>
+
+                        <div style="display:flex; flex-direction:column; gap:8px;">
+                            <!-- Inverter 1 - North -->
+                            <div class="inverter-row" id="inv-north">
+                                <div style="display:flex; align-items:center;">
+                                    <div class="inverter-icon"
+                                        style="background:var(--emerald-50); color:var(--emerald-600);">
+                                        <i data-lucide="zap" style="width:18px; height:18px;"></i>
+                                    </div>
+                                    <div>
+                                        <p style="font-size:13px; font-weight:700; color:var(--text-primary);">ממיר צפון
+                                        </p>
+                                        <div style="display:flex; align-items:center; gap:6px;">
+                                            <span style="font-size:10px; color:var(--text-muted);">SE-100K</span>
+                                            <span class="status-badge active"
+                                                style="font-size:8px; padding:1px 6px;">MPPT</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="text-align:left;">
+                                    <span
+                                        style="font-family:'Inter',monospace; font-weight:800; color:var(--text-primary); font-size:15px;"
+                                        id="inv-n-power">0</span>
+                                    <span style="font-size:11px; color:var(--text-muted);"> kW</span>
+                                </div>
+                            </div>
+
+                            <!-- Inverter 2 - South (will fault) -->
+                            <div class="inverter-row" id="inv-south">
+                                <div style="display:flex; align-items:center;">
+                                    <div class="inverter-icon" id="inv-south-icon"
+                                        style="background:var(--emerald-50); color:var(--emerald-600);">
+                                        <i data-lucide="zap" style="width:18px; height:18px;"></i>
+                                    </div>
+                                    <div>
+                                        <p style="font-size:13px; font-weight:700; color:var(--text-primary);">ממיר דרום
+                                        </p>
+                                        <div style="display:flex; align-items:center; gap:6px;">
+                                            <span style="font-size:10px; color:var(--text-muted);">SE-100K</span>
+                                            <span class="status-badge active" id="inv-south-badge"
+                                                style="font-size:8px; padding:1px 6px;">MPPT</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="text-align:left;">
+                                    <span
+                                        style="font-family:'Inter',monospace; font-weight:800; color:var(--text-primary); font-size:15px;"
+                                        id="inv-s-power">0</span>
+                                    <span style="font-size:11px; color:var(--text-muted);" id="inv-s-unit"> kW</span>
+                                </div>
+                            </div>
+
+                            <!-- Inverter 3 - East -->
+                            <div class="inverter-row" id="inv-east">
+                                <div style="display:flex; align-items:center;">
+                                    <div class="inverter-icon"
+                                        style="background:var(--emerald-50); color:var(--emerald-600);">
+                                        <i data-lucide="zap" style="width:18px; height:18px;"></i>
+                                    </div>
+                                    <div>
+                                        <p style="font-size:13px; font-weight:700; color:var(--text-primary);">ממיר מזרח
+                                        </p>
+                                        <div style="display:flex; align-items:center; gap:6px;">
+                                            <span style="font-size:10px; color:var(--text-muted);">SE-100K</span>
+                                            <span class="status-badge active"
+                                                style="font-size:8px; padding:1px 6px;">MPPT</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="text-align:left;">
+                                    <span
+                                        style="font-family:'Inter',monospace; font-weight:800; color:var(--text-primary); font-size:15px;"
+                                        id="inv-e-power">0</span>
+                                    <span style="font-size:11px; color:var(--text-muted);"> kW</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 30 Day Card -->
+                    <div class="stat-card" style="margin-top:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <span class="label">30 ימים אחרונים</span>
+                                <div class="value" dir="ltr" style="font-size:18px;">42.5 MWh</div>
+                            </div>
+                            <div style="text-align:left;">
+                                <span class="label">שווי</span>
+                                <div
+                                    style="font-size:16px; font-weight:800; color:var(--emerald-600); font-family:'Inter',sans-serif;">
+                                    ₪20,400</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Push Notification -->
+                <div id="push-notification" class="push-notification" onclick="goToChat()">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <div
+                                style="width:18px; height:18px; border-radius:4px; background:var(--whatsapp-light); display:flex; align-items:center; justify-content:center;">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="white">
+                                    <path
+                                        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.008-.57-.008-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                                </svg>
+                            </div>
+                            <span
+                                style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">WhatsApp</span>
+                        </div>
+                        <span style="font-size:10px; color:var(--text-muted);">עכשיו</span>
+                    </div>
+                    <div style="padding:0 2px;">
+                        <h4 style="font-size:13px; font-weight:700; color:var(--text-primary); margin-bottom:2px;">🤖
+                            Sunlytics AI Analyst</h4>
+                        <p style="font-size:12.5px; color:var(--slate-600); line-height:1.4;">⚠️ זיהיתי ירידה חריגה
+                            בממיר דרום. ייצור ירד ל-0kW. לחץ לפרטים.</p>
+                    </div>
+                </div>
+
+                <div class="home-indicator"></div>
+            </div>
+
+            <!-- ==================== CHAT SCREEN ==================== -->
+            <div id="chat-screen" class="app-screen">
+
+                <!-- Chat Header -->
+                <div class="chat-header">
+                    <button style="background:none; border:none; color:white; cursor:pointer; padding:4px;">
+                        <i data-lucide="arrow-right" style="width:22px; height:22px;"></i>
+                    </button>
+                    <div
+                        style="width:36px; height:36px; border-radius:50%; background:white; display:flex; align-items:center; justify-content:center; border:2px solid rgba(255,255,255,0.3);">
+                        <i data-lucide="bot" style="width:20px; height:20px; color:var(--whatsapp-green);"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <h3 style="font-size:14px; font-weight:700;">Sunlytics AI Analyst</h3>
+                        <p style="font-size:10px; color:rgba(255,255,255,0.7);">מחובר כעת</p>
+                    </div>
+                    <div style="display:flex; gap:16px;">
+                        <i data-lucide="video" style="width:18px; height:18px;"></i>
+                        <i data-lucide="phone" style="width:18px; height:18px;"></i>
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div id="chat-messages" class="chat-bg no-scroll">
+                    <div class="chat-date">היום</div>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="chat-input-bar">
+                    <input id="chat-input" type="text" placeholder="" readonly>
+                    <button id="send-btn" class="send-btn" onclick="sendUserMessage()">
+                        <i data-lucide="send" style="width:18px; height:18px; margin-right:2px;"></i>
+                    </button>
+                </div>
+                <div style="height:20px; background:white;"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // ====== SUNGROW OAUTH2 FLOW ======
+        function connectSungrow() {
+            const screen = document.getElementById('login-screen');
+
+            // Show OAuth overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'oauth-overlay';
+            overlay.id = 'oauth-overlay';
+            overlay.innerHTML = `
+            <div class="oauth-spinner" style="margin-bottom:16px;"></div>
+            <div style="font-size:14px; font-weight:700; color:var(--text-primary); margin-bottom:4px;">מתחבר ל-iSolarCloud...</div>
+            <div style="font-size:11px; color:var(--text-muted);">מפנה לעמוד האימות של Sungrow</div>
+        `;
+            screen.appendChild(overlay);
+
+            // Phase 2: Show "Authenticating"
+            setTimeout(() => {
+                overlay.innerHTML = `
+                <div style="width:48px; height:48px; border-radius:12px; background:#F58220; display:flex; align-items:center; justify-content:center; margin-bottom:16px;">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="white"><circle cx="12" cy="12" r="5"/><path stroke="white" stroke-width="2" d="M12 1v2m0 18v2m11-11h-2M3 12H1m16.36-7.36l-1.42 1.42M7.05 16.95l-1.42 1.42m12.73 0l-1.42-1.42M7.05 7.05L5.63 5.63"/></svg>
+                </div>
+                <div class="oauth-spinner" style="margin-bottom:16px;"></div>
+                <div style="font-size:14px; font-weight:700; color:var(--text-primary); margin-bottom:4px;">מאמת הרשאות OAuth2...</div>
+                <div style="font-size:11px; color:var(--text-muted);">מקבל Token מ-iSolarCloud API</div>
+            `;
+            }, 1500);
+
+            // Phase 3: Success!
+            setTimeout(() => {
+                overlay.innerHTML = `
+                <div class="oauth-check" style="width:56px; height:56px; border-radius:50%; background:var(--emerald-50); border:2px solid var(--emerald-500); display:flex; align-items:center; justify-content:center; margin-bottom:16px;">
+                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--emerald-600)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div style="font-size:16px; font-weight:800; color:var(--emerald-600); margin-bottom:4px;">חיבור הצליח!</div>
+                <div style="font-size:12px; color:var(--text-secondary); margin-bottom:16px;">Sungrow Plant P8834721 מחובר</div>
+                <div style="font-size:10px; color:var(--text-muted);">מעביר לדשבורד...</div>
+            `;
+            }, 3500);
+
+            // Phase 4: Go to dashboard
+            setTimeout(() => {
+                overlay.remove();
+                goToDashboard();
+            }, 5000);
+        }
+
+        // ====== SCREEN MANAGEMENT ======
+        function showScreen(id) {
+            document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+
+            const sb = document.getElementById('statusbar');
+            if (id === 'chat-screen') {
+                sb.classList.remove('light');
+                sb.classList.add('dark');
+            } else {
+                sb.classList.remove('dark');
+                sb.classList.add('light');
+            }
+        }
+
+        // ====== LOGIN → DASHBOARD ======
+        function goToDashboard() {
+            showScreen('dashboard-screen');
+            runDashboardSequence();
+        }
+
+        function runDashboardSequence() {
+            const scanner = document.getElementById('scanner');
+            scanner.classList.remove('hidden');
+
+            // Animate stat cards
+            setTimeout(() => {
+                document.getElementById('status-strip').style.opacity = '1';
+            }, 500);
+
+            // Animate power values
+            const targets = { n: 85, s: 82, e: 78 };
+            const totalPower = targets.n + targets.s + targets.e; // 245 kW
+            const dailyTarget = 1850;
+            let step = 0;
+            const totalSteps = 60;
+
+            const interval = setInterval(() => {
+                step++;
+                const progress = Math.min(step / totalSteps, 1);
+                const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+
+                document.getElementById('inv-n-power').textContent = Math.round(targets.n * eased);
+                document.getElementById('inv-s-power').textContent = Math.round(targets.s * eased);
+                document.getElementById('inv-e-power').textContent = Math.round(targets.e * eased);
+
+                const currentPower = Math.round(totalPower * eased);
+                document.getElementById('power-now').textContent = currentPower + ' kW';
+
+                const currentDaily = Math.round(dailyTarget * eased);
+                document.getElementById('daily-energy').textContent = (currentDaily / 1000).toFixed(1) + ' MWh';
+                document.getElementById('daily-revenue').textContent = '₪' + Math.round(currentDaily * 0.48).toLocaleString();
+
+                const eff = Math.round(81 * eased);
+                document.getElementById('efficiency').textContent = (eff || '-') + '%';
+
+                if (step >= totalSteps) {
+                    clearInterval(interval);
+                    scanner.classList.add('hidden');
+                }
+            }, 35);
+
+            // Trigger fault after 4 seconds
+            setTimeout(triggerFault, 4000);
+        }
+
+        function triggerFault() {
+            const row = document.getElementById('inv-south');
+            const icon = document.getElementById('inv-south-icon');
+            const badge = document.getElementById('inv-south-badge');
+
+            // Fault styles
+            row.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+            row.style.background = 'var(--red-50)';
+
+            icon.style.background = 'var(--red-50)';
+            icon.style.color = 'var(--red-500)';
+            icon.innerHTML = '<i data-lucide="alert-triangle" style="width:18px; height:18px;"></i>';
+            lucide.createIcons();
+
+            badge.className = 'status-badge error';
+            badge.style.fontSize = '8px';
+            badge.style.padding = '1px 6px';
+            badge.innerHTML = '<i data-lucide="x" style="width:8px;height:8px;"></i> תקלה';
+            lucide.createIcons();
+
+            document.getElementById('inv-s-power').textContent = '0';
+            document.getElementById('inv-s-power').style.color = 'var(--red-500)';
+
+            // Recalculate totals
+            document.getElementById('power-now').textContent = '163 kW';
+
+            // Update status strip
+            const strip = document.getElementById('status-strip');
+            strip.innerHTML = `
+            <div style="display:flex; align-items:center; gap:4px;">
+                <span style="width:6px; height:6px; border-radius:50%; background:var(--emerald-500);"></span>
+                <span style="font-size:11px; color:var(--emerald-600); font-weight:600;">2 תקינים</span>
+            </div>
+            <span style="opacity:0.2; color:var(--text-muted);">•</span>
+            <div style="display:flex; align-items:center; gap:4px;">
+                <i data-lucide="alert-triangle" style="width:12px; height:12px; color:var(--red-500);"></i>
+                <span style="font-size:11px; color:var(--red-500); font-weight:700;">1 תקלה</span>
+            </div>
+        `;
+            lucide.createIcons();
+
+            // Show push notification
+            setTimeout(() => {
+                const notif = document.getElementById('push-notification');
+                notif.classList.add('animate-slideDown');
+            }, 800);
+        }
+
+        // ====== DASHBOARD → CHAT ======
+        function goToChat() {
+            showScreen('chat-screen');
+            startChatFlow();
+        }
+
+        // ====== CHAT LOGIC ======
+        const chatContainer = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        function getTime() {
+            const now = new Date();
+            return now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+        }
+
+        function addMessage(html, isUser = false, delay = 0) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const div = document.createElement('div');
+                    div.className = `msg-bubble ${isUser ? 'msg-out' : 'msg-in'}`;
+                    div.style.opacity = '0';
+                    div.style.transform = 'translateY(8px)';
+
+                    div.innerHTML = `
+                    <div>${html}</div>
+                    <div class="msg-time">
+                        ${getTime()}
+                        ${isUser ? '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 12 5 16 12 9"/><polyline points="7 12 11 16 18 9"/></svg>' : ''}
+                    </div>
+                `;
+
+                    chatContainer.appendChild(div);
+
+                    // Animate in
+                    requestAnimationFrame(() => {
+                        div.style.transition = 'all 0.3s ease-out';
+                        div.style.opacity = '1';
+                        div.style.transform = 'translateY(0)';
+                    });
+
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                    resolve();
+                }, delay);
+            });
+        }
+
+        function showTyping() {
+            const div = document.createElement('div');
+            div.id = 'ai-typing';
+            div.className = 'msg-bubble msg-in';
+            div.innerHTML = `
+            <div class="typing-indicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        `;
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function removeTyping() {
+            const t = document.getElementById('ai-typing');
+            if (t) t.remove();
+        }
+
+        async function startChatFlow() {
+            await addMessage('היי 👋 זיהיתי ירידה חריגה בייצור בממיר <strong>דרום</strong> (SolarEdge SE-100K).', false, 800);
+            await addMessage('הספק הייצור ירד ל-<strong>0 kW</strong> באופן פתאומי ב-10:18. נראה כמו ניתוק AC או בעיית חומרה.', false, 2000);
+
+            await addMessage('האם תרצה שאבצע ניתוח מעמיק ואבדוק את היסטוריית הביצועים?', false, 3500);
+
+            // Start auto-typing user response
+            setTimeout(typeUserResponse, 2000);
+        }
+
+        function typeUserResponse() {
+            const text = 'כן, תנתח בבקשה את ההיסטוריה ותמליץ מה לעשות.';
+            let i = 0;
+            chatInput.value = '';
+
+            const interval = setInterval(() => {
+                if (i < text.length) {
+                    chatInput.value += text.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(interval);
+                    // Activate send button
+                    sendBtn.classList.add('ready');
+                }
+            }, 35);
+        }
+
+        function sendUserMessage() {
+            if (!chatInput.value) return;
+            sendBtn.classList.remove('ready');
+
+            addMessage(chatInput.value, true, 0);
+            chatInput.value = '';
+
+            // AI typing
+            setTimeout(() => {
+                showTyping();
+            }, 600);
+
+            // AI analysis response
+            setTimeout(() => {
+                removeTyping();
+                addMessage(`
+                <div style="margin-bottom:6px;"><strong>📊 ניתוח הושלם</strong></div>
+                <div style="background:rgba(0,0,0,0.03); border-radius:8px; padding:8px; margin:4px 0; font-size:12px; line-height:1.6;">
+                    <div>🔍 <strong>ממצאים:</strong></div>
+                    <div style="margin:4px 0 4px 12px;">• זוהתה תבנית דומה מ-<strong>12.11.2025</strong></div>
+                    <div style="margin:0 0 4px 12px;">• ירידה פתאומית ל-0kW ללא שגיאת תקשורת</div>
+                    <div style="margin:0 0 4px 12px;">• מדובר ככל הנראה ב<strong>פיוז שרוף</strong> בלוח ה-AC</div>
+                </div>
+                <div style="background:rgba(37,99,235,0.06); border:1px solid rgba(37,99,235,0.15); border-radius:8px; padding:8px; margin-top:6px; font-size:12px;">
+                    <div>✅ <strong>המלצה:</strong></div>
+                    <div style="margin-top:4px;">להזמין טכנאי של SolarEdge לבדיקת לוח ה-AC בממיר דרום. האם לפתוח קריאת שירות?</div>
+                </div>
+            `, false, 0);
+
+                // After analysis, show second auto-type
+                setTimeout(() => {
+                    typeSecondResponse();
+                }, 2500);
+            }, 3000);
+        }
+
+        function typeSecondResponse() {
+            const text = 'כן, תפתח קריאת שירות ותעדכן אותי.';
+            let i = 0;
+            chatInput.value = '';
+
+            const interval = setInterval(() => {
+                if (i < text.length) {
+                    chatInput.value += text.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(interval);
+                    sendBtn.classList.add('ready');
+
+                    // Auto-send after a beat
+                    setTimeout(() => {
+                        sendSecondMessage();
+                    }, 1200);
+                }
+            }, 35);
+        }
+
+        function sendSecondMessage() {
+            if (!chatInput.value) return;
+            sendBtn.classList.remove('ready');
+
+            addMessage(chatInput.value, true, 0);
+            chatInput.value = '';
+
+            setTimeout(() => showTyping(), 500);
+
+            setTimeout(() => {
+                removeTyping();
+                addMessage(`
+                <div style="margin-bottom:4px;">✅ <strong>קריאת שירות נפתחה</strong></div>
+                <div style="background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.15); border-radius:8px; padding:8px; margin:4px 0; font-size:12px; line-height:1.6;">
+                    <div>📋 <strong>מס' קריאה:</strong> SVC-2026-0847</div>
+                    <div>🏷️ <strong>סוג:</strong> תקלת חומרה - לוח AC</div>
+                    <div>📍 <strong>ממיר:</strong> דרום (SE-100K / SN: 7E3A2F91)</div>
+                    <div>⏰ <strong>ETA טכנאי:</strong> 12.02.2026, 09:00-12:00</div>
+                </div>
+                <div style="font-size:12px; margin-top:4px; color:#475569;">אעדכן אותך ברגע שהטכנאי יגיע לאתר. 👍</div>
+            `, false, 0);
+            }, 2500);
+        }
+    </script>
+
+</body>
+
+</html>
