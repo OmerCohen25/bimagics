@@ -1240,6 +1240,37 @@
             }, 30);
         }
 
+        // ====== EXTRA SCENARIOS ======
+        const EXTRA_SCENARIOS = [
+            `⚠️ <strong>יעילות נמוכה בסטרינג 3</strong><br>ירידה בביצועים בשעה האחרונה. זוהתה הצללה חלקית.`,
+            `⚡ <strong>חריגת מתח ברשת</strong><br>נמדד מתח AC גבוה (253V) בפאזה L1.`,
+            `🌡️ <strong>טמפרטורת ממיר גבוהה</strong><br>ממיר צפון הגיע ל-75°C. מומלץ לבדוק אוורור.`,
+            `📉 <strong>ירידה ב-PR יומי</strong><br>הביצועים ירדו מתחת ל-80%. כדאי לבדוק הצטברות אבק.`,
+            `☁️ <strong>קורלציית מזג אוויר</strong><br>התפוקה הנמוכה תואמת את נתוני העננות הנוכחיים באזור.`,
+            `🔌 <strong>נתק תקשורת רגעי</strong><br>התקשורת עם הממיר חודשה לאחר 5 דקות של נתק.`
+        ];
+        let extraIndex = 0;
+
+        function enableExtraScenarios() {
+            sendBtn.classList.add('ready');
+            sendBtn.onclick = () => {
+                sendBtn.classList.remove('ready');
+                sendBtn.onclick = null;
+
+                // Show typing then the next scenario
+                showTyping();
+                setTimeout(() => {
+                    removeTyping();
+                    const msg = EXTRA_SCENARIOS[extraIndex % EXTRA_SCENARIOS.length];
+                    addMessage(msg, false, 0);
+                    extraIndex++;
+
+                    // Re-enable button after a short delay
+                    setTimeout(enableExtraScenarios, 1000);
+                }, 1500);
+            };
+        }
+
         function sendUserMessage(action) {
             if (!chatInput.value) return;
             const text = chatInput.value;
@@ -1261,6 +1292,8 @@
     </ul>
     <div style="margin-top:8px; font-size:11px; color:#64748b;">המלצה: שלח טכנאי לבדיקת פיוזים ב-CB-02.</div>
     `, false, 0);
+                    // Enable extra scenarios after the main flow ends
+                    setTimeout(enableExtraScenarios, 2000);
                 }, 2500);
             }
         }
