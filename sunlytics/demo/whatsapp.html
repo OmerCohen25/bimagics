@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Sunlytics AI - Interactive Demo V2</title>
+    <title>Sunlytics AI - Interactive Demo V3</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Sunlytics">
@@ -144,20 +144,6 @@
 
             50% {
                 box-shadow: 0 0 0 8px rgba(37, 99, 235, 0);
-            }
-        }
-
-        @keyframes pulse-dot {
-
-            0%,
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-
-            50% {
-                transform: scale(1.8);
-                opacity: 0.5;
             }
         }
 
@@ -348,17 +334,6 @@
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
         }
 
-        .inverter-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: 12px;
-            transition: all 0.4s ease;
-        }
-
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -479,6 +454,8 @@
             align-items: center;
             gap: 10px;
             color: white;
+            z-index: 50;
+            position: relative;
         }
 
         .chat-bg {
@@ -561,7 +538,6 @@
             border-radius: 24px;
             padding: 8px 14px;
             font-size: 13px;
-            font-family: 'Heebo', monospace;
             outline: none;
             background: white;
             direction: rtl;
@@ -594,12 +570,49 @@
         .no-scroll::-webkit-scrollbar {
             display: none;
         }
+
+        /* --- NEW OVERLAYS --- */
+        .overlay-screen {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .overlay-screen.active {
+            display: flex;
+        }
+
+        .modal-card {
+            background: white;
+            width: 90%;
+            max-width: 320px;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px;
+            margin: 16px 0;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: center;
+            background: #f8fafc;
+            color: var(--text-primary);
+        }
     </style>
 </head>
 
 <body>
     <div class="iphone-frame">
-        <div class="notch"></div>
         <div class="screen">
             <!-- STATUS BAR -->
             <div id="statusbar" class="status-bar light"
@@ -695,12 +708,35 @@
                         </div>
                     </div>
 
-                    <button class="login-btn primary" onclick="goToDashboard()">
+                    <button class="login-btn primary" onclick="handleLogin()">
                         כניסה למערכת <i data-lucide="arrow-left" style="width:16px; height:16px;"></i>
                     </button>
-
                     <div style="margin-top:24px; font-size:10px; color:var(--text-muted);">גרסה 2.5 Demo</div>
                 </div>
+            </div>
+
+            <!-- OVERLAYS -->
+            <div id="site-id-modal" class="overlay-screen">
+                <div class="modal-card animate-slideUp">
+                    <div
+                        style="width:48px; height:48px; background:var(--slate-100); border-radius:12px; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+                        <i data-lucide="key" style="color:var(--text-primary);"></i>
+                    </div>
+                    <h3 style="font-size:18px; font-weight:800; margin-bottom:8px;">הזן מזהה אתר</h3>
+                    <p style="font-size:13px; color:var(--text-secondary);">אנא הזן את ה-Site ID שקיבלת מ-SolarEdge</p>
+                    <input type="text" class="modal-input" value="12345678" readonly onclick="this.select()">
+                    <button class="login-btn primary" onclick="completeLogin()" style="margin-top:8px;">
+                        התחבר לאתר
+                    </button>
+                </div>
+            </div>
+
+            <div id="loading-overlay" class="overlay-screen"
+                style="flex-direction:column; background:white; z-index:200;">
+                <i data-lucide="loader-2" class="animate-spin"
+                    style="width:40px; height:40px; color:var(--sungrow-orange); margin-bottom:16px;"></i>
+                <h3 style="font-size:16px; font-weight:700;">מתחבר ל-iSolarCloud...</h3>
+                <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">אנא המתן</p>
             </div>
 
             <!-- DASHBOARD SCREEN -->
@@ -870,9 +906,7 @@
                     </div>
                 </div>
                 <div id="chat-messages" class="chat-bg no-scroll">
-                    <div class="chat-date"
-                        style="align-self:center; background:#e1f3fb; color:#64748b; font-size:10px; font-weight:600; padding:4px 12px; border-radius:8px; margin-bottom:8px;">
-                        היום</div>
+                    <!-- History fills here -->
                 </div>
                 <div class="chat-input-bar">
                     <input id="chat-input" type="text" readonly>
@@ -885,7 +919,7 @@
     </div>
     <script>
         lucide.createIcons();
-        let currentProvider = null;
+        let currentProvider = 'solaredge'; // Default
 
         // ====== DATA ======
         const CONFIG = {
@@ -930,14 +964,22 @@
             lucide.createIcons();
         }
 
-        function goToDashboard() {
-            if (!currentProvider) {
-                // Default to first if none selected, or shake animation
-                const cards = document.querySelectorAll('.provider-card');
-                cards[0].click();
-                setTimeout(() => goToDashboard(), 200);
-                return;
+        function handleLogin() {
+            if (currentProvider === 'solaredge') {
+                // Show modal
+                document.getElementById('site-id-modal').classList.add('active');
+            } else {
+                // Show loading overlay
+                document.getElementById('loading-overlay').classList.add('active');
+                setTimeout(() => {
+                    document.getElementById('loading-overlay').classList.remove('active');
+                    completeLogin();
+                }, 2000); // 2s loading
             }
+        }
+
+        function completeLogin() {
+            document.getElementById('site-id-modal').classList.remove('active');
 
             // Setup Dashboard
             const data = CONFIG[currentProvider];
@@ -1086,8 +1128,7 @@
                     div.className = `msg-bubble ${isUser ? 'msg-out' : 'msg-in'}`;
                     div.style.opacity = '0';
                     div.style.transform = 'translateY(8px)';
-                    div.innerHTML = `<div>${html}</div>
-    <div class="msg-time">${getTime()}</div>`;
+                    div.innerHTML = `<div>${html}</div><div class="msg-time">${getTime()}</div>`;
                     chatContainer.appendChild(div);
                     requestAnimationFrame(() => {
                         div.style.transition = 'all 0.3s ease-out';
@@ -1103,22 +1144,15 @@
         function showTyping() {
             const div = document.createElement('div');
             div.id = 'ai-typing'; div.className = 'msg-bubble msg-in';
-            div.innerHTML = `<div class="typing-indicator">
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-    </div>`;
+            div.innerHTML = `<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
             chatContainer.appendChild(div);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
         function removeTyping() { const t = document.getElementById('ai-typing'); if (t) t.remove(); }
 
-        // ====== SCENARIO LOGIC ======
-        let scenarioStep = 0;
-        let isTyping = false;
+        let chatStarted = false;
 
         // ====== HISTORY POPULATION ======
-        // Populate chat with simulated past events
         function initHistory() {
             const history = [
                 {
@@ -1168,12 +1202,9 @@
 
             const container = document.getElementById('chat-messages');
             if (!container) return;
-
-            // Clear default "Today" if present, we build our own
-            container.innerHTML = '';
+            container.innerHTML = ''; // Clear
 
             history.forEach(session => {
-                // Add Date Separator
                 const dateDiv = document.createElement('div');
                 dateDiv.className = 'chat-date';
                 dateDiv.style.cssText = 'align-self:center; background:#e1f3fb; color:#64748b; font-size:10px; font-weight:600; padding:4px 12px; border-radius:8px; margin:16px 0 8px;';
@@ -1184,14 +1215,13 @@
                     const div = document.createElement('div');
                     div.className = `msg-bubble ${msg.isUser ? 'msg-out' : 'msg-in'}`;
                     div.innerHTML = `<div>${msg.html || msg.text}</div>`;
-                    // Simple time for history messages
                     const t = session.time.split(', ')[1];
                     div.innerHTML += `<div class="msg-time">${t}</div>`;
                     container.appendChild(div);
                 });
             });
 
-            // Add "Now" label at bottom
+            // "Now" label
             const nowDiv = document.createElement('div');
             nowDiv.className = 'chat-date';
             nowDiv.style.cssText = 'align-self:center; background:#e1f3fb; color:#64748b; font-size:10px; font-weight:600; padding:4px 12px; border-radius:8px; margin:16px 0 8px;';
@@ -1201,9 +1231,6 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        // Init history on load
-        window.addEventListener('load', initHistory);
-
         async function startChatFlow() {
             if (chatStarted) return;
             chatStarted = true;
@@ -1211,23 +1238,17 @@
             const invName = CONFIG[currentProvider].inverters[1].name;
             const model = CONFIG[currentProvider].inverters[1].model;
 
-            // Simulate "Live" event - faster start (200ms)
+            // Faster start (200ms)
             await addMessage(`היי 👋 זיהיתי ירידה חריגה בייצור ב-<strong>${invName}</strong> (${model}).`, false, 200);
             await addMessage('ההספק צנח ל-0kW. נראה כמו בעיית חומרה או נתק.', false, 1200);
 
-            // Auto-trigger the user response logic for the live event
+            // Auto-trigger response
             setTimeout(() => typeUserResponse('תנתח בבקשה את המקרה.', 'analyze'), 2000);
         }
 
-
-
         function typeUserResponse(text, action) {
-            let i = 0;
-            chatInput.value = '';
-
-            // Remove previous onclicks
-            sendBtn.onclick = null;
-            sendBtn.classList.remove('ready');
+            let i = 0; chatInput.value = '';
+            sendBtn.onclick = null; sendBtn.classList.remove('ready');
 
             const interval = setInterval(() => {
                 chatInput.value += text.charAt(i++);
@@ -1254,18 +1275,13 @@
         function enableExtraScenarios() {
             sendBtn.classList.add('ready');
             sendBtn.onclick = () => {
-                sendBtn.classList.remove('ready');
-                sendBtn.onclick = null;
-
-                // Show typing then the next scenario
+                sendBtn.classList.remove('ready'); sendBtn.onclick = null;
                 showTyping();
                 setTimeout(() => {
                     removeTyping();
                     const msg = EXTRA_SCENARIOS[extraIndex % EXTRA_SCENARIOS.length];
                     addMessage(msg, false, 0);
                     extraIndex++;
-
-                    // Re-enable button after a short delay
                     setTimeout(enableExtraScenarios, 1000);
                 }, 1500);
             };
@@ -1273,10 +1289,8 @@
 
         function sendUserMessage(action) {
             if (!chatInput.value) return;
-            const text = chatInput.value;
-            chatInput.value = '';
-            sendBtn.classList.remove('ready');
-            sendBtn.onclick = null;
+            const text = chatInput.value; chatInput.value = '';
+            sendBtn.classList.remove('ready'); sendBtn.onclick = null;
 
             addMessage(text, true, 0);
             setTimeout(() => showTyping(), 600);
@@ -1292,7 +1306,6 @@
     </ul>
     <div style="margin-top:8px; font-size:11px; color:#64748b;">המלצה: שלח טכנאי לבדיקת פיוזים ב-CB-02.</div>
     `, false, 0);
-                    // Enable extra scenarios after the main flow ends
                     setTimeout(enableExtraScenarios, 2000);
                 }, 2500);
             }
