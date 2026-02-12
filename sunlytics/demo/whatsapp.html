@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Sunlytics AI - Interactive Demo V2</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Sunlytics">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#f8fafc">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --blue-600: #2563eb;
+            --blue-100: #dbeafe;
+            --emerald-500: #10b981;
+            --emerald-600: #059669;
+            --emerald-50: #ecfdf5;
+            --amber-500: #f59e0b;
+            --amber-50: #fffbeb;
+            --red-500: #ef4444;
+            --red-50: #fef2f2;
+            --red-600: #dc2626;
+            --purple-500: #8b5cf6;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1;
+            --slate-400: #94a3b8;
+            --slate-600: #475569;
+            --slate-700: #334155;
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
+            --solaredge-red: #D52B1E;
+            --sungrow-orange: #F58220;
+            --whatsapp-green: #075E54;
+            --whatsapp-light: #25D366;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Heebo', 'Inter', sans-serif;
+            background: var(--bg-primary);
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .iphone-frame {
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            background: var(--bg-primary);
+            position: relative;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notch,
+        .status-bar {
+            display: none;
+        }
+
+        .app-screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+        }
+
+        .app-screen.active {
+            display: flex;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-120%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 0 8px rgba(37, 99, 235, 0);
+            }
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.8);
+                opacity: 0.5;
+            }
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0;
+            }
+
+            100% {
+                top: 100%;
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes typing {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .animate-slideUp {
+            animation: slideUp 0.5s ease-out forwards;
+        }
+
+        .animate-slideDown {
+            animation: slideDown 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .animate-pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+
+        /* LOGIN SCREEN */
+        #login-screen {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            justify-content: center;
+            align-items: center;
+            padding: calc(env(safe-area-inset-top, 16px) + 16px) 24px calc(env(safe-area-inset-bottom, 8px) + 8px);
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .logo-container {
+            width: 64px;
+            height: 64px;
+            background: white;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(34, 139, 34, 0.2);
+            margin: 0 auto 12px;
+            overflow: hidden;
+        }
+
+        .provider-card {
+            width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .provider-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        .provider-card.selected {
+            border-width: 2px;
+            background: #fffcf9;
+        }
+
+        .provider-card.selected.solaredge {
+            border-color: var(--solaredge-red);
+        }
+
+        .provider-card.selected.sungrow {
+            border-color: var(--sungrow-orange);
+        }
+
+        .provider-check {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .provider-card.selected .provider-check {
+            background: var(--emerald-500);
+            border-color: var(--emerald-500);
+            color: white;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            font-family: 'Heebo', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            margin-top: 24px;
+        }
+
+        .login-btn.primary {
+            background: var(--text-primary);
+            color: white;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-btn.primary:hover {
+            transform: translateY(-1px);
+            opacity: 0.95;
+        }
+
+        /* DASHBOARD */
+        #dashboard-screen {
+            background: var(--bg-primary);
+        }
+
+        .dashboard-header {
+            padding: calc(env(safe-area-inset-top, 16px) + 16px) 20px 16px;
+            background: white;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        }
+
+        .stat-card.live {
+            border-color: rgba(16, 185, 129, 0.3);
+            background: linear-gradient(135deg, rgba(236, 253, 245, 0.5), white);
+        }
+
+        .inverter-row {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.4s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        }
+
+        .inverter-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 12px;
+            transition: all 0.4s ease;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            border: 1px solid;
+        }
+
+        .status-badge.active {
+            color: var(--emerald-600);
+            border-color: rgba(16, 185, 129, 0.3);
+            background: var(--emerald-50);
+        }
+
+        .status-badge.error {
+            color: var(--red-600);
+            border-color: rgba(239, 68, 68, 0.3);
+            background: var(--red-50);
+        }
+
+        .scan-btn {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .scan-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ALERT BOX */
+        .alert-box {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            display: none;
+            height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.5s ease;
+        }
+
+        .alert-box.show {
+            display: block;
+            height: auto;
+            opacity: 1;
+        }
+
+        /* SCANNER & NOTIFICATION */
+        .scanner-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 15;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .scanner-line {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: linear-gradient(180deg, transparent, rgba(37, 99, 235, 0.12), transparent);
+            animation: scan 2s ease-in-out;
+        }
+
+        .scanner-label {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .push-notification {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(16px);
+            border-radius: 16px;
+            padding: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            z-index: 60;
+            transform: translateY(-140%);
+            cursor: pointer;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        /* CHAT */
+        .chat-header {
+            background: var(--whatsapp-green);
+            padding: calc(env(safe-area-inset-top, 16px) + 16px) 16px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+
+        .chat-bg {
+            background-color: #e5ddd5;
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .msg-bubble {
+            max-width: 82%;
+            padding: 8px 10px;
+            border-radius: 10px;
+            font-size: 13.5px;
+            line-height: 1.5;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .msg-in {
+            background: white;
+            align-self: flex-start;
+            border-top-right-radius: 2px;
+        }
+
+        .msg-out {
+            background: #dcf8c6;
+            align-self: flex-end;
+            border-top-left-radius: 2px;
+        }
+
+        .msg-time {
+            font-size: 9px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            justify-content: flex-end;
+            margin-top: 3px;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 3px;
+            padding: 10px 14px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #b0b0b0;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        .chat-input-bar {
+            background: white;
+            padding: 8px 10px calc(env(safe-area-inset-bottom, 8px) + 8px);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-top: 1px solid var(--border);
+        }
+
+        .chat-input-bar input {
+            flex: 1;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-family: 'Heebo', monospace;
+            outline: none;
+            background: white;
+            direction: rtl;
+        }
+
+        .send-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--slate-200);
+            color: var(--slate-400);
+        }
+
+        .send-btn.ready {
+            background: var(--whatsapp-light);
+            color: white;
+            animation: pulse-glow 2s infinite;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .no-scroll::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="iphone-frame">
+        <div class="notch"></div>
+        <div class="screen">
+            <!-- STATUS BAR -->
+            <div id="statusbar" class="status-bar light"
+                style="position:absolute; top:0; left:0; right:0; height:44px; display:flex; justify-content:space-between; align-items:center; padding:8px 24px 0; z-index:40; font-size:12px; font-weight:600; font-family:'Inter',sans-serif;">
+                <span class="time">10:20</span>
+                <span class="icons" style="display:flex; gap:5px; align-items:center;">
+                    <svg viewBox="0 0 24 24" style="width:14px; height:14px;" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <path
+                            d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01" />
+                    </svg>
+                    <svg viewBox="0 0 24 24" style="width:14px; height:14px;" fill="currentColor">
+                        <rect x="1" y="6" width="3" height="12" rx="1" />
+                        <rect x="6" y="4" width="3" height="14" rx="1" />
+                        <rect x="11" y="2" width="3" height="16" rx="1" />
+                        <rect x="16" y="5" width="3" height="13" rx="1" />
+                    </svg>
+                    <svg viewBox="0 0 28 14" style="width:24px; height:12px;" fill="none">
+                        <rect x="0.5" y="0.5" width="22" height="13" rx="2" stroke="currentColor" />
+                        <rect x="2" y="2" width="16" height="10" rx="1" fill="currentColor" />
+                        <rect x="24" y="4" width="3" height="6" rx="1" fill="currentColor" opacity="0.4" />
+                    </svg>
+                </span>
+            </div>
+
+            <!-- LOGIN SCREEN -->
+            <div id="login-screen" class="app-screen active">
+                <div
+                    style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:16px 24px;">
+                    <div style="text-align:center; margin-bottom:28px;">
+                        <div class="logo-container">
+                            <svg viewBox="0 0 100 100" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+                                <g stroke="#F5B731" stroke-width="4" stroke-linecap="round">
+                                    <line x1="50" y1="8" x2="50" y2="16" />
+                                    <line x1="50" y1="8" x2="50" y2="16" transform="rotate(45 50 32)" />
+                                    <line x1="50" y1="8" x2="50" y2="16" transform="rotate(90 50 32)" />
+                                    <line x1="50" y1="8" x2="50" y2="16" transform="rotate(135 50 32)" />
+                                    <line x1="50" y1="8" x2="50" y2="16" transform="rotate(180 50 32)" />
+                                    <line x1="50" y1="8" x2="50" y2="16" transform="rotate(225 50 32)" />
+                                    <line x1="50" y1="8" x2="50" y2="16" transform="rotate(270 50 32)" />
+                                    <line x1="50" y1="8" x2="50" y2="16" transform="rotate(315 50 32)" />
+                                </g>
+                                <circle cx="50" cy="32" r="12" fill="#F5B731" />
+                                <g fill="#2D7A3A">
+                                    <rect x="32" y="52" width="11" height="9" rx="1.5" transform="rotate(-15 37 56)" />
+                                    <rect x="46" y="52" width="11" height="9" rx="1.5" transform="rotate(-15 51 56)" />
+                                    <rect x="60" y="52" width="11" height="9" rx="1.5" transform="rotate(-15 65 56)" />
+                                    <rect x="28" y="64" width="11" height="9" rx="1.5" transform="rotate(-15 33 68)" />
+                                    <rect x="42" y="64" width="11" height="9" rx="1.5" transform="rotate(-15 47 68)" />
+                                    <rect x="56" y="64" width="11" height="9" rx="1.5" transform="rotate(-15 61 68)" />
+                                </g>
+                            </svg>
+                        </div>
+                        <h1 style="font-size:24px; font-weight:800; color:var(--text-primary); margin-bottom:2px;">
+                            Sunlytics</h1>
+                        <p style="font-size:12px; color:var(--text-secondary); font-weight:400;">ניטור חכם למערכות
+                            סולאריות</p>
+                    </div>
+
+                    <div style="width:100%; display:flex; flex-direction:column; gap:12px;">
+                        <!-- SolarEdge Option -->
+                        <div class="provider-card selected solaredge" onclick="selectProvider('solaredge', this)">
+                            <div class="provider-check"><i data-lucide="check" style="width:12px; height:12px;"></i>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                                <div
+                                    style="width:32px; height:32px; background:var(--solaredge-red); border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="white">
+                                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                                    </svg>
+                                </div>
+                                <span
+                                    style="font-weight:700; font-size:16px; color:var(--text-primary);">SolarEdge</span>
+                            </div>
+                            <div style="font-size:11px; color:var(--text-muted);">התחברות באמצעות API Key</div>
+                        </div>
+
+                        <!-- Sungrow Option -->
+                        <div class="provider-card" onclick="selectProvider('sungrow', this)">
+                            <div class="provider-check"></div>
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                                <div
+                                    style="width:32px; height:32px; background:var(--sungrow-orange); border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="white">
+                                        <circle cx="12" cy="12" r="5" />
+                                        <path stroke="white" stroke-width="2"
+                                            d="M12 1v2m0 18v2m11-11h-2M3 12H1m16.36-7.36l-1.42 1.42M7.05 16.95l-1.42 1.42m12.73 0l-1.42-1.42M7.05 7.05L5.63 5.63" />
+                                    </svg>
+                                </div>
+                                <span style="font-weight:700; font-size:16px; color:var(--text-primary);">Sungrow</span>
+                            </div>
+                            <div style="font-size:11px; color:var(--text-muted);">התחברות באמצעות iSolarCloud</div>
+                        </div>
+                    </div>
+
+                    <button class="login-btn primary" onclick="goToDashboard()">
+                        כניסה למערכת <i data-lucide="arrow-left" style="width:16px; height:16px;"></i>
+                    </button>
+
+                    <div style="margin-top:24px; font-size:10px; color:var(--text-muted);">גרסה 2.5 Demo</div>
+                </div>
+            </div>
+
+            <!-- DASHBOARD SCREEN -->
+            <div id="dashboard-screen" class="app-screen">
+                <div class="dashboard-header">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <p style="font-size:11px; color:var(--text-muted); margin-bottom:2px;">שלום, ישראל ישראלי
+                            </p>
+                            <h2 id="site-name" style="font-size:18px; font-weight:800; color:var(--text-primary);">אתר
+                                הדגמה</h2>
+                        </div>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <div
+                                style="width:32px; height:32px; border-radius:50%; background:var(--slate-100); display:flex; align-items:center; justify-content:center;">
+                                <i data-lucide="user" style="width:16px; height:16px; color:var(--text-muted);"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status & Scan -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
+                        <div id="status-strip" style="display:flex; gap:12px; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:4px;">
+                                <span
+                                    style="width:6px; height:6px; border-radius:50%; background:var(--emerald-500);"></span>
+                                <span style="font-size:11px; color:var(--emerald-600); font-weight:600;">מערכת
+                                    תקינה</span>
+                            </div>
+                        </div>
+                        <button id="scan-btn" class="scan-btn" onclick="startScan()">
+                            <i data-lucide="scan-line" style="width:14px; height:14px;"></i> בדיקת בריאות AI
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Scanner Overlay -->
+                <div id="scanner" class="scanner-overlay hidden">
+                    <div class="scanner-line"></div>
+                    <div class="scanner-label">
+                        <i data-lucide="scan" style="width:12px; height:12px; display:inline; vertical-align:-2px;"></i>
+                        סורק ממירים...
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div style="flex:1; overflow-y:auto; padding:16px 16px 24px;" class="no-scroll">
+                    <!-- Active Alert Box -->
+                    <div id="alert-box" class="alert-box">
+                        <div style="display:flex; gap:10px;">
+                            <div
+                                style="width:32px; height:32px; background:var(--red-50); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i data-lucide="alert-triangle"
+                                    style="width:18px; height:18px; color:var(--red-500);"></i>
+                            </div>
+                            <div>
+                                <h4 style="font-size:13px; font-weight:700; color:var(--text-primary);">זוהתה חריגה
+                                    קריטית</h4>
+                                <p id="alert-text"
+                                    style="font-size:12px; color:var(--text-secondary); margin-top:2px; line-height:1.4;">
+                                    ירידה פתאומית בייצור בממיר דרום. נדרשת בדיקה.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+                        <div class="stat-card live">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <span class="label">ייצור כעת</span>
+                                <i data-lucide="zap" style="width:14px; height:14px; color:var(--emerald-500);"></i>
+                            </div>
+                            <div class="value" id="power-now" dir="ltr" style="color:var(--emerald-600);">0 kW</div>
+                        </div>
+                        <div class="stat-card">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <span class="label">אנרגיה יומית</span>
+                                <i data-lucide="sun" style="width:14px; height:14px; color:var(--amber-500);"></i>
+                            </div>
+                            <div class="value" id="daily-energy" dir="ltr">0 kWh</div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Alerts -->
+                    <div style="margin-bottom:16px;">
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <h3 style="font-size:13px; font-weight:700; color:var(--text-primary);">התראות אחרונות</h3>
+                            <span style="font-size:11px; color:var(--blue-600); font-weight:600;">הכל</span>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:8px;">
+                            <div
+                                style="background:white; border:1px solid var(--border); border-radius:10px; padding:10px; display:flex; gap:10px; align-items:center; box-shadow:0 1px 2px rgba(0,0,0,0.02);">
+                                <div
+                                    style="width:28px; height:28px; background:var(--amber-50); border-radius:6px; display:flex; align-items:center; justify-content:center;">
+                                    <i data-lucide="alert-circle"
+                                        style="width:14px; height:14px; color:var(--amber-500);"></i>
+                                </div>
+                                <div style="flex:1;">
+                                    <div style="font-size:12px; font-weight:600; color:var(--text-primary);">יעילות
+                                        נמוכה (88%)</div>
+                                    <div style="font-size:10px; color:var(--text-muted);">ממיר מזרח • אתמול, 14:30</div>
+                                </div>
+                            </div>
+                            <div
+                                style="background:white; border:1px solid var(--border); border-radius:10px; padding:10px; display:flex; gap:10px; align-items:center; box-shadow:0 1px 2px rgba(0,0,0,0.02);">
+                                <div
+                                    style="width:28px; height:28px; background:var(--blue-100); border-radius:6px; display:flex; align-items:center; justify-content:center;">
+                                    <i data-lucide="droplets"
+                                        style="width:14px; height:14px; color:var(--blue-600);"></i>
+                                </div>
+                                <div style="flex:1;">
+                                    <div style="font-size:12px; font-weight:600; color:var(--text-primary);">זוהה לכלוך
+                                        על הפאנלים</div>
+                                    <div style="font-size:10px; color:var(--text-muted);">כל המערכת • 08.02.2025</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inverters -->
+                    <div id="inverters-list" style="display:flex; flex-direction:column; gap:8px;">
+                        <!-- JS GENERATED -->
+                    </div>
+                </div>
+
+                <!-- Push Notification -->
+                <div id="push-notification" class="push-notification" onclick="goToChat()">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <div
+                                style="width:18px; height:18px; border-radius:4px; background:var(--whatsapp-light); display:flex; align-items:center; justify-content:center;">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="white">
+                                    <path
+                                        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.008-.57-.008-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                                </svg>
+                            </div>
+                            <span
+                                style="font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">WhatsApp</span>
+                        </div>
+                        <span style="font-size:10px; color:var(--text-muted);">עכשיו</span>
+                    </div>
+                    <div>
+                        <h4 style="font-size:13px; font-weight:700; color:var(--text-primary); margin-bottom:2px;">🤖
+                            Sunlytics AI Analyst</h4>
+                        <p style="font-size:12.5px; color:var(--slate-600); line-height:1.4;">⚠️ זיהיתי ירידה חריגה
+                            בממיר דרום. לחץ לפרטים.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHAT SCREEN -->
+            <div id="chat-screen" class="app-screen">
+                <div class="chat-header">
+                    <button style="background:none; border:none; color:white; cursor:pointer;"
+                        onclick="goBackToDashboard()">
+                        <i data-lucide="arrow-right" style="width:22px; height:22px;"></i>
+                    </button>
+                    <div
+                        style="width:36px; height:36px; border-radius:50%; background:white; display:flex; align-items:center; justify-content:center; border:2px solid rgba(255,255,255,0.3);">
+                        <i data-lucide="bot" style="width:20px; height:20px; color:var(--whatsapp-green);"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <h3 style="font-size:14px; font-weight:700;">Sunlytics AI Analyst</h3>
+                        <p style="font-size:10px; color:rgba(255,255,255,0.7);">מחובר כעת</p>
+                    </div>
+                </div>
+                <div id="chat-messages" class="chat-bg no-scroll">
+                    <div class="chat-date"
+                        style="align-self:center; background:#e1f3fb; color:#64748b; font-size:10px; font-weight:600; padding:4px 12px; border-radius:8px; margin-bottom:8px;">
+                        היום</div>
+                </div>
+                <div class="chat-input-bar">
+                    <input id="chat-input" type="text" readonly>
+                    <button id="send-btn" class="send-btn" onclick="sendUserMessage()">
+                        <i data-lucide="send" style="width:18px; height:18px;"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        lucide.createIcons();
+        let currentProvider = null;
+
+        // ====== DATA ======
+        const CONFIG = {
+            solaredge: {
+                site: 'קיבוץ יזרעאל',
+                inverters: [
+                    { id: 'inv-1', name: 'ממיר צפון', model: 'SE-100K', p: 85 },
+                    { id: 'inv-2', name: 'ממיר דרום', model: 'SE-100K', p: 82 }, // Faulty one
+                    { id: 'inv-3', name: 'ממיר מזרח', model: 'SE-100K', p: 78 }
+                ]
+            },
+            sungrow: {
+                site: 'מתקן נגב (דרום)',
+                inverters: [
+                    { id: 'inv-1', name: 'Inverter 01', model: 'SG-110CX', p: 92 },
+                    { id: 'inv-2', name: 'Inverter 02', model: 'SG-110CX', p: 89 }, // Faulty one
+                    { id: 'inv-3', name: 'Inverter 03', model: 'SG-110CX', p: 91 }
+                ]
+            }
+        };
+
+        // ====== LOGIN LOGIC ======
+        function selectProvider(provider, el) {
+            currentProvider = provider;
+
+            // Visual selection
+            document.querySelectorAll('.provider-card').forEach(c => c.classList.remove('selected', 'solaredge', 'sungrow'));
+            el.classList.add('selected');
+            if (provider === 'solaredge') el.classList.add('solaredge');
+            if (provider === 'sungrow') el.classList.add('sungrow');
+
+            // Checkmark update
+            document.querySelectorAll('.provider-check').forEach(c => {
+                c.innerHTML = '';
+                c.style.background = 'transparent';
+                c.style.borderColor = 'var(--border)';
+            });
+            const check = el.querySelector('.provider-check');
+            check.style.background = 'var(--emerald-500)';
+            check.style.borderColor = 'var(--emerald-500)';
+            check.innerHTML = '<i data-lucide="check" style="width:12px; height:12px;"></i>';
+            lucide.createIcons();
+        }
+
+        function goToDashboard() {
+            if (!currentProvider) {
+                // Default to first if none selected, or shake animation
+                const cards = document.querySelectorAll('.provider-card');
+                cards[0].click();
+                setTimeout(() => goToDashboard(), 200);
+                return;
+            }
+
+            // Setup Dashboard
+            const data = CONFIG[currentProvider];
+            document.getElementById('site-name').textContent = data.site;
+
+            // Render Inverters
+            const list = document.getElementById('inverters-list');
+            list.innerHTML = '';
+            data.inverters.forEach((inv, idx) => {
+                const isFaulty = idx === 1; // Second one will fail
+                const html = `
+    <div class="inverter-row" id="row-${inv.id}">
+        <div style="display:flex; align-items:center;">
+            <div class="inverter-icon" id="icon-${inv.id}"
+                style="background:var(--emerald-50); color:var(--emerald-600);">
+                <i data-lucide="zap" style="width:18px; height:18px;"></i>
+            </div>
+            <div>
+                <p style="font-size:13px; font-weight:700; color:var(--text-primary);">${inv.name}</p>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:10px; color:var(--text-muted);">${inv.model}</span>
+                    <span class="status-badge active" id="badge-${inv.id}"
+                        style="font-size:8px; padding:1px 6px;">MPPT</span>
+                </div>
+            </div>
+        </div>
+        <div style="text-align:left;">
+            <span style="font-family:'Inter',monospace; font-weight:800; color:var(--text-primary); font-size:15px;"
+                id="val-${inv.id}">${inv.p}</span>
+            <span style="font-size:11px; color:var(--text-muted);"> kW</span>
+        </div>
+    </div>`;
+                list.innerHTML += html;
+            });
+            lucide.createIcons();
+
+            // Totals
+            const total = data.inverters.reduce((a, b) => a + b.p, 0);
+            document.getElementById('power-now').textContent = total + ' kW';
+            // Calc daily (approx)
+            document.getElementById('daily-energy').textContent = (total * 5.5).toFixed(0) + ' kWh';
+
+            showScreen('dashboard-screen');
+        }
+
+        function showScreen(id) {
+            document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+
+            const sb = document.getElementById('statusbar');
+            if (id === 'chat-screen') {
+                sb.classList.remove('light');
+                sb.style.color = 'white';
+            } else {
+                sb.classList.add('light');
+                sb.style.color = '#1e293b';
+            }
+        }
+
+        // ====== SCAN LOGIC ======
+        function startScan() {
+            const btn = document.getElementById('scan-btn');
+            btn.classList.add('scanning');
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin" style="width:14px; height:14px;"></i> סורק...';
+            lucide.createIcons();
+
+            const scanner = document.getElementById('scanner');
+            scanner.classList.remove('hidden');
+
+            setTimeout(() => {
+                scanner.classList.add('hidden');
+                btn.innerHTML = '<i data-lucide="check" style="width:14px; height:14px;"></i> הושלם';
+                btn.style.background = 'var(--text-muted)';
+                lucide.createIcons();
+                triggerFault();
+            }, 2500);
+        }
+
+        function triggerFault() {
+            // Find faulty inverter (index 1)
+            const id = 'inv-2';
+            const row = document.getElementById('row-' + id);
+            const icon = document.getElementById('icon-' + id);
+            const badge = document.getElementById('badge-' + id);
+            const val = document.getElementById('val-' + id);
+
+            // Visual updates
+            row.style.background = 'var(--red-50)';
+            row.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+
+            icon.style.background = 'white';
+            icon.style.color = 'var(--red-500)';
+            icon.innerHTML = '<i data-lucide="alert-triangle" style="width:18px; height:18px;"></i>';
+
+            badge.className = 'status-badge error';
+            badge.innerHTML = 'תקלה';
+
+            val.textContent = '0';
+            val.style.color = 'var(--red-600)';
+
+            lucide.createIcons();
+
+            // Update Total
+            const currentTotal = parseInt(document.getElementById('power-now').textContent);
+            const drop = CONFIG[currentProvider].inverters[1].p;
+            document.getElementById('power-now').textContent = (currentTotal - drop) + ' kW';
+
+            // Show Alert Box
+            const box = document.getElementById('alert-box');
+            const alertText = document.getElementById('alert-text');
+            alertText.textContent = `ירידה פתאומית בייצור ב-${CONFIG[currentProvider].inverters[1].name}. נדרשת בדיקה.`;
+            box.classList.add('show');
+
+            // Trigger Push Notification
+            setTimeout(() => {
+                document.getElementById('push-notification').classList.add('animate-slideDown');
+            }, 800);
+        }
+
+        // ====== CHAT ======
+        function goToChat() {
+            showScreen('chat-screen');
+            // Reset for demo loop
+            initHistory();
+            chatStarted = false;
+            startChatFlow();
+        }
+
+        function goBackToDashboard() {
+            showScreen('dashboard-screen');
+        }
+
+        const chatContainer = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        function getTime() {
+            const now = new Date();
+            return now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+        }
+
+        function addMessage(html, isUser = false, delay = 0) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const div = document.createElement('div');
+                    div.className = `msg-bubble ${isUser ? 'msg-out' : 'msg-in'}`;
+                    div.style.opacity = '0';
+                    div.style.transform = 'translateY(8px)';
+                    div.innerHTML = `<div>${html}</div>
+    <div class="msg-time">${getTime()}</div>`;
+                    chatContainer.appendChild(div);
+                    requestAnimationFrame(() => {
+                        div.style.transition = 'all 0.3s ease-out';
+                        div.style.opacity = '1';
+                        div.style.transform = 'translateY(0)';
+                    });
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                    resolve();
+                }, delay);
+            });
+        }
+
+        function showTyping() {
+            const div = document.createElement('div');
+            div.id = 'ai-typing'; div.className = 'msg-bubble msg-in';
+            div.innerHTML = `<div class="typing-indicator">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+    </div>`;
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        function removeTyping() { const t = document.getElementById('ai-typing'); if (t) t.remove(); }
+
+        // ====== SCENARIO LOGIC ======
+        let scenarioStep = 0;
+        let isTyping = false;
+
+        // ====== HISTORY POPULATION ======
+        // Populate chat with simulated past events
+        function initHistory() {
+            const history = [
+                {
+                    time: 'אתמול, 09:15',
+                    messages: [
+                        { text: 'מה סטטוס האתרים הבוקר?', isUser: true },
+                        {
+                            html: `
+                    <div style="font-weight:700; margin-bottom:4px;">🌍 תמונת מצב רשתית</div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
+                        <div style="background:#f1f5f9; padding:6px; border-radius:6px; text-align:center;">
+                            <div style="font-size:10px; color:#64748b;">אתרים פעילים</div>
+                            <div style="font-weight:700; color:#0f172a;">12/12</div>
+                        </div>
+                        <div style="background:#f1f5f9; padding:6px; border-radius:6px; text-align:center;">
+                            <div style="font-size:10px; color:#64748b;">PR יומי</div>
+                            <div style="font-weight:700; color:#10b981;">98.2%</div>
+                        </div>
+                    </div>
+                    <div>כל האתרים עובדים כשורה.</div>`, isUser: false
+                        }
+                    ]
+                },
+                {
+                    time: 'אתמול, 14:30',
+                    messages: [
+                        { html: `⚠️ <strong>התראת יעילות נמוכה</strong><br>ממיר מזרח (88%)`, isUser: false },
+                        { text: 'תבדוק אם יש לכלוך.', isUser: true },
+                        { html: `בדקתי נתוני מזג אוויר וחיישנים. <br>סבירות גבוהה לאבק/לכלוך. ממליץ על ניקוי.`, isUser: false }
+                    ]
+                },
+                {
+                    time: 'היום, 08:00',
+                    messages: [
+                        { text: 'כמה ייצרנו החודש עד כה?', isUser: true },
+                        {
+                            html: `
+                    <div style="font-weight:700; margin-bottom:4px;">📅 סיכום חודשי (פברואר)</div>
+                    <div style="font-size:24px; font-weight:800; color:#eab308; display:flex; align-items:baseline; gap:4px;">
+                        142.5 <span style="font-size:14px; font-weight:600; color:#64748b;">MWh</span>
+                    </div>
+                    <div style="font-size:11px; color:#10b981; margin-top:2px;">▲ 4.2% ביחס ליעד</div>`, isUser: false
+                        }
+                    ]
+                }
+            ];
+
+            const container = document.getElementById('chat-messages');
+            if (!container) return;
+
+            // Clear default "Today" if present, we build our own
+            container.innerHTML = '';
+
+            history.forEach(session => {
+                // Add Date Separator
+                const dateDiv = document.createElement('div');
+                dateDiv.className = 'chat-date';
+                dateDiv.style.cssText = 'align-self:center; background:#e1f3fb; color:#64748b; font-size:10px; font-weight:600; padding:4px 12px; border-radius:8px; margin:16px 0 8px;';
+                dateDiv.textContent = session.time;
+                container.appendChild(dateDiv);
+
+                session.messages.forEach(msg => {
+                    const div = document.createElement('div');
+                    div.className = `msg-bubble ${msg.isUser ? 'msg-out' : 'msg-in'}`;
+                    div.innerHTML = `<div>${msg.html || msg.text}</div>`;
+                    // Simple time for history messages
+                    const t = session.time.split(', ')[1];
+                    div.innerHTML += `<div class="msg-time">${t}</div>`;
+                    container.appendChild(div);
+                });
+            });
+
+            // Add "Now" label at bottom
+            const nowDiv = document.createElement('div');
+            nowDiv.className = 'chat-date';
+            nowDiv.style.cssText = 'align-self:center; background:#e1f3fb; color:#64748b; font-size:10px; font-weight:600; padding:4px 12px; border-radius:8px; margin:16px 0 8px;';
+            nowDiv.textContent = 'עכשיו - אירוע חי';
+            container.appendChild(nowDiv);
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Init history on load
+        window.addEventListener('load', initHistory);
+
+        async function startChatFlow() {
+            if (chatStarted) return;
+            chatStarted = true;
+
+            const invName = CONFIG[currentProvider].inverters[1].name;
+            const model = CONFIG[currentProvider].inverters[1].model;
+
+            // Simulate "Live" event - faster start (200ms)
+            await addMessage(`היי 👋 זיהיתי ירידה חריגה בייצור ב-<strong>${invName}</strong> (${model}).`, false, 200);
+            await addMessage('ההספק צנח ל-0kW. נראה כמו בעיית חומרה או נתק.', false, 1200);
+
+            // Auto-trigger the user response logic for the live event
+            setTimeout(() => typeUserResponse('תנתח בבקשה את המקרה.', 'analyze'), 2000);
+        }
+
+
+
+        function typeUserResponse(text, action) {
+            let i = 0;
+            chatInput.value = '';
+
+            // Remove previous onclicks
+            sendBtn.onclick = null;
+            sendBtn.classList.remove('ready');
+
+            const interval = setInterval(() => {
+                chatInput.value += text.charAt(i++);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                if (i >= text.length) {
+                    clearInterval(interval);
+                    sendBtn.classList.add('ready');
+                    sendBtn.onclick = () => sendUserMessage(action);
+                }
+            }, 30);
+        }
+
+        function sendUserMessage(action) {
+            if (!chatInput.value) return;
+            const text = chatInput.value;
+            chatInput.value = '';
+            sendBtn.classList.remove('ready');
+            sendBtn.onclick = null;
+
+            addMessage(text, true, 0);
+            setTimeout(() => showTyping(), 600);
+
+            if (action === 'analyze') {
+                setTimeout(() => {
+                    removeTyping();
+                    addMessage(`
+    <div style="font-weight:700; margin-bottom:4px;">📊 ניתוח הושלם</div>
+    <ul style="margin:0; padding-right:16px; font-size:13px; color:#334155;">
+        <li>תבנית מתח AC לא יציב זוהתה ב-48 שעות האחרונות.</li>
+        <li>סבירות גבוהה: <strong>פיוז שרוף</strong> בלוח הממיר.</li>
+    </ul>
+    <div style="margin-top:8px; font-size:11px; color:#64748b;">המלצה: שלח טכנאי לבדיקת פיוזים ב-CB-02.</div>
+    `, false, 0);
+                }, 2500);
+            }
+        }
+    </script>
+</body>
+
+</html>
