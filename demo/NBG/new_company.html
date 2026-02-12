@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>פורטל הקמת חברות | ניר בן-גל רו"ח</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #0066cc;
+            --secondary: #00ccff;
+            --accent: #2563eb;
+            --surface: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.6);
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background-color: #f0f4f8;
+            color: #1e293b;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(0, 168, 232, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(0, 86, 179, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(0, 204, 255, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        h1, h2, h3, h4, h5, .font-heading {
+            font-family: 'Rubik', sans-serif;
+        }
+
+        /* Glassmorphism */
+        .glass-panel {
+            background: var(--surface);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .glass-input {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(203, 213, 225, 0.8);
+            transition: all 0.3s ease;
+        }
+        .glass-input:focus {
+            background: #ffffff;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.1);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Animations */
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-enter { animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .animate-shimmer {
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+
+        /* Tooltip */
+        .tooltip-content {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.2s ease;
+        }
+        .tooltip-trigger:hover + .tooltip-content {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* Button Gradient */
+        .btn-primary {
+            background: linear-gradient(135deg, #0056b3 0%, #0088cc 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 10px 20px -5px rgba(0, 86, 179, 0.4);
+            transform: translateY(-2px);
+        }
+        .btn-primary:active { transform: translateY(0); }
+
+        /* Checkmark Animation */
+        .check-icon circle { stroke-dasharray: 166; stroke-dashoffset: 166; stroke-width: 2; stroke-miterlimit: 10; stroke: #4ade80; fill: none; animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards; }
+        .check-icon path { transform-origin: 50% 50%; stroke-dasharray: 48; stroke-dashoffset: 48; stroke-width: 2; stroke-miterlimit: 10; stroke: #4ade80; fill: none; animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards; }
+        @keyframes stroke { 100% { stroke-dashoffset: 0; } }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        
+        // --- Components ---
+
+        const Icon = ({ name, size = 20, className }) => {
+            useEffect(() => lucide.createIcons(), [name]);
+            return <i data-lucide={name} width={size} height={size} className={className}></i>;
+        };
+
+        const Logo = () => (
+            <div className="flex items-center gap-3">
+                <img src="https://nbg.co.il/wp-content/uploads/2024/02/nbg-logo-2-e1709653975603.png" alt="NBG Logo" className="h-10 md:h-12 object-contain" />
+                <div className="h-8 w-px bg-slate-300 hidden md:block"></div>
+                <div className="hidden md:block">
+                    <h1 className="font-heading font-bold text-lg leading-none text-slate-800 tracking-tight">פורטל הקמת חברות</h1>
+                    <p className="text-xs font-medium text-blue-600 tracking-wide mt-0.5">מערכת Onboarding מתקדמת</p>
+                </div>
+            </div>
+        );
+
+        const Tooltip = ({ text }) => (
+            <div className="relative inline-block group z-10">
+                <span className="tooltip-trigger cursor-help text-blue-400 hover:text-blue-600 transition-colors mx-1.5">
+                    <Icon name="info" size={16} />
+                </span>
+                <div className="tooltip-content absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-800 text-white text-xs rounded-lg shadow-xl text-center leading-relaxed">
+                    {text}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+                </div>
+            </div>
+        );
+
+        const InputField = ({ label, subLabel, type = "text", placeholder, value, onChange, required, tooltip, dir }) => (
+            <div className="group mb-5 animate-enter">
+                <label className="block text-sm font-bold text-slate-700 mb-1.5 flex items-center transition-colors group-focus-within:text-blue-600">
+                    {label} {required && <span className="text-red-500 mr-1">*</span>}
+                    {tooltip && <Tooltip text={tooltip} />}
+                </label>
+                {subLabel && <p className="text-xs text-slate-500 mb-2.5 font-light">{subLabel}</p>}
+                <div className="relative">
+                    <input 
+                        type={type} 
+                        dir={dir}
+                        className="glass-input w-full px-4 py-3.5 rounded-xl text-slate-800 placeholder-slate-400 outline-none text-sm font-medium shadow-sm group-hover:border-blue-300"
+                        placeholder={placeholder}
+                        value={value}
+                        onChange={onChange}
+                    />
+                    {value && <div className="absolute left-3 top-1/2 -translate-y-1/2 text-green-500 pointer-events-none animate-enter"><Icon name="check" size={16} /></div>}
+                </div>
+            </div>
+        );
+
+        const FileUpload = ({ label, id, onChange, fileName, helperText, required }) => (
+            <div className={`relative p-5 rounded-2xl border-2 border-dashed transition-all duration-300 animate-enter group overflow-hidden ${fileName ? 'bg-green-50/50 border-green-300' : 'bg-white/50 border-slate-200 hover:border-blue-400 hover:bg-blue-50/30'}`}>
+                {/* Background Shimmer Effect on Hover */}
+                {!fileName && <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent translate-x-[-200%] group-hover:animate-shimmer pointer-events-none"></div>}
+
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+                    <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className={`p-1.5 rounded-lg ${fileName ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500 group-hover:text-blue-500 group-hover:bg-blue-100'} transition-colors`}>
+                                <Icon name={fileName ? "file-check" : "file-up"} size={18} />
+                            </span>
+                            <span className="font-bold text-slate-700 text-sm md:text-base">{label} {required && <span className="text-red-400">*</span>}</span>
+                        </div>
+                        {helperText && <p className="text-xs text-slate-500 leading-relaxed max-w-sm">{helperText}</p>}
+                    </div>
+                    
+                    <div className="shrink-0">
+                        <label htmlFor={id} className={`cursor-pointer px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 w-full md:w-auto ${fileName ? 'bg-white text-green-700 border border-green-200 hover:shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:border-blue-300 hover:text-blue-600 hover:shadow-md'}`}>
+                            <Icon name={fileName ? "refresh-cw" : "upload-cloud"} size={16} />
+                            {fileName ? "החלף קובץ" : "בחר קובץ"}
+                        </label>
+                        <input type="file" id={id} className="hidden" onChange={onChange} />
+                    </div>
+                </div>
+                
+                {fileName && (
+                    <div className="mt-3 flex items-center gap-2 text-xs font-bold text-green-600 bg-green-100/50 px-3 py-1.5 rounded-lg w-fit animate-enter">
+                        <Icon name="check-circle" size={12} />
+                        <span className="truncate max-w-[200px] dir-ltr">{fileName}</span>
+                    </div>
+                )}
+            </div>
+        );
+
+        const StepProgress = ({ current, total }) => {
+            const progress = ((current - 1) / (total - 1)) * 100;
+            const steps = [
+                { title: "פרטים", icon: "clipboard-list" },
+                { title: "בעלים", icon: "users" },
+                { title: "רישום", icon: "stamp" },
+                { title: "בנק", icon: "landmark" },
+                { title: "רשויות", icon: "building-2" }
+            ];
+
+            return (
+                <div className="mb-10 px-2 md:px-0">
+                    {/* Desktop/Tablet View */}
+                    <div className="hidden md:flex justify-between relative">
+                        <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-200 -z-10 -translate-y-1/2 rounded-full">
+                             <div className="h-full bg-gradient-to-r from-blue-600 to-cyan-400 rounded-full transition-all duration-700 ease-out shadow-[0_0_10px_rgba(0,168,232,0.5)]" style={{ width: `${progress}%` }}></div>
+                        </div>
+                        {steps.map((s, i) => {
+                            const active = i + 1 === current;
+                            const completed = i + 1 < current;
+                            return (
+                                <div key={i} className="flex flex-col items-center group">
+                                    <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-2xl flex items-center justify-center transition-all duration-500 border-2 relative z-10 ${active ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-300 scale-110' : completed ? 'bg-white border-cyan-400 text-cyan-500' : 'bg-slate-50 border-slate-200 text-slate-300'}`}>
+                                        <Icon name={completed ? "check" : s.icon} size={active ? 22 : 18} />
+                                    </div>
+                                    <span className={`text-xs mt-3 font-bold transition-all ${active ? 'text-blue-700 translate-y-0 opacity-100' : completed ? 'text-cyan-600' : 'text-slate-400'}`}>{s.title}</span>
+                                </div>
+                            )
+                        })}
+                    </div>
+                    
+                    {/* Mobile View */}
+                    <div className="md:hidden flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                         <div className="flex items-center gap-3">
+                             <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                                 <span className="font-bold font-heading">{current}</span>
+                                 <span className="text-[10px] text-slate-400">/5</span>
+                             </div>
+                             <div className="flex flex-col">
+                                 <span className="text-xs text-slate-500">שלב נוכחי</span>
+                                 <span className="font-bold text-slate-800 font-heading">{steps[current-1].title}</span>
+                             </div>
+                         </div>
+                         <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
+                             <div className="h-full bg-blue-500 transition-all duration-500" style={{ width: `${progress}%` }}></div>
+                         </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const SuccessModal = ({ isOpen, onClose }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-enter">
+                    <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-green-400 to-emerald-500"></div>
+                        <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <Icon name="check" size={40} className="text-green-500" />
+                        </div>
+                        <h3 className="text-2xl font-heading font-bold text-slate-800 mb-2">שלב הושלם!</h3>
+                        <p className="text-slate-500 mb-8 text-sm">המידע נשמר בהצלחה במערכת.</p>
+                        <button onClick={onClose} className="w-full py-3.5 rounded-xl bg-slate-800 text-white font-bold hover:bg-slate-700 transition shadow-lg shadow-slate-200">
+                            מעולה, נמשיך
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Main App Logic ---
+
+        const App = () => {
+            const [step, setStep] = useState(1);
+            const [showSuccess, setShowSuccess] = useState(false);
+            const [data, setData] = useState({
+                names: ["", "", ""],
+                shareholders: [{ id: 1, name: "", idNum: "", shares: 100, isDirector: true }],
+                files: {},
+                contact: {},
+                details: {}
+            });
+
+            const updateData = (section, key, value) => {
+                setData(prev => ({ ...prev, [section]: { ...prev[section], [key]: value } }));
+            };
+
+            const handleFile = (section, key, e) => {
+                if(e.target.files[0]) updateData(section, key, e.target.files[0].name);
+            };
+
+            const next = () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                if (step === 3 || step === 4) setShowSuccess(true);
+                else if (step === 5) {
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                    setStep(6);
+                } else setStep(p => p + 1);
+            };
+            
+            const prev = () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setStep(p => p - 1);
+            };
+
+            const downloadTemplate = () => {
+                const text = `הסכם התקשרות לדוגמה\nבין: ${data.details.companyName || "החברה"} לבין הלקוח...\n(טיוטה גנרית לצרכי הדגמה)`;
+                const blob = new Blob([text], {type: 'text/plain'});
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = "Agreement_Template.txt";
+                link.click();
+            };
+
+            // Step Renderers
+            const Step1 = () => (
+                <div className="space-y-8 animate-enter">
+                    <div className="flex flex-col md:flex-row gap-6">
+                        <div className="flex-1 space-y-4">
+                            <h3 className="text-xl font-heading font-bold text-slate-800 flex items-center gap-2">
+                                <Icon name="user-circle-2" className="text-blue-500" /> פרטי איש קשר
+                            </h3>
+                            <InputField label="שם מלא" placeholder="ישראל ישראלי" value={data.contact.name} onChange={e => updateData('contact', 'name', e.target.value)} required />
+                            <InputField label="טלפון נייד" value={data.contact.phone} onChange={e => updateData('contact', 'phone', e.target.value)} required />
+                            <InputField label="דואר אלקטרוני" type="email" value={data.contact.email} onChange={e => updateData('contact', 'email', e.target.value)} required tooltip="לכתובת זו יישלחו מסמכי החברה הסופיים" />
+                        </div>
+                        <div className="hidden md:block w-px bg-slate-200 mx-2"></div>
+                        <div className="flex-1 space-y-4">
+                            <h3 className="text-xl font-heading font-bold text-slate-800 flex items-center gap-2">
+                                <Icon name="building" className="text-cyan-500" /> פרטי החברה
+                            </h3>
+                            <InputField label="כתובת מלאה" placeholder="רחוב, מספר, עיר" value={data.details.address} onChange={e => updateData('details', 'address', e.target.value)} required />
+                            <InputField label="תיאור עיסוק" placeholder="פיתוח תוכנה, ייעוץ..." value={data.details.desc} onChange={e => updateData('details', 'desc', e.target.value)} required />
+                            <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
+                                <label className="block text-sm font-bold text-slate-700 mb-3">שמות מוצעים (3 חלופות)</label>
+                                {[0,1,2].map(i => (
+                                    <input key={i} className="glass-input w-full px-4 py-2.5 rounded-lg text-sm mb-2" placeholder={`אפשרות ${i+1}`} value={data.names[i]} onChange={e => {
+                                        const n = [...data.names]; n[i] = e.target.value; setData(p => ({...p, names: n}));
+                                    }} />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const Step2 = () => (
+                <div className="space-y-6 animate-enter">
+                    <div className="bg-blue-50 border-r-4 border-blue-500 p-4 rounded-xl flex items-start gap-3">
+                        <Icon name="info" className="text-blue-600 mt-1 shrink-0" />
+                        <div>
+                            <h4 className="font-bold text-blue-900 text-sm">הגדרת בעלי מניות</h4>
+                            <p className="text-blue-700/80 text-xs mt-1">המערכת תחשב אוטומטית את אחוזי האחזקה. יש לוודא סה"כ 100%.</p>
+                        </div>
+                    </div>
+
+                    {data.shareholders.map((sh, idx) => (
+                        <div key={sh.id} className="glass-panel p-6 rounded-2xl relative transition hover:shadow-lg border-t-4 border-t-cyan-400">
+                             <div className="flex justify-between items-start mb-6">
+                                <h4 className="font-bold font-heading text-lg text-slate-700 flex items-center gap-2">
+                                    <span className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center text-sm">{idx + 1}</span>
+                                    בעל מניות / שותף
+                                </h4>
+                                {data.shareholders.length > 1 && <button onClick={() => setData(p => ({...p, shareholders: p.shareholders.filter(s => s.id !== sh.id)}))} className="text-red-400 hover:bg-red-50 p-2 rounded-lg transition"><Icon name="trash" size={18} /></button>}
+                             </div>
+                             
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+                                <InputField label="שם מלא" value={sh.name} onChange={e => {
+                                    const s = [...data.shareholders]; s[idx].name = e.target.value; setData(p => ({...p, shareholders: s}));
+                                }} />
+                                <InputField label="מספר ת.ז" value={sh.idNum} onChange={e => {
+                                    const s = [...data.shareholders]; s[idx].idNum = e.target.value; setData(p => ({...p, shareholders: s}));
+                                }} />
+                                
+                                <div>
+                                    <label className="text-sm font-bold text-slate-700 mb-1 block">אחוז מניות</label>
+                                    <div className="relative">
+                                        <input type="number" className="glass-input w-full px-4 py-3 rounded-xl font-bold text-blue-600" value={sh.shares} onChange={e => {
+                                            const s = [...data.shareholders]; s[idx].shares = e.target.value; setData(p => ({...p, shareholders: s}));
+                                        }} />
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">%</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center pt-6">
+                                    <label className="flex items-center gap-3 cursor-pointer select-none p-3 rounded-xl border border-slate-200 hover:border-blue-400 bg-white/60 w-full transition">
+                                        <input type="checkbox" checked={sh.isDirector} onChange={e => {
+                                            const s = [...data.shareholders]; s[idx].isDirector = e.target.checked; setData(p => ({...p, shareholders: s}));
+                                        }} className="w-5 h-5 text-blue-600 rounded" />
+                                        <div className="flex flex-col">
+                                            <span className="font-bold text-slate-700 text-sm">מינוי כדירקטור</span>
+                                            <span className="text-[10px] text-slate-500">מורשה חתימה בחברה</span>
+                                        </div>
+                                    </label>
+                                </div>
+                             </div>
+
+                             <div className="pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FileUpload id={`idf_${sh.id}`} label="ת.ז (קדמי)" fileName={data.files[`idf_${sh.id}`]} onChange={e => handleFile('files', `idf_${sh.id}`, e)} />
+                                <FileUpload id={`idb_${sh.id}`} label="ת.ז (ספח)" fileName={data.files[`idb_${sh.id}`]} onChange={e => handleFile('files', `idb_${sh.id}`, e)} />
+                             </div>
+                        </div>
+                    ))}
+                    
+                    <button onClick={() => setData(p => ({...p, shareholders: [...p.shareholders, {id: Date.now(), name:"", idNum:"", shares:0, isDirector:false}]}))} className="w-full py-3 border-2 border-dashed border-slate-300 text-slate-500 rounded-xl font-bold hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition flex items-center justify-center gap-2">
+                        <Icon name="plus" size={18} /> הוסף שותף נוסף
+                    </button>
+                </div>
+            );
+
+            const Step3 = () => (
+                <div className="space-y-6 animate-enter">
+                    <div className="text-center mb-8">
+                        <h3 className="font-heading font-bold text-2xl text-slate-800">מסמכי יסוד לחתימה</h3>
+                        <p className="text-slate-500 mt-2 text-sm">יש להוריד, לחתום ולהעלות חזרה את הטפסים המוכנים.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FileUpload id="doc1" label="תקנון חברה חתום" required helperText="חתימת כל בעלי המניות בעמוד האחרון" fileName={data.files.doc1} onChange={e => handleFile('files', 'doc1', e)} />
+                        <FileUpload id="doc2" label="הצהרת בעלי מניות" required helperText="חתימה ואימות מול עו''ד" fileName={data.files.doc2} onChange={e => handleFile('files', 'doc2', e)} />
+                        <FileUpload id="doc3" label="הצהרת דירקטורים" required helperText="חתימת כל הדירקטורים הממונים" fileName={data.files.doc3} onChange={e => handleFile('files', 'doc3', e)} />
+                        <FileUpload id="doc4" label="אסמכתא אגרה" helperText="אישור תשלום מרשם החברות" fileName={data.files.doc4} onChange={e => handleFile('files', 'doc4', e)} />
+                    </div>
+                </div>
+            );
+
+            const Step4 = () => (
+                <div className="space-y-8 animate-enter">
+                    <div className="glass-panel p-8 rounded-3xl text-center border-t-8 border-t-green-400">
+                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                            <Icon name="party-popper" size={32} className="text-green-600" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-slate-800 font-heading">מזל טוב! החברה רשומה.</h3>
+                        <p className="text-slate-600 mt-2">קיבלנו ח.פ. כעת יש לגשת לבנק לפתיחת חשבון.</p>
+                    </div>
+
+                    <div className="glass-panel p-6 rounded-2xl">
+                        <h4 className="font-bold text-slate-800 mb-6 flex items-center gap-2"><Icon name="building-bank" className="text-blue-600" /> פרטי חשבון בנק</h4>
+                        <div className="grid grid-cols-3 gap-4 mb-6">
+                            <InputField label="שם הבנק" value={data.details.bankName} onChange={e => updateData('details', 'bankName', e.target.value)} />
+                            <InputField label="מס' סניף" value={data.details.bankBranch} onChange={e => updateData('details', 'bankBranch', e.target.value)} />
+                            <InputField label="מס' חשבון" value={data.details.bankAccount} onChange={e => updateData('details', 'bankAccount', e.target.value)} />
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <FileUpload id="bank1" label="אישור ניהול חשבון" fileName={data.files.bank1} onChange={e => handleFile('files', 'bank1', e)} />
+                            <FileUpload id="bank2" label="זכויות חתימה" fileName={data.files.bank2} onChange={e => handleFile('files', 'bank2', e)} />
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const Step5 = () => (
+                <div className="space-y-6 animate-enter">
+                    <div className="glass-panel p-6 rounded-2xl flex flex-col md:flex-row gap-8">
+                        <div className="flex-1">
+                            <div className="bg-blue-50 rounded-xl p-4 mb-4">
+                                <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-2"><Icon name="file-text" size={18} /> הסכם התקשרות</h4>
+                                <p className="text-xs text-blue-700/80 mb-4">דרוש למע"מ להוכחת פעילות עסקית.</p>
+                                <button onClick={downloadTemplate} className="text-xs font-bold bg-white text-blue-600 px-3 py-2 rounded-lg border border-blue-200 hover:shadow-sm flex items-center gap-2 transition">
+                                    <Icon name="download" size={14} /> הורד תבנית מוכנה
+                                </button>
+                            </div>
+                            <FileUpload id="deal" label="העלאת הסכם חתום" fileName={data.files.deal} onChange={e => handleFile('files', 'deal', e)} />
+                        </div>
+                        <div className="w-px bg-slate-200 hidden md:block"></div>
+                        <div className="flex-1">
+                            <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Icon name="map-pin" className="text-cyan-600" /> מיקום העסק</h4>
+                            <p className="text-xs text-slate-500 mb-4">חוזה שכירות או אישור שימוש בנכס.</p>
+                            <FileUpload id="lease" label="חוזה שכירות / אישור" fileName={data.files.lease} onChange={e => handleFile('files', 'lease', e)} />
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const Summary = () => (
+                <div className="text-center py-12 animate-enter max-w-lg mx-auto">
+                    <div className="w-32 h-32 bg-gradient-to-tr from-blue-500 to-cyan-400 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-cyan-200 animate-pulse-soft relative">
+                        <Icon name="check" size={64} className="text-white" strokeWidth={3} />
+                        <div className="absolute inset-0 border-4 border-white/30 rounded-full animate-ping"></div>
+                    </div>
+                    <h2 className="text-4xl font-heading font-black text-slate-800 mb-4 tracking-tight">התהליך הושלם בהצלחה!</h2>
+                    <p className="text-slate-600 text-lg mb-8 leading-relaxed font-light">
+                        כל המידע נקלט בצורה מאובטחת במערכות NBG.<br/>
+                        צוות המשרד מתחיל בטיפול בתיק ויעדכן אותך בהקדם.
+                    </p>
+                    <button onClick={() => window.location.reload()} className="bg-slate-800 text-white px-8 py-4 rounded-xl font-bold hover:bg-slate-900 transition flex items-center justify-center gap-3 mx-auto shadow-xl hover:shadow-2xl hover:-translate-y-1">
+                        <Icon name="refresh-cw" size={20} /> חזרה לדף הבית
+                    </button>
+                </div>
+            );
+
+            return (
+                <>
+                    <SuccessModal isOpen={showSuccess} onClose={() => { setShowSuccess(false); setStep(p => p+1); }} />
+                    
+                    {/* Navbar */}
+                    <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-white/50 shadow-sm">
+                        <div className="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
+                            <Logo />
+                            <a href="tel:0506222364" className="hidden md:flex items-center gap-2 text-xs font-bold bg-slate-100 text-slate-600 px-4 py-2 rounded-full hover:bg-slate-200 transition">
+                                <Icon name="phone" size={14} /> תמיכה
+                            </a>
+                        </div>
+                    </nav>
+
+                    {/* Main Content */}
+                    <main className="flex-grow container max-w-4xl mx-auto px-4 py-8 md:py-12">
+                        {step <= 5 && <StepProgress current={step} total={5} />}
+
+                        <div className={`glass-panel rounded-3xl p-6 md:p-10 shadow-2xl transition-all duration-500 ${step > 5 ? 'hidden' : ''}`}>
+                            {step === 1 && <Step1 />}
+                            {step === 2 && <Step2 />}
+                            {step === 3 && <Step3 />}
+                            {step === 4 && <Step4 />}
+                            {step === 5 && <Step5 />}
+
+                            {/* Footer Navigation */}
+                            <div className="mt-12 flex justify-between items-center border-t border-slate-100 pt-8">
+                                <button onClick={prev} disabled={step === 1} className={`text-slate-400 font-bold text-sm flex items-center gap-2 hover:text-slate-600 transition ${step === 1 ? 'opacity-0 cursor-default' : ''}`}>
+                                    <Icon name="arrow-right" size={18} /> חזור
+                                </button>
+                                <button onClick={next} className="btn-primary text-white px-10 py-3.5 rounded-xl font-bold shadow-lg shadow-blue-200 flex items-center gap-3 text-sm md:text-base">
+                                    {step === 5 ? "סיום ושליחה" : "המשך לשלב הבא"}
+                                    <Icon name={step === 5 ? "send" : "arrow-left"} size={18} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {step === 6 && <Summary />}
+                    </main>
+                    
+                    {/* Mobile Branding Footer */}
+                    <footer className="py-6 text-center text-slate-400 text-xs font-medium">
+                        Powered by NBG Digital © 2026
+                    </footer>
+                </>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
