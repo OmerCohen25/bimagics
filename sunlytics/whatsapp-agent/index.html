@@ -82,16 +82,27 @@
             const [isTyping, setIsTyping] = useState(false);
             const [isRunning, setIsRunning] = useState(false);
             
-            const chatEndRef = useRef(null);
-            const logsEndRef = useRef(null);
+            // שימוש ברפרנסים לקונטיינרים עצמם במקום לאלמנט בתחתית
+            const chatContainerRef = useRef(null);
+            const logsContainerRef = useRef(null);
 
-            // Auto-scroll logic
+            // גלילה פנימית בלבד (לא מקפיץ את המסך הראשי)
             useEffect(() => {
-                chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+                if (chatContainerRef.current) {
+                    chatContainerRef.current.scrollTo({
+                        top: chatContainerRef.current.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
             }, [messages, isTyping]);
 
             useEffect(() => {
-                logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+                if (logsContainerRef.current) {
+                    logsContainerRef.current.scrollTo({
+                        top: logsContainerRef.current.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
             }, [logs]);
 
             const generateId = () => {
@@ -301,7 +312,9 @@
                                 </div>
 
                                 {/* Chat Background */}
-                                <div className="flex-1 bg-[#efeae2] overflow-y-auto p-4 flex flex-col gap-3 relative" 
+                                <div 
+                                     ref={chatContainerRef}
+                                     className="flex-1 bg-[#efeae2] overflow-y-auto p-4 flex flex-col gap-3 relative" 
                                      style={{backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20h2v2H20v-1.5zM0 20h2v20H0V20zm4 0h2v20H4V20zm4 0h2v20H8V20zm4 0h2v20h-2V20zm4 0h2v20h-2V20zm4 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2z' fill='%23000000' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E")`}}>
                                     
                                     {/* Date Badge */}
@@ -345,8 +358,6 @@
                                             <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></span>
                                         </div>
                                     )}
-                                    
-                                    <div ref={chatEndRef} />
                                 </div>
 
                                 {/* WhatsApp Input */}
@@ -448,7 +459,7 @@
                                     </div>
                                 </div>
                                 
-                                <div className="flex-1 p-4 font-mono text-sm overflow-y-auto" style={{ direction: 'ltr' }}>
+                                <div ref={logsContainerRef} className="flex-1 p-4 font-mono text-sm overflow-y-auto" style={{ direction: 'ltr' }}>
                                     {logs.length === 0 && (
                                         <div className="text-slate-500 italic">Waiting for process to start...</div>
                                     )}
@@ -470,7 +481,6 @@
                                             </div>
                                         </div>
                                     ))}
-                                    <div ref={logsEndRef} />
                                 </div>
                             </div>
                             
