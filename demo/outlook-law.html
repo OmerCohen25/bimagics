@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LegalMind AI - ניהול אינטראקציות חכם</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Heebo', 'sans-serif'] },
+                    colors: { primary: '#1e3a8a', secondary: '#3b82f6', accent: '#0ea5e9', dark: '#0f172a' }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Heebo', sans-serif; background-color: #f8fafc; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- App Container -->
+    <div id="app" class="min-h-screen flex flex-col">
+
+        <!-- 1. LOGIN SCREEN -->
+        <div id="loginScreen" class="flex-1 flex items-center justify-center fade-in bg-gradient-to-br from-slate-100 to-blue-50 p-4">
+            <div class="bg-white p-6 sm:p-10 rounded-2xl shadow-xl max-w-md w-full text-center border border-gray-100">
+                <div class="w-20 h-20 bg-primary text-white rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-lg">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-dark mb-2">LegalMind AI</h1>
+                <p class="text-gray-500 mb-8">ניהול אוטומטי של אינטראקציות, קבצים וחיוב שעות למשרדי עורכי דין.</p>
+                
+                <button onclick="startScanning()" class="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-3 px-4 rounded-lg flex items-center justify-center transition-all duration-200 shadow-sm hover:shadow">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="w-7 h-7 ml-3">
+                        <path fill="#0078d4" d="M42,9 L26,12 L26,36 L42,39 Z"></path>
+                        <path fill="#28a8ea" d="M6,14 L26,12 L26,36 L6,34 Z"></path>
+                        <text x="10" y="29" fill="#fff" font-family="Arial, sans-serif" font-weight="bold" font-size="14">O</text>
+                        <path fill="#fff" d="M30,19 L39,19 L39,29 L30,29 Z"></path>
+                        <path fill="#0078d4" d="M30,19 L34.5,23 L39,19 Z"></path>
+                    </svg>
+                    התחברות מאובטחת עם Outlook
+                </button>
+                <div class="mt-4 text-xs text-gray-400 flex items-center justify-center">
+                    <i class="fa-solid fa-lock ml-1"></i> מאובטח בתקן SOC2 וחיסיון עו"ד-לקוח
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. SCANNING/LOADING SCREEN -->
+        <div id="loadingScreen" class="hidden flex-1 flex flex-col items-center justify-center fade-in">
+            <div class="loader mb-6"></div>
+            <h2 class="text-2xl font-semibold text-dark mb-2">סורק ומנתח תיבת דואר...</h2>
+            <p id="loadingText" class="text-secondary font-medium transition-opacity duration-300">מתחבר ל-Microsoft Graph API...</p>
+            <div class="w-64 bg-gray-200 rounded-full h-2 mt-6 overflow-hidden">
+                <div id="progressBar" class="bg-secondary h-2 rounded-full transition-all duration-300" style="width: 10%"></div>
+            </div>
+        </div>
+
+        <!-- 3. MAIN DASHBOARD SCREEN -->
+        <div id="dashboardScreen" class="hidden flex-1 flex flex-col fade-in">
+            <!-- Navbar -->
+            <nav class="bg-primary text-white shadow-md">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex flex-col sm:flex-row justify-between h-auto sm:h-16 py-3 sm:py-0">
+                        <div class="flex items-center justify-center sm:justify-start mb-3 sm:mb-0">
+                            <i class="fa-solid fa-scale-balanced text-2xl ml-3 text-accent"></i>
+                            <span class="font-bold text-xl tracking-tight">LegalMind AI</span>
+                        </div>
+                        <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-0 sm:space-x-4 sm:space-x-reverse">
+                            <button onclick="switchTab('dashboard')" class="nav-btn active px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-800 transition">לוח בקרה</button>
+                            <button onclick="switchTab('settings')" class="nav-btn px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-800 transition">הנחיות AI (Prompts)</button>
+                            <div class="mr-0 sm:mr-4 pl-0 sm:pl-4 border-r-0 sm:border-r border-blue-700 flex items-center mt-2 sm:mt-0 w-full sm:w-auto justify-center">
+                                <div class="w-8 h-8 rounded-full bg-white text-primary flex items-center justify-center font-bold text-sm">יכ</div>
+                                <span class="mr-2 text-sm font-medium">עו"ד יעל כהן</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+                
+                <!-- Dashboard View -->
+                <div id="view-dashboard">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 space-y-4 md:space-y-0">
+                        <div>
+                            <h2 class="text-2xl font-bold text-dark">אינטראקציות אחרונות</h2>
+                            <p class="text-gray-500 text-sm mt-1">נותחו אוטומטית מתוך המיילים והיומן שלך</p>
+                        </div>
+                        
+                        <!-- Filters -->
+                        <div class="flex flex-col sm:flex-row w-full md:w-auto space-y-3 sm:space-y-0 sm:space-x-3 sm:space-x-reverse">
+                            <div class="w-full sm:w-auto">
+                                <label class="block text-xs font-medium text-gray-500 mb-1">סנן לפי עורך דין</label>
+                                <select id="lawyerFilter" onchange="renderTable()" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-secondary focus:border-secondary sm:text-sm rounded-md border shadow-sm">
+                                    <option value="all">כל עורכי הדין</option>
+                                    <option value="יעל כהן">עו"ד יעל כהן</option>
+                                    <option value="דן לוי">עו"ד דן לוי</option>
+                                </select>
+                            </div>
+                            <div class="w-full sm:w-auto">
+                                <label class="block text-xs font-medium text-gray-500 mb-1">סנן לפי לקוח/תיק</label>
+                                <select id="clientFilter" onchange="renderTable()" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-secondary focus:border-secondary sm:text-sm rounded-md border shadow-sm">
+                                    <option value="all">כל הלקוחות</option>
+                                    <option value="טק-מקס בע״מ">טק-מקס בע״מ (תביעה ייצוגית)</option>
+                                    <option value="משפחת אברהמי">משפחת אברהמי (צוואות)</option>
+                                    <option value="יזמות נדל״ן">יזמות נדל״ן (הסכם רכישה)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-6">
+                        <div class="bg-white overflow-hidden shadow rounded-lg border border-gray-100">
+                            <div class="px-4 py-5 sm:p-6 flex items-center">
+                                <div class="bg-blue-100 rounded-md p-3 mr-4">
+                                    <i class="fa-regular fa-clock text-secondary text-xl"></i>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">זמן עבודה שאותר (השבוע)</dt>
+                                    <dd class="mt-1 text-2xl font-semibold text-gray-900" id="stat-hours">14.5 שעות</dd>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white overflow-hidden shadow rounded-lg border border-gray-100">
+                            <div class="px-4 py-5 sm:p-6 flex items-center">
+                                <div class="bg-green-100 rounded-md p-3 mr-4">
+                                    <i class="fa-regular fa-file-lines text-green-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">מסמכים שנותחו</dt>
+                                    <dd class="mt-1 text-2xl font-semibold text-gray-900">12 קבצים</dd>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white overflow-hidden shadow rounded-lg border border-gray-100">
+                            <div class="px-4 py-5 sm:p-6 flex items-center">
+                                <div class="bg-purple-100 rounded-md p-3 mr-4">
+                                    <i class="fa-solid fa-robot text-purple-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">רמת ביטחון ממוצעת (AI)</dt>
+                                    <dd class="mt-1 text-2xl font-semibold text-gray-900">92%</dd>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Table Actions -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-3 sm:space-y-0">
+                        <h3 class="text-lg font-bold text-gray-800 w-full sm:w-auto text-right">פירוט פעילויות לחיוב</h3>
+                        <div class="flex space-x-3 space-x-reverse w-full sm:w-auto">
+                            <button onclick="exportToCSV()" class="flex-1 sm:flex-none bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md text-sm font-medium transition flex items-center justify-center shadow-sm">
+                                <i class="fa-solid fa-file-csv ml-2 text-green-600"></i>
+                                ייצוא טבלה
+                            </button>
+                            <button id="syncBtn" onclick="syncReporting()" class="flex-1 sm:flex-none bg-primary text-white hover:bg-blue-800 px-4 py-2 rounded-md text-sm font-medium transition flex items-center justify-center shadow-sm">
+                                <i class="fa-solid fa-rotate ml-2" id="syncIcon"></i>
+                                סנכרן מערכת שעות
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Data Table -->
+                    <div class="bg-white shadow rounded-lg border border-gray-200 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">תאריך</th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">עו"ד מטפל</th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">לקוח / תיק</th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">תיאור הפעילות (AI)</th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">קבצים מצורפים</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">זמן מוערך</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">סטטוס דיווח</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">פעולות</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody" class="bg-white divide-y divide-gray-200">
+                                    <!-- Rows will be populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings View (Hidden by default) -->
+                <div id="view-settings" class="hidden">
+                    <div class="bg-white shadow sm:rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 flex items-center">
+                                <i class="fa-solid fa-sliders text-secondary ml-2"></i> הנחיות המערכת (System Prompt)
+                            </h3>
+                            <div class="mt-2 max-w-4xl text-sm text-gray-500">
+                                <p>כאן תוכל להגדיר לבינה המלאכותית כיצד בדיוק להעריך שעות עבודה על סמך המיילים והקבצים. שינויים כאן ישפיעו על סריקות עתידיות.</p>
+                            </div>
+                            <div class="mt-5">
+                                <label for="ai-prompt" class="block text-sm font-medium text-gray-700 mb-2">טקסט ההנחיה ל-AI:</label>
+                                <textarea id="ai-prompt" rows="8" class="shadow-sm focus:ring-secondary focus:border-secondary block w-full sm:text-sm border-gray-300 rounded-md p-3 border font-mono text-left" dir="ltr">You are an expert legal assistant AI. Analyze the provided email thread and attachments.
+1. Identify the specific Case and Client based on domain names and keywords.
+2. Determine the type of legal work performed (e.g., Drafting, Reviewing, Negotiation, Client Update).
+3. ESTIMATE TIME: 
+   - Base email reading/writing: 0.1 hours (6 mins).
+   - Document review: Estimate 2 minutes per page for standard contracts.
+   - Drafting complex legal responses: Base 0.5 hours.
+   - ALWAYS round up to the nearest 0.1 hours.
+4. Return a structured JSON summary.</textarea>
+                            </div>
+                            <div class="mt-5 flex flex-col sm:flex-row gap-3">
+                                <button type="button" onclick="alert('ההנחיות נשמרו בהצלחה! ה-AI יעבוד לפי ההגדרות החדשות בסריקה הבאה.')" class="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md shadow-sm text-white bg-primary hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary">
+                                    שמור הגדרות
+                                </button>
+                                <button type="button" class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary">
+                                    שחזר לברירת מחדל
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+
+    </div>
+
+    <!-- MODAL: Interaction Details -->
+    <div id="interactionModal" class="hidden fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeModal()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-right overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
+                
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 border-b">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10 ml-4">
+                                <i class="fa-solid fa-microchip text-secondary"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modalTitle">ניתוח אינטראקציה</h3>
+                                <p class="text-sm text-gray-500" id="modalSubtitle">עו"ד יעל כהן | טק-מקס בע"מ</p>
+                            </div>
+                        </div>
+                        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-500">
+                            <i class="fa-solid fa-xmark text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="px-4 py-5 sm:p-6 bg-gray-50">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        <!-- Left Col: AI Analysis -->
+                        <div>
+                            <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">רציונל הערכת זמן (AI)</h4>
+                            <div class="bg-white p-4 rounded border border-blue-100 shadow-sm">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-3xl font-bold text-primary" id="modalTime">1.5h</span>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">ביטחון: גבוה (95%)</span>
+                                </div>
+                                <ul class="text-sm text-gray-600 space-y-2 mt-4" id="modalAiLogic">
+                                    <!-- Injected via JS -->
+                                </ul>
+                                <div class="mt-4 pt-4 border-t border-gray-100">
+                                    <label class="block text-xs text-gray-500 mb-1">עריכה ידנית (במידת צורך):</label>
+                                    <div class="flex items-center">
+                                        <input type="number" step="0.1" class="w-20 border border-gray-300 rounded p-1 text-sm text-center" value="1.5">
+                                        <button class="mr-2 text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded transition">עדכן חיוב</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Col: Email & Files -->
+                        <div>
+                            <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">מקור (Outlook)</h4>
+                            <div class="bg-white p-4 rounded border border-gray-200 shadow-sm mb-4">
+                                <p class="text-xs text-gray-500 mb-1">נושא המייל:</p>
+                                <p class="font-medium text-sm text-gray-800 mb-3" id="modalEmailSubject">טיוטת הסכם סודיות מתוקנת</p>
+                                <p class="text-xs text-gray-500 mb-1">תקציר שחולץ:</p>
+                                <p class="text-sm text-gray-600 italic bg-gray-50 p-2 border-r-2 border-gray-300" id="modalEmailSnippet">
+                                    "מצ"ב טיוטת ההסכם לאחר הערות הלקוח. אנא עברו על סעיף 4 (הגבלת תחרות) ובדקו האם החשיפה תקינה..."
+                                </p>
+                            </div>
+
+                            <h4 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">קבצים מצורפים</h4>
+                            <ul class="space-y-2" id="modalFilesList">
+                                <!-- Injected via JS -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- Mock Data ---
+        const mockData = [
+            {
+                id: 1,
+                date: "היום, 09:30",
+                lawyer: "יעל כהן",
+                client: "טק-מקס בע״מ",
+                caseName: "תביעה ייצוגית",
+                subject: "הגשת תגובה לבקשת אישור",
+                activity: "ניסוח מסמך משפטי וסקירת פסיקה",
+                emailSnippet: "היי יעל, בהמשך לשיחתנו מצורפת הטיוטה הראשונית של התגובה. הוספתי 3 פסקי דין חדשים שמצאתי בנושא תקן אבטחת מידע. נדרש אישור טרם הגשה מחר.",
+                estimatedTime: 2.5,
+                reported: false,
+                aiLogic: [
+                    "קריאת שרשור מיילים (4 הודעות) - 0.2h",
+                    "זיהוי כתיבת מסמך משפטי מהותי (תגובה לבקשה) - 1.0h",
+                    "סקירת קובץ מצורף: 14 עמודים (Word) - 1.3h"
+                ],
+                files: [
+                    { name: "תגובה_טיוטה_v1.docx", type: "word", size: "450KB" },
+                    { name: "פסיקה_נספח_א.pdf", type: "pdf", size: "1.2MB" }
+                ]
+            },
+            {
+                id: 2,
+                date: "היום, 11:15",
+                lawyer: "דן לוי",
+                client: "יזמות נדל״ן",
+                caseName: "הסכם רכישה",
+                subject: "הערות להסכם המכר - דחוף",
+                activity: "מעבר על הערות צד ג' (Redlining)",
+                emailSnippet: "דן שלום, עברנו על ההסכם. יש לנו הערות מהותיות בסעיפי התמורה ומנגנון הנאמנות. רצוף ההסכם עוקב שינויים.",
+                estimatedTime: 1.2,
+                reported: false,
+                aiLogic: [
+                    "קריאת המייל - 0.1h",
+                    "זיהוי 'עוקב שינויים' בקובץ מצורף - 0.1h",
+                    "סקירת הערות בקובץ Word (6 עמודים עם שינויים) - 1.0h"
+                ],
+                files: [
+                    { name: "הסכם_מכר_הערות_קונה.docx", type: "word", size: "320KB" }
+                ]
+            },
+            {
+                id: 3,
+                date: "אתמול, 16:00",
+                lawyer: "יעל כהן",
+                client: "משפחת אברהמי",
+                caseName: "צוואות",
+                subject: "תיאום פגישת חתימות",
+                activity: "תקשורת אדמיניסטרטיבית / לוגיסטיקה",
+                emailSnippet: "היי, נוכל להיפגש ביום חמישי הקרוב בשעה 10:00 במשרדכם לחתימה על המסמכים.",
+                estimatedTime: 0.1,
+                reported: false,
+                aiLogic: [
+                    "זיהוי מייל לוגיסטי/תיאום - 0.1h",
+                    "אין קבצים מצורפים"
+                ],
+                files: []
+            },
+            {
+                id: 4,
+                date: "אתמול, 14:20",
+                lawyer: "דן לוי",
+                client: "טק-מקס בע״מ",
+                caseName: "ייעוץ שוטף",
+                subject: "שאלת עובד בנוגע להודעה מוקדמת",
+                activity: "ייעוץ משפטי נקודתי (דיני עבודה)",
+                emailSnippet: "דן, יש לנו עובד שעוזב מיוזמתו לאחר 8 חודשים. האם אנו מחויבים להודעה מוקדמת מלאה לפי החוזה המצורף?",
+                estimatedTime: 0.5,
+                reported: true, // דוגמה לאחד שכבר דווח
+                aiLogic: [
+                    "קריאת השאלה המשפטית במייל - 0.1h",
+                    "סקירת הסכם העבודה המצורף (עמוד 4 בלבד) - 0.2h",
+                    "ניסוח תשובה משפטית מנומקת (נמצא במייל התגובה) - 0.2h"
+                ],
+                files: [
+                    { name: "חוזה_העסקה_רון.pdf", type: "pdf", size: "800KB" }
+                ]
+            }
+        ];
+
+        // --- UI State Management ---
+        
+        function startScanning() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('loadingScreen').classList.remove('hidden');
+            
+            const steps = [
+                { text: "מזהה תיקיות ושיחות רלוונטיות...", progress: 30, time: 1000 },
+                { text: "מפענח מסמכי PDF ו-Word...", progress: 60, time: 2500 },
+                { text: "מפעיל מודל AI להערכת זמני עבודה...", progress: 85, time: 4000 },
+                { text: "מסנכרן נתונים לטבלה...", progress: 100, time: 5000 }
+            ];
+
+            const textEl = document.getElementById('loadingText');
+            const barEl = document.getElementById('progressBar');
+
+            steps.forEach(step => {
+                setTimeout(() => {
+                    textEl.style.opacity = 0;
+                    setTimeout(() => {
+                        textEl.innerText = step.text;
+                        textEl.style.opacity = 1;
+                    }, 150);
+                    barEl.style.width = step.progress + '%';
+                }, step.time);
+            });
+
+            setTimeout(() => {
+                document.getElementById('loadingScreen').classList.add('hidden');
+                document.getElementById('dashboardScreen').classList.remove('hidden');
+                renderTable();
+            }, 6000);
+        }
+
+        function switchTab(tab) {
+            // Update Nav Buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('bg-blue-800', 'active'));
+            event.target.classList.add('bg-blue-800', 'active');
+
+            // Switch Views
+            if(tab === 'dashboard') {
+                document.getElementById('view-dashboard').classList.remove('hidden');
+                document.getElementById('view-settings').classList.add('hidden');
+            } else {
+                document.getElementById('view-dashboard').classList.add('hidden');
+                document.getElementById('view-settings').classList.remove('hidden');
+            }
+        }
+
+        // --- Data Rendering ---
+
+        function getFileIcon(type) {
+            if(type === 'pdf') return '<i class="fa-solid fa-file-pdf text-red-500 mr-1"></i>';
+            if(type === 'word') return '<i class="fa-solid fa-file-word text-blue-500 mr-1"></i>';
+            return '<i class="fa-solid fa-file text-gray-500 mr-1"></i>';
+        }
+
+        function renderTable() {
+            const lawyerFilter = document.getElementById('lawyerFilter').value;
+            const clientFilter = document.getElementById('clientFilter').value;
+            const tbody = document.getElementById('tableBody');
+            
+            tbody.innerHTML = '';
+            let totalHours = 0;
+
+            const filteredData = mockData.filter(item => {
+                const matchLawyer = lawyerFilter === 'all' || item.lawyer === lawyerFilter;
+                const matchClient = clientFilter === 'all' || item.client === clientFilter;
+                return matchLawyer && matchClient;
+            });
+
+            filteredData.forEach(item => {
+                totalHours += item.estimatedTime;
+                
+                let filesHtml = item.files.map(f => 
+                    `<div class="text-xs text-gray-600 flex items-center mb-1" title="${f.name}">
+                        ${getFileIcon(f.type)}
+                        <span class="truncate w-32 inline-block mr-1">${f.name}</span>
+                    </div>`
+                ).join('');
+                if(item.files.length === 0) filesHtml = '<span class="text-xs text-gray-400">- ללא קבצים -</span>';
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-blue-50 transition-colors duration-150";
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.date}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="h-6 w-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-bold ml-2">
+                                ${item.lawyer.split(' ').map(n=>n[0]).join('')}
+                            </div>
+                            <div class="text-sm font-medium text-gray-900">עו"ד ${item.lawyer}</div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900 font-semibold">${item.client}</div>
+                        <div class="text-xs text-gray-500">${item.caseName}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900 font-medium">${item.activity}</div>
+                        <div class="text-xs text-gray-500 truncate w-48" title="${item.subject}">${item.subject}</div>
+                    </td>
+                    <td class="px-6 py-4">${filesHtml}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        <span class="px-3 py-1 inline-flex text-sm leading-5 font-bold rounded-full bg-blue-100 text-blue-800">
+                            ${item.estimatedTime}h
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        ${item.reported ? 
+                            '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"><i class="fa-solid fa-check mr-1"></i> דווח</span>' : 
+                            '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800"><i class="fa-regular fa-clock mr-1"></i> ממתין לדיווח</span>'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                        <button onclick="openModal(${item.id})" class="text-secondary hover:text-blue-900 flex flex-col items-center mx-auto">
+                            <i class="fa-solid fa-eye mb-1"></i>
+                            <span class="text-[10px]">בדוק ניתוח</span>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Update stats
+            document.getElementById('stat-hours').innerText = totalHours.toFixed(1) + ' שעות';
+        }
+
+        // --- Modal Logic ---
+
+        function openModal(id) {
+            const data = mockData.find(item => item.id === id);
+            if(!data) return;
+
+            document.getElementById('modalTitle').innerText = data.activity;
+            document.getElementById('modalSubtitle').innerText = `עו"ד ${data.lawyer} | ${data.client} (${data.caseName})`;
+            document.getElementById('modalTime').innerText = data.estimatedTime + 'h';
+            
+            // Logic List
+            const logicHtml = data.aiLogic.map(l => `<li><i class="fa-solid fa-check text-green-500 ml-2"></i>${l}</li>`).join('');
+            document.getElementById('modalAiLogic').innerHTML = logicHtml;
+
+            // Email Data
+            document.getElementById('modalEmailSubject').innerText = data.subject;
+            document.getElementById('modalEmailSnippet').innerText = `"${data.emailSnippet}"`;
+
+            // Files
+            let filesHtml = data.files.map(f => `
+                <li class="flex items-center justify-between bg-white border border-gray-200 p-2 rounded text-sm">
+                    <div class="flex items-center text-gray-700">
+                        ${getFileIcon(f.type)}
+                        <span class="mr-2 font-medium">${f.name}</span>
+                    </div>
+                    <span class="text-xs text-gray-400">${f.size}</span>
+                </li>
+            `).join('');
+            if(data.files.length === 0) filesHtml = '<li class="text-sm text-gray-500">לא נמצאו קבצים מצורפים רלוונטיים.</li>';
+            document.getElementById('modalFilesList').innerHTML = filesHtml;
+
+            // Show Modal
+            document.getElementById('interactionModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('interactionModal').classList.add('hidden');
+        }
+
+        // --- Export & Sync Logic ---
+        
+        function exportToCSV() {
+            // Add BOM to fix Hebrew encoding in Excel
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+            
+            // Header
+            csvContent += "תאריך,עורך דין מטפל,לקוח/תיק,תיאור הפעילות,שעות עבודה מוערכות,סטטוס דיווח\n";
+            
+            // Rows
+            mockData.forEach(row => {
+                const status = row.reported ? "דווח" : "ממתין לדיווח";
+                // Escape quotes and commas
+                const activity = `"${row.activity.replace(/"/g, '""')}"`;
+                const client = `"${row.client} - ${row.caseName}"`;
+                
+                csvContent += `${row.date},${row.lawyer},${client},${activity},${row.estimatedTime},${status}\n`;
+            });
+
+            // Create download link
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "legal_hours_export.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function syncReporting() {
+            const btn = document.getElementById('syncBtn');
+            const icon = document.getElementById('syncIcon');
+            const originalText = btn.innerHTML;
+            
+            // Show loading state
+            btn.classList.add('opacity-75', 'cursor-wait');
+            icon.classList.add('fa-spin');
+            btn.innerHTML = '<i class="fa-solid fa-rotate ml-2 fa-spin"></i> מסנכרן...';
+
+            // Simulate API request to Billing/CRM system
+            setTimeout(() => {
+                // Update internal data state
+                mockData.forEach(item => item.reported = true);
+                
+                // Show success state
+                btn.classList.remove('opacity-75', 'cursor-wait');
+                btn.classList.replace('bg-primary', 'bg-green-600');
+                btn.classList.replace('hover:bg-blue-800', 'hover:bg-green-700');
+                btn.innerHTML = '<i class="fa-solid fa-check ml-2"></i> סונכרן בהצלחה!';
+                
+                // Refresh table to show updated status badges
+                renderTable();
+
+                // Reset button after 3 seconds
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.replace('bg-green-600', 'bg-primary');
+                    btn.classList.replace('hover:bg-green-700', 'hover:bg-blue-800');
+                }, 3000);
+
+            }, 2000);
+        }
+
+    </script>
+</body>
+</html>
