@@ -2,12 +2,12 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Potato Star OS - Branch Details Drilldown</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Potato Star OS - Enterprise Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', system-ui, sans-serif; }
+    body { font-family: 'Inter', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
@@ -17,12 +17,18 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     
     .bar-chart-hover:hover .tooltip { opacity: 1; visibility: visible; }
+
+    /* Mobile specific styles for the bottom nav architecture */
+    @media (max-width: 767px) {
+      .mobile-view { display: none !important; }
+      .mobile-view.mobile-active { display: flex !important; }
+    }
   </style>
 </head>
-<body class="bg-[#F9FAFB] text-gray-900 h-screen flex overflow-hidden">
+<body class="bg-[#F9FAFB] text-gray-900 h-screen flex flex-col md:flex-row overflow-hidden">
 
-  <!-- תפריט צד (Sidebar) -->
-  <aside class="w-64 bg-white border-l border-gray-200 flex flex-col justify-between h-full z-10 flex-shrink-0">
+  <!-- ================= תפריט צד (Sidebar) - Desktop Only ================= -->
+  <aside class="hidden md:flex w-64 bg-white border-l border-gray-200 flex-col justify-between h-full z-10 flex-shrink-0">
     <div>
       <div class="h-16 flex items-center px-6 border-b border-gray-100 mb-4">
         <div class="w-8 h-8 bg-black text-white rounded-lg flex items-center justify-center font-bold text-lg ml-3 shadow-sm">P</div>
@@ -52,20 +58,21 @@
     </div>
   </aside>
 
-  <!-- תוכן מרכזי ופיצול עם פאנל AI תמידי -->
-  <main class="flex-1 flex overflow-hidden bg-[#F9FAFB]">
+  <!-- ================= תוכן מרכזי ופיצול ================= -->
+  <main class="flex-1 flex overflow-hidden bg-[#F9FAFB] relative w-full pb-16 md:pb-0">
     
     <!-- אזור הנתונים המרכזי שמתחלף -->
-    <div class="flex-1 flex flex-col overflow-y-auto relative p-8">
+    <div id="main-content-area" class="flex-1 flex flex-col overflow-y-auto relative p-4 md:p-8 mobile-view mobile-active w-full">
       
       <!-- ================= דשבורד ראשי (רשת) ================= -->
-      <div id="page-dashboard" class="page-content block fade-in max-w-6xl w-full mx-auto">
-        <header class="mb-8">
+      <div id="page-dashboard" class="page-content block fade-in max-w-6xl w-full mx-auto pb-6">
+        <header class="mb-6 md:mb-8 mt-2 md:mt-0">
           <h1 class="text-2xl font-semibold text-gray-900">מבט על</h1>
           <p class="text-sm text-gray-500 mt-1">סיכום ביצועים רשתי ליום הנוכחי (מעודכן ללפני 5 דקות).</p>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+        <!-- קוביות מדדים -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 mb-6 md:mb-8">
           <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
             <span class="text-sm font-medium text-gray-500">סה״כ הכנסות (סניפים + אירועים)</span>
             <div class="mt-4 flex items-baseline gap-2">
@@ -98,52 +105,53 @@
           </div>
         </div>
 
+        <!-- טבלת סניפים -->
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-8">
-          <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-            <h2 class="text-sm font-semibold text-gray-900">ביצועים לפי יחידה עסקית <span class="text-xs font-normal text-gray-500 mr-2">(לחץ על סניף לפירוט)</span></h2>
+          <div class="px-4 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <h2 class="text-sm font-semibold text-gray-900">ביצועים לפי יחידה עסקית <span class="hidden md:inline text-xs font-normal text-gray-500 mr-2">(לחץ על סניף לפירוט)</span></h2>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-sm text-right">
+            <table class="w-full text-sm text-right min-w-[600px]">
               <thead class="text-xs text-gray-500 bg-white border-b border-gray-100">
                 <tr>
-                  <th class="px-5 py-3 font-medium">יחידה עסקית</th>
-                  <th class="px-5 py-3 font-medium">הכנסות היום</th>
-                  <th class="px-5 py-3 font-medium">הזמנות / עסקאות</th>
-                  <th class="px-5 py-3 font-medium">ממוצע עסקה</th>
-                  <th class="px-5 py-3 font-medium">סטטוס יעד</th>
-                  <th class="px-5 py-3 font-medium w-10"></th>
+                  <th class="px-4 py-3 font-medium">יחידה עסקית</th>
+                  <th class="px-4 py-3 font-medium">הכנסות היום</th>
+                  <th class="px-4 py-3 font-medium">הזמנות / עסקאות</th>
+                  <th class="px-4 py-3 font-medium">ממוצע עסקה</th>
+                  <th class="px-4 py-3 font-medium">סטטוס יעד</th>
+                  <th class="px-4 py-3 font-medium w-8"></th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100 bg-white">
                 <tr class="hover:bg-gray-50 transition-colors cursor-pointer group" onclick="openBranchDetails('אשדוד · Star Center', '11,440', '126', '19.8%')">
-                  <td class="px-5 py-3 text-gray-900 font-medium flex items-center gap-2">
+                  <td class="px-4 py-3 text-gray-900 font-medium flex items-center gap-2">
                     <div class="w-2 h-2 rounded-full bg-emerald-500"></div> אשדוד · Star Center
                   </td>
-                  <td class="px-5 py-3">₪11,440</td>
-                  <td class="px-5 py-3 text-gray-500">126</td>
-                  <td class="px-5 py-3 text-gray-500">₪91</td>
-                  <td class="px-5 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700">עומד ביעד</span></td>
-                  <td class="px-5 py-3 text-gray-400 group-hover:text-black transition-colors"><svg class="w-4 h-4 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></td>
+                  <td class="px-4 py-3">₪11,440</td>
+                  <td class="px-4 py-3 text-gray-500">126</td>
+                  <td class="px-4 py-3 text-gray-500">₪91</td>
+                  <td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700">עומד ביעד</span></td>
+                  <td class="px-4 py-3 text-gray-400 group-hover:text-black transition-colors"><svg class="w-4 h-4 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></td>
                 </tr>
                 <tr class="hover:bg-gray-50 transition-colors cursor-pointer group" onclick="openBranchDetails('אשקלון · Marina Mall', '9,760', '108', '17.2%')">
-                  <td class="px-5 py-3 text-gray-900 font-medium flex items-center gap-2">
+                  <td class="px-4 py-3 text-gray-900 font-medium flex items-center gap-2">
                     <div class="w-2 h-2 rounded-full bg-emerald-500"></div> אשקלון · Marina Mall
                   </td>
-                  <td class="px-5 py-3">₪9,760</td>
-                  <td class="px-5 py-3 text-gray-500">108</td>
-                  <td class="px-5 py-3 text-gray-500">₪90</td>
-                  <td class="px-5 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700">עומד ביעד</span></td>
-                  <td class="px-5 py-3 text-gray-400 group-hover:text-black transition-colors"><svg class="w-4 h-4 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></td>
+                  <td class="px-4 py-3">₪9,760</td>
+                  <td class="px-4 py-3 text-gray-500">108</td>
+                  <td class="px-4 py-3 text-gray-500">₪90</td>
+                  <td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700">עומד ביעד</span></td>
+                  <td class="px-4 py-3 text-gray-400 group-hover:text-black transition-colors"><svg class="w-4 h-4 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></td>
                 </tr>
                 <tr class="hover:bg-gray-50 transition-colors cursor-pointer group" onclick="openBranchDetails('כרמי גת · מתחם BIG', '7,740', '87', '24.1%')">
-                  <td class="px-5 py-3 text-gray-900 font-medium flex items-center gap-2">
+                  <td class="px-4 py-3 text-gray-900 font-medium flex items-center gap-2">
                     <div class="w-2 h-2 rounded-full bg-rose-500"></div> כרמי גת · מתחם BIG
                   </td>
-                  <td class="px-5 py-3">₪7,740</td>
-                  <td class="px-5 py-3 text-gray-500">87</td>
-                  <td class="px-5 py-3 text-gray-500">₪89</td>
-                  <td class="px-5 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-700">חריגת Labor Cost</span></td>
-                  <td class="px-5 py-3 text-gray-400 group-hover:text-black transition-colors"><svg class="w-4 h-4 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></td>
+                  <td class="px-4 py-3">₪7,740</td>
+                  <td class="px-4 py-3 text-gray-500">87</td>
+                  <td class="px-4 py-3 text-gray-500">₪89</td>
+                  <td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-700 whitespace-nowrap">חריגת Labor</span></td>
+                  <td class="px-4 py-3 text-gray-400 group-hover:text-black transition-colors"><svg class="w-4 h-4 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></td>
                 </tr>
               </tbody>
             </table>
@@ -152,89 +160,89 @@
       </div>
 
       <!-- ================= דשבורד רמת סניף (Drill-down) ================= -->
-      <div id="page-branch" class="page-content hidden fade-in max-w-6xl w-full mx-auto">
-        <header class="mb-6 flex flex-col gap-3">
-          <button onclick="switchPage('dashboard', 'network')" class="text-xs font-medium text-gray-500 hover:text-black flex items-center gap-1.5 w-max bg-white border border-gray-200 px-3 py-1.5 rounded-md shadow-sm transition-all">
+      <div id="page-branch" class="page-content hidden fade-in max-w-6xl w-full mx-auto pb-6">
+        <header class="mb-6 flex flex-col gap-3 mt-2 md:mt-0">
+          <button onclick="switchPage('dashboard', 'network')" class="text-xs font-medium text-gray-600 hover:text-black flex items-center gap-1.5 w-max bg-white border border-gray-200 px-3 py-1.5 rounded-md shadow-sm transition-all">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l-7 7 7 7"></path></svg>
             חזרה למבט על
           </button>
-          <div class="flex justify-between items-end mt-2">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-end mt-2 gap-3">
             <div>
-              <h1 id="b-title" class="text-2xl font-semibold text-gray-900 flex items-center gap-2">
+              <h1 id="b-title" class="text-xl md:text-2xl font-semibold text-gray-900 flex items-center gap-2 flex-wrap">
                 סניף נבחר
                 <span class="px-2 py-1 bg-emerald-100 text-emerald-700 text-[10px] rounded-full uppercase tracking-wide">Live POS</span>
               </h1>
               <p class="text-sm text-gray-500 mt-1">פירוט מגמות, רווחיות וביצועים תפעוליים להיום.</p>
             </div>
-            <div class="text-sm text-gray-500 bg-white border border-gray-200 px-3 py-1.5 rounded-md">
+            <div class="text-sm text-gray-600 bg-white border border-gray-200 px-3 py-1.5 rounded-md w-full md:w-auto text-center">
               מנהל משמרת: <span class="font-medium text-gray-900">אבי דהן</span>
             </div>
           </div>
         </header>
 
         <!-- נתוני סניף -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
           <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
             <span class="text-xs font-medium text-gray-500">הכנסות היום</span>
-            <div id="b-rev" class="mt-2 text-2xl font-semibold text-gray-900">₪0</div>
+            <div id="b-rev" class="mt-2 text-xl md:text-2xl font-semibold text-gray-900">₪0</div>
           </div>
           <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
             <span class="text-xs font-medium text-gray-500">רווח גולמי</span>
-            <div class="mt-2 text-2xl font-semibold text-gray-900">68.2%</div>
-            <div class="mt-1 text-[10px] font-medium text-emerald-600">▲ +1.5% מהממוצע</div>
+            <div class="mt-2 text-xl md:text-2xl font-semibold text-gray-900">68.2%</div>
+            <div class="mt-1 text-[10px] font-medium text-emerald-600 whitespace-nowrap">▲ +1.5% מהממוצע</div>
           </div>
           <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <span class="text-xs font-medium text-gray-500">רווח תפעולי (משוערך)</span>
-            <div class="mt-2 text-2xl font-semibold text-gray-900">22.4%</div>
-            <div class="mt-1 text-[10px] font-medium text-emerald-600">₪2,560 תרומה לרווח</div>
+            <span class="text-xs font-medium text-gray-500">רווח תפעולי</span>
+            <div class="mt-2 text-xl md:text-2xl font-semibold text-gray-900">22.4%</div>
+            <div class="mt-1 text-[10px] font-medium text-emerald-600 whitespace-nowrap">₪2,560 תרומה לרווח</div>
           </div>
           <div class="bg-white p-4 rounded-xl border border-rose-200 shadow-sm bg-rose-50/30">
-            <span class="text-xs font-medium text-rose-700">Labor Cost מול הכנסות</span>
-            <div id="b-labor" class="mt-2 text-2xl font-semibold text-rose-700">0%</div>
-            <div class="mt-1 text-[10px] font-medium text-rose-600">חריגה בשעות 14:00-16:00</div>
+            <span class="text-[11px] md:text-xs font-medium text-rose-700 leading-tight block">Labor Cost / הכנסות</span>
+            <div id="b-labor" class="mt-1 md:mt-2 text-xl md:text-2xl font-semibold text-rose-700">0%</div>
+            <div class="mt-1 text-[10px] font-medium text-rose-600 leading-tight">חריגה 14:00-16:00</div>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-8">
           <!-- מנות מרוויחות -->
           <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
-            <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <h2 class="text-sm font-semibold text-gray-900">מנות מובילות (לפי תרומה לרווח)</h2>
+            <div class="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h2 class="text-sm font-semibold text-gray-900">מנות מובילות (לפי רווח נקי)</h2>
             </div>
-            <div class="overflow-x-auto p-4 flex-1">
-              <table class="w-full text-sm text-right">
+            <div class="overflow-x-auto p-2 md:p-4 flex-1">
+              <table class="w-full text-sm text-right min-w-[450px]">
                 <thead class="text-xs text-gray-400 border-b border-gray-100">
                   <tr>
-                    <th class="pb-2 font-medium">מנה</th>
-                    <th class="pb-2 font-medium">מכירות</th>
-                    <th class="pb-2 font-medium">Food Cost</th>
-                    <th class="pb-2 font-medium">שולי רווח</th>
+                    <th class="pb-2 font-medium px-2">מנה</th>
+                    <th class="pb-2 font-medium px-2">מכירות</th>
+                    <th class="pb-2 font-medium px-2">Food Cost</th>
+                    <th class="pb-2 font-medium px-2">שולי רווח</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
                   <tr class="hover:bg-gray-50">
-                    <td class="py-3 text-gray-900 font-medium">תפוח אדמה מפוצץ (טאבון)</td>
-                    <td class="py-3 text-gray-600">42 יח׳</td>
-                    <td class="py-3 text-emerald-600 font-medium">24%</td>
-                    <td class="py-3 text-gray-900">₪1,340</td>
+                    <td class="py-3 px-2 text-gray-900 font-medium">תפוח אדמה מפוצץ (טאבון)</td>
+                    <td class="py-3 px-2 text-gray-600">42 יח׳</td>
+                    <td class="py-3 px-2 text-emerald-600 font-medium">24%</td>
+                    <td class="py-3 px-2 text-gray-900">₪1,340</td>
                   </tr>
                   <tr class="hover:bg-gray-50">
-                    <td class="py-3 text-gray-900 font-medium">מק אנד צ'יז פרימיום</td>
-                    <td class="py-3 text-gray-600">38 יח׳</td>
-                    <td class="py-3 text-emerald-600 font-medium">28%</td>
-                    <td class="py-3 text-gray-900">₪1,120</td>
+                    <td class="py-3 px-2 text-gray-900 font-medium">מק אנד צ'יז פרימיום</td>
+                    <td class="py-3 px-2 text-gray-600">38 יח׳</td>
+                    <td class="py-3 px-2 text-emerald-600 font-medium">28%</td>
+                    <td class="py-3 px-2 text-gray-900">₪1,120</td>
                   </tr>
                   <tr class="hover:bg-gray-50">
-                    <td class="py-3 text-gray-900 font-medium">צ'יפס הולנדי ענק + רטבים</td>
-                    <td class="py-3 text-gray-600">55 יח׳</td>
-                    <td class="py-3 text-emerald-600 font-medium">18%</td>
-                    <td class="py-3 text-gray-900">₪980</td>
+                    <td class="py-3 px-2 text-gray-900 font-medium">צ'יפס הולנדי ענק + רטבים</td>
+                    <td class="py-3 px-2 text-gray-600">55 יח׳</td>
+                    <td class="py-3 px-2 text-emerald-600 font-medium">18%</td>
+                    <td class="py-3 px-2 text-gray-900">₪980</td>
                   </tr>
                   <tr class="hover:bg-gray-50">
-                    <td class="py-3 text-gray-900 font-medium">קומבו משפחתי (Wolt)</td>
-                    <td class="py-3 text-gray-600">12 יח׳</td>
-                    <td class="py-3 text-rose-500 font-medium">35% <span class="text-[10px] text-gray-400">(עמלה)</span></td>
-                    <td class="py-3 text-gray-900">₪540</td>
+                    <td class="py-3 px-2 text-gray-900 font-medium">קומבו משפחתי (Wolt)</td>
+                    <td class="py-3 px-2 text-gray-600">12 יח׳</td>
+                    <td class="py-3 px-2 text-rose-500 font-medium">35% <span class="text-[10px] text-gray-400 block md:inline">(כולל עמלה)</span></td>
+                    <td class="py-3 px-2 text-gray-900">₪540</td>
                   </tr>
                 </tbody>
               </table>
@@ -243,47 +251,46 @@
 
           <!-- גרף מכירות לאורך היום -->
           <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
-            <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <h2 class="text-sm font-semibold text-gray-900">מגמת מכירות מול יעד תפעולי (היום)</h2>
+            <div class="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h2 class="text-sm font-semibold text-gray-900">מגמת מכירות מול יעד תפעולי</h2>
             </div>
-            <div class="p-5 flex-1 flex flex-col">
+            <div class="p-4 md:p-5 flex-1 flex flex-col">
               <div class="flex justify-between text-xs text-gray-500 mb-6">
                 <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-indigo-500"></div> מכירות בפועל</span>
                 <span class="flex items-center gap-1"><div class="w-4 h-[2px] bg-gray-300"></div> יעד תפעולי</span>
               </div>
               
-              <!-- גרף עמודות פשוט (CSS) -->
-              <div class="flex-1 flex items-end justify-between gap-2 h-40 relative border-b border-gray-100 pb-2">
+              <!-- גרף עמודות -->
+              <div class="flex-1 flex items-end justify-between gap-1 md:gap-2 h-40 relative border-b border-gray-100 pb-2">
                 <!-- קו יעד -->
                 <div class="absolute w-full h-[1px] bg-gray-300 border-t border-dashed border-gray-300 bottom-[60%] z-0"></div>
                 
-                <!-- עמודות -->
                 <div class="relative z-10 w-full bg-indigo-100 hover:bg-indigo-200 transition-colors rounded-t cursor-pointer bar-chart-hover" style="height: 30%;">
-                  <div class="tooltip absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 transition-opacity whitespace-nowrap">₪800</div>
+                  <div class="tooltip absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 transition-opacity whitespace-nowrap z-50">₪800</div>
                   <div class="text-[9px] text-gray-400 absolute -bottom-5 w-full text-center">10:00</div>
                 </div>
                 <div class="relative z-10 w-full bg-indigo-400 hover:bg-indigo-500 transition-colors rounded-t cursor-pointer bar-chart-hover" style="height: 55%;">
-                  <div class="tooltip absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 transition-opacity whitespace-nowrap">₪1,400</div>
+                  <div class="tooltip absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 transition-opacity whitespace-nowrap z-50">₪1,400</div>
                   <div class="text-[9px] text-gray-400 absolute -bottom-5 w-full text-center">12:00</div>
                 </div>
                 <div class="relative z-10 w-full bg-indigo-600 hover:bg-indigo-700 transition-colors rounded-t cursor-pointer bar-chart-hover" style="height: 85%;">
-                  <div class="tooltip absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 transition-opacity whitespace-nowrap">₪2,200</div>
+                  <div class="tooltip absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 transition-opacity whitespace-nowrap z-50">₪2,200</div>
                   <div class="text-[9px] text-gray-400 absolute -bottom-5 w-full text-center">14:00</div>
                 </div>
                 <div class="relative z-10 w-full bg-indigo-200 hover:bg-indigo-300 transition-colors rounded-t cursor-pointer bar-chart-hover" style="height: 40%;">
-                  <div class="tooltip absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 transition-opacity whitespace-nowrap">₪1,050</div>
+                  <div class="tooltip absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 transition-opacity whitespace-nowrap z-50">₪1,050</div>
                   <div class="text-[9px] text-gray-400 absolute -bottom-5 w-full text-center text-rose-500 font-bold">16:00</div>
                 </div>
                 <div class="relative z-10 w-full bg-indigo-300 hover:bg-indigo-400 transition-colors rounded-t cursor-pointer bar-chart-hover" style="height: 60%;">
-                  <div class="tooltip absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 transition-opacity whitespace-nowrap">₪1,600</div>
+                  <div class="tooltip absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 transition-opacity whitespace-nowrap z-50">₪1,600</div>
                   <div class="text-[9px] text-gray-400 absolute -bottom-5 w-full text-center">18:00</div>
                 </div>
                 <div class="relative z-10 w-full bg-indigo-500 hover:bg-indigo-600 transition-colors rounded-t cursor-pointer bar-chart-hover" style="height: 75%;">
-                  <div class="tooltip absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 transition-opacity whitespace-nowrap">₪1,950</div>
+                  <div class="tooltip absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 transition-opacity whitespace-nowrap z-50">₪1,950</div>
                   <div class="text-[9px] text-gray-400 absolute -bottom-5 w-full text-center">20:00</div>
                 </div>
                 <div class="relative z-10 w-full bg-indigo-100 hover:bg-indigo-200 transition-colors rounded-t cursor-pointer bar-chart-hover" style="height: 20%;">
-                  <div class="tooltip absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 transition-opacity whitespace-nowrap">₪500</div>
+                  <div class="tooltip absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 transition-opacity whitespace-nowrap z-50">₪500</div>
                   <div class="text-[9px] text-gray-400 absolute -bottom-5 w-full text-center">22:00</div>
                 </div>
               </div>
@@ -293,60 +300,137 @@
       </div>
 
       <!-- ================= עמוד: קונקטורים ================= -->
-      <div id="page-connectors" class="page-content hidden fade-in max-w-5xl w-full mx-auto">
-        <header class="mb-8">
+      <div id="page-connectors" class="page-content hidden fade-in max-w-5xl w-full mx-auto pb-6">
+        <header class="mb-6 md:mb-8 mt-2 md:mt-0">
           <h1 class="text-2xl font-semibold text-gray-900">חיבורי מערכות (Connectors)</h1>
-          <p class="text-sm text-gray-500 mt-1">ניהול הסנכרון בין מערכות התפעול למנוע ה-AI המרכזי.</p>
+          <p class="text-sm text-gray-500 mt-1">סנכרון מלא של מערכות התפעול למנוע ה-AI כדי לקבל תמונה אמיתית בזמן אמת.</p>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          <!-- כרטיסייה: POS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+          
+          <!-- Tabit / POS -->
+          <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-gray-300 transition-colors cursor-pointer">
+            <div class="flex justify-between items-start mb-4">
+              <div class="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center font-bold text-gray-700">T</div>
+              <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 uppercase tracking-wider">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live
+              </span>
+            </div>
+            <h3 class="font-semibold text-gray-900 text-sm">Tabit (קופות רושמות)</h3>
+            <p class="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">סנכרון מלא של עסקאות ישיבה/TA, פריטים, שעות עומס והחזרים בזמן אמת.</p>
+            <div class="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400">
+              <span>סנכרון אחרון: לפני דקה</span><span>API</span>
+            </div>
+          </div>
+
+          <!-- Wolt -->
+          <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-gray-300 transition-colors cursor-pointer">
+            <div class="flex justify-between items-start mb-4">
+              <div class="w-10 h-10 rounded-lg bg-[#009de0]/10 border border-[#009de0]/20 flex items-center justify-center font-bold text-[#009de0] text-lg">W</div>
+              <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 uppercase tracking-wider">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live
+              </span>
+            </div>
+            <h3 class="font-semibold text-gray-900 text-sm">Wolt / 10bis (משלוחים)</h3>
+            <p class="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">משיכת נתוני הזמנות, זמני הכנה, עמלות משלוח, פריטים פופולריים וביטולים.</p>
+            <div class="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400">
+              <span>סנכרון אחרון: לפני 5 דקות</span><span>Webhook</span>
+            </div>
+          </div>
+
+          <!-- Bite / Online Orders -->
+          <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-gray-300 transition-colors cursor-pointer">
+            <div class="flex justify-between items-start mb-4">
+              <div class="w-10 h-10 rounded-lg bg-orange-50 border border-orange-100 flex items-center justify-center">
+                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+              </div>
+              <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 uppercase tracking-wider">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live
+              </span>
+            </div>
+            <h3 class="font-semibold text-gray-900 text-sm">הזמנות אונליין (Bite / ClickEat)</h3>
+            <p class="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">סנכרון הזמנות ישירות, מועדון לקוחות וקופונים להגדלת רווחיות ללא עמלות צד ג'.</p>
+            <div class="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400">
+              <span>סנכרון אחרון: לפני 10 דקות</span><span>API</span>
+            </div>
+          </div>
+
+          <!-- Shift -->
+          <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-gray-300 transition-colors cursor-pointer">
+            <div class="flex justify-between items-start mb-4">
+              <div class="w-10 h-10 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center">
+                <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              </div>
+              <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 uppercase tracking-wider">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Syncing
+              </span>
+            </div>
+            <h3 class="font-semibold text-gray-900 text-sm">ניהול עובדים (Shift Organizer)</h3>
+            <p class="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">שעון נוכחות, תכנון משמרות להצלבה עם הכנסות למדידת חריגות ב-Labor Cost.</p>
+            <div class="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400">
+              <span>סנכרון אחרון: הבוקר 06:00</span><span>API</span>
+            </div>
+          </div>
+
+          <!-- Marketman -->
           <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-gray-300 transition-colors cursor-pointer">
             <div class="flex justify-between items-start mb-4">
               <div class="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center">
-                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
               </div>
-              <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 uppercase tracking-wider">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Live
+              <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-medium bg-amber-50 text-amber-700 uppercase tracking-wider">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Partial
               </span>
             </div>
-            <h3 class="font-semibold text-gray-900 text-sm">קופות רושמות (POS)</h3>
-            <p class="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">סנכרון מלא של עסקאות, פריטים, שעות עומס והחזרים בזמן אמת.</p>
-            <div class="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400">
-              <span>סנכרון אחרון: לפני דקה</span>
-              <span>API</span>
+            <h3 class="font-semibold text-gray-900 text-sm">מלאי ורכש (Marketman / Foody)</h3>
+            <p class="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">מעקב אחר חשבוניות ספקים, פחת, וחישוב Food Cost מדויק ברמת המנה. חסר עדכון תעודות משלוח מירקן.</p>
+            <div class="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-500">
+              <button class="text-black font-medium hover:underline">השלם הגדרות חיבור</button>
             </div>
           </div>
-          <!-- כרטיסיות נוספות... הושארו פשוטות לצורך הדמו -->
-          <div class="bg-white p-5 rounded-xl border border-dashed border-gray-300 shadow-sm hover:border-gray-400 bg-gray-50/50">
-            <h3 class="font-semibold text-gray-900 text-sm mt-12 text-center">מערכת מלאי ורכש</h3>
-            <p class="text-xs text-gray-500 mt-1 text-center">נדרש חיבור לחישוב Food Cost מדויק</p>
+
+          <!-- CRM -->
+          <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-gray-300 transition-colors cursor-pointer">
+            <div class="flex justify-between items-start mb-4">
+              <div class="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center">
+                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+              </div>
+              <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 uppercase tracking-wider">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live
+              </span>
+            </div>
+            <h3 class="font-semibold text-gray-900 text-sm">CRM (לידים לאירועים וזכיינות)</h3>
+            <p class="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">ניהול פניות שמגיעות מהאתר לקייטרינג ואירועי כוכבים ולבקשות להקמת סניף זיכיון חדש.</p>
+            <div class="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400">
+              <span>סנכרון אחרון: הבוקר 09:30</span><span>Webhook</span>
+            </div>
           </div>
+
         </div>
       </div>
     </div>
 
-    <!-- ================= פאנל AI צ'אט צדדי (תמידי) ================= -->
-    <div class="w-[400px] bg-white border-r border-gray-200 flex flex-col shadow-[-4px_0_24px_rgba(0,0,0,0.02)] z-20 flex-shrink-0">
-      <div class="h-16 flex justify-between items-center px-5 border-b border-gray-100">
+    <!-- ================= פאנל AI צ'אט צדדי (תמיד פתוח בדסקטופ, טאב במובייל) ================= -->
+    <div id="panel-chat" class="mobile-view flex-col w-full md:w-[400px] bg-white border-r border-gray-200 shadow-[-4px_0_24px_rgba(0,0,0,0.02)] z-20 flex-shrink-0 relative h-full">
+      <div class="h-16 flex justify-between items-center px-5 border-b border-gray-100 flex-shrink-0">
         <div class="flex items-center">
           <div class="w-6 h-6 rounded bg-black text-white flex items-center justify-center mr-0 ml-3">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
           </div>
           <div>
             <h2 class="font-medium text-sm">WizBI Agent</h2>
-            <p id="chat-context-title" class="text-[10px] text-gray-400">הקשר: רשת ציבורית</p>
+            <p id="chat-context-title" class="text-[10px] text-gray-400">הקשר: כלל הרשת</p>
           </div>
         </div>
       </div>
 
       <!-- אזור הודעות -->
-      <div id="chatLog" class="flex-1 overflow-y-auto p-5 flex flex-col gap-6 bg-gray-50/30">
+      <div id="chatLog" class="flex-1 overflow-y-auto p-4 md:p-5 flex flex-col gap-5 bg-gray-50/30">
         <!-- תוכן הדיפולט של הצ'אט נטען דרך JS -->
       </div>
 
       <!-- אזור כתיבה ושליחה -->
-      <div class="p-4 bg-white border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] relative z-10">
+      <div class="p-4 bg-white border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] relative z-10 flex-shrink-0 max-md:pb-24">
         <!-- כפתורי הצעות דינמיים -->
         <div id="prompt-container" class="flex flex-wrap gap-2 mb-3">
           <!-- נטען דרך JS -->
@@ -362,6 +446,25 @@
     </div>
   </main>
 
+  <!-- ================= תפריט תחתון (Mobile Bottom Nav - TikTok Style) ================= -->
+  <nav class="md:hidden fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around items-center h-16 z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.03)] pb-safe">
+    <button onclick="switchMobileTab('dashboard')" id="nav-mobile-dashboard" class="flex flex-col items-center justify-center w-full h-full text-black transition-colors pt-1">
+      <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+      <span class="text-[10px] font-medium">דשבורד</span>
+    </button>
+    
+    <button onclick="switchMobileTab('chat')" id="nav-mobile-chat" class="flex flex-col items-center justify-center w-full h-full text-gray-400 transition-colors pt-1 relative">
+      <div class="absolute top-1 right-1/4 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></div>
+      <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+      <span class="text-[10px] font-medium">WizBI Agent</span>
+    </button>
+
+    <button onclick="switchMobileTab('connectors')" id="nav-mobile-connectors" class="flex flex-col items-center justify-center w-full h-full text-gray-400 transition-colors pt-1">
+      <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+      <span class="text-[10px] font-medium">קונקטורים</span>
+    </button>
+  </nav>
+
   <script>
     // --- ניהול הסטייט וההקשר של ה-AI ---
     let currentContext = 'network'; // 'network' או 'branch'
@@ -369,31 +472,31 @@
 
     // נתוני טקסט ל-AI עבור הרשת
     const networkContext = {
-      greeting: `היי! אני כאן לעזור לך לנהל את רשת Potato Star. <br><br><strong>עדכון חם:</strong> נכנסו 3 פניות חדשות דרך טופס הזכיינות באתר. בנוסף, ה"מק אנד צ'יז" שובר שיאים היום בוולט בסניף אשקלון.<br>לחץ על אחד הסניפים בדשבורד כדי לצלול לנתונים שלו.`,
+      greeting: `היי! אני סורק כעת את הנתונים מ-Tabit (קופות), Wolt והזמנות האונליין של הרשת. <br><br><strong>עדכון חם:</strong> נכנסו 3 פניות חדשות לזכיינות ב-CRM. בנוסף, מנת ה"מק אנד צ'יז" שוברת שיאים היום במשלוחי Wolt בסניף אשקלון.<br>לחץ על אחד הסניפים בדשבורד (או שאל אותי) כדי לצלול לנתונים.`,
       prompts: [
         { text: 'סטטוס לידים לזכיינות', q: 'מה המצב של פניות הזכיינות השבוע?' },
         { text: 'מנת הטאבון הכי נמכרת ברשת', q: 'איזה מוצר הכי רווחי היום בטאבון בכל הרשת?' },
-        { text: 'דוח אירועים של כוכבים', q: 'מה ההכנסות מאירועים החודש?' }
+        { text: 'מכירות אונליין מול Wolt', q: 'מה מצב ההזמנות הישירות באתר (Bite) לעומת Wolt היום?' }
       ],
       responses: {
-        'מה המצב של פניות הזכיינות השבוע?': 'השבוע נכנסו 14 לידים חדשים לזכיינות. המלצה: העבר אותם לצוות הפיתוח.',
-        'איזה מוצר הכי רווחי היום בטאבון בכל הרשת?': 'תפוח אדמה מפוצץ בכל טוב מוביל עם שולי רווח של 72%.',
-        'מה ההכנסות מאירועים החודש?': 'מחלקת האירועים הכניסה ₪42,500 מ-8 אירועים. יש 3 לידים חמים פתוחים ב-CRM.'
+        'מה המצב של פניות הזכיינות השבוע?': 'השבוע נכנסו 14 לידים חדשים לזכיינות. המלצה: העבר אותם לצוות הפיתוח העסקי להמשך טיפול.',
+        'איזה מוצר הכי רווחי היום בטאבון בכל הרשת?': 'תפוח אדמה מפוצץ בכל טוב מוביל עם שולי רווח של 72% (עלות המזון לפי Marketman ירדה השבוע).',
+        'מה מצב ההזמנות הישירות באתר (Bite) לעומת Wolt היום?': 'בוולט הכנסנו ₪4,200, אבל באתר ההזמנות הישיר (Bite) הכנסנו ₪3,800 נקיים מעמלות. כדאי לשלוח קמפיין SMS לחברי המועדון בערב כדי לחזק את ההזמנות הישירות.'
       }
     };
 
     // נתוני טקסט ל-AI עבור רמת סניף ספציפי
     const branchContext = {
-      greeting: `עברנו לנתוני <strong>[BRANCH_NAME]</strong>.<br><br>שמתי לב שבשעה 16:00 הייתה צניחה במכירות, אבל מצבת העובדים נשארה מלאה ולכן ה-Labor Cost חרג (ראה בגרף). איך תרצה לטפל בזה מחר?`,
+      greeting: `עברנו לנתוני <strong>[BRANCH_NAME]</strong>.<br><br>הצלבה שעשיתי הרגע בין קופות Tabit למערכת השיבוץ מראה שבשעה 16:00 הייתה צניחה במכירות, אבל מצבת העובדים נשארה מלאה ולכן ה-Labor Cost חרג (ראה בגרף). איך תרצה לטפל בזה?`,
       prompts: [
         { text: 'למה ה-Labor Cost חורג?', q: 'תסביר לי למה ה-Labor Cost חורג היום בסניף?' },
-        { text: 'מנות חזקות בסניף', q: 'איזה מנות תורמות הכי הרבה לרווח התפעולי פה?' },
+        { text: 'מנות חזקות במשלוח', q: 'איזה מנות תורמות הכי הרבה לרווח התפעולי בוולט?' },
         { text: 'השוואה לשבוע שעבר', q: 'איך הביצועים של הסניף לעומת יום שלישי שעבר?' }
       ],
       responses: {
-        'תסביר לי למה ה-Labor Cost חורג היום בסניף?': 'בין 14:00 ל-16:00 היו פחות הזמנות Wolt מהרגיל, אבל 2 עובדי פס נשארו שעה נוספת. זה עלה לנו ₪120 מיותרים שהורידו את הרווח התפעולי. כדאי לחדד מול מנהל המשמרת שחרור עובדים בירידת לחץ.',
-        'איזה מנות תורמות הכי הרבה לרווח התפעולי פה?': '"תפוח אדמה מפוצץ (טאבון)" ייצר פה היום ₪1,340 נטו לרווח בגלל Food Cost נמוך מאוד של 24%. המלצה: לעשות עליו Upsell של שתייה ב-8 שקלים.',
-        'איך הביצועים של הסניף לעומת יום שלישי שעבר?': 'ההכנסות כמעט זהות, אבל הרווח הגולמי השתפר ב-1.5% בגלל ירידה במחירי הירקות מהספק המרכזי.'
+        'תסביר לי למה ה-Labor Cost חורג היום בסניף?': 'בין 14:00 ל-16:00 היו פחות הזמנות Wolt מהרגיל (ירידה של 30%), אבל 2 עובדי פס נשארו שעה נוספת במערכת ה-Shift. זה עלה לנו ₪120 מיותרים שהורידו את הרווח התפעולי.',
+        'איזה מנות תורמות הכי הרבה לרווח התפעולי בוולט?': '"קומבו משפחתי" מייצר פה היום רווח נקי של ₪540 (אפילו אחרי 27% עמלת וולט). כדאי לקדם את המנה הזו כ"המלצת השף" באפליקציה למחר.',
+        'איך הביצועים של הסניף לעומת יום שלישי שעבר?': 'ההכנסות זהות, אבל הרווח הגולמי השתפר ב-1.5% תודות לסנכרון מחירון חדש מספק הירקות דרך מערכת Marketman.'
       }
     };
 
@@ -426,7 +529,7 @@
 
       // רנדר כפתורים
       promptContainer.innerHTML = config.prompts.map(p => 
-        `<button class="prompt-btn text-[11px] font-medium px-3 py-1.5 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" data-prompt="${p.q}">${p.text}</button>`
+        `<button class="prompt-btn text-[11px] font-medium px-3 py-1.5 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors flex-shrink-0" data-prompt="${p.q}">${p.text}</button>`
       ).join('');
 
       // חבר מאזינים לכפתורים החדשים
@@ -464,50 +567,99 @@
 
       setTimeout(() => {
         const responses = currentContext === 'network' ? networkContext.responses : branchContext.responses;
-        const response = responses[text] || 'כסוכן AI המחובר למערכות המידע, הנתונים העדכניים מראים שהמגמה חיובית. כדאי להעיף מבט בגרף המכירות לאורך היום.';
+        const response = responses[text] || 'אני מצליב כעת נתונים מהקופות ומהמשלוחים... הנתונים העדכניים מראים שהמגמה חיובית. כדאי להעיף מבט בגרף המכירות לאורך היום להבנה עמוקה יותר.';
         addMessage('ai', response);
       }, 500);
     }
 
-    // --- ניווט ודינמיות פנימית ---
+    // --- ניווט בין דפים (Desktop + Desktop-driven logic) ---
     function switchPage(pageId, context = 'network') {
+      // הסתר את הדפים המרכזיים
       document.querySelectorAll('.page-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('bg-gray-100', 'text-gray-900');
         btn.classList.add('text-gray-600', 'hover:bg-gray-50');
       });
 
-      // אם אנחנו חוזרים לדשבורד - נסמן אותו
-      if(pageId === 'dashboard' || pageId === 'branch') {
-          const dashboardBtn = document.getElementById('nav-dashboard');
-          dashboardBtn.classList.remove('text-gray-600', 'hover:bg-gray-50');
-          dashboardBtn.classList.add('bg-gray-100', 'text-gray-900');
-      } else {
-          const activeBtn = document.getElementById('nav-' + pageId);
-          if(activeBtn) {
-            activeBtn.classList.remove('text-gray-600', 'hover:bg-gray-50');
-            activeBtn.classList.add('bg-gray-100', 'text-gray-900');
-          }
+      // סימון בתפריט צד (דסקטופ)
+      const tabToHighlight = (pageId === 'branch') ? 'dashboard' : pageId;
+      const activeBtn = document.getElementById('nav-' + tabToHighlight);
+      if(activeBtn) {
+        activeBtn.classList.remove('text-gray-600', 'hover:bg-gray-50');
+        activeBtn.classList.add('bg-gray-100', 'text-gray-900');
       }
 
+      // הצגת התוכן הרלוונטי
       document.getElementById('page-' + pageId).classList.remove('hidden');
 
-      // עדכון ה-AI אם צריך
+      // סנכרון שורת הניווט למובייל (אם לחצו מתוך הדסקטופ או מתוך הדף עצמו)
+      if (window.innerWidth < 768) {
+         syncMobileNavUI(tabToHighlight);
+      }
+
+      // עדכון הקשר ה-AI
       if (context === 'network' && currentContext !== 'network') {
         initChatContext('network');
       }
     }
 
+    // --- ניווט ייעודי למובייל (Mobile Tabs) ---
+    function switchMobileTab(tabId) {
+      syncMobileNavUI(tabId);
+
+      const mainArea = document.getElementById('main-content-area');
+      const chatPanel = document.getElementById('panel-chat');
+
+      if (tabId === 'chat') {
+        // מציג את הטאב של הצ'אט, מסתיר את שאר האפליקציה (רק למובייל!)
+        mainArea.classList.remove('mobile-active');
+        chatPanel.classList.add('mobile-active');
+      } else {
+        // חוזר לאזור האפליקציה הרגיל ומעביר לדף הנכון
+        chatPanel.classList.remove('mobile-active');
+        mainArea.classList.add('mobile-active');
+        switchPage(tabId);
+      }
+    }
+
+    // פונקציית עזר לסימון האייקון הנכון בתפריט התחתון
+    function syncMobileNavUI(activeTab) {
+      const tabs = ['dashboard', 'chat', 'connectors'];
+      tabs.forEach(t => {
+        const el = document.getElementById('nav-mobile-' + t);
+        if (el) {
+          el.classList.remove('text-black');
+          el.classList.add('text-gray-400');
+        }
+      });
+      
+      const activeEl = document.getElementById('nav-mobile-' + activeTab);
+      if (activeEl) {
+        activeEl.classList.remove('text-gray-400');
+        activeEl.classList.add('text-black');
+      }
+    }
+
+    // פתיחת נתוני סניף (Drill down)
     function openBranchDetails(name, revenue, orders, labor) {
-      document.getElementById('b-title').innerHTML = `${name} <span class="px-2 py-1 ml-2 bg-emerald-100 text-emerald-700 text-[10px] rounded-full uppercase tracking-wide">Live POS</span>`;
+      document.getElementById('b-title').innerHTML = `${name} <span class="px-2 py-1 md:ml-2 bg-emerald-100 text-emerald-700 text-[10px] rounded-full uppercase tracking-wide inline-block mt-2 md:mt-0">Live POS</span>`;
       document.getElementById('b-rev').innerText = `₪${revenue}`;
       document.getElementById('b-labor').innerText = labor;
       
+      // החלף דף לדף הסניף
       switchPage('branch', 'branch');
+      
+      // במובייל, וודא שאזור התוכן המרכזי מוצג (ולא הצ'אט)
+      if (window.innerWidth < 768) {
+        document.getElementById('panel-chat').classList.remove('mobile-active');
+        document.getElementById('main-content-area').classList.add('mobile-active');
+        syncMobileNavUI('dashboard'); // סניף הוא תחת לשונית דשבורד
+      }
+
       initChatContext('branch', name);
     }
 
-    // מאזינים לאירועי כפתור השליחה
+    // מאזינים לאירועי כפתור השליחה של הצ'אט
     sendBtn.addEventListener('click', () => handleSend());
     chatInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') handleSend();
