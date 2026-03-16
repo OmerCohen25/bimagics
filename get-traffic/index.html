@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get-Traffic.ai | מכונת הצמיחה האוטונומית שלכם</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap');
+        
+        body {
+            font-family: 'Heebo', sans-serif;
+            background-color: #F4F4F0;
+            color: #000000;
+            background-image: radial-gradient(#d1d1d1 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        /* Neo-Brutalist Utilities */
+        .brutal-border {
+            border: 3px solid #000000;
+        }
+        @media (min-width: 768px) {
+            .brutal-border { border-width: 4px; }
+        }
+
+        .brutal-shadow {
+            box-shadow: 4px 4px 0px 0px #000000;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        @media (min-width: 768px) {
+            .brutal-shadow { box-shadow: 8px 8px 0px 0px #000000; }
+        }
+
+        .brutal-shadow:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px 0px #000000;
+        }
+        @media (min-width: 768px) {
+            .brutal-shadow:hover {
+                transform: translate(4px, 4px);
+                box-shadow: 4px 4px 0px 0px #000000;
+            }
+        }
+
+        .brutal-shadow:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0px 0px 0px 0px #000000;
+        }
+        @media (min-width: 768px) {
+            .brutal-shadow:active {
+                transform: translate(8px, 8px);
+                box-shadow: 0px 0px 0px 0px #000000;
+            }
+        }
+
+        .brutal-card {
+            background-color: #ffffff;
+            border: 3px solid #000000;
+            box-shadow: 4px 4px 0px 0px #000000;
+        }
+        @media (min-width: 768px) {
+            .brutal-card {
+                border-width: 4px;
+                box-shadow: 8px 8px 0px 0px #000000;
+            }
+        }
+
+        /* Brand Colors */
+        .bg-gt-yellow { background-color: #FFD700; }
+        .bg-gt-blue { background-color: #0055FF; color: white; }
+        .bg-gt-pink { background-color: #FF007F; color: white; }
+        .bg-gt-green { background-color: #00E676; }
+        .bg-gt-purple { background-color: #9D00FF; color: white; }
+
+        /* Mockup containers */
+        .chat-bubble-agent {
+            background-color: #ffffff;
+            border: 3px solid #000;
+            border-top-right-radius: 0;
+            border-radius: 1rem 0 1rem 1rem;
+        }
+
+        .chat-bubble-user {
+            background-color: #FFD700;
+            border: 3px solid #000;
+            border-top-left-radius: 0;
+            border-radius: 0 1rem 1rem 1rem;
+        }
+
+        /* Bento Box Hover */
+        .bento-item {
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .bento-item:hover {
+            transform: scale(1.02) rotate(-1deg);
+            z-index: 10;
+        }
+        
+        /* Chart Hover Fix */
+        .chart-bar {
+            transition: all 0.2s ease-out;
+            transform-origin: bottom;
+        }
+        .chart-group:hover .chart-bar {
+            filter: brightness(1.2);
+            transform: scaleY(1.05);
+            border-color: #fff;
+        }
+
+        /* Custom Scrollbar for mobile chat */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-left: 2px solid #000; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #000; }
+
+        /* Animations */
+        @keyframes spin-slow { 100% { transform: rotate(360deg); } }
+        .animate-spin-slow { animation: spin-slow 2s linear infinite; }
+        .typing-cursor::after { content: '|'; animation: blink 1s step-end infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Hidden class for dynamic chat reveal */
+        .hidden-chat { display: none; opacity: 0; transition: opacity 0.5s ease-in; transform: translateY(10px); }
+        .reveal-chat { display: flex; opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body class="antialiased overflow-x-hidden selection:bg-black selection:text-white">
+
+    <nav class="fixed w-full z-50 bg-[#F4F4F0] brutal-border border-x-0 border-t-0">
+        <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex justify-between items-center">
+            <div class="flex items-center gap-2 md:gap-3 cursor-pointer">
+                <div class="w-8 h-8 md:w-10 md:h-10 bg-black text-white flex items-center justify-center brutal-shadow transform -rotate-3">
+                    <i class="ph-bold ph-trend-up text-lg md:text-xl"></i>
+                </div>
+                <span class="font-black text-xl md:text-3xl tracking-tight uppercase">Get-Traffic<span class="text-[#FF007F]">.ai</span></span>
+            </div>
+            <div class="hidden lg:flex gap-8 text-lg font-bold text-black">
+                <a href="#engines" class="hover:bg-gt-yellow px-2 transition-colors">מנועי צמיחה</a>
+                <a href="#how-it-works" class="hover:bg-gt-yellow px-2 transition-colors">אייג'נט בפעולה</a>
+                <a href="#dashboard" class="hover:bg-gt-yellow px-2 transition-colors">דשבורד תוצאות</a>
+            </div>
+            <div>
+                <button class="bg-gt-yellow text-black px-4 py-1.5 md:px-6 md:py-2 font-black text-sm md:text-base brutal-border brutal-shadow hover:bg-black hover:text-white transition-colors">
+                    התחילו בחינם
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="pt-32 pb-16 md:pt-40 md:pb-24 px-4 sm:px-6 max-w-7xl mx-auto flex flex-col items-center text-center">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 md:px-5 md:py-2 bg-white brutal-border brutal-shadow font-black mb-8 transform -rotate-2 text-sm md:text-base">
+            <i class="ph-bold ph-rocket-launch text-lg md:text-xl text-[#0055FF]"></i>
+            מכונת ה-Growth האולטימטיבית לבילדרים
+        </div>
+        
+        <h1 class="text-5xl sm:text-6xl md:text-[5.5rem] font-black mb-6 md:mb-8 leading-[1.1] md:leading-[1.05] text-black">
+            אתם כותבים את הקוד.<br>
+            אנחנו מביאים <span class="bg-gt-yellow px-2 md:px-4 inline-block transform rotate-1 border-2 md:border-4 border-black mt-2 md:mt-4">לקוחות משלמים.</span>
+        </h1>
+        
+        <p class="text-lg md:text-2xl text-gray-800 font-bold max-w-4xl mx-auto mb-10 md:mb-12 leading-relaxed px-2">
+            מספיק מינימום קונטקסט. תנו לינק, תמונות או מסמך על המוצר – ה-AI שלנו יבנה אסטרטגיה, יפתח נכסים ברשתות וישגר קמפיינים שמביאים טראפיק. 
+            <span class="bg-black text-white px-2 py-0.5 whitespace-nowrap mt-2 inline-block">הכל מקצה לקצה. אפשר להתחיל בחינם.</span>
+        </p>
+
+        <div class="w-full max-w-4xl relative px-2">
+            <div class="bg-white brutal-border p-2 md:p-3 flex flex-col md:flex-row gap-2 md:gap-3 brutal-shadow transition-all" id="demo-container">
+                <div class="flex-1 flex items-center px-3 md:px-4 bg-gray-100 border-2 border-transparent focus-within:border-black transition-colors">
+                    <i class="ph-bold ph-link text-black text-xl md:text-2xl ml-2 md:ml-3"></i>
+                    <input type="text" id="demo-url" placeholder="הדביקו לינק לאתר, או תארו את המוצר שלכם..." 
+                           class="w-full bg-transparent border-none focus:ring-0 text-black placeholder-gray-500 font-bold text-base md:text-xl py-4 md:py-5 outline-none">
+                </div>
+                <div class="flex gap-2 md:gap-3">
+                    <button type="button" id="demo-btn" onclick="runDemo()" class="w-full md:w-auto bg-gt-blue text-white brutal-border brutal-shadow px-6 md:px-10 py-4 md:py-5 font-black text-lg md:text-xl hover:-translate-y-1 hover:bg-black transition-all flex justify-center items-center gap-2 whitespace-nowrap">
+                        <i class="ph-bold ph-magic-wand text-xl md:text-2xl" id="demo-icon"></i>
+                        <span id="demo-text">הדגמה (חולל קסם)</span>
+                    </button>
+                </div>
+            </div>
+            <div class="flex flex-wrap justify-center gap-3 sm:gap-6 mt-6 font-bold text-gray-600 text-sm md:text-lg text-center">
+                <span class="flex items-center justify-center gap-1.5"><i class="ph-bold ph-check-square text-[#00E676] text-xl"></i> ללא חשבונות מוקדמים</span>
+                <span class="flex items-center justify-center gap-1.5"><i class="ph-bold ph-check-square text-[#00E676] text-xl"></i> Omni-channel מוחלט</span>
+                <span class="flex items-center justify-center gap-1.5"><i class="ph-bold ph-check-square text-[#00E676] text-xl"></i> דשבורד מעקב שקוף</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="engines" class="py-16 md:py-24 bg-black border-y-4 border-black">
+        <div class="max-w-7xl mx-auto px-4 md:px-6">
+            <div class="text-center mb-12 md:mb-16">
+                <h2 class="text-4xl md:text-6xl font-black mb-4 uppercase text-white">לא רק קמפיינים. <br><span class="text-gt-yellow underline decoration-4 underline-offset-8">מכונת Omnichannel.</span></h2>
+                <p class="text-xl md:text-2xl font-bold text-gray-400 max-w-3xl mx-auto">
+                    אנחנו מקימים לכם ארסנל. ה-AI בוחר את התמהיל המדויק למוצר שלכם ומפעיל את חמשת מנועי הצמיחה במקביל.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                
+                <div class="md:col-span-2 lg:col-span-2 bg-gt-yellow brutal-border p-6 md:p-8 bento-item flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 bg-black text-white brutal-border flex items-center justify-center mb-4">
+                            <i class="ph-bold ph-currency-circle-dollar text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl md:text-3xl font-black mb-2 text-black uppercase">מנוע ה-Paid Ads</h3>
+                        <p class="text-black font-bold text-base md:text-lg mb-4">קניית טראפיק מדויק ב-Meta וב-Google. ה-AI שואב תמונות, מייצר וידאו אוטומטית, מנהל את התקציב וסוגר מודעות מפסידות 24/7.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mt-4">
+                        <span class="bg-white text-black px-2 py-1 font-black text-xs brutal-border">Facebook</span>
+                        <span class="bg-white text-black px-2 py-1 font-black text-xs brutal-border">Instagram</span>
+                        <span class="bg-white text-black px-2 py-1 font-black text-xs brutal-border">Google Search</span>
+                    </div>
+                </div>
+
+                <div class="md:col-span-1 lg:col-span-2 bg-gt-pink text-white brutal-border p-6 md:p-8 bento-item flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 bg-white text-black brutal-border flex items-center justify-center mb-4">
+                            <i class="ph-bold ph-tiktok-logo text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl md:text-3xl font-black mb-2 uppercase">המנוע הוויראלי (אורגני)</h3>
+                        <p class="text-white font-bold text-base md:text-lg">שיווק אורגני ללא מאמץ. המערכת מקימה לכם עמודים ומייצרת סרטוני טיקטוק ו-Reels ויראליים עם קריינות AI ואנימציות.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mt-4">
+                        <span class="bg-black text-white px-2 py-1 font-black text-xs brutal-border border-white">TikTok</span>
+                        <span class="bg-black text-white px-2 py-1 font-black text-xs brutal-border border-white">Reels</span>
+                        <span class="bg-black text-white px-2 py-1 font-black text-xs brutal-border border-white">YouTube Shorts</span>
+                    </div>
+                </div>
+
+                <div class="md:col-span-2 lg:col-span-2 bg-gt-blue text-white brutal-border p-6 md:p-8 bento-item flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 bg-white text-black brutal-border flex items-center justify-center mb-4">
+                            <i class="ph-bold ph-envelope-simple-open text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl md:text-3xl font-black mb-2 uppercase">צלף הלידים (B2B)</h3>
+                        <p class="text-white font-bold text-base md:text-lg">מוכרים לעסקים? המערכת שואבת לידים מלינקדאין, מנתחת חברות, ושולחת אימיילים קרים מותאמים אישית שמביאים לפגישות דמו.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mt-4">
+                        <span class="bg-black text-white px-2 py-1 font-black text-xs brutal-border border-white">Cold Emails</span>
+                        <span class="bg-black text-white px-2 py-1 font-black text-xs brutal-border border-white">LinkedIn Automation</span>
+                    </div>
+                </div>
+
+                <div class="md:col-span-1 lg:col-span-1 bg-white brutal-border p-6 md:p-8 bento-item flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 bg-black text-white brutal-border flex items-center justify-center mb-4">
+                            <i class="ph-bold ph-reddit-logo text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl md:text-2xl font-black mb-2 uppercase text-black">לוחמת קהילות</h3>
+                        <p class="text-gray-700 font-bold text-sm md:text-base">ה-AI סורק קהילות כמו Reddit 24/7. מישהו צריך פתרון? הסוכן שותל המלצה אורגנית למוצר שלכם.</p>
+                    </div>
+                </div>
+
+                <div class="md:col-span-1 lg:col-span-1 bg-[#00E676] brutal-border p-6 md:p-8 bento-item flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 bg-black text-white brutal-border flex items-center justify-center mb-4">
+                            <i class="ph-bold ph-magnifying-glass text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl md:text-2xl font-black mb-2 uppercase text-black">SEO פרוגרמטי</h3>
+                        <p class="text-gray-800 font-bold text-sm md:text-base">אוטו-בלוגינג. ה-AI כותב מאמרים ויוצר דפי נחיתה למונחי חיפוש כדי לשאוב טראפיק חינמי לחלוטין.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="py-16 md:py-24 bg-white border-y-4 border-black">
+        <div class="max-w-7xl mx-auto px-4 md:px-6">
+            <div class="grid lg:grid-cols-2 gap-12 md:gap-16 items-center">
+                
+                <div id="chat-mockup-section" class="brutal-card p-0 bg-gray-100 flex flex-col h-[600px] md:h-[700px] transform md:rotate-1 transition-all duration-500">
+                    <div class="bg-black text-white px-4 md:px-6 py-3 md:py-4 flex items-center gap-3 md:gap-4 border-b-4 border-black">
+                        <div class="flex gap-1.5 md:gap-2">
+                            <div class="w-3 h-3 md:w-4 md:h-4 rounded-full bg-red-500 brutal-border"></div>
+                            <div class="w-3 h-3 md:w-4 md:h-4 rounded-full bg-yellow-500 brutal-border"></div>
+                            <div class="w-3 h-3 md:w-4 md:h-4 rounded-full bg-[#00E676] brutal-border"></div>
+                        </div>
+                        <div class="font-black tracking-widest uppercase text-sm md:text-base flex items-center gap-2">
+                            <i class="ph-fill ph-robot"></i> Get-Traffic Agent Live
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 md:p-6 flex flex-col gap-4 md:gap-6 overflow-y-auto custom-scrollbar flex-1 font-bold text-sm md:text-lg" id="chat-content">
+                        <div id="static-chat">
+                            <div class="flex items-center justify-center h-full text-gray-400 font-bold mt-10 md:mt-20 flex-col gap-4">
+                                <i class="ph-bold ph-magic-wand text-5xl md:text-6xl"></i>
+                                <p class="text-center px-4">הזינו את הלינק או התיאור למעלה כדי לראות את מכונת ה-Growth מרכיבה את האסטרטגיה שלכם בלייב.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="inline-block bg-gt-blue text-white font-black px-4 py-1 mb-6 brutal-border text-sm md:text-base">תזמור חכם (Orchestration)</div>
+                    <h2 class="text-4xl md:text-5xl font-black mb-6 md:mb-8 uppercase leading-tight">אתם מחליטים תקציב.<br><span class="bg-gt-yellow px-2 mt-2 inline-block">ה-AI מקים את המכונה.</span></h2>
+                    
+                    <p class="text-lg md:text-xl font-bold text-gray-700 mb-8 leading-relaxed">
+                        אתם רק מספקים מינימום מידע – URL, מסמך או תמונות. המערכת מקימה נכסים ומשגרת את התמהיל המדויק למוצר שלכם. הכל מנוהל מאחורי הקלעים.
+                    </p>
+
+                    <div class="space-y-4 md:space-y-6">
+                        <div class="p-4 md:p-6 bg-gray-100 brutal-border flex gap-4 items-start">
+                            <i class="ph-bold ph-brain text-3xl md:text-4xl text-gt-blue shrink-0 mt-1"></i>
+                            <div>
+                                <h4 class="text-xl font-black mb-1">ניתוח וקבלת החלטות</h4>
+                                <p class="font-bold text-gray-600 text-sm md:text-base">האייג'נט סורק את המידע שהזנתם, מבין את הקהל שלכם ובוחר בין 5 מנועי הצמיחה לאסטרטגיה אופטימלית.</p>
+                            </div>
+                        </div>
+                        <div class="p-4 md:p-6 bg-gray-100 brutal-border flex gap-4 items-start">
+                            <i class="ph-bold ph-factory text-3xl md:text-4xl text-gt-pink shrink-0 mt-1"></i>
+                            <div>
+                                <h4 class="text-xl font-black mb-1">יצירת תוכן ונכסים דיגיטליים</h4>
+                                <p class="font-bold text-gray-600 text-sm md:text-base">פתיחת דפי פייסבוק/אינסטגרם מאפס, יצירת סרטונים דינמיים, כתיבת פוסטים ושליחת מאות אימיילים ביום.</p>
+                            </div>
+                        </div>
+                        <div class="p-4 md:p-6 bg-gray-100 brutal-border flex gap-4 items-start">
+                            <i class="ph-bold ph-chart-line-up text-3xl md:text-4xl text-[#00E676] shrink-0 mt-1"></i>
+                            <div>
+                                <h4 class="text-xl font-black mb-1">סגירת הלופ עם דאטה אמיתי</h4>
+                                <p class="font-bold text-gray-600 text-sm md:text-base">ה-AI מצליב את ההוצאות בכל הרשתות מול ההמרות האמיתיות אצלכם, ומשפר את התקציב לפי ההצלחה.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Web + Agent Section -->
+    <section id="control" class="py-16 md:py-24 bg-[#00E676] border-y-4 border-black">
+        <div class="max-w-7xl mx-auto px-4 md:px-6">
+            <div class="text-center mb-12 md:mb-16">
+                <h2 class="text-4xl md:text-6xl font-black mb-4 uppercase text-black">שליטה כפולה: אייג'נט ודשבורד</h2>
+                <p class="text-xl md:text-2xl font-bold text-gray-800 max-w-3xl mx-auto">
+                    "טייס אוטומטי" לא אומר שאתם מחוץ לתמונה. אתם מקבלים גם מערכת ווב מתקדמת וגם סוכן חי שזמין תמיד.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 md:gap-12">
+                <!-- Dashboard Feature -->
+                <div class="brutal-card p-6 md:p-8 bg-white relative group overflow-hidden flex flex-col hover:-translate-y-1 transition-transform">
+                    <div class="w-16 h-16 bg-black text-white brutal-border flex items-center justify-center mb-6">
+                        <i class="ph-bold ph-desktop text-3xl"></i>
+                    </div>
+                    <h3 class="text-2xl md:text-4xl font-black mb-3">ממשק ווב עשיר למעקב</h3>
+                    <p class="text-gray-700 font-bold text-base md:text-lg mb-8 leading-relaxed">
+                        דשבורד שקוף שמראה לכם בדיוק איפה כל שקל הושקע ואילו קמפיינים מביאים תוצאות. תוכלו לערוך אסטרטגיות, לאשר קריאייטיב חדש, או פשוט לעקוב אחרי הגרפים.
+                    </p>
+                    <div class="w-full h-32 md:h-40 bg-gray-100 brutal-border relative mt-auto flex items-end justify-center gap-3 md:gap-4 p-4 overflow-hidden">
+                        <div class="w-10 h-[40%] bg-gt-pink brutal-border transition-all duration-300 group-hover:h-[60%]"></div>
+                        <div class="w-10 h-[60%] bg-[#00E676] brutal-border transition-all duration-300 group-hover:h-[80%]"></div>
+                        <div class="w-10 h-[30%] bg-gt-blue brutal-border transition-all duration-300 group-hover:h-[50%]"></div>
+                    </div>
+                </div>
+
+                <!-- Agent Feature -->
+                <div class="brutal-card p-6 md:p-8 bg-gt-blue text-white relative group flex flex-col hover:-translate-y-1 transition-transform">
+                    <div class="w-16 h-16 bg-gt-yellow text-black brutal-border flex items-center justify-center mb-6">
+                        <i class="ph-bold ph-robot text-3xl"></i>
+                    </div>
+                    <h3 class="text-2xl md:text-4xl font-black mb-3">אייג'נט 24/7 שעובד עבורכם</h3>
+                    <p class="text-blue-100 font-bold text-base md:text-lg mb-8 leading-relaxed">
+                        הסוכן האישי שלכם חי בוואטסאפ או במערכת. הוא מנהל את הקמפיינים מאחורי הקלעים, מדווח על הצלחות, ומבקש מכם אישורים מתי שצריך.
+                    </p>
+                    <div class="bg-black text-white p-4 md:p-5 brutal-border flex items-start gap-4 mt-auto">
+                        <i class="ph-bold ph-whatsapp-logo text-3xl md:text-4xl text-[#00E676] shrink-0 mt-1 md:mt-0"></i>
+                        <span class="font-black text-sm md:text-lg leading-tight">"היי! העברתי הרגע תקציב מהטיקטוק לפייסבוק בגלל ירידה בעלויות. מחר אשלח וידאו חדש לאישור."</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard 360 -->
+    <section id="dashboard" class="py-16 md:py-24 bg-black text-white border-b-4 border-black">
+        <div class="max-w-7xl mx-auto px-4 md:px-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 md:mb-16 gap-6">
+                <div>
+                    <div class="bg-gt-pink text-white inline-block px-3 py-1 font-black mb-4 brutal-border border-white uppercase transform -rotate-2">השורה התחתונה</div>
+                    <h2 class="text-4xl md:text-6xl font-black uppercase mb-4">דשבורד תוצאות (ROI)</h2>
+                    <p class="text-xl md:text-2xl font-bold text-gray-400 max-w-3xl leading-relaxed">
+                        אתם מקבלים ממשק ווב שמנקז את ההוצאות מכל ערוצי הצמיחה ומצליב אותן עם ההכנסות (או הלידים) שלכם ל<span class="text-gt-yellow">מספר אחד ברור.</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- The Brutal Dashboard -->
+            <div class="brutal-card border-white p-0 overflow-hidden bg-[#111] text-white">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y-4 sm:divide-y-0 sm:gap-y-0 lg:gap-y-0 lg:divide-x-4 lg:divide-x-reverse border-b-4 border-white">
+                    <div class="p-6 md:p-8 bg-[#00E676] text-black sm:border-l-4 sm:border-b-4 lg:border-b-0 border-white flex flex-col justify-between">
+                        <div class="font-black text-lg md:text-xl mb-4 uppercase flex items-center gap-2">
+                            <i class="ph-bold ph-credit-card text-2xl md:text-3xl"></i> הכנסות אוטומטיות
+                        </div>
+                        <div class="text-4xl md:text-5xl lg:text-6xl font-black">₪68,400</div>
+                        <div class="bg-black text-white font-bold inline-block px-3 py-1 mt-4 border-2 border-black text-sm self-start">משתמשים ששילמו</div>
+                    </div>
+                    <div class="p-6 md:p-8 bg-white text-black sm:border-b-4 lg:border-b-0 border-white flex flex-col justify-between">
+                        <div class="font-black text-lg md:text-xl mb-4 uppercase flex items-center gap-2">
+                            <i class="ph-bold ph-megaphone text-2xl md:text-3xl"></i> הוצאות שיווק
+                        </div>
+                        <div class="text-4xl md:text-5xl lg:text-6xl font-black">₪14,120</div>
+                        <div class="font-bold text-gray-600 mt-4 text-lg md:text-xl">ניהול התקציב השוטף</div>
+                    </div>
+                    <div class="p-6 md:p-8 bg-gray-300 text-black sm:border-l-4 border-white flex flex-col justify-between">
+                        <div class="font-black text-lg md:text-xl mb-4 uppercase flex items-center gap-2">
+                            <i class="ph-bold ph-users-three text-2xl md:text-3xl"></i> טראפיק יומי
+                        </div>
+                        <div class="text-4xl md:text-5xl lg:text-6xl font-black">2,450</div>
+                        <div class="font-bold text-[#0055FF] mt-4 text-lg md:text-xl"><i class="ph-bold ph-trend-up inline-block mr-1"></i> צמיחה ויראלית: 30%+</div>
+                    </div>
+                    <div class="p-6 md:p-8 bg-gt-blue text-white flex flex-col justify-between">
+                        <div class="font-black text-lg md:text-xl mb-4 uppercase text-gt-yellow flex items-center gap-2">
+                            <i class="ph-bold ph-chart-line-up text-2xl md:text-3xl"></i> רווח נקי מחושב
+                        </div>
+                        <div class="text-4xl md:text-5xl lg:text-6xl font-black text-gt-yellow">₪54,280</div>
+                        <div class="font-bold mt-4 text-sm md:text-base border-t-2 border-white/30 pt-4 text-blue-100">לאחר קיזוז הוצאות פרסום</div>
+                    </div>
+                </div>
+
+                <div class="p-6 md:p-10 bg-[#111]">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 md:mb-10 gap-4">
+                        <h4 class="font-black text-xl md:text-2xl uppercase">התפלגות טראפיק (ערוצים)</h4>
+                        <div class="flex flex-wrap items-center gap-4 md:gap-6 font-bold text-sm md:text-lg">
+                            <span class="flex items-center gap-2"><div class="w-3 h-3 md:w-5 md:h-5 bg-[#00E676] brutal-border border-white"></div> הכנסות</span>
+                            <span class="flex items-center gap-2"><div class="w-3 h-3 md:w-5 md:h-5 bg-[#FF007F] brutal-border border-white"></div> ממומן</span>
+                            <span class="flex items-center gap-2"><div class="w-3 h-3 md:w-5 md:h-5 bg-[#9D00FF] brutal-border border-white"></div> אורגני/וידאו</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-end justify-between h-40 md:h-56 gap-2 md:gap-4 px-1 md:px-2 border-b-2 border-white/20 pb-2">
+                        <!-- Chart Bars -->
+                        <div class="w-full flex justify-center gap-1 md:gap-2 items-end chart-group cursor-pointer h-full">
+                            <div class="w-3 md:w-8 bg-[#FF007F] chart-bar border-2 border-black" style="height: 40%"></div>
+                            <div class="w-3 md:w-8 bg-[#9D00FF] chart-bar border-2 border-black" style="height: 10%"></div>
+                            <div class="w-4 md:w-10 bg-[#00E676] chart-bar border-2 border-black" style="height: 50%"></div>
+                        </div>
+                        <div class="w-full flex justify-center gap-1 md:gap-2 items-end chart-group cursor-pointer h-full">
+                            <div class="w-3 md:w-8 bg-[#FF007F] chart-bar border-2 border-black" style="height: 35%"></div>
+                            <div class="w-3 md:w-8 bg-[#9D00FF] chart-bar border-2 border-black" style="height: 20%"></div>
+                            <div class="w-4 md:w-10 bg-[#00E676] chart-bar border-2 border-black" style="height: 55%"></div>
+                        </div>
+                        <div class="w-full justify-center gap-1 md:gap-2 items-end chart-group cursor-pointer hidden md:flex h-full">
+                            <div class="w-3 md:w-8 bg-[#FF007F] chart-bar border-2 border-black" style="height: 25%"></div>
+                            <div class="w-3 md:w-8 bg-[#9D00FF] chart-bar border-2 border-black" style="height: 30%"></div>
+                            <div class="w-4 md:w-10 bg-[#00E676] chart-bar border-2 border-black" style="height: 65%"></div>
+                        </div>
+                        <div class="w-full flex justify-center gap-1 md:gap-2 items-end chart-group cursor-pointer h-full">
+                            <div class="w-3 md:w-8 bg-[#FF007F] chart-bar border-2 border-black relative" style="height: 20%"></div>
+                            <div class="w-3 md:w-8 bg-[#9D00FF] chart-bar border-2 border-black relative" style="height: 40%"></div>
+                            <div class="w-4 md:w-10 bg-[#00E676] chart-bar border-2 border-black relative" style="height: 95%">
+                                <span class="absolute -top-10 left-1/2 -translate-x-1/2 bg-white text-black text-xs md:text-sm font-black px-2 py-1 brutal-border hidden md:block">היום</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Insight -->
+                    <div class="mt-8 md:mt-12 bg-gt-yellow text-black p-4 md:p-6 brutal-border border-white flex flex-col md:flex-row items-start md:items-center gap-4">
+                        <div class="bg-white p-2 brutal-border rounded-full shrink-0">
+                            <i class="ph-bold ph-sparkle text-2xl md:text-3xl"></i>
+                        </div>
+                        <div>
+                            <strong class="text-lg md:text-xl block mb-1 uppercase font-black">פעולת האייג'נט הבוקר (אופטימיזציה):</strong> 
+                            <span class="font-bold text-base md:text-lg">זיהינו קפיצה בהמרות מהסרטונים האורגניים בטיקטוק. האייג'נט לקח אוטומטית את הסרטון המצליח והפך אותו לקמפיין ממומן כדי להכפיל חשיפה.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer CTA -->
+    <section class="py-20 md:py-32 bg-gt-pink text-white text-center border-b-8 border-black px-4">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-5xl sm:text-6xl md:text-[5.5rem] font-black mb-6 md:mb-8 uppercase leading-[1.1]">מכונת הצמיחה <br>מחכה לכם.</h2>
+            <p class="font-bold text-xl md:text-3xl mb-10 md:mb-12 text-pink-100">ספקו לינק או תמונות. ה-AI ייצר וידאו, יפתח ערוצים וינהל לכם את השיווק מאפס.</p>
+            <button class="w-full sm:w-auto bg-black text-white px-8 md:px-12 py-5 md:py-6 font-black text-2xl md:text-3xl brutal-shadow hover:bg-gt-yellow hover:text-black transition-colors brutal-border border-black">
+                התחילו עכשיו בחינם!
+            </button>
+        </div>
+    </section>
+
+    <footer class="bg-white py-10 md:py-12 text-center font-bold text-black px-4 border-t-4 border-black">
+        <div class="text-xl md:text-2xl uppercase tracking-widest font-black">&copy; 2026 Get-Traffic.ai</div>
+        <p class="mt-2 text-gray-600 text-sm md:text-base">Built by Builders, for Builders. Powered by WizBI Platform.</p>
+    </footer>
+
+    <!-- Interactive Demo Script -->
+    <script>
+        const agentTemplate = (content) => `
+            <div class="flex items-start gap-3 md:gap-4 w-[95%] md:w-[90%] hidden-chat" id="chat-msg-${Date.now()}">
+                <div class="w-10 h-10 md:w-12 md:h-12 bg-gt-pink text-white brutal-border flex items-center justify-center shrink-0">
+                    <i class="ph-bold ph-robot text-xl md:text-2xl"></i>
+                </div>
+                <div class="chat-bubble-agent p-4 md:p-5 shadow-sm w-full leading-relaxed">
+                    ${content}
+                </div>
+            </div>
+        `;
+
+        const userTemplate = (content) => `
+            <div class="flex items-start gap-3 md:gap-4 w-[90%] mr-auto flex-row-reverse hidden-chat" id="chat-msg-${Date.now()}-u">
+                <div class="w-10 h-10 md:w-12 md:h-12 bg-black text-white brutal-border flex items-center justify-center shrink-0">
+                    <i class="ph-bold ph-user text-xl md:text-2xl"></i>
+                </div>
+                <div class="chat-bubble-user p-4 md:p-5 text-black shadow-sm text-left">
+                    ${content}
+                </div>
+            </div>
+        `;
+
+        async function runDemo() {
+            const input = document.getElementById('demo-url');
+            const btn = document.getElementById('demo-btn');
+            const icon = document.getElementById('demo-icon');
+            const text = document.getElementById('demo-text');
+            const chatContent = document.getElementById('chat-content');
+            
+            if (btn.disabled) return;
+            
+            btn.disabled = true;
+            document.getElementById('static-chat').style.display = 'none';
+            chatContent.innerHTML = '';
+            
+            // Step 1: Auto-typing
+            const targetUrl = "https://startup-crm.io/";
+            input.value = "";
+            input.classList.add("typing-cursor");
+            
+            for(let i=0; i<targetUrl.length; i++) {
+                input.value += targetUrl[i];
+                await new Promise(r => setTimeout(r, 50));
+            }
+            input.classList.remove("typing-cursor");
+            await new Promise(r => setTimeout(r, 500));
+
+            // Step 2: Scanning
+            btn.classList.remove('hover:-translate-y-1', 'bg-gt-blue');
+            btn.classList.add('bg-black', 'text-white');
+            icon.className = 'ph-bold ph-spinner animate-spin-slow text-xl md:text-2xl';
+            text.innerText = 'מנתח מידע ומחליט תמהיל...';
+
+            await new Promise(r => setTimeout(r, 2000));
+
+            // Scroll to chat
+            const element = document.getElementById('how-it-works');
+            const y = element.getBoundingClientRect().top + window.pageYOffset - 50;
+            window.scrollTo({top: y, behavior: 'smooth'});
+
+            // Step 3: Agent Analysis
+            btn.classList.remove('bg-black');
+            btn.classList.add('bg-gt-pink');
+            icon.className = 'ph-bold ph-video-camera text-xl md:text-2xl';
+            text.innerText = 'מייצר סרטונים, פוסטים ונכסים...';
+
+            await new Promise(r => setTimeout(r, 1000));
+            
+            chatContent.insertAdjacentHTML('beforeend', agentTemplate(`
+                היי! סרקתי את <strong>${targetUrl}</strong>.<br>
+                זיהיתי כלי B2B. בחרתי תמהיל של <strong>3 מנועי צמיחה:</strong><br>
+                <div class="bg-gray-100 p-3 mt-2 mb-3 border-2 border-black rounded-lg text-sm">
+                1. <strong>Paid Ads:</strong> וידאו מוכן ל-LinkedIn ול-Meta.<br>
+                2. <strong>B2B Outbound:</strong> חילצתי 500 מנכ"לים לשליחת אימייל קר.<br>
+                3. <strong>Social & Web:</strong> הקמתי עמודי פייסבוק ואינסטגרם רשמיים מאפס.
+                </div>
+                הנה תצוגה של סרטון הוידאו שחולל ה-AI לאינסטגרם:
+                <div class="mt-3 md:mt-4 p-2 md:p-3 border-2 border-black bg-gray-50 flex items-center gap-3 md:gap-4 hover:bg-white transition cursor-pointer">
+                    <div class="w-16 h-16 md:w-20 md:h-20 bg-gray-300 border-2 border-black overflow-hidden shrink-0 relative flex items-center justify-center group">
+                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=200&q=80" class="absolute inset-0 w-full h-full object-cover grayscale opacity-80 mix-blend-multiply group-hover:scale-110 transition-transform">
+                        <i class="ph-fill ph-play-circle text-4xl text-white drop-shadow-md z-10 group-hover:text-gt-yellow transition-colors"></i>
+                    </div>
+                    <div>
+                        <div class="font-black text-sm md:text-lg leading-tight mb-1">וידאו: ה-CRM שישנה לכם את היום</div>
+                        <div class="text-[#00E676] font-black text-xs md:text-sm"><i class="ph-bold ph-check"></i> עמודי הסושיאל והקופי מוכנים</div>
+                    </div>
+                </div>
+            `));
+            
+            setTimeout(() => chatContent.lastElementChild.classList.add('reveal-chat'), 50);
+
+            await new Promise(r => setTimeout(r, 2500));
+
+            // User
+            chatContent.insertAdjacentHTML('beforeend', userTemplate(`מטורף! הוידאו פצצה והאסטרטגיה מושלמת. שגר את כל המנועים.`));
+            setTimeout(() => chatContent.lastElementChild.classList.add('reveal-chat'), 50);
+            chatContent.scrollTop = chatContent.scrollHeight;
+
+            await new Promise(r => setTimeout(r, 1500));
+
+            // Launch
+            btn.classList.remove('bg-gt-pink', 'text-white');
+            btn.classList.add('bg-gt-yellow', 'text-black');
+            icon.className = 'ph-bold ph-rocket-launch text-xl md:text-2xl';
+            text.innerText = 'משגר קמפיינים למטא ולרשתות...';
+
+            await new Promise(r => setTimeout(r, 1500));
+
+            chatContent.insertAdjacentHTML('beforeend', agentTemplate(`
+                <div class="text-gt-blue font-black text-lg md:text-xl mb-2 flex items-center gap-2">
+                    <i class="ph-bold ph-rocket-launch"></i> כל המנועים באוויר!
+                </div>
+                מייל ראשון נשלח. סרטוני הטיקטוק רצים, והמודעות הממומנות נכנסו ללמידה.
+                <p class="mt-2 text-sm text-gray-600 border-t border-gray-200 pt-2">אני מנטר הכל 24/7. אתם יכולים לעקוב אחרי ההוצאות וההמרות בזמן אמת בדשבורד ה-ROI למטה.</p>
+            `));
+            setTimeout(() => chatContent.lastElementChild.classList.add('reveal-chat'), 50);
+            chatContent.scrollTop = chatContent.scrollHeight;
+
+            // Done
+            btn.classList.remove('bg-gt-yellow', 'text-black');
+            btn.classList.add('bg-[#00E676]', 'text-black');
+            icon.className = 'ph-bold ph-check-circle text-xl md:text-2xl';
+            text.innerText = 'מכונת הצמיחה פועלת!';
+
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.classList.remove('bg-[#00E676]', 'text-black');
+                btn.classList.add('bg-black', 'text-white', 'hover:-translate-y-1', 'hover:bg-gt-yellow', 'hover:text-black');
+                icon.className = 'ph-bold ph-magic-wand text-xl md:text-2xl';
+                text.innerText = 'בואו נדגים שוב!';
+                input.value = '';
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
